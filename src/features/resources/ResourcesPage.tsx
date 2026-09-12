@@ -164,24 +164,6 @@ export function ResourcesPage() {
     setViewing((v) => (v?.id === resource.id ? updated : v));
   }
 
-  async function shareResource(resource: Resource) {
-    const text = [resource.title, resource.description, resource.link].filter(Boolean).join('\n');
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: resource.title, text, url: resource.link });
-      } catch {
-        // person cancelled the share sheet — nothing to do
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(text);
-        alert(t.resources.shareCopied);
-      } catch {
-        // clipboard unavailable — silently ignore, sharing is a nice-to-have
-      }
-    }
-  }
-
   async function shareResourceLink(resource: Resource) {
     const payload = {
       title: resource.title,
@@ -385,9 +367,9 @@ export function ResourcesPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          shareResource(resource);
+                          shareResourceLink(resource);
                         }}
-                        aria-label={t.resources.share}
+                        aria-label={t.resources.shareLink}
                         className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
                       >
                         <Share2 size={14} />
@@ -431,7 +413,6 @@ export function ResourcesPage() {
         onEdit={openEdit}
         onDelete={remove}
         onToggleFavorite={toggleFavorite}
-        onShare={shareResource}
         onShareLink={shareResourceLink}
         onExportPdf={exportResourcePdf}
       />

@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Card } from '../../components/ui/Card';
 import { useT } from '../../i18n';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { useSettings } from '../../state/SettingsContext';
 import { FEELING_GROUPS, NEED_CATEGORY_GROUPS } from '../zugang/zugangContent';
 import { FEELING_DETAILS } from './feelingDetails';
@@ -28,6 +30,7 @@ export function FeelingsReferencePage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [showExplainers, setShowExplainers] = useState(false);
   const [showColorEditor, setShowColorEditor] = useState(false);
+  useRegisterModalOpen(showColorEditor);
   const [colorVersion, setColorVersion] = useState(0);
   const [customColors, setCustomColorsState] = useState(() => getCustomColors());
 
@@ -80,7 +83,7 @@ export function FeelingsReferencePage() {
           </button>
         </Card>
 
-        {showColorEditor && (
+        {showColorEditor && createPortal(
           <div className="fixed inset-0 z-[240] flex items-end sm:items-center justify-center animate-in" style={{ background: 'rgba(30,28,22,0.55)' }} onClick={() => setShowColorEditor(false)}>
             <div className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[420px] max-h-[85vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
@@ -122,7 +125,8 @@ export function FeelingsReferencePage() {
                 })}
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         <div className="flex flex-col gap-2.5">

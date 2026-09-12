@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
 type Answer = 'ja' | 'teilweise' | 'nein' | null;
 
@@ -36,6 +38,7 @@ const DIMENSIONS: Dimension[] = [
  */
 export function AccessGapModal({ subject, onClose }: { subject?: string; onClose: () => void }) {
   const t = useT();
+  useRegisterModalOpen(true);
   const [answers, setAnswers] = useState<Record<string, Answer>>({});
   const [showResult, setShowResult] = useState(false);
 
@@ -46,7 +49,7 @@ export function AccessGapModal({ subject, onClose }: { subject?: string; onClose
     setAnswers((prev) => ({ ...prev, [id]: a }));
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
         className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[440px] max-h-[85vh] overflow-y-auto p-5"
@@ -119,6 +122,7 @@ export function AccessGapModal({ subject, onClose }: { subject?: string; onClose
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

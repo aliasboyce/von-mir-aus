@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Check, ChevronLeft } from 'lucide-react';
 import { useT } from '../../i18n';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
 export interface ReflectionStep {
   id: string;
@@ -71,6 +73,7 @@ export function ReflectionModal({
   editCta,
 }: ReflectionModalProps) {
   const t = useT();
+  useRegisterModalOpen(true);
   const [values, setValues] = useState<Record<string, string>>(initialValues);
   const [stepIndex, setStepIndex] = useState(0);
   const [editing, setEditing] = useState(!savedSummary || savedSummary.length === 0);
@@ -148,7 +151,7 @@ export function ReflectionModal({
 
   const showSummary = savedSummary && savedSummary.length > 0 && !editing;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
         className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[440px] max-h-[85vh] overflow-y-auto p-5"
@@ -244,6 +247,7 @@ export function ReflectionModal({
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

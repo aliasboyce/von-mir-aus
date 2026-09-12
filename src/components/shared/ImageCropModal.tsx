@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useT } from '../../i18n';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
 interface ImageCropModalProps {
   src: string;
@@ -21,6 +23,7 @@ const FRAME = 280;
  */
 export function ImageCropModal({ src, onCancel, onConfirm }: ImageCropModalProps) {
   const t = useT();
+  useRegisterModalOpen(true);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const dragRef = useRef<{ startX: number; startY: number; startOffX: number; startOffY: number } | null>(null);
@@ -87,7 +90,7 @@ export function ImageCropModal({ src, onCancel, onConfirm }: ImageCropModalProps
     onConfirm(canvas.toDataURL('image/jpeg', 0.85));
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[245] flex items-center justify-center animate-in" style={{ background: 'rgba(30,28,22,0.75)' }}>
       <div className="bg-[var(--color-surface)] rounded-[24px] p-5 w-[90vw] max-w-[360px]">
         <p className="text-[15px] text-[var(--color-text)] mb-3 text-center">{t.imageCrop.title}</p>
@@ -137,6 +140,7 @@ export function ImageCropModal({ src, onCancel, onConfirm }: ImageCropModalProps
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

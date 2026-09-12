@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
@@ -13,6 +14,7 @@ import { ContinueSection } from './ContinueSection';
 import { AchievementSection } from './AchievementSection';
 import { Card } from '../../components/ui/Card';
 import { useT } from '../../i18n';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { useSettings } from '../../state/SettingsContext';
 import { weatherRepo } from '../innerWeather/weatherRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
@@ -53,6 +55,7 @@ export function HomePage() {
   const [reminderDismissed, setReminderDismissed] = useState(false);
   const [showWeatherExplainer, setShowWeatherExplainer] = useState(false);
   const [showNurJetztExplainer, setShowNurJetztExplainer] = useState(false);
+  useRegisterModalOpen(showNurJetztExplainer);
   const [showIntentPicker, setShowIntentPicker] = useState(false);
   const [groundingOpen, setGroundingOpen] = useState(false);
   const [openLetter, setOpenLetter] = useState<LetterToSelf | null>(null);
@@ -241,7 +244,7 @@ export function HomePage() {
         </button>
       )}
 
-      {showNurJetztExplainer && (
+      {showNurJetztExplainer && createPortal(
         <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={() => setShowNurJetztExplainer(false)}>
           <div
             className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[420px] p-5 overflow-y-auto"
@@ -266,7 +269,8 @@ export function HomePage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className="flex flex-col items-center mb-6">

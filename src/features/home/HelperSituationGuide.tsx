@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Phone, AlertTriangle } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { HELPER_SITUATIONS } from './helperSituations';
@@ -28,6 +30,7 @@ export function HelperSituationGuide({ onOpenGrounding }: { onOpenGrounding: () 
   const [safety, setSafety] = useState<Safety>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [showEmergency, setShowEmergency] = useState(false);
+  useRegisterModalOpen(showEmergency);
 
   const steps = ['whats-happening', 'safety', 'guidance', 'boundaries', 'small-offer', 'professional-help'] as const;
   const current = steps[step];
@@ -184,7 +187,7 @@ export function HelperSituationGuide({ onOpenGrounding }: { onOpenGrounding: () 
         </div>
       </Card>
 
-      {showEmergency && (
+      {showEmergency && createPortal(
         <div className="fixed inset-0 z-[240] bg-[rgba(44,42,34,0.4)] flex items-end sm:items-center justify-center" onClick={() => setShowEmergency(false)}>
           <div className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[420px] p-5" onClick={(e) => e.stopPropagation()}>
             <p className="text-[18px] text-[var(--color-text)] mb-3 flex items-center gap-2">
@@ -203,7 +206,8 @@ export function HelperSituationGuide({ onOpenGrounding }: { onOpenGrounding: () 
               {t.common.close}
             </Button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

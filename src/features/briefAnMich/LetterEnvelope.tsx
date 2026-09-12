@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import type { LetterToSelf } from './lettersRepo';
 
 interface LetterEnvelopeProps {
@@ -19,10 +21,11 @@ interface LetterEnvelopeProps {
  */
 export function LetterEnvelope({ letter, alreadyOpen, onClose, onOpened }: LetterEnvelopeProps) {
   const t = useT();
+  useRegisterModalOpen(true);
   const { settings } = useSettings();
   const [revealed, setRevealed] = useState(alreadyOpen);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.5)] flex items-center justify-center px-6" onClick={onClose}>
       <button onClick={onClose} aria-label={t.common.close} className="absolute top-5 right-5 text-white/80 p-2">
         <X size={22} />
@@ -57,7 +60,8 @@ export function LetterEnvelope({ letter, alreadyOpen, onClose, onOpened }: Lette
           </p>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
 

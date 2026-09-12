@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useT } from '../../i18n';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
 export function IOSPrintFallbackModal({ onClose }: { onClose: () => void }) {
   const t = useT();
+  useRegisterModalOpen(true);
   const [href] = useState(() => window.location.href);
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[245] flex items-end sm:items-center justify-center animate-in" style={{ background: 'rgba(30,28,22,0.55)' }} onClick={onClose}>
       <div className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[380px] p-5" onClick={(e) => e.stopPropagation()}>
         <p className="text-[16px] text-[var(--color-text)] mb-2">{t.common.iosPrintTitle}</p>
@@ -33,6 +36,7 @@ export function IOSPrintFallbackModal({ onClose }: { onClose: () => void }) {
           {t.common.cancel}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

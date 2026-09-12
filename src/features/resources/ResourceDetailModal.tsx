@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, Link as LinkIcon, Share2, Pencil, Trash2, NotebookPen, Check, FileDown, Link2, Timer as TimerIcon } from 'lucide-react';
+import { Heart, Link as LinkIcon, Pencil, Trash2, NotebookPen, Check, FileDown, Link2, Timer as TimerIcon } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
@@ -22,7 +22,6 @@ interface ResourceDetailModalProps {
   onEdit: (resource: Resource) => void;
   onDelete: (id: string) => boolean | void;
   onToggleFavorite: (resource: Resource) => void;
-  onShare: (resource: Resource) => void;
   onShareLink: (resource: Resource) => void;
   onExportPdf: (resource: Resource) => void;
 }
@@ -34,7 +33,6 @@ export function ResourceDetailModal({
   onEdit,
   onDelete,
   onToggleFavorite,
-  onShare,
   onShareLink,
   onExportPdf,
 }: ResourceDetailModalProps) {
@@ -136,9 +134,6 @@ export function ResourceDetailModal({
           >
             {t.common.favorite}
           </Button>
-          <Button variant="ghost" icon={<Share2 size={15} />} onClick={() => onShare(resource)}>
-            {t.resources.share}
-          </Button>
           <Button variant="ghost" icon={<Link2 size={15} />} onClick={() => onShareLink(resource)}>
             {t.resources.shareLink}
           </Button>
@@ -146,6 +141,7 @@ export function ResourceDetailModal({
             {t.resources.exportPdf}
           </Button>
         </div>
+        <p className="text-[11px] text-[var(--color-text-faint)] mb-2 leading-relaxed">{t.resources.shareVsPdfHint}</p>
         {resource.favorite && (
           <p className="text-[11px] text-[var(--color-text-faint)] mb-1">{t.resources.favoriteToNetworkHint}</p>
         )}

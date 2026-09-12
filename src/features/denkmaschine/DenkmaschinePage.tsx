@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import { Plus, X, Check } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -12,6 +13,7 @@ import { denkmaschineRepo, addGlaubenssatzNote, obstaclesFromZugangHistory } fro
 import { DefusionBillboardExercise, AnchorExercise, WordsExercise } from './DenkmaschineExercises';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
 import { CompulsionAwarenessNote } from '../../components/shared/CompulsionAwarenessNote';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
 type ModalTab = 'abstand' | 'neu' | 'uebungen';
 
@@ -37,6 +39,7 @@ export function DenkmaschinePage() {
   const [adding, setAdding] = useState(false);
   const [newText, setNewText] = useState('');
   const [openNote, setOpenNote] = useState<{ text: string; noteId?: string } | null>(null);
+  useRegisterModalOpen(!!openNote);
   const [reflectionDraft, setReflectionDraft] = useState('');
   const [reframeDraft, setReframeDraft] = useState('');
   const [modalTab, setModalTab] = useState<ModalTab>('abstand');
@@ -202,7 +205,7 @@ export function DenkmaschinePage() {
         <CompulsionAwarenessNote />
       </div>
 
-      {openNote && (
+      {openNote && createPortal(
         <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={() => setOpenNote(null)}>
           <div
             className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[440px] max-h-[85vh] overflow-y-auto p-5"
@@ -327,7 +330,8 @@ export function DenkmaschinePage() {
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

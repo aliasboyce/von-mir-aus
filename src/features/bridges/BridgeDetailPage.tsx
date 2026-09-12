@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Heart, Lightbulb, Pencil, NotebookPen, Check, Trash2, Timer as TimerIcon, Share2, Link2, FileDown } from 'lucide-react';
+import { ArrowLeft, Heart, Lightbulb, Pencil, NotebookPen, Check, Trash2, Timer as TimerIcon, Link2, FileDown } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
@@ -118,27 +118,6 @@ export function BridgeDetailPage() {
     window.addEventListener('afterprint', clear);
     return () => window.removeEventListener('afterprint', clear);
   }, []);
-
-  async function shareBridge() {
-    if (!bridge) return;
-    const text = [bridge.title, bridge.description, ...bridge.levels.map((l) => `Level ${l.level}: ${l.title} — ${l.description}`)]
-      .filter(Boolean)
-      .join('\n');
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: bridge.title, text });
-      } catch {
-        // person cancelled the share sheet — nothing to do
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(text);
-        alert(t.resources.shareCopied);
-      } catch {
-        // clipboard unavailable — silently ignore
-      }
-    }
-  }
 
   async function shareBridgeLink() {
     if (!bridge) return;
@@ -485,9 +464,6 @@ export function BridgeDetailPage() {
         )}
 
         <div className="flex gap-2 mt-3">
-          <Button variant="ghost" icon={<Share2 size={15} />} onClick={shareBridge}>
-            {t.resources.share}
-          </Button>
           <Button variant="ghost" icon={<Link2 size={15} />} onClick={shareBridgeLink}>
             {t.resources.shareLink}
           </Button>
@@ -495,6 +471,7 @@ export function BridgeDetailPage() {
             {t.resources.exportPdf}
           </Button>
         </div>
+        <p className="text-[11px] text-[var(--color-text-faint)] mt-1.5 leading-relaxed">{t.resources.shareVsPdfHint}</p>
 
         {activeLevel && (
           <p className="sr-only" role="status">

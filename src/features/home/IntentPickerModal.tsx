@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { useT } from '../../i18n';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
 interface Intent {
   emoji: string;
@@ -27,6 +29,7 @@ const INTENTS: Intent[] = [
  */
 export function IntentPickerModal({ onClose, onOpenGrounding }: { onClose: () => void; onOpenGrounding: () => void }) {
   const t = useT();
+  useRegisterModalOpen(true);
   const navigate = useNavigate();
 
   function go(labelKey: Intent['labelKey']) {
@@ -54,7 +57,7 @@ export function IntentPickerModal({ onClose, onOpenGrounding }: { onClose: () =>
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
         className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[420px] max-h-[85vh] overflow-y-auto p-5"
@@ -74,6 +77,7 @@ export function IntentPickerModal({ onClose, onOpenGrounding }: { onClose: () =>
           ))}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
