@@ -1,0 +1,293 @@
+/*
+  Design tokens for InnerPath.
+  Everything downstream (Tailwind utilities, components) reads from these
+  CSS custom properties so a whole palette or theme can change in one place.
+  See /docs or README "Design-System" section for the rationale.
+*/
+
+:root {
+  /* ---- Palette: Neutral (default) ---- */
+  --color-bg: #F7F3EA;              /* warm cream, page background */
+  --color-bg-soft: #F1ECE0;         /* slightly deeper cream, section backgrounds */
+  --color-surface: #FFFEFB;         /* card surfaces */
+  --color-surface-muted: #EFEAE0;   /* secondary card / input fill */
+  --color-border: #E4DDCC;          /* hairline borders */
+  --color-border-strong: #D8CFB8;
+
+  --color-text: #2C2A22;            /* primary text, warm near-black */
+  --color-text-muted: #6B6656;      /* secondary text */
+  --color-text-faint: #9A947F;      /* placeholder / tertiary */
+
+  --color-primary: #33502E;         /* deep forest green — primary actions */
+  --color-primary-strong: #24391F;
+  --color-primary-soft: #E3EAD9;    /* pale green fill, chips/badges */
+  --color-primary-soft-text: #33502E;
+
+  --color-accent-sun: #E4A63B;      /* warm sun / warmth accents */
+  --color-accent-sky: #6E9BB8;      /* sky / calm accents */
+  --color-accent-clay: #C17A56;     /* clay / grounding accents */
+
+  --color-danger: #B5533F;
+  --color-danger-soft: #F6E4DE;
+
+  /* ---- Radius ---- */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-full: 999px;
+
+  /* ---- Shadow ---- */
+  --shadow-sm: 0 1px 2px rgba(44, 42, 34, 0.04), 0 1px 1px rgba(44, 42, 34, 0.03);
+  --shadow-md: 0 6px 20px rgba(44, 42, 34, 0.07);
+  --shadow-lg: 0 14px 40px rgba(44, 42, 34, 0.10);
+
+  /* ---- Spacing scale ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ---- Typography ---- */
+  --font-display: 'Fraunces', 'Iowan Old Style', 'Georgia', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* used sparingly — a personal note, a tip, a gentle aside. Never for body copy. */
+  --font-hand: 'Caveat', 'Segoe Script', cursive;
+  /** "Wesen-Name in anderer, aber passender Schrift"-Auftrag — a warm,
+   * rounded, slightly playful typeface for the companion's own chosen
+   * name specifically, distinct from both the elegant serif used for
+   * app-level headings (--font-display) and the plain body text, so
+   * the name reads as personal/characterful rather than as another
+   * UI label. Quicksand and Baloo 2 were already loaded via the
+   * Google Fonts link in index.html but never actually assigned to a
+   * variable or used anywhere. */
+  --font-companion: 'Quicksand', 'Baloo 2', var(--font-body);
+
+  /* ---- Motion ---- */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-sm: 180ms;
+  --duration-md: 320ms;
+  --duration-lg: 600ms;
+
+  /* ---- Layout ---- */
+  --app-max-width: 480px;      /* mobile-first "app frame" */
+  --app-max-width-desktop: 560px;
+  --nav-height: 76px;
+}
+
+/* ---- Dark mode: soft, warm, never pure black ---- */
+[data-theme='dark'] {
+  --color-bg: #1E211C;
+  --color-bg-soft: #262A22;
+  --color-surface: #262A22;
+  --color-surface-muted: #2E3227;
+
+  --color-border: #3A3F32;
+  --color-border-strong: #454B3B;
+
+  --color-text: #EDEAE0;
+  --color-text-muted: #B3AF9E;
+  --color-text-faint: #83806E;
+
+  --color-primary: #8FB27C;
+  --color-primary-strong: #A9C79A;
+  --color-primary-soft: #33422C;
+  --color-primary-soft-text: #C3DDB4;
+
+  --color-accent-sun: #E7BB6C;
+  --color-accent-sky: #8FB6CE;
+  --color-accent-clay: #D0967A;
+
+  --color-danger: #D98B78;
+  --color-danger-soft: #3B2A25;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.28);
+  --shadow-lg: 0 14px 40px rgba(0, 0, 0, 0.34);
+}
+
+/* ---- Palette: Wald (forest) ---- */
+[data-palette='wald']:not([data-theme='dark']) {
+  --color-bg: #F3F1E6;
+  --color-primary: #2E4A2A;
+  --color-primary-soft: #DEE8D3;
+  --color-accent-sky: #6E9BB8;
+}
+[data-palette='wald'][data-theme='dark'] {
+  --color-bg: #1B1F19;
+  --color-bg-soft: #212620;
+  --color-surface: #212620;
+  --color-primary: #8FC17E;
+  --color-primary-strong: #A9D69A;
+  --color-primary-soft: #2C3A27;
+  --color-primary-soft-text: #B7DDA9;
+}
+
+/* ---- Palette: Meer (sea) ---- */
+[data-palette='meer']:not([data-theme='dark']) {
+  --color-bg: #EFF3F1;
+  --color-primary: #2A5A63;
+  --color-primary-soft: #D9E7E7;
+  --color-accent-clay: #C17A56;
+}
+[data-palette='meer'][data-theme='dark'] {
+  --color-bg: #161E20;
+  --color-bg-soft: #1C2528;
+  --color-surface: #1C2528;
+  --color-primary: #7FC2CE;
+  --color-primary-strong: #A0D6DE;
+  --color-primary-soft: #223B3F;
+  --color-primary-soft-text: #A9DBE2;
+}
+
+/* ---- Palette: Abend (evening) ---- */
+[data-palette='abend']:not([data-theme='dark']) {
+  --color-bg: #F1EDEE;
+  --color-primary: #5B4262;
+  --color-primary-soft: #E6DDE7;
+  --color-accent-sun: #D08A46;
+}
+[data-palette='abend'][data-theme='dark'] {
+  --color-bg: #1E1A22;
+  --color-bg-soft: #251F29;
+  --color-surface: #251F29;
+  --color-primary: #C7A2D6;
+  --color-primary-strong: #D9BEE5;
+  --color-primary-soft: #3A2E42;
+  --color-primary-soft-text: #DCC4E8;
+}
+
+/* ---- Palette: Sonnenaufgang (sunrise) ---- */
+[data-palette='sonnenaufgang']:not([data-theme='dark']) {
+  --color-bg: #FBF1E6;
+  --color-primary: #C4622E;
+  --color-primary-soft: #F3DBC4;
+  --color-accent-sun: #E0A23D;
+}
+[data-palette='sonnenaufgang'][data-theme='dark'] {
+  --color-bg: #241A14;
+  --color-bg-soft: #2B2018;
+  --color-surface: #2B2018;
+  --color-primary: #E8A467;
+  --color-primary-strong: #F0BC8B;
+  --color-primary-soft: #40291B;
+  --color-primary-soft-text: #F0C39A;
+}
+
+/* ---- Palette: Lavendel (lavender) ---- */
+[data-palette='lavendel']:not([data-theme='dark']) {
+  --color-bg: #F2EFF7;
+  --color-primary: #6C5E9E;
+  --color-primary-soft: #E2DCF2;
+  --color-accent-clay: #C48FA8;
+}
+[data-palette='lavendel'][data-theme='dark'] {
+  --color-bg: #1B1926;
+  --color-bg-soft: #22202F;
+  --color-surface: #22202F;
+  --color-primary: #B3A6E0;
+  --color-primary-strong: #C7BDE8;
+  --color-primary-soft: #322D48;
+  --color-primary-soft-text: #CCC2EC;
+}
+
+/* ---- Palette: Rosé (warm dusty pink) ---- */
+[data-palette='rose']:not([data-theme='dark']) {
+  --color-bg: #F8EDEA;
+  --color-primary: #A65D5D;
+  --color-primary-soft: #F0D9D6;
+}
+[data-palette='rose'][data-theme='dark'] {
+  --color-bg: #201716;
+  --color-bg-soft: #251C1B;
+  --color-surface: #251C1B;
+  --color-primary: #E39B95;
+  --color-primary-strong: #EDB3AE;
+  --color-primary-soft: #3A2624;
+  --color-primary-soft-text: #E8B6B1;
+}
+
+/* ---- Palette: Beige (warm tan) ---- */
+[data-palette='beige']:not([data-theme='dark']) {
+  --color-bg: #F1E9DC;
+  --color-primary: #7A5C3E;
+  --color-primary-soft: #E4D5BE;
+}
+[data-palette='beige'][data-theme='dark'] {
+  --color-bg: #1E1A14;
+  --color-bg-soft: #24201A;
+  --color-surface: #24201A;
+  --color-primary: #D4B483;
+  --color-primary-strong: #E0C79D;
+  --color-primary-soft: #362D20;
+  --color-primary-soft-text: #DCC08E;
+}
+
+/* ---- Palette: Creme (pale warm honey) ---- */
+[data-palette='creme']:not([data-theme='dark']) {
+  --color-bg: #FAF4E8;
+  --color-primary: #9C7A3F;
+  --color-primary-soft: #EEE0C4;
+}
+[data-palette='creme'][data-theme='dark'] {
+  --color-bg: #201C13;
+  --color-bg-soft: #262119;
+  --color-surface: #262119;
+  --color-primary: #E0C482;
+  --color-primary-strong: #EAD39D;
+  --color-primary-soft: #3A311F;
+  --color-primary-soft-text: #E3C98D;
+}
+
+/* ---- Palette: Puder (cool dusty blue-grey) ---- */
+[data-palette='puder']:not([data-theme='dark']) {
+  --color-bg: #EEF0F2;
+  --color-primary: #5C6B7A;
+  --color-primary-soft: #DCE1E6;
+}
+[data-palette='puder'][data-theme='dark'] {
+  --color-bg: #171A1D;
+  --color-bg-soft: #1D2124;
+  --color-surface: #1D2124;
+  --color-primary: #A8B7C4;
+  --color-primary-strong: #BEC9D4;
+  --color-primary-soft: #2A323A;
+  --color-primary-soft-text: #B3C0CB;
+}
+
+/* ---- Palette: Salbei (soft muted sage) ---- */
+[data-palette='salbei']:not([data-theme='dark']) {
+  --color-bg: #EEF1EA;
+  --color-primary: #6B7F5E;
+  --color-primary-soft: #DCE3D3;
+}
+[data-palette='salbei'][data-theme='dark'] {
+  --color-bg: #181A15;
+  --color-bg-soft: #1E211A;
+  --color-surface: #1E211A;
+  --color-primary: #A3B896;
+  --color-primary-strong: #B8CBAC;
+  --color-primary-soft: #2C3326;
+  --color-primary-soft-text: #AEC29F;
+}
+
+/* ---- Neutral dark refinement (default palette, dark mode) ---- */
+[data-palette='neutral'][data-theme='dark'] {
+  --color-primary: #8FB27C;
+  --color-primary-soft: #33422C;
+}
+
+/* Respect reduced motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

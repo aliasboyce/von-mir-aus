@@ -1,0 +1,373 @@
+import type { Bridge } from '../types';
+import { suggestImagesFor } from '../../components/shared/imageSuggestionLibrary';
+
+// Point 4 — same fix as resourceImpulses.seed.ts: local themed SVG
+// icons instead of an arbitrary picsum.photos photo per seed string.
+const img = (seed: string) => suggestImagesFor(seed)[0];
+
+/**
+ * A curated pool of bridge ideas the person hasn't created themselves —
+ * surfaced via "Impuls entdecken" on the Bridges page, never as a
+ * permanent list. Adopting one copies it into the person's own
+ * bridgesRepo with a fresh id; this pool itself is never edited or
+ * removed from by the user. Each entry carries a stable `impulseId`
+ * (separate from the eventual Bridge's own generated id) specifically so
+ * "already adopted, don't show again" can be tracked reliably even if
+ * the person later renames or edits their copy — see adoptedImpulsesRepo.
+ */
+export interface BridgeImpulse extends Omit<Bridge, 'id'> {
+  impulseId: string;
+}
+
+export const BRIDGE_IMPULSES: BridgeImpulse[] = [
+  {
+    impulseId: 'kalte-haende',
+    title: 'Kalte Hände, warmes Wasser',
+    category: 'koerper_intra',
+    image: img('impulse-wasser'),
+    description: 'Ein kurzer, sehr direkter Weg zurück in den Körper.',
+    levels: [
+      { level: 1, title: 'Hände unter kaltes Wasser halten', description: 'Ein paar Sekunden reichen schon.' },
+      { level: 2, title: 'Handgelenke kühlen', description: 'Etwas länger, etwas bewusster.' },
+    ],
+    tip: 'Die Temperatur darf unangenehm kühl sein, aber nie schmerzhaft.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'sicherer-ort',
+    title: 'Ein Ort, an dem ich schon mal sicher war',
+    category: 'gedanken_werte_intra',
+    image: img('impulse-ort'),
+    description: 'Sich einen konkreten, vertrauten Ort in Erinnerung rufen.',
+    levels: [
+      { level: 1, title: 'Kurz daran denken', description: 'Nur das Bild vor Augen haben.' },
+      { level: 2, title: 'Details sammeln', description: 'Was war dort zu sehen, zu hören, zu riechen?' },
+    ],
+    tip: 'Es muss kein besonderer Ort sein — auch ein Küchentisch kann sicher sein.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'haende-taetig',
+    title: 'Etwas mit den Händen tun',
+    category: 'koerper_intra',
+    image: img('impulse-haende'),
+    description: 'Eine einfache, wiederholende Handbewegung.',
+    levels: [
+      { level: 1, title: 'Etwas kneten oder drücken', description: 'Ein Ball, ein Kissen, ein Stück Stoff.' },
+      { level: 2, title: 'Etwas sortieren oder falten', description: 'Wäsche falten, Karten sortieren — egal was.' },
+    ],
+    tip: 'Es muss nichts Sinnvolles dabei entstehen.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'nachricht-entwurf',
+    title: 'Eine Nachricht, die niemand beantworten muss',
+    category: 'menschen_inter',
+    image: img('impulse-nachricht'),
+    description: 'Etwas aufschreiben, ohne es sofort abschicken zu müssen.',
+    levels: [
+      { level: 1, title: 'Einen Entwurf schreiben', description: 'Nicht abschicken — nur schreiben.' },
+      { level: 2, title: 'Abschicken, wenn es stimmt', description: 'Nur wenn es sich richtig anfühlt.' },
+    ],
+    tip: 'Ein nicht abgeschickter Entwurf ist trotzdem ein Schritt.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'fuenf-dinge-zaehlen',
+    title: 'Fünf Dinge zählen',
+    category: 'gedanken_werte_intra',
+    image: img('impulse-zaehlen'),
+    description: 'Eine ganz kleine Orientierungs-Übung.',
+    levels: [
+      { level: 1, title: 'Fünf Dinge im Raum benennen', description: 'Einfach der Reihe nach.' },
+      { level: 2, title: 'Für jedes eine Eigenschaft finden', description: 'Farbe, Form, Beschaffenheit.' },
+    ],
+    tip: 'Es gibt kein richtiges Tempo dabei.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'blick-nach-draussen',
+    title: 'Kurz woanders hinschauen',
+    category: 'natur_inter',
+    image: img('impulse-fenster'),
+    description: 'Den Blick bewusst nach draußen richten.',
+    levels: [
+      { level: 1, title: 'Aus dem Fenster schauen', description: 'Eine Minute reicht.' },
+      { level: 2, title: 'Etwas am Himmel beobachten', description: 'Wolken, Licht, Vögel — was gerade da ist.' },
+    ],
+    tip: 'Der Blickwechsel selbst ist schon der Schritt.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'schwere-decke',
+    title: 'Gewicht spüren',
+    category: 'koerper_intra',
+    image: img('impulse-decke'),
+    description: 'Druck und Gewicht können den Körper spürbar beruhigen.',
+    levels: [
+      { level: 1, title: 'Eine Decke oder ein Kissen auf den Schoß legen', description: 'Einfach das Gewicht spüren.' },
+      { level: 2, title: 'Sich fest einwickeln', description: 'So fest, wie es angenehm ist.' },
+    ],
+    tip: 'Manche Menschen mögen das, andere nicht — beides ist völlig in Ordnung.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'summen-brummen',
+    title: 'Summen oder brummen',
+    category: 'koerper_intra',
+    image: img('impulse-summen'),
+    description: 'Ein tiefer Ton, der im Körper spürbar wird.',
+    levels: [
+      { level: 1, title: 'Kurz leise summen', description: 'Ein paar Sekunden reichen.' },
+      { level: 2, title: 'Einen langen, tiefen Ton halten', description: 'Und spüren, wo er im Körper vibriert.' },
+    ],
+    tip: 'Die Vibration selbst ist der Punkt, nicht die Melodie.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'lieblingslied',
+    title: 'Ein Lied, das du auswendig kennst',
+    category: 'natur_inter',
+    image: img('impulse-musik'),
+    description: 'Vertraute Musik als Anker.',
+    levels: [
+      { level: 1, title: 'Kurz reinhören', description: 'Die ersten Takte reichen.' },
+      { level: 2, title: 'Mitsummen oder mitsingen', description: 'Ganz für dich, niemand muss zuhören.' },
+    ],
+    tip: 'Vertraute Musik kann den Körper schneller erreichen als Worte.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'boden-spueren',
+    title: 'Den Boden unter dir spüren',
+    category: 'koerper_intra',
+    image: img('impulse-boden'),
+    description: 'Ein einfacher Weg, sich im eigenen Körper zu erden.',
+    levels: [
+      { level: 1, title: 'Füße bewusst auf den Boden stellen', description: 'Spüren, wie sie aufliegen.' },
+      { level: 2, title: 'Leicht wippen oder Zehen bewegen', description: 'Und die Bewegung bewusst wahrnehmen.' },
+    ],
+    tip: 'Schuhe an oder aus — beides funktioniert.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'kurzer-anruf',
+    title: 'Kurz Hallo sagen',
+    category: 'menschen_inter',
+    image: img('impulse-anruf'),
+    description: 'Ein kleiner, unverbindlicher Kontakt.',
+    levels: [
+      { level: 1, title: 'Eine kurze Nachricht schreiben', description: 'Ganz ohne Anlass, einfach so.' },
+      { level: 2, title: 'Kurz anrufen oder vorbeigehen', description: 'Es muss kein langes Gespräch sein.' },
+    ],
+    tip: '„Ich dachte gerade an dich" ist eine vollständige Nachricht.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'atem-verlaengern',
+    title: 'Den Atem etwas verlängern',
+    category: 'koerper_intra',
+    image: img('impulse-atem'),
+    description: 'Eine längere Ausatmung kann das Nervensystem beruhigen.',
+    levels: [
+      { level: 1, title: 'Ein paar Atemzüge bewusst verlängern', description: 'Vor allem beim Ausatmen.' },
+      { level: 2, title: 'Zählend atmen', description: 'Zum Beispiel 4 ein, 6 aus.' },
+    ],
+    tip: 'Es geht nicht um eine bestimmte Technik, nur um etwas mehr Raum im Atem.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'kritzeln',
+    title: 'Einfach drauflos kritzeln',
+    category: 'natur_inter',
+    image: img('impulse-kritzeln'),
+    description: 'Zeichnen ohne Anspruch, nur zur Bewegung.',
+    levels: [
+      { level: 1, title: 'Ein paar Linien oder Formen zeichnen', description: 'Es muss nichts darstellen.' },
+      { level: 2, title: 'Eine Farbe oder Stimmung aufmalen', description: 'Ganz frei, ohne Bewertung.' },
+    ],
+    tip: 'Das Ergebnis darf sofort wieder weggelegt werden.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'lieblingsgeruch',
+    title: 'An etwas Vertrautem riechen',
+    category: 'koerper_intra',
+    image: img('impulse-geruch'),
+    description: 'Gerüche können sehr direkt im Hier und Jetzt ankommen lassen.',
+    levels: [
+      { level: 1, title: 'An etwas Vertrautem riechen', description: 'Kaffee, eine Creme, ein Stück Stoff.' },
+      { level: 2, title: 'Bewusst beschreiben, wie es riecht', description: 'In eigenen Worten, ganz für dich.' },
+    ],
+    tip: 'Es darf ein Duft sein, der einfach nur angenehm ist — kein besonderer Grund nötig.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'kleine-aufgabe',
+    title: 'Eine winzige Aufgabe erledigen',
+    category: 'gedanken_werte_intra',
+    image: img('impulse-aufgabe'),
+    description: 'Etwas ganz Kleines abschließen können.',
+    levels: [
+      { level: 1, title: 'Einen Gegenstand an seinen Platz räumen', description: 'Nur einen einzigen.' },
+      { level: 2, title: 'Eine kleine To-do erledigen', description: 'Etwas, das schon länger liegen geblieben ist.' },
+    ],
+    tip: 'Kleine, abgeschlossene Dinge können ein Gefühl von Wirksamkeit geben.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'stretch',
+    title: 'Sich kurz strecken',
+    category: 'koerper_intra',
+    image: img('impulse-strecken'),
+    description: 'Bewegung, die Anspannung lösen kann.',
+    levels: [
+      { level: 1, title: 'Arme über den Kopf strecken', description: 'Ein paar Sekunden halten.' },
+      { level: 2, title: 'Den ganzen Körper durchbewegen', description: 'Schultern, Nacken, Rücken.' },
+    ],
+    tip: 'Kleine Bewegung reicht oft schon aus.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'dankbarkeit-klein',
+    title: 'Eine winzige gute Sache finden',
+    category: 'gedanken_werte_intra',
+    image: img('impulse-dankbar'),
+    description: 'Nicht als Pflicht, sondern als kleiner Perspektivwechsel.',
+    levels: [
+      { level: 1, title: 'Eine kleine gute Sache benennen', description: 'Egal wie klein sie ist.' },
+      { level: 2, title: 'Kurz aufschreiben, warum', description: 'Ein Satz reicht völlig.' },
+    ],
+    tip: 'Es muss nichts Großes sein — eine warme Tasse zählt genauso.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'pflanze-giessen',
+    title: 'Eine Pflanze gießen oder pflegen',
+    category: 'natur_inter',
+    image: img('impulse-pflanze'),
+    description: 'Sich um etwas Lebendiges kümmern, ganz ohne Druck.',
+    levels: [
+      { level: 1, title: 'Eine Pflanze gießen', description: 'Oder die Blätter abwischen.' },
+      { level: 2, title: 'Sie umtopfen oder neu ausrichten', description: 'Wenn gerade Zeit dafür ist.' },
+    ],
+    tip: 'Auch ohne eigene Pflanze reicht ein Blick auf Grünes im Freien.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'muskeln-anspannen',
+    title: 'Kurz anspannen, dann loslassen',
+    category: 'koerper_intra',
+    image: img('impulse-anspannen'),
+    description: 'Bewusste Muskelanspannung und -entspannung.',
+    levels: [
+      { level: 1, title: 'Fäuste kurz fest ballen', description: 'Dann bewusst wieder öffnen.' },
+      { level: 2, title: 'Nacheinander mehrere Muskelgruppen', description: 'Schultern, Bauch, Beine — je ein paar Sekunden.' },
+    ],
+    tip: 'Der Unterschied zwischen Anspannung und Loslassen ist der eigentliche Effekt.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'humor-suchen',
+    title: 'Etwas Komisches suchen',
+    category: 'natur_inter',
+    image: img('impulse-humor'),
+    description: 'Leichtigkeit ist auch in schwierigen Momenten erlaubt.',
+    levels: [
+      { level: 1, title: 'An etwas Lustiges denken', description: 'Eine Erinnerung, ein Meme, ein Spruch.' },
+      { level: 2, title: 'Bewusst etwas Witziges suchen', description: 'Ein Video, ein Bild, ein Gespräch.' },
+    ],
+    tip: 'Lachen schließt schwere Gefühle nicht aus — beides darf gleichzeitig da sein.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'wasser-trinken-bewusst',
+    title: 'Bewusst etwas trinken',
+    category: 'koerper_intra',
+    image: img('impulse-trinken'),
+    description: 'Eine einfache Handlung, ganz bewusst ausgeführt.',
+    levels: [
+      { level: 1, title: 'Ein Glas Wasser trinken', description: 'Langsam, in kleinen Schlucken.' },
+      { level: 2, title: 'Die Temperatur und den Geschmack wahrnehmen', description: 'Bewusst dabei bleiben.' },
+    ],
+    tip: 'Es darf auch Tee oder etwas anderes sein — die Achtsamkeit zählt.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'erinnerung-gute-zeit',
+    title: 'An eine gute Zeit denken',
+    category: 'gedanken_werte_intra',
+    image: img('impulse-erinnerung'),
+    description: 'Eine konkrete positive Erinnerung hervorholen.',
+    levels: [
+      { level: 1, title: 'Kurz an einen schönen Moment denken', description: 'Egal wie lange er her ist.' },
+      { level: 2, title: 'Details davon beschreiben', description: 'Wer war da, wie hat es sich angefühlt?' },
+    ],
+    tip: 'Auch kleine, unspektakuläre Momente zählen.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'raum-wechseln',
+    title: 'Den Raum wechseln',
+    category: 'natur_inter',
+    image: img('impulse-raumwechsel'),
+    description: 'Ein Ortswechsel kann eine gedankliche Schleife unterbrechen.',
+    levels: [
+      { level: 1, title: 'In ein anderes Zimmer gehen', description: 'Auch nur für einen Moment.' },
+      { level: 2, title: 'Kurz nach draußen gehen', description: 'Und die andere Umgebung bewusst wahrnehmen.' },
+    ],
+    tip: 'Der Ortswechsel selbst kann schon etwas verändern.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'jemandem-zuhoeren',
+    title: 'Jemandem eine Frage stellen',
+    category: 'menschen_inter',
+    image: img('impulse-frage'),
+    description: 'Den Fokus kurz auf jemand anderen richten.',
+    levels: [
+      { level: 1, title: 'Jemandem eine einfache Frage stellen', description: 'Wie geht es dir gerade wirklich?' },
+      { level: 2, title: 'Bewusst zuhören, ohne gleich zu antworten', description: 'Nur da sein für die Antwort.' },
+    ],
+    tip: 'Verbindung nach außen kann auch nach innen etwas verändern.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    impulseId: 'lieblingskleidung',
+    title: 'Etwas Vertrautes anziehen',
+    category: 'koerper_intra',
+    image: img('impulse-kleidung'),
+    description: 'Vertraute Kleidung kann ein kleines Sicherheitsgefühl geben.',
+    levels: [
+      { level: 1, title: 'Ein Lieblingskleidungsstück anziehen', description: 'Etwas, in dem du dich wohlfühlst.' },
+      { level: 2, title: 'Bewusst spüren, wie es sich anfühlt', description: 'Der Stoff auf der Haut.' },
+    ],
+    tip: 'Auch eine warme Decke um die Schultern zählt genauso.',
+    favorite: false,
+    isCustom: false,
+  },
+];

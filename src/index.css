@@ -1,0 +1,487 @@
+@import "tailwindcss";
+@import "./styles/tokens.css";
+
+@theme {
+  --font-display: 'Fraunces', 'Iowan Old Style', 'Georgia', serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  height: 100dvh;
+}
+
+/* iOS Safari's address bar can grow/shrink, which historically caused
+ * fixed-bottom elements (bottom nav, "Nur jetzt" modal buttons) to be
+ * rendered partway behind the browser chrome on some versions/devices.
+ * 100dvh (dynamic viewport height, falls back to 100% on browsers that
+ * don't support it) keeps the app's own height in sync with the true
+ * visible area instead of the old static 100vh. */
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Keyboard focus is always visible — accessibility requirement */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Calm scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+
+.app-frame {
+  max-width: var(--app-max-width);
+  margin: 0 auto;
+  min-height: 100%;
+  position: relative;
+  background: var(--color-bg);
+}
+
+@media (min-width: 768px) {
+  .app-frame {
+    max-width: var(--app-max-width-desktop);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-8);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    min-height: calc(100vh - var(--space-8) * 2);
+    overflow: hidden;
+  }
+
+  body {
+    background: var(--color-bg-soft);
+  }
+}
+
+/**
+ * "Loslassen-Animation fehlplatziert"-Auftrag — genuine root-cause bug
+ * found: this used to include `transform: translateY(...)`, ending at
+ * `translateY(0)`. Because .animate-in uses animation-fill-mode:
+ * both, that transform value stayed permanently applied to the
+ * element even after the animation finished. Per the CSS spec, ANY
+ * non-none transform on an element makes it the containing block for
+ * its position:fixed descendants — so every full-screen "fixed
+ * inset-0" overlay nested inside a page's own top-level
+ * `<div className="animate-in">` wrapper (an extremely common pattern
+ * in this app) was being sized/positioned relative to that wrapper's
+ * own content box instead of the true viewport, not the intended
+ * full-screen coverage. Confirmed via direct measurement: the overlay
+ * height showed as ~432px instead of the actual 900px viewport.
+ * Fixed by dropping the transform from the keyframe entirely — the
+ * fade-in still looks and feels the same, just without the invisible
+ * side effect on unrelated fixed-position children anywhere on the
+ * page.
+ */
+@keyframes soft-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Garden growth animation (see GardenScene.tsx) — a gentle scale-and-fade
+ * applied only to a plant that just reached a new stage since the garden
+ * was last opened, never to every plant on every render. Kept slow and
+ * soft per the explicit "weich, langsam, nicht hektisch" brief. */
+@keyframes garden-grow {
+  0% { opacity: 0.35; transform: scale(0.82); }
+  60% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Watering can + droplets shown briefly right when "Heute erledigt" is
+ * tapped (see checkIn() in GardenPage.tsx) — the can tilts in, pours,
+ * tilts back, and fades; each droplet falls and fades on its own
+ * offset delay so the pour reads as a continuous small stream rather
+ * than everything happening at once. */
+@keyframes garden-water-can {
+  0% { opacity: 0; transform: translateY(-6px) rotate(0deg); }
+  15% { opacity: 1; transform: translateY(0) rotate(-28deg); }
+  75% { opacity: 1; transform: translateY(0) rotate(-28deg); }
+  100% { opacity: 0; transform: translateY(-4px) rotate(-10deg); }
+}
+@keyframes garden-water-drop {
+  0% { opacity: 0; transform: translateY(0); }
+  20% { opacity: 0.9; }
+  90% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateY(22px); }
+}
+@keyframes garden-water-ripple {
+  0%, 40% { opacity: 0; transform: scale(0.3); }
+  60% { opacity: 0.6; }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+/* Sorgenfresser (see SorgenfresserPage.tsx) — two release rituals, each
+ * genuinely animated rather than a static icon swap. "fly": the note
+ * tilts and shrinks slightly (a quick suggestion of folding), then
+ * sails up and off to the right in a gentle arc, rotating and fading
+ * like a paper plane catching the air. "crumple": a wobbling scale-down
+ * (the crumpling motion itself), then a slow upward drift and fade —
+ * released to the wind rather than thrown away. */
+@keyframes worry-fly {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+  15% { transform: translate(0, -2px) rotate(-3deg) scale(0.94); }
+  100% { opacity: 0; transform: translate(220px, -140px) rotate(18deg) scale(0.5); }
+}
+@keyframes worry-crumple {
+  0% { opacity: 1; transform: scale(1) rotate(0deg); }
+  20% { transform: scale(0.9, 0.85) rotate(-2deg); }
+  40% { transform: scale(0.7, 0.75) rotate(3deg); }
+  60% { opacity: 1; transform: scale(0.5) rotate(-4deg) translateY(0); }
+  100% { opacity: 0; transform: scale(0.4) rotate(6deg) translateY(-90px); }
+}
+@keyframes worry-tear {
+  0% { opacity: 1; transform: scale(1) rotate(0deg); }
+  10% { transform: scale(1.03, 0.96) rotate(-1deg); }
+  25% { transform: scale(0.9, 1.05) rotate(1.5deg); }
+  100% { opacity: 0; transform: scale(0.6, 0.3) rotate(-3deg); }
+}
+
+/* LetGoIllustration.tsx — three interactive rituals, rebuilt again per
+ * the "Gesamtpruefung"-Auftrag Section 6. Papierflieger stays flat
+ * (no 3D rotation of the text-bearing element) and folds through
+ * several held clip-path stages before flying away. Zerknüllen and
+ * Zerreißen are now driven by real pointer drag in the component
+ * itself (inline transform/clip-path, no CSS animation running
+ * during the drag) — these keyframes only take over for the final
+ * "let go" motion once the person has actually released past the
+ * threshold. */
+@keyframes plane-fold-shape-lg {
+  0% { clip-path: polygon(0% 0%, 100% 0%, 100% 50%, 100% 100%, 0% 100%, 0% 50%); }
+  22% { clip-path: polygon(0% 6%, 90% 14%, 100% 50%, 90% 86%, 0% 94%, 10% 50%); }
+  44% { clip-path: polygon(0% 12%, 82% 26%, 100% 50%, 82% 74%, 0% 88%, 16% 50%); }
+  66% { clip-path: polygon(0% 18%, 74% 38%, 100% 50%, 74% 62%, 0% 82%, 22% 50%); }
+  100% { clip-path: polygon(0% 24%, 66% 46%, 100% 50%, 66% 54%, 0% 76%, 30% 50%); }
+}
+@keyframes plane-fly-away {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  55% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(320px, -260px) rotate(-16deg) scale(0.45); opacity: 0; }
+}
+@keyframes crumple-fall-lg {
+  0% { transform: scale(0.6, 0.58) rotate(20deg); opacity: 1; }
+  30% { transform: scale(0.48, 0.46) rotate(-18deg) translateY(20px); }
+  60% { transform: scale(0.38, 0.36) rotate(24deg) translateY(60px); opacity: 1; }
+  100% { transform: scale(0.28, 0.26) rotate(-14deg) translateY(340px); opacity: 0; }
+}
+@keyframes tear-left-piece-lg {
+  0% { transform: translate(0, 0) rotate(-4deg); opacity: 1; }
+  35% { transform: translate(-30px, 40px) rotate(-14deg); opacity: 1; }
+  100% { transform: translate(-160px, 320px) rotate(-38deg); opacity: 0; }
+}
+@keyframes tear-right-piece-lg {
+  0% { transform: translate(0, 0) rotate(4deg); opacity: 1; }
+  35% { transform: translate(30px, 40px) rotate(14deg); opacity: 1; }
+  100% { transform: translate(160px, 320px) rotate(38deg); opacity: 0; }
+}
+
+
+/* Check-In card on the home screen (see HomePage.tsx) — a very subtle
+ * "breathing" glow, never a scale/movement animation, so it draws a
+ * little attention without ever feeling urgent or attention-grabbing.
+ * Only runs while the person hasn't checked in yet today; stops
+ * entirely once they have (see hasCheckedInToday() in HomePage.tsx) and
+ * is skipped altogether when reduceMotion is on. */
+@keyframes checkin-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); }
+  50% { box-shadow: 0 0 0 6px var(--color-primary-soft); }
+}
+.checkin-pulse {
+  animation: checkin-pulse 2.6s ease-in-out infinite;
+}
+
+/* Brief, gentle weather-condition animations (see WeatherAnimation.tsx) —
+ * each keeps to slow, small motion and low opacity, never a bright flash
+ * or fast movement, per the explicit "ruhig, nicht überfordernd" brief. */
+@keyframes weather-sun-glow {
+  0% { opacity: 0; }
+  30% { opacity: 0.22; }
+  100% { opacity: 0; }
+}
+@keyframes weather-cloud-drift {
+  0% { opacity: 0; transform: translateX(-14px); }
+  30% { opacity: 0.16; }
+  100% { opacity: 0; transform: translateX(14px); }
+}
+@keyframes weather-rain-fall {
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 0.3; }
+  100% { transform: translateY(140px); opacity: 0; }
+}
+@keyframes weather-storm-flash {
+  0%, 100% { opacity: 0; }
+  45%, 55% { opacity: 0.08; }
+  50% { opacity: 0.02; }
+}
+@keyframes weather-mist-drift {
+  0% { opacity: 0; transform: translateY(6px); }
+  35% { opacity: 0.14; }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+.animate-in {
+  animation: soft-fade-in var(--duration-md) var(--ease-soft) both;
+}
+
+/**
+ * Same root-cause fix as soft-fade-in above, but far more
+ * consequential here: this class sits on the <main> element in
+ * AppShell.tsx that wraps the content of EVERY single page in the
+ * app. With animation-fill-mode: both keeping transform: translateY(0)
+ * permanently applied, <main> was the (usually invisible) containing
+ * block for every position:fixed element on every page, app-wide —
+ * not just Loslassen's overlay. Any fixed-position modal/overlay
+ * whose page content was shorter than the viewport would size itself
+ * to that shorter content instead of the true screen. Removed the
+ * transform, keeping the same fade feel via opacity alone.
+ */
+@keyframes page-transition-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* LetterEnvelope.tsx — a calm "unfolding" reveal: the letter scales up
+ * gently from slightly flattened and faded, rather than a plain fade. */
+@keyframes letter-unfold {
+  0% { opacity: 0; transform: scale(0.85) translateY(14px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ActivationWave.tsx — a soft pulsing ring around the selected state,
+ * suggesting gentle, ongoing movement rather than a static point. */
+@keyframes wave-pulse {
+  0% { r: 9; opacity: 0.6; }
+  100% { r: 20; opacity: 0; }
+}
+
+.page-transition {
+  animation: page-transition-in 0.32s var(--ease-soft) both;
+}
+
+/* Press feedback used across cards, chips, and rows app-wide */
+.press-feedback {
+  transition: transform 0.15s var(--ease-soft);
+}
+.press-feedback:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in {
+    animation: none;
+  }
+  .page-transition {
+    animation: none;
+  }
+  .garden-grow-animate {
+    animation: none;
+  }
+  .checkin-pulse {
+    animation: none;
+  }
+}
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Shared pattern for category/filter chip rows: horizontally swipeable on
+ * mobile (where that's a natural, discoverable gesture), but wraps onto
+ * multiple lines on wider screens — on desktop there's no swipe gesture and
+ * we deliberately hide the scrollbar for a calmer look, so without this a
+ * chip row like "Orte" at the end would look cut off with no visible way
+ * to reach it via mouse. Wrapping removes the need to scroll at all. */
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  padding-bottom: 4px;
+  /* Tells the browser this element only manages horizontal panning, so a
+     touch gesture that starts on it but has no more room to scroll
+     horizontally still falls through to the page's normal vertical scroll
+     instead of getting stuck — a common mobile bug with nested
+     horizontally-scrolling rows. */
+  touch-action: pan-x;
+}
+
+@media (min-width: 768px) {
+  .chip-row {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+}
+
+/* Two separate declarations (not min()) so an unsupported dvh value simply
+   gets skipped by the browser instead of risking the whole property being
+   dropped — the plain vh line always applies as a safe fallback, and
+   modern browsers (virtually all of them now) use dvh, which correctly
+   accounts for the mobile browser's address bar instead of overshooting
+   the actually-visible height like plain vh can on mobile Safari. */
+.modal-sheet-height {
+  max-height: 85vh;
+  max-height: 85dvh;
+}
+
+.input {
+  width: 100%;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 14px;
+  padding-right: 14px;
+  font-size: 15px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  transition: border-color var(--duration-sm) var(--ease-soft);
+}
+
+.input::placeholder {
+  color: var(--color-text-faint);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* A personal, handwritten touch — used sparingly for tips, brain messages,
+   quoted notes. Never for body copy or anything that must stay highly legible. */
+.hand-note {
+  font-family: var(--font-hand);
+  font-size: 1.35em;
+  line-height: 1.3;
+  color: var(--color-primary-strong);
+}
+
+/* Print stylesheet for the Safety Plan / Resource / Bridge PDF exports (window.print()) */
+@page {
+  margin: 14mm 12mm;
+}
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  .crisis-contacts-collapsible.hidden {
+    display: flex !important;
+  }
+  /* Cards (warning items, help items, contacts, ...) must never be split
+   * across a page break — a name on one page and its phone number cut off
+   * onto the next is exactly the kind of "abgeschnittene Elemente" a
+   * printed safety plan cannot afford. */
+  .card {
+    break-inside: avoid;
+  }
+  /* The safety plan's optional black background is set via inline style
+   * (highest normal specificity) — many browsers also don't print
+   * background colors by default, so on paper the background would stay
+   * white while the text color stayed near-white too, making it
+   * effectively invisible. !important in a stylesheet is one of the few
+   * things that legitimately overrides inline styles, used here
+   * specifically to guarantee the printed page is always readable
+   * regardless of which on-screen mode was selected. */
+  .safety-plan-root {
+    --color-bg: #ffffff !important;
+    --color-bg-soft: #f7f7f7 !important;
+    --color-surface: #ffffff !important;
+    --color-surface-muted: #f2f2f2 !important;
+    --color-text: #111111 !important;
+    --color-text-muted: #3d3d3d !important;
+    --color-text-faint: #6b6b6b !important;
+    --color-border: #dddddd !important;
+    --color-border-strong: #bbbbbb !important;
+  }
+  .app-frame {
+    max-width: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    /* Desktop's "phone frame" look clips content to the visible frame
+     * height (overflow:hidden, min-height:100vh) — harmless on screen
+     * since the page scrolls inside it, but printing doesn't scroll, so
+     * anything past that height was silently cut off. This is the actual
+     * cause of "PDF export cuts off content". */
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    /* The actual cause of the "colored bar" bug: .app-frame's own
+     * background is var(--color-bg), the app's current theme color —
+     * only .safety-plan-root's own variables were being forced to white
+     * above, so every OTHER PDF (resources, bridges, network, diary,
+     * weekly review, tension) still showed a strip of the app's real
+     * background (dark in dark mode, or just off-white in some
+     * palettes) wherever the print-only content didn't exactly cover
+     * the frame's full area. Forcing it here, once, for every PDF
+     * rather than duplicating this per print-only component. */
+    background: #ffffff !important;
+  }
+  html,
+  body,
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
+.print-only {
+  display: none;
+}
+
+[data-reduce-motion='true'] * {
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
