@@ -32,9 +32,35 @@ export function syncFavoriteResourceToNetwork(resource: Resource): void {
     category: 'ressource',
     description: resource.description,
     linkedResourceId: resource.id,
+    // "Bild und Informationen automatisch uebernehmen"-Auftrag — the
+    // resource's own photo is the entry's starting photo too, so
+    // nobody has to re-pick or re-upload the same image a second
+    // time just because it now also lives in the safety net.
+    photoDataUrl: resource.image,
     helpsWith: [],
     createdAt: now,
     updatedAt: now,
+  });
+}
+
+/**
+ * "Auch wenn etwas dort bearbeitet wird"-Auftrag — keeps a linked
+ * network entry's resource-sourced fields (name, description, photo)
+ * in step whenever the resource itself is edited later, not just at
+ * the moment it was favorited. Anything the person added specifically
+ * in the safety-net editor (role, phone, email, note, position,
+ * connections) is untouched — this only refreshes the fields that
+ * originated from the resource.
+ */
+export function syncResourceEditToNetwork(resource: Resource): void {
+  const linked = networkRepo.getAll().find((e) => e.linkedResourceId === resource.id);
+  if (!linked) return;
+  networkRepo.save({
+    ...linked,
+    name: resource.title,
+    description: resource.description,
+    photoDataUrl: resource.image,
+    updatedAt: new Date().toISOString(),
   });
 }
 

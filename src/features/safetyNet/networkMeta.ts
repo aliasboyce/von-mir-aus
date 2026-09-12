@@ -5,7 +5,7 @@ import { BUILT_IN_CATEGORY_IDS } from './networkCategories';
 export const HELPS_WITH_ORDER: HelpsWith[] = ['alltag', 'krise', 'vorbeugung', 'entscheidung'];
 
 export function helpsWithLabel(t: TranslationDictionary, value: HelpsWith): string {
-  return t.network.helpsWith[value];
+  return (t.network.helpsWith as Record<string, string>)[value] ?? value;
 }
 
 /** Built-in categories are translated; custom ones use the label the person gave them. */

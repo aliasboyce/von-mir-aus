@@ -124,7 +124,7 @@ export function FeelingsWheel({ openId, onSelect, colorVersion }: { openId: stri
     // dragState from being set, which would otherwise silently break
     // the drag before it starts.
     try {
-      (e.target as Element).setPointerCapture(e.pointerId);
+      e.currentTarget.setPointerCapture(e.pointerId);
     } catch {
       // Rotation still works without capture; capture only prevents
       // the drag from ending early if the pointer leaves the SVG.

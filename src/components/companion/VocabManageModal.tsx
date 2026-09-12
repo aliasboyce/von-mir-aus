@@ -133,15 +133,12 @@ export function VocabManageModal({ open, onClose }: VocabManageModalProps) {
           ) : (
             <div className="flex flex-col gap-2">
               {cardsForCollection(openCollection.id).map((card) => (
-                <div key={card.id} className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-[var(--color-border)] p-3">
-                  <div className="flex-1 min-w-0">
+                <div key={card.id} className="flex items-center gap-2 rounded-[var(--radius-lg)] border border-[var(--color-border)]">
+                  <button onClick={() => setEditingCard(card)} className="flex-1 min-w-0 text-left p-3">
                     <p className="text-[14px] text-[var(--color-text)]">{card.front}</p>
                     <p className="text-[12px] text-[var(--color-text-muted)]">{card.back}</p>
-                  </div>
-                  <button onClick={() => setEditingCard(card)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)]">
-                    <Pencil size={14} />
                   </button>
-                  <button onClick={() => deleteCard(card.id)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)]">
+                  <button onClick={() => deleteCard(card.id)} aria-label={t.common.delete} className="p-1.5 mr-2 text-[var(--color-danger)] flex-shrink-0">
                     <Trash2 size={14} />
                   </button>
                 </div>

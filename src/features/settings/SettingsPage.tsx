@@ -304,6 +304,15 @@ export function SettingsPage() {
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.hapticsHint}</p>
         </Card>
 
+        <Card className="mb-6" padding="md">
+          <ToggleRow
+            label={t.settings.soundsEnabled}
+            checked={settings.soundsEnabled}
+            onChange={(v) => updateSettings({ soundsEnabled: v })}
+          />
+          <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.soundsHint}</p>
+        </Card>
+
         {/* ================= Mein Wesen ================= */}
         <div id="begleiter-einstellungen" />
         <SectionLabel>🧸 {t.settings.brain}</SectionLabel>

@@ -69,7 +69,11 @@ export type NeedCategory = 'koerperlich' | 'psychisch_sozial';
 export type NetworkCategory = 'person' | 'ort' | 'aktivitaet' | 'ressource' | string;
 
 /** What a network entry can help with — chosen by the person, not inferred. */
-export type HelpsWith = 'alltag' | 'krise' | 'vorbeugung' | 'entscheidung';
+/** "Wie hilft mir das"-Auftrag — the four built-in values stay as
+ * autocomplete-friendly literals, but the field also accepts a
+ * person's own custom text now (matches the same open-string pattern
+ * already used for e.g. bridge/resource categories). */
+export type HelpsWith = 'alltag' | 'krise' | 'vorbeugung' | 'entscheidung' | string;
 
 /** A user-defined (or built-in) category: label, color and icon key are all editable. */
 export interface NetworkCategoryConfig {
@@ -641,6 +645,12 @@ export interface UserSettings {
    * without a wrapper like Capacitor). Default true, but must be
    * fully disable-able — this flag gates every single call site. */
   hapticsEnabled: boolean;
+  /** "Leichte sanfte Toene"-Auftrag — off by default, matching the
+   * explicit "App soll moeglichst still sein" preference. When on,
+   * a few key moments (see sounds.ts) get a very quiet, short,
+   * synthesized tone — no audio files, generated on the fly via the
+   * Web Audio API, so there's nothing to source/host/license. */
+  soundsEnabled: boolean;
   brainEnabled: boolean;
   brainState: BrainState;
   /** Audit follow-up, "Nur jetzt" — a session-scoped, deliberately NOT
@@ -707,6 +717,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   palette: 'neutral',
   reduceMotion: false,
   hapticsEnabled: true,
+  soundsEnabled: false,
   brainEnabled: true,
   brainState: 'awake',
   nurJetztMode: false,

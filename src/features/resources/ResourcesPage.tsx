@@ -22,7 +22,7 @@ import { ImageCropModal } from '../../components/shared/ImageCropModal';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { resourcesRepo, seedResourcesIfEmpty } from './resourcesRepo';
-import { syncFavoriteResourceToNetwork } from '../safetyNet/networkResourceSync';
+import { syncFavoriteResourceToNetwork, syncResourceEditToNetwork } from '../safetyNet/networkResourceSync';
 import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel } from './resourceMeta';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { ResourceDetailModal } from './ResourceDetailModal';
@@ -139,7 +139,10 @@ export function ResourcesPage() {
   function save() {
     if (!editing || !editing.title.trim()) return;
     const isNew = !resourcesRepo.getById(editing.id);
-    resourcesRepo.save({ ...editing, updatedAt: new Date().toISOString() });
+    const saved = { ...editing, updatedAt: new Date().toISOString() };
+    resourcesRepo.save(saved);
+    syncFavoriteResourceToNetwork(saved);
+    syncResourceEditToNetwork(saved);
     setModalOpen(false);
     setEditing(null);
     refresh();

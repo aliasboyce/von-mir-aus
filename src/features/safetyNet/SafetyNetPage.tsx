@@ -283,7 +283,7 @@ export function SafetyNetPage() {
               </div>
               <div className="flex flex-col gap-3 mb-6">
                 {important.map((entry) => (
-                  <ImportantContactRow key={entry.id} entry={entry} categories={categories} />
+                  <ImportantContactRow key={entry.id} entry={entry} categories={categories} onOpen={() => handleSelectEntry(entry)} />
                 ))}
               </div>
             </>
@@ -443,15 +443,18 @@ function NetworkEntryListItem({
 function ImportantContactRow({
   entry,
   categories,
+  onOpen,
 }: {
   entry: NetworkEntry;
   categories: ReturnType<typeof useNetworkCategories>['categories'];
+  onOpen: () => void;
 }) {
   const category = categories.find((c) => c.id === entry.category) ?? categories[0];
   const Icon = getIcon(entry.iconKey, category.iconKey);
   const t = useT();
   return (
-    <Card className="flex items-center gap-3">
+    <Card className="flex items-center gap-3" padding="none" style={{ padding: 0 }}>
+      <button type="button" onClick={onOpen} className="flex-1 flex items-center gap-3 text-left p-4 min-w-0">
       <span
         className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-surface)] flex-shrink-0 overflow-hidden"
         style={{ background: category.color }}
@@ -466,13 +469,14 @@ function ImportantContactRow({
         <p className="text-[15px] text-[var(--color-text)] truncate">{entry.name}</p>
         {entry.role && <p className="text-[13px] text-[var(--color-text-muted)] truncate">{entry.role}</p>}
       </div>
+      </button>
       {entry.phone && (
-        <a href={`tel:${entry.phone}`} aria-label={t.network.call} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+        <a href={`tel:${entry.phone}`} aria-label={t.network.call} className="p-2 mr-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <Phone size={17} />
         </a>
       )}
       {entry.email && (
-        <a href={`mailto:${entry.email}`} aria-label={t.network.emailAction} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+        <a href={`mailto:${entry.email}`} aria-label={t.network.emailAction} className="p-2 mr-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <Mail size={17} />
         </a>
       )}

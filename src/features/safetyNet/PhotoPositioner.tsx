@@ -21,7 +21,11 @@ export function PhotoPositioner({ photoDataUrl, scale, offsetX, offsetY, onChang
   const [dragging, setDragging] = useState(false);
 
   function handlePointerDown(e: React.PointerEvent) {
-    (e.target as Element).setPointerCapture(e.pointerId);
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // dragging still works without capture
+    }
     dragStart.current = { x: e.clientX, y: e.clientY, offsetX, offsetY };
     setDragging(true);
   }

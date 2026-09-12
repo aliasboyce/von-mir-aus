@@ -5,6 +5,7 @@ import { InlineCompanionNote } from './InlineCompanionNote';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { getActiveGroundingSteps } from './groundingManagement';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
 interface GroundingOverlayProps {
   onClose: () => void;
@@ -32,6 +33,7 @@ interface GroundingOverlayProps {
  */
 export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
   const t = useT();
+  useRegisterModalOpen(true);
   const { settings } = useSettings();
   const isEn = settings.language === 'en';
   const [step, setStep] = useState(0);
@@ -55,7 +57,7 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[220] bg-[var(--color-bg)] flex flex-col items-center justify-center px-6 animate-in no-print"
+      className="fixed inset-0 z-[240] bg-[var(--color-bg)] flex flex-col items-center px-6 py-14 overflow-y-auto animate-in no-print"
       role="dialog"
       aria-modal="true"
     >

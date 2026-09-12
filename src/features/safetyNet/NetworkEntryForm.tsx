@@ -42,6 +42,8 @@ export function NetworkEntryForm({
     const palettes = networkPaletteStore.getAllPalettes();
     return palettes.find((p) => p.id === networkPaletteStore.getActivePaletteId()) ?? palettes[0];
   }, []);
+  const [addingHelp, setAddingHelp] = useState(false);
+  const [newHelpText, setNewHelpText] = useState('');
 
   function toggleHelp(value: HelpsWith) {
     onChange({
@@ -234,6 +236,7 @@ export function NetworkEntryForm({
             })}
           </div>
         )}
+        <p className="text-[11px] text-[var(--color-text-faint)] mt-2">{t.network.paletteHint}</p>
       </Field>
 
       <Field label={t.network.helpsWithLabel}>
@@ -249,7 +252,52 @@ export function NetworkEntryForm({
               />
             </label>
           ))}
+          {draft.helpsWith.filter((h) => !HELPS_WITH_ORDER.includes(h)).map((h) => (
+            <label key={h} className="flex items-center justify-between px-3 py-2.5 rounded-[var(--radius-sm)] cursor-pointer">
+              <span className="text-[14px] text-[var(--color-text)]">{h}</span>
+              <input
+                type="checkbox"
+                checked
+                onChange={() => toggleHelp(h)}
+                className="w-5 h-5 accent-[var(--color-primary)]"
+              />
+            </label>
+          ))}
         </div>
+        {addingHelp ? (
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              autoFocus
+              className="input flex-1"
+              value={newHelpText}
+              onChange={(e) => setNewHelpText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (newHelpText.trim()) toggleHelp(newHelpText.trim());
+                  setNewHelpText('');
+                  setAddingHelp(false);
+                }
+              }}
+              placeholder={t.network.helpsWithOwnPlaceholder}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (newHelpText.trim()) toggleHelp(newHelpText.trim());
+                setNewHelpText('');
+                setAddingHelp(false);
+              }}
+              className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0"
+            >
+              <Plus size={15} />
+            </button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setAddingHelp(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-2">
+            <Plus size={14} /> {t.network.helpsWithOwnCta}
+          </button>
+        )}
       </Field>
 
       <Field label={`${t.network.noteLabel} ${t.common.optional}`}>

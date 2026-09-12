@@ -5,6 +5,8 @@ import { InlineCompanionNote } from '../../components/companion/InlineCompanionN
 import { pickLine } from '../../components/companion/companionRegistry';
 import { useT } from '../../i18n';
 import { TIMER_DURATIONS_MIN } from '../bridges/BridgeTimerView';
+import { CustomDurationInput } from '../timer/CustomDurationInput';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
 interface ResourceTimerViewProps {
   contextLabel: string;
@@ -40,6 +42,7 @@ function formatDurationLabel(min: number, t: ReturnType<typeof useT>): string {
  */
 export function ResourceTimerView({ contextLabel, onClose, onNaturalComplete }: ResourceTimerViewProps) {
   const t = useT();
+  useRegisterModalOpen(true);
   const [durationMin, setDurationMin] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [done, setDone] = useState(false);
@@ -132,7 +135,7 @@ export function ResourceTimerView({ contextLabel, onClose, onNaturalComplete }: 
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[220] bg-[var(--color-bg)] flex flex-col items-center justify-center px-6 animate-in"
+      className="fixed inset-0 z-[240] bg-[var(--color-bg)] flex flex-col items-center px-6 py-14 overflow-y-auto animate-in"
       role="dialog"
       aria-modal="true"
     >
@@ -190,6 +193,7 @@ export function ResourceTimerView({ contextLabel, onClose, onNaturalComplete }: 
               >
                 {t.bridges.timerStopwatchCta}
               </button>
+              <CustomDurationInput onStart={start} />
             </div>
           ) : !done ? (
             <div className="mt-6 text-center">

@@ -111,6 +111,32 @@ button {
   to { opacity: 1; }
 }
 
+/**
+ * "Sanftes Einblenden beim Oeffnen von Bruecken/Ressourcen"-Auftrag —
+ * a gentle "settling into place" reveal (soft scale + fade), applied
+ * to detail pages/modals. Deliberately NOT animation-fill-mode:
+ * forwards/both — the transform must fully clear once the animation
+ * finishes, since a lingering transform on an ancestor is exactly
+ * what caused the fixed-position/viewport bug found and fixed
+ * earlier this session (see soft-fade-in's own history above). With
+ * the default fill-mode, the element reverts to its plain untransformed
+ * CSS once playback ends, so nested "position: fixed" children (the
+ * timer overlay, etc.) keep sizing correctly against the true
+ * viewport afterwards.
+ */
+@keyframes card-reveal {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.card-reveal {
+  animation: card-reveal 0.35s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-reveal {
+    animation: none;
+  }
+}
+
 /* Garden growth animation (see GardenScene.tsx) — a gentle scale-and-fade
  * applied only to a plant that just reached a new stage since the garden
  * was last opened, never to every plant on every render. Kept slow and

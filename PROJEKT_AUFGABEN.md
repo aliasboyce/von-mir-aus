@@ -464,7 +464,28 @@ Es gibt offenbar mehrere PARALLELE/AELTERE Implementierungen derselben Konzepte 
 - Fragen zum Nachdenken um 12 echte philosophisch-psychologische Fragen erweitert
 - Quellenangaben durchgängig geprüft — keine fehlenden, keine erfundenen
 
-## 🔵 Ideen für später (bewusst NICHT umgesetzt, siehe Abschnitt 15/16/20 des Grundsatz-Auftrags)
+## ✅ STATUS: Grosse Mobile/Funktions-Ueberarbeitungsrunde abgeschlossen (diese Sitzung)
+Alle vom Nutzer gemeldeten Fehler und Feature-Wuensche aus der grossen Mobile-Testrunde sind bearbeitet:
+- Mehrere echte Layout-/Ueberlauf-Fehler bei Vollbild-Overlays gefunden und behoben (Loslassen, Timer, Ablenkung, Erdung) - durchgaengiges Muster: fehlendes overflow-y-auto + fehlender ModalStackContext-Schutz
+- Timer-Vermischungsfehler bei Ressourcen behoben (Z-Index-Konflikt), freie Zeiteingabe ueberall ergaenzt
+- Drei Drag-Interaktionen auf Mobile gehaertet (setPointerCapture auf currentTarget statt target, mit try/catch)
+- Sicherheitsnetz-Ressourcen-Sync um Bild + laufende Aktualisierung erweitert
+- Eigene Kategorien bei "wie hilft mir das" moeglich
+- PDF-auf-iOS-Problem geloest (echter "In Safari oeffnen"-Weg statt nur Warnung)
+- Vokabeln-Textabschneidung UND fehlende Tap-Flaeche behoben
+- "Wichtige Kontakte" jetzt anklickbar (war es vorher nicht)
+- Willkommens-Nachricht ueber Beispiele/Personalisierung ergaenzt
+- Sanftes Kartenaufklappen (card-reveal) bei allen Modals + Bruecken-Detailseite
+- Bruecken-Bauanimation deutlich ausgebaut (Sonnenaufgang, Pfeiler, laenger)
+- Teilen-Funktion fuer Kontakte ergaenzt (Ressourcen/Bruecken/Lesezeichen hatten es bereits)
+- Haptik UND sanfte Toene ergaenzt, beide ueber eigene Einstellungen-Schalter steuerbar (Toene standardmaessig aus)
+- Bild-Zuschneiden bei eigenen Uploads ergaenzt
+- Vorschlagbilder bei Ressourcen/Bruecken von 6 auf bis zu 18 erweitert
+- Apps/Buecher als eigene Ressourcen-Kategorien
+
+Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der gemeldete Fehler bei der "Zugang-Durchgang-beendet"-Anzeige - moeglicherweise geraetespezifisch, Screenshot vom Nutzer waere hilfreich falls das Problem weiterhin auftritt.
+
+
 - Neue Anleitung: die große Anfangsanleitung selbst noch nicht überarbeitet/verkleinert (Kontexthilfe-Buttons sind bereits umgesetzt, das war der erste Teil davon)
 - Tagebuch-Vorlagen, insbesondere eine bewusst einfache "Diary Card" (druckbar, PDF, an Therapeutin weitergebbar)
 - Bedürfnis-Spiel/-Erkennung als spielerischer Zugang (die Bedürfnis-*Seite* selbst existiert bereits und wurde fachlich nach GFK überarbeitet)

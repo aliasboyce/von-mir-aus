@@ -59,7 +59,7 @@ export function Modal({ open, onClose, title, subtitle, children }: ModalProps) 
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-[420px] flex flex-col bg-[var(--color-bg)] rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] animate-in modal-sheet-height"
+        className="w-full sm:max-w-[420px] flex flex-col bg-[var(--color-bg)] rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] animate-in card-reveal modal-sheet-height"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between px-6 pt-6 pb-4 flex-shrink-0">

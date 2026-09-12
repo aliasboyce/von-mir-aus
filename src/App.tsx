@@ -38,6 +38,7 @@ import { WeeklyReviewPage } from './features/diary/WeeklyReviewPage';
 import { ResourceImportPage } from './features/resources/ResourceImportPage';
 import { BridgeImportPage } from './features/bridges/BridgeImportPage';
 import { BookmarkImportPage } from './features/bookmarks/BookmarkImportPage';
+import { NetworkImportPage } from './features/safetyNet/NetworkImportPage';
 import { SimpleTimerPage } from './features/timer/SimpleTimerPage';
 import { GardenPage } from './features/garden/GardenPage';
 import { MediLogPage } from './features/mediLog/MediLogPage';
@@ -93,6 +94,7 @@ function App() {
                 <Route path="/entdecken/ressourcen/importieren" element={<ResourceImportPage />} />
                 <Route path="/bruecken/importieren" element={<BridgeImportPage />} />
                 <Route path="/entdecken/lesezeichen/importieren" element={<BookmarkImportPage />} />
+                <Route path="/sicherheit/kontakte/importieren" element={<NetworkImportPage />} />
                 <Route path="/entdecken/timer" element={<SimpleTimerPage />} />
                 <Route path="/entdecken/garten" element={<GardenPage />} />
                 <Route path="/entdecken/medi-log" element={<MediLogPage />} />

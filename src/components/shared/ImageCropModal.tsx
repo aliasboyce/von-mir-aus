@@ -33,7 +33,18 @@ export function ImageCropModal({ src, onCancel, onConfirm }: ImageCropModalProps
   }
 
   function onPointerDown(e: React.PointerEvent) {
-    (e.target as Element).setPointerCapture(e.pointerId);
+    // Capture on currentTarget (the container that actually holds
+    // these listeners), not target (which can be the child <img> on
+    // some mobile browsers and silently fail to capture there).
+    // Guarded because setPointerCapture can throw for pointer ids the
+    // platform doesn't recognize as active — a throw here must never
+    // prevent the drag from starting.
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // dragging still works without capture; capture only prevents
+      // the drag from ending early if the pointer leaves the frame.
+    }
     dragRef.current = { startX: e.clientX, startY: e.clientY, startOffX: offset.x, startOffY: offset.y };
   }
   function onPointerMove(e: React.PointerEvent) {

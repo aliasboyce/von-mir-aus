@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Mail, Trash2, Pencil, ArrowUpRight, Link2 } from 'lucide-react';
+import { Phone, Mail, Trash2, Pencil, ArrowUpRight, Link2, Share2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
@@ -73,6 +73,30 @@ export function NetworkDetailModal({
     navigate(`/entdecken/ressourcen?open=${linkedResource.id}`);
   }
 
+  async function shareContact(entry: NetworkEntry) {
+    const payload = {
+      name: entry.name,
+      role: entry.role,
+      description: entry.description,
+      helpsWith: entry.helpsWith,
+    };
+    const url = `${window.location.origin}/sicherheit/kontakte/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: entry.name, url });
+      } catch {
+        // person cancelled the share sheet — nothing to do
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert(t.resources.shareLinkCopied);
+      } catch {
+        // clipboard unavailable — silently ignore
+      }
+    }
+  }
+
   return (
     <Modal open={!!entry} onClose={close} title={editing ? t.common.edit : active.name}>
       {!editing ? (
@@ -141,6 +165,10 @@ export function NetworkDetailModal({
               {t.network.goToResource}
             </Button>
           )}
+
+          <Button variant="ghost" fullWidth icon={<Share2 size={15} />} onClick={() => shareContact(active)}>
+            {t.network.shareContact}
+          </Button>
 
           {connectedEntries.length > 0 && (
             <div>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ErrorBoundary } from './ErrorBoundary';
 import { BottomNav } from '../components/navigation/BottomNav';
@@ -13,6 +13,8 @@ import { useHeroCompanion } from '../state/HeroCompanionContext';
 import { customPalettesRepo, derivePaletteVars } from '../services/customPalettes';
 import { BUILT_IN_PALETTE_IDS } from '../data/types';
 import { StorageErrorBanner } from './StorageErrorBanner';
+import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
+import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
 
 /** Top-level section key used for per-page palette overrides — everything
  * under e.g. /sicherheit/* shares one override, not each sub-route separately. */
@@ -28,6 +30,8 @@ export function AppShell() {
   const { anyModalOpen } = useModalStack();
   const { heroMounted } = useHeroCompanion();
   const resolvedTheme = useResolvedTheme();
+  const [showPrintFallback, setShowPrintFallback] = useState(false);
+  useEffect(() => registerIOSPrintFallbackListener(() => setShowPrintFallback(true)), []);
 
   // "Nur jetzt"-Modus overhaul — the nav itself only offering a reduced
   // set of destinations (see BottomNav) is the primary UX signal, but a
@@ -151,6 +155,7 @@ export function AppShell() {
         />
       )}
       <StorageErrorBanner />
+      {showPrintFallback && <IOSPrintFallbackModal onClose={() => setShowPrintFallback(false)} />}
     </div>
   );
 }

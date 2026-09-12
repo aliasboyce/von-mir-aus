@@ -12,6 +12,7 @@ import { SudokuGame } from './SudokuGame';
 import { CrosswordGame } from './CrosswordGame';
 import { CustomDistractionManageModal } from './CustomDistractionManageModal';
 import { AddOwnItemModal } from './AddOwnItemModal';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { customDistractionCategoriesRepo, itemsForCategory, ownItemsForBuiltinCategory, builtinCategoryKey } from './customDistractionRepo';
 import type { CustomDistractionItem } from '../../data/types';
 import { useT } from '../../i18n';
@@ -84,6 +85,7 @@ function poolForCategory(category: DistractionCategory, difficulty: DistractionD
 export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
   const t = useT();
   const { settings } = useSettings();
+  useRegisterModalOpen(true);
   const isEn = settings.language === 'en';
   const [category, setCategory] = useState<DistractionCategory | null>(null);
   const [difficulty, setDifficulty] = useState<DistractionDifficulty | null>(null);
@@ -264,7 +266,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[220] bg-[var(--color-bg)] flex flex-col items-center justify-center px-6 animate-in no-print"
+      className="fixed inset-0 z-[240] bg-[var(--color-bg)] flex flex-col items-center px-6 py-16 overflow-y-auto animate-in no-print"
       role="dialog"
       aria-modal="true"
     >

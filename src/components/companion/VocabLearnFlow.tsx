@@ -25,6 +25,20 @@ function shuffle<T>(arr: T[]): T[] {
  * at least once in the same sitting, which is the actual point of Punkt
  * 9's "falsche Karten werden erneut abgefragt" requirement.
  */
+/**
+ * "Woerter sind abgeschnitten"-Auftrag — the flip-card has a fixed
+ * height (needed so both faces line up during the 3D flip), so a long
+ * word or phrase at a single large font size could overflow it. Scales
+ * the font down for longer text instead, same approach already used
+ * for the feelings wheel labels elsewhere in the app.
+ */
+function fontSizeFor(text: string): number {
+  if (text.length > 40) return 14;
+  if (text.length > 25) return 17;
+  if (text.length > 15) return 19;
+  return 22;
+}
+
 export function VocabLearnFlow({ onManage }: VocabLearnFlowProps) {
   const t = useT();
   const { settings } = useSettings();
@@ -136,7 +150,9 @@ export function VocabLearnFlow({ onManage }: VocabLearnFlowProps) {
             className="absolute inset-0 rounded-[var(--radius-lg)] flex items-center justify-center px-4"
             style={{ background: 'var(--color-surface-muted)', backfaceVisibility: 'hidden' }}
           >
-            <p className="text-[22px] text-[var(--color-text)] text-center">{current.front}</p>
+            <p className="text-center" style={{ fontSize: fontSizeFor(current.front), color: 'var(--color-text)', overflowWrap: 'break-word', maxHeight: '100%', overflow: 'hidden' }}>
+              {current.front}
+            </p>
           </div>
           <div
             className="absolute inset-0 rounded-[var(--radius-lg)] flex flex-col items-center justify-center px-4 gap-1"
@@ -146,7 +162,9 @@ export function VocabLearnFlow({ onManage }: VocabLearnFlowProps) {
               transform: 'rotateY(180deg)',
             }}
           >
-            <p className="text-[22px] text-[var(--color-text)] text-center">{current.back}</p>
+            <p className="text-center" style={{ fontSize: fontSizeFor(current.back), color: 'var(--color-text)', overflowWrap: 'break-word', maxHeight: '75%', overflow: 'hidden' }}>
+              {current.back}
+            </p>
             <p className="text-[13px]" style={{ color: result === 'correct' ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>
               {result === 'correct' ? t.vocab.correctFeedback : t.vocab.incorrectFeedback}
             </p>
