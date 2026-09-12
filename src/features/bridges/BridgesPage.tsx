@@ -140,15 +140,15 @@ export function BridgesPage() {
               <FileDown size={17} />
             </button>
           )}
-          <button
-            onClick={() => setShowInfo(true)}
-            className="text-[12px] text-[var(--color-primary)] underline underline-offset-2"
-          >
-            {t.bridges.whatsTheDifference}
-          </button>
         </div>
       </div>
-      <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{t.bridges.subtitle}</p>
+      <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.bridges.subtitle}</p>
+      <button
+        onClick={() => setShowInfo(true)}
+        className="text-[12px] text-[var(--color-primary)] underline underline-offset-2 mb-4"
+      >
+        {t.bridges.whatsTheDifference}
+      </button>
 
       <div className="mb-5">
         <BridgeHeroIllustration />

@@ -62,15 +62,16 @@ export function BottomNav() {
             end={end}
             className={({ isActive }) =>
               [
-                'flex flex-1 flex-col items-center justify-center gap-1 text-[12px] font-medium transition-colors',
+                'flex flex-1 flex-col items-center justify-center gap-0.5 md:gap-1 text-[11px] md:text-[12px] font-medium transition-colors px-0.5',
                 isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-faint)]',
               ].join(' ')
             }
           >
             {({ isActive }) => (
               <>
-                <Icon size={22} strokeWidth={isActive ? 2.3 : 1.8} />
-                <span>{label}</span>
+                <Icon size={20} className="md:hidden" strokeWidth={isActive ? 2.3 : 1.8} />
+                <Icon size={22} className="hidden md:block" strokeWidth={isActive ? 2.3 : 1.8} />
+                <span className="leading-none">{label}</span>
               </>
             )}
           </NavLink>

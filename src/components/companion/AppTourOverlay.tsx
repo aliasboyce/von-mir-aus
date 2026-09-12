@@ -72,7 +72,21 @@ export function AppTourOverlay({ onClose, onFinish }: AppTourOverlayProps) {
     : { path: TOUR_PATHS[index], ...t.companion.tourStops[index] };
 
   useEffect(() => {
-    navigate(stop.path);
+    // "Weiterklicken stirbt ab"-Auftrag — TOUR_PATHS deliberately
+    // revisits the same path back-to-back at several points (e.g.
+    // '/inneres-wetter' twice in a row, for two different explanations
+    // of the same screen). Guarding against re-navigating to the
+    // already-current path avoids firing a redundant history entry at
+    // exactly the moment another effect elsewhere (nurJetztMode's
+    // allowlist redirect, etc.) might also be reacting to a location
+    // change — two competing navigations landing in the same render
+    // pass is the classic shape of a "Maximum update depth exceeded"
+    // loop. Skipping the no-op navigate removes that collision
+    // opportunity entirely, regardless of which exact effect it was
+    // colliding with.
+    if (window.location.pathname !== stop.path) {
+      navigate(stop.path);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index]);
 

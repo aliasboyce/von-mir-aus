@@ -222,12 +222,11 @@ export function HomePage() {
       )}
 
       {settings.nurJetztMode ? (
-        <Card padding="md" className="mb-6 animate-in" style={{ background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', borderWidth: 1.5 }}>
-          <p className="text-[13px] font-medium text-[var(--color-text)] mb-1.5">{t.home.nurJetztActiveTitle}</p>
-          <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-3">{t.home.nurJetztActiveText}</p>
+        <Card padding="none" className="mb-4 animate-in flex items-center justify-between gap-3 px-3.5 py-2.5" style={{ background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', borderWidth: 1.5 }}>
+          <p className="text-[12px] text-[var(--color-text)] leading-snug flex-1">{t.home.nurJetztActiveTitle}</p>
           <button
             onClick={() => updateSettings({ nurJetztMode: false })}
-            className="text-[13px] text-[var(--color-primary)] font-medium"
+            className="text-[12px] text-[var(--color-primary)] font-medium flex-shrink-0"
           >
             {t.home.nurJetztExitCta}
           </button>

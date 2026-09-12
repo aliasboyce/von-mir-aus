@@ -70,7 +70,7 @@ export function ReorderableTiles({ section, tiles }: ReorderableTilesProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[15px] text-[var(--color-text)]">{title}</p>
-                <p className="text-[13px] text-[var(--color-text-muted)] truncate">{subtitle}</p>
+                <p className="text-[13px] text-[var(--color-text-muted)] line-clamp-2">{subtitle}</p>
               </div>
               {editing ? (
                 <div className="flex flex-col gap-1 flex-shrink-0">

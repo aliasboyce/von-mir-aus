@@ -224,14 +224,14 @@ export function ResourcesPage() {
         <div className="px-5 pb-6">
           <div className="flex items-start justify-between mb-1">
             <h1 className="text-[24px]">{t.resources.title}</h1>
-            <button
+          </div>
+          <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.resources.subtitle}</p>
+          <button
             onClick={() => setShowInfo(true)}
-            className="text-[12px] text-[var(--color-primary)] underline underline-offset-2"
+            className="text-[12px] text-[var(--color-primary)] underline underline-offset-2 block mb-2"
           >
             {t.bridges.whatsTheDifference}
           </button>
-        </div>
-        <p className="text-[14px] text-[var(--color-text-muted)] mb-2">{t.resources.subtitle}</p>
 
         <button onClick={() => setShowDefinition((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
           {showDefinition ? t.resources.hideDefinitionCta : t.resources.showDefinitionCta}
