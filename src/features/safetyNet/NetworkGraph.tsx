@@ -183,7 +183,21 @@ export function NetworkGraph({
       // gesture mid-way — this is what made pinch/pan feel unreliable on
       // mobile specifically. The other drag handlers already do this;
       // this one didn't.
-      e.currentTarget.setPointerCapture(e.pointerId);
+      // "Kurz nicht verfuegbar beim Verziehen/Zoomen" (Teil 2)-Auftrag —
+      // setPointerCapture itself was unguarded here, unlike every other
+      // drag handler in the app (ImageCropModal, PhotoPositioner,
+      // FeelingsWheel all wrap it). It can throw for pointer ids the
+      // platform doesn't currently recognize as active — an uncaught
+      // throw here crashed the whole page (the ErrorBoundary catch,
+      // "Kurz nicht verfuegbar"), which is very plausibly what was still
+      // happening even after the panRef null-reference fix below.
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        // dragging/pinching still works without capture in most cases;
+        // capture only prevents the gesture from ending early if a
+        // finger leaves this element's bounds.
+      }
       activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (activePointers.current.size === 1) {
         panRef.current = { startX: e.clientX, startY: e.clientY, startTx: view.tx, startTy: view.ty };
@@ -201,7 +215,7 @@ export function NetworkGraph({
       if (!expanded || !activePointers.current.has(e.pointerId)) return;
       activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-      if (activePointers.current.size === 2 && pinchRef.current) {
+      if (activePointers.current.size === 2 && pinchRef.current && pinchRef.current.startDist > 0) {
         const pts = Array.from(activePointers.current.values());
         const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
         const scale = Math.min(2.5, Math.max(0.6, pinchRef.current.startScale * (dist / pinchRef.current.startDist)));
@@ -209,7 +223,15 @@ export function NetworkGraph({
       } else if (activePointers.current.size === 1 && panRef.current) {
         const dx = e.clientX - panRef.current.startX;
         const dy = e.clientY - panRef.current.startY;
-        setView((v) => ({ ...v, tx: panRef.current!.startTx + dx, ty: panRef.current!.startTy + dy }));
+        // Capture these BEFORE calling setView, not inside its updater
+        // callback — that callback can run after this function returns
+        // (React may defer it), by which point a fast-following
+        // pointerup could already have nulled panRef.current out from
+        // under it. Reading panRef.current!.startTx inside the
+        // callback was exactly the null-reference crash reported.
+        const startTx = panRef.current.startTx;
+        const startTy = panRef.current.startTy;
+        setView((v) => ({ ...v, tx: startTx + dx, ty: startTy + dy }));
       }
     },
     [expanded],
@@ -218,8 +240,25 @@ export function NetworkGraph({
   const handleBgPointerUp = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     activePointers.current.delete(e.pointerId);
     if (activePointers.current.size < 2) pinchRef.current = null;
-    if (activePointers.current.size === 0) panRef.current = null;
-  }, []);
+    if (activePointers.current.size === 0) {
+      panRef.current = null;
+    } else if (activePointers.current.size === 1) {
+      // "Kurz nicht verfuegbar beim Verziehen/Zoomen"-Auftrag — lifting
+      // the second finger during a pinch used to leave panRef.current
+      // either stale (still holding the FIRST finger's original
+      // down-position from before the pinch even started) or, in some
+      // sequences, genuinely null while handleBgPointerMove's pan
+      // branch still ran — reading .startTx off that null crashed the
+      // whole page. Whenever exactly one pointer remains after a lift,
+      // give panRef a fresh baseline from THAT pointer's current
+      // position, so the drag continues smoothly from here instead of
+      // jumping or crashing.
+      const remaining = Array.from(activePointers.current.values())[0];
+      if (remaining) {
+        panRef.current = { startX: remaining.x, startY: remaining.y, startTx: view.tx, startTy: view.ty };
+      }
+    }
+  }, [view]);
 
   const handleWheel = useCallback(
     (e: React.WheelEvent<HTMLDivElement>) => {

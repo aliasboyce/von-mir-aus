@@ -140,6 +140,24 @@ export function HomePage() {
     reminderIsDue(settings.weatherReminderTime) &&
     !hasCheckedInToday();
 
+  // "Wesen soll auf Erinnerung/Brief hinweisen"-Auftrag — a separate,
+  // one-shot effect (not folded into the greeting effect above, which
+  // already has its own 55% random skip and shouldn't compete for the
+  // same speech-bubble slot) that points the companion's own voice at
+  // whichever of these is showing, once per page load. Deliberately
+  // simple priority: a letter feels the most personally significant if
+  // several are due at once, then the daily reminder, then a custom one.
+  useEffect(() => {
+    if (dueLetters.length > 0) {
+      say(t.home.pointOutLetter);
+    } else if (showReminder) {
+      say(t.home.pointOutReminder);
+    } else if (dueCustomReminders.length > 0) {
+      say(t.home.pointOutCustomReminder.replace('{label}', dueCustomReminders[0].label));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const favoriteBridge = useMemo(() => bridgesRepo.getAll().find((b) => b.favorite), []);
 
   const hour = new Date().getHours();

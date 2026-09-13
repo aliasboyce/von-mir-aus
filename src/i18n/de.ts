@@ -95,6 +95,9 @@ const de = {
     quickAccess: 'Schnellzugriff',
     resumeBridge: 'Weitermachen',
     reminderBanner: 'Kleine Erinnerung: Magst du kurz einchecken, wie es dir gerade geht?',
+    pointOutLetter: 'Du hast einen Brief an dich, der bereit ist — schau ihn dir an, wenn du magst.',
+    pointOutReminder: 'Nur eine kleine Erinnerung — falls du magst, magst du kurz einchecken.',
+    pointOutCustomReminder: 'Du hattest dir „{label}" vorgenommen — falls das gerade passt.',
     reminderDismiss: 'Nicht jetzt',
     hourlyGreetings: [
       'Mitten in der Nacht wach? Ich mach dir trotzdem keinen Stress.',
@@ -991,6 +994,10 @@ const de = {
       menschen: 'Menschen',
       sonstiges: 'Sonstiges',
     },
+  },
+  updateBanner: {
+    text: 'Es gibt eine neue Version der App. Bitte lade sie einmal neu, um alles Aktuelle zu bekommen.',
+    cta: 'Neu laden',
   },
   network: {
     title: 'Mein Netzwerk',

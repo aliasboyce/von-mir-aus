@@ -27,6 +27,69 @@ export const BUILTIN_DIARY_TEMPLATES: DiaryTemplate[] = [
     questionsEn: ['What was good today?', 'What was difficult?', 'What helped me?', 'What do I need tomorrow?'],
     isBuiltin: true,
   },
+  {
+    // Vier-Schritte der Gewaltfreien Kommunikation (Beobachtung,
+    // Gefuehl, Beduerfnis, Bitte) — dieselbe Struktur, die bereits
+    // beim Gefuehlsrad und der Beduerfnis-Zuordnung in der App steckt.
+    id: 'builtin-gfk-reflexion',
+    name: 'GFK-Reflexion',
+    nameEn: 'NVC reflection',
+    questions: [
+      'Was ist konkret passiert? (nur die Beobachtung, ohne Bewertung)',
+      'Was habe ich dabei gefühlt?',
+      'Welches Bedürfnis steckte vermutlich dahinter?',
+      'Was würde mir jetzt helfen, oder worum möchte ich bitten?',
+    ],
+    questionsEn: [
+      'What actually happened? (just the observation, no judgment)',
+      'What did I feel?',
+      'What need was probably underneath that?',
+      'What would help me now, or what would I like to ask for?',
+    ],
+    isBuiltin: true,
+  },
+  {
+    // An die bestehende Nervensystem-/Polyvagal-Seite angelehnt
+    // (ventral/sympathisch/dorsal) — hilft, den Zusammenhang
+    // zwischen Zustand und Alltag nachzuverfolgen.
+    id: 'builtin-nervensystem-check',
+    name: 'Nervensystem-Check',
+    nameEn: 'Nervous system check',
+    questions: [
+      'In welchem Zustand war mein Nervensystem heute überwiegend? (sicher, mobilisiert, erstarrt)',
+      'Was hat diesen Zustand ausgelöst oder begünstigt?',
+      'Was hat geholfen, wieder zur Ruhe zu kommen — oder was könnte helfen?',
+      'Was hat mein Nervensystem heute gebraucht?',
+    ],
+    questionsEn: [
+      'What state was my nervous system mostly in today? (safe, mobilized, frozen)',
+      'What triggered or contributed to that state?',
+      'What helped me settle back down — or what might help?',
+      "What did my nervous system need today?",
+    ],
+    isBuiltin: true,
+  },
+  {
+    // Bewusst sanft und selbstmitfuehlend gehalten, fuer schwerere
+    // Tage — passend zum Grundton der App: keine Leistungsfrage,
+    // kleine Schritte zaehlen.
+    id: 'builtin-kleine-schritte',
+    name: 'Kleine Schritte',
+    nameEn: 'Small steps',
+    questions: [
+      'Was habe ich heute geschafft, auch wenn es klein war?',
+      'Wie bin ich heute mit mir selbst umgegangen?',
+      'Was hätte ich gebraucht, das ich mir nicht geben konnte?',
+      'Ein Satz an mich für morgen:',
+    ],
+    questionsEn: [
+      'What did I manage today, even if it was small?',
+      'How did I treat myself today?',
+      "What did I need that I couldn't give myself?",
+      'One sentence for myself for tomorrow:',
+    ],
+    isBuiltin: true,
+  },
 ];
 
 export const customDiaryTemplatesRepo = createRepository<DiaryTemplate>('diary-templates');

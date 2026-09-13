@@ -129,8 +129,15 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     setTipLeaving(false);
     const timeout = setTimeout(hideTip, readingDurationMs(spoken.text));
     if (spoken.joy) {
-      const variants: Array<'hop' | 'spin' | 'wobble' | 'dance'> = ['hop', 'spin', 'wobble', 'dance'];
-      setJoyBurst(variants[Math.floor(Math.random() * variants.length)]);
+      // "Wesen soll tanzen wenn etwas abgeschlossen wurde"-Auftrag —
+      // joy:true is specifically for genuine completions (see this
+      // file's own doc comment above), so it now reliably dances
+      // rather than randomly picking one of four reactions — dancing
+      // reads as a clearer "you finished something" celebration than
+      // a hop/spin/wobble, which fit more ambient, lower-key moments
+      // (the periodic idle joy burst above still uses all four for
+      // variety, since those aren't tied to a specific completion).
+      setJoyBurst('dance');
       const joyTimeout = setTimeout(() => setJoyBurst(null), 800);
       return () => {
         clearTimeout(timeout);

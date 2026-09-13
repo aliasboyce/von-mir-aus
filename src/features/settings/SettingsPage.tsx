@@ -343,9 +343,6 @@ export function SettingsPage() {
             onChange={(v) => updateSettings({ soundsEnabled: v })}
           />
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.soundsHint}</p>
-          <Link to="/einstellungen/ton-werkstatt" className="text-[12px] text-[var(--color-primary)] mt-2 inline-block">
-            🔊 Ton-Werkstatt: neue Wesen-Töne anhören →
-          </Link>
         </Card>
 
         {/* ================= Mein Wesen ================= */}

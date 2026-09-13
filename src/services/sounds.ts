@@ -222,29 +222,48 @@ function scheduleGiggle(audioCtx: AudioContext) {
 
 /** Put to sleep — chosen variant A: higher pitch, longer than the
  * original attempt, per direct feedback. */
+let sleepToggle = 0;
 function scheduleSleepSigh(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(450, now);
-  osc.frequency.exponentialRampToValueAtTime(220, now + 0.8);
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.06, now + 0.12);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start(now);
-  osc.stop(now + 0.9);
+  sleepToggle = 1 - sleepToggle;
+  if (sleepToggle === 0) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(450, now);
+    osc.frequency.exponentialRampToValueAtTime(220, now + 0.8);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.06, now + 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+    osc.connect(gain);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.9);
+  } else {
+    // "F zusaetzlich als Abwechslung"-Auftrag — nur ein weiches
+    // Ausatmen, atem-dominant statt reiner Ton.
+    breathSwell(audioCtx, now, 1.1, 0.055, 650, 1.0);
+    vibratoTone(audioCtx, now, 340, 1.1, 0.02, 3.5, 5, 'sine');
+  }
 }
 
 /** Waking up — a short, questioning "hmm?": low, rising slightly at the end. */
+let wakeToggle = 0;
 function scheduleWakeHmm(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
-  // "Aufwecken = F"-Auftrag — zwei sanfte, hohe Silben wie ein gerade
-  // wach werdendes Vogeljunges/Kueken statt eines fragenden "mrrn".
-  vibratoTone(audioCtx, now, 560, 0.14, 0.045, 18, 30);
-  vibratoTone(audioCtx, now + 0.2, 640, 0.16, 0.045, 18, 35);
+  wakeToggle = 1 - wakeToggle;
+  if (wakeToggle === 0) {
+    // "Aufwecken = F"-Auftrag — zwei sanfte, hohe Silben wie ein gerade
+    // wach werdendes Vogeljunges/Kueken statt eines fragenden "mrrn".
+    vibratoTone(audioCtx, now, 560, 0.14, 0.045, 18, 30);
+    vibratoTone(audioCtx, now + 0.2, 640, 0.16, 0.045, 18, 35);
+  } else {
+    // "G zusaetzlich als Abwechslung"-Auftrag — verschlafenes
+    // Einatmen, atem-dominant.
+    breathSwell(audioCtx, now, 0.35, 0.045, 1100, 1.0);
+    vibratoTone(audioCtx, now + 0.1, 340, 0.3, 0.03, 15, 25, 'sine');
+  }
 }
 
 type CompanionSoundKind = 'giggle' | 'sleep' | 'wake';

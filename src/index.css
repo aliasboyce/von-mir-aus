@@ -553,38 +553,3 @@ button {
   transition-duration: 0.01ms !important;
 }
 
-/**
- * "Haptik-Alternative fuers iPhone"-Auftrag — soft radial glow,
- * standing in for vibration where the Vibration API genuinely doesn't
- * exist (iOS Safari). First version used box-shadow, which follows
- * the screen's straight rectangular edges/corners and read as
- * distracting and "eckig" (angular) — replaced with a large, soft
- * radial-gradient blend instead. A gradient's own falloff is
- * inherently smooth (no hard edge to notice), and blurring it further
- * softens it even more, so it reads as a faint warmth blending in
- * from outside the visible area rather than a shape drawn on screen.
- */
-@keyframes visual-haptic-pulse {
-  0% { opacity: 0; }
-  35% { opacity: 0.16; }
-  100% { opacity: 0; }
-}
-.visual-haptic-pulse {
-  position: fixed;
-  inset: -20%;
-  pointer-events: none;
-  z-index: 400;
-  animation-name: visual-haptic-pulse;
-  animation-timing-function: ease-out;
-  background: radial-gradient(ellipse at center, transparent 45%, var(--color-primary) 115%);
-  filter: blur(28px);
-}
-.visual-haptic-pulse--strong {
-  animation-name: visual-haptic-pulse-strong;
-}
-@keyframes visual-haptic-pulse-strong {
-  0% { opacity: 0; }
-  30% { opacity: 0.24; }
-  60% { opacity: 0.13; }
-  100% { opacity: 0; }
-}

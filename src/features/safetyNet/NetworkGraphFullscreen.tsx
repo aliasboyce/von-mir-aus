@@ -3,6 +3,7 @@ import { X, Move3d } from 'lucide-react';
 import { NetworkGraph } from './NetworkGraph';
 import { NetworkLegend } from './NetworkLegend';
 import { useT } from '../../i18n';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import type { CenterNodeConfig } from './networkCategories';
 import type { NetworkCategoryConfig, NetworkEntry } from '../../data/types';
 
@@ -34,6 +35,7 @@ export function NetworkGraphFullscreen({
   onRemoveConnection,
 }: NetworkGraphFullscreenProps) {
   const t = useT();
+  useRegisterModalOpen(true);
 
   return createPortal(
     <div className="network-fullscreen animate-in" role="dialog" aria-modal="true" aria-label={t.network.title}>

@@ -97,6 +97,9 @@ const en: TranslationDictionary = {
     quickAccess: 'Quick access',
     resumeBridge: 'Continue',
     reminderBanner: 'Gentle reminder: would you like to check in on how you feel?',
+    pointOutLetter: 'You have a letter to yourself waiting — take a look whenever you like.',
+    pointOutReminder: "Just a small reminder — if you feel like it, you could check in.",
+    pointOutCustomReminder: 'You wanted to remember "{label}" — in case now works.',
     reminderDismiss: 'Not now',
     hourlyGreetings: [
       'Wide awake at midnight? No pressure here either.',
@@ -993,6 +996,10 @@ const en: TranslationDictionary = {
       menschen: 'People',
       sonstiges: 'Other',
     },
+  },
+  updateBanner: {
+    text: 'A new version of the app is available. Reload once to get everything up to date.',
+    cta: 'Reload',
   },
   network: {
     title: 'My network',
