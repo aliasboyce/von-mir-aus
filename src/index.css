@@ -554,31 +554,37 @@ button {
 }
 
 /**
- * "Haptik-Alternative fuers iPhone"-Auftrag — soft inset glow along the
- * screen edges, standing in for vibration where the Vibration API
- * genuinely doesn't exist (iOS Safari). Deliberately subtle — this
- * fires on ordinary taps too, so it must never feel like a flash or
- * notification, just a faint warm "breath" at the very edge of vision.
+ * "Haptik-Alternative fuers iPhone"-Auftrag — soft radial glow,
+ * standing in for vibration where the Vibration API genuinely doesn't
+ * exist (iOS Safari). First version used box-shadow, which follows
+ * the screen's straight rectangular edges/corners and read as
+ * distracting and "eckig" (angular) — replaced with a large, soft
+ * radial-gradient blend instead. A gradient's own falloff is
+ * inherently smooth (no hard edge to notice), and blurring it further
+ * softens it even more, so it reads as a faint warmth blending in
+ * from outside the visible area rather than a shape drawn on screen.
  */
 @keyframes visual-haptic-pulse {
-  0% { box-shadow: inset 0 0 0 0 var(--color-primary); opacity: 0; }
-  35% { box-shadow: inset 0 0 22px 2px var(--color-primary); opacity: 0.22; }
-  100% { box-shadow: inset 0 0 0 0 var(--color-primary); opacity: 0; }
+  0% { opacity: 0; }
+  35% { opacity: 0.16; }
+  100% { opacity: 0; }
 }
 .visual-haptic-pulse {
   position: fixed;
-  inset: 0;
+  inset: -20%;
   pointer-events: none;
   z-index: 400;
   animation-name: visual-haptic-pulse;
   animation-timing-function: ease-out;
+  background: radial-gradient(ellipse at center, transparent 45%, var(--color-primary) 115%);
+  filter: blur(28px);
 }
 .visual-haptic-pulse--strong {
   animation-name: visual-haptic-pulse-strong;
 }
 @keyframes visual-haptic-pulse-strong {
-  0% { box-shadow: inset 0 0 0 0 var(--color-primary); opacity: 0; }
-  30% { box-shadow: inset 0 0 30px 4px var(--color-primary); opacity: 0.32; }
-  60% { box-shadow: inset 0 0 18px 2px var(--color-primary); opacity: 0.18; }
-  100% { box-shadow: inset 0 0 0 0 var(--color-primary); opacity: 0; }
+  0% { opacity: 0; }
+  30% { opacity: 0.24; }
+  60% { opacity: 0.13; }
+  100% { opacity: 0; }
 }

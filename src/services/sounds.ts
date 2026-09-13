@@ -819,3 +819,79 @@ export function previewWakeF(ctx: AudioContext) {
   vibratoTone(ctx, now, 560, 0.14, 0.045, 18, 30);
   vibratoTone(ctx, now + 0.2, 640, 0.16, 0.045, 18, 35);
 }
+
+// ============================================================
+// RUNDE 4 — nach Feedback "klingt noch zu elektronisch, soll wie
+// Kleinkind/Mensch klingen, nicht Roboter-artig". Der entscheidende
+// Wechsel: echte Stimmen/Atem sind ATEM-DOMINANT mit nur ganz
+// leichtem Ton darunter — nicht umgekehrt. Diese Runde fuehrt Atem
+// (gefiltertes Rauschen) als HAUPTBESTANDTEIL, der Ton ist nur eine
+// ganz leise Faerbung darunter statt der Hauptklang.
+// ============================================================
+
+/** Ein warmer Atemzug: geformtes Rauschen (bandpass, wie ein "hhh"),
+ * das an- und abschwillt, mit einem KAUM hoerbaren Ton darunter fuer
+ * Waerme. Das ist die Grundzutat fuer die "menschlicher"-Kandidaten
+ * unten. */
+function breathSwell(
+  ctx: AudioContext,
+  startAt: number,
+  duration: number,
+  peakGain: number,
+  filterFreq: number,
+  filterQ = 1.2
+) {
+  const source = ctx.createBufferSource();
+  const length = Math.floor(ctx.sampleRate * duration);
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+  source.buffer = buffer;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = filterFreq;
+  filter.Q.value = filterQ;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0, startAt);
+  gain.gain.linearRampToValueAtTime(peakGain, startAt + duration * 0.4);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  source.start(startAt);
+  source.stop(startAt + duration + 0.02);
+}
+
+// --- Seufzer/Ein-Ausatmen: Runde 4, atem-dominant ---
+export function previewSighE(ctx: AudioContext) {
+  // Ein Atemzug: Einatmen (steigendes Rauschen) dann Ausatmen
+  // (fallendes, laengeres Rauschen) — wie ein echtes kleines Seufzen.
+  const now = ctx.currentTime;
+  breathSwell(ctx, now, 0.5, 0.05, 1400, 0.9); // einatmen
+  breathSwell(ctx, now + 0.45, 0.9, 0.045, 700, 1.1); // ausatmen, tiefer+laenger
+  // ganz leiser Ton darunter fuer Waerme, kaum hoerbar
+  vibratoTone(ctx, now, 380, 1.3, 0.018, 4, 6, 'sine');
+}
+export function previewSighF(ctx: AudioContext) {
+  // Nur das Ausatmen, wie ein zufriedenes kleines "hhhh" beim
+  // Einschlafen — noch einfacher, noch weicher.
+  const now = ctx.currentTime;
+  breathSwell(ctx, now, 1.1, 0.055, 650, 1.0);
+  vibratoTone(ctx, now, 340, 1.1, 0.02, 3.5, 5, 'sine');
+}
+
+// --- Kichern Runde 4: kurze Atemstoesse statt reiner Toene ---
+export function previewGiggleH(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  [0, 0.1, 0.19].forEach((t, i) => {
+    breathSwell(ctx, now + t, 0.09, 0.045, 1800 + i * 200, 1.4);
+    vibratoTone(ctx, now + t, 480 + i * 60, 0.08, 0.02, 30, 40, 'sine');
+  });
+}
+
+// --- Aufwecken Runde 4: kleines verschlafenes Einatmen+Raeuspern ---
+export function previewWakeG(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  breathSwell(ctx, now, 0.35, 0.045, 1100, 1.0);
+  vibratoTone(ctx, now + 0.1, 340, 0.3, 0.03, 15, 25, 'sine');
+}

@@ -1510,7 +1510,7 @@ const de = {
     hapticsEnabled: 'Haptisches Feedback (Vibration)',
     hapticsHint: 'Kurze, dezente Vibration bei wichtigen Auswahlmomenten. Funktioniert auf Android; iPhones unterstützen das im Browser aktuell nicht.',
     soundsEnabled: 'Leise Töne',
-    soundsHint: 'Sehr leise, weiche Klangsignale bei wichtigen Auswahlmomenten. Standardmäßig aus — die App soll grundsätzlich still bleiben.',
+    soundsHint: 'Sehr leise, weiche Klangsignale bei wichtigen Auswahlmomenten. Standardmäßig an — du kannst sie hier jederzeit ausschalten.',
     reminders: 'Erinnerungen',
     distractionSection: 'Ablenkung',
     distractionSectionHint: 'Kategorien verwalten, eigene Kategorien erstellen und eigene Inhalte hinzufügen — alles, was das Wesen bei „Ablenken" zeigen kann.',

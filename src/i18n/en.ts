@@ -1512,7 +1512,7 @@ const en: TranslationDictionary = {
     hapticsEnabled: 'Haptic feedback (vibration)',
     hapticsHint: 'A short, subtle vibration at key selection moments. Works on Android; iPhone browsers don\'t currently support this.',
     soundsEnabled: 'Soft sounds',
-    soundsHint: 'Very quiet, soft tones at key selection moments. Off by default — the app is meant to stay quiet overall.',
+    soundsHint: 'Very quiet, soft tones at key selection moments. On by default — you can turn them off here anytime.',
     reminders: 'Reminders',
     distractionSection: 'Distraction',
     distractionSectionHint: 'Manage categories, create your own, and add your own content — everything the companion can show under "Distraction".',

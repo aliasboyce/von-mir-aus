@@ -645,9 +645,10 @@ export interface UserSettings {
    * without a wrapper like Capacitor). Default true, but must be
    * fully disable-able — this flag gates every single call site. */
   hapticsEnabled: boolean;
-  /** "Leichte sanfte Toene"-Auftrag — off by default, matching the
-   * explicit "App soll moeglichst still sein" preference. When on,
-   * a few key moments (see sounds.ts) get a very quiet, short,
+  /** "Toene/Haptik sollen standardmaessig an sein"-Auftrag — on by
+   * default (explicit later preference, overriding the original
+   * "moeglichst still" default), turned off from Settings if unwanted.
+   * A few key moments (see sounds.ts) get a very quiet, short,
    * synthesized tone — no audio files, generated on the fly via the
    * Web Audio API, so there's nothing to source/host/license. */
   soundsEnabled: boolean;
@@ -717,7 +718,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   palette: 'neutral',
   reduceMotion: false,
   hapticsEnabled: true,
-  soundsEnabled: false,
+  soundsEnabled: true,
   brainEnabled: true,
   brainState: 'awake',
   nurJetztMode: false,
