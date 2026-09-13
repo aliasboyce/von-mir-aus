@@ -2,29 +2,28 @@ import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import {
   playPreview,
-  previewGiggleA,
-  previewGiggleB,
-  previewGiggleC,
+  previewGiggleD,
+  previewGiggleE,
+  previewGiggleF,
   previewSighA,
-  previewSighB,
-  previewWakeA,
-  previewWakeB,
-  previewWakeC,
-  previewClickSoft,
-  previewClickSofter,
+  previewSighC,
+  previewSighD,
+  previewWakeD,
+  previewWakeE,
   previewCloseA,
-  previewCloseB,
-  previewRewardA,
+  previewCloseC,
+  previewCloseD,
   previewRewardB,
-  previewMenuA,
-  previewMenuB,
+  previewRewardC,
+  previewRewardD,
 } from '../../services/sounds';
 import { previewVibrate } from '../../services/haptics';
 
 /**
- * TEMPORAER — nur zur gemeinsamen Ton-/Haptik-Auswahl mit dem Nutzer.
- * Nicht verlinkt, nur ueber die direkte URL /einstellungen/ton-werkstatt
- * erreichbar. Wird nach der Entscheidung wieder entfernt.
+ * TEMPORAER — Runde 2, nach Nutzer-Feedback zu Runde 1. Bereits
+ * entschiedene Punkte (Klick = B, Hauptmenue = B) sind nicht mehr
+ * hier, nur noch das, was noch offen ist. Wird nach der Entscheidung
+ * komplett entfernt.
  */
 function Row({ label, options }: { label: string; options: { name: string; onPress: () => void }[] }) {
   return (
@@ -35,6 +34,7 @@ function Row({ label, options }: { label: string; options: { name: string; onPre
           <button
             key={o.name}
             onClick={o.onPress}
+            data-no-tap-feedback
             className="px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] border border-[var(--color-border)]"
           >
             ▶ {o.name}
@@ -50,72 +50,61 @@ export function SoundWorkshopPage() {
     <div className="animate-in">
       <TopBar />
       <div className="px-5 pb-10">
-        <h1 className="text-[22px] mb-1">Ton-Werkstatt</h1>
-        <p className="text-[13px] text-[var(--color-text-muted)] mb-5">
-          Tippe jede Variante an und hör sie dir an — am besten mit Ton an, nicht auf lautlos. Sag mir danach einfach, welcher
-          Buchstabe/welche Nummer dir bei jeder Zeile am besten gefällt.
+        <h1 className="text-[22px] mb-1">Ton-Werkstatt — Runde 2</h1>
+        <p className="text-[13px] text-[var(--color-text-muted)] mb-2">
+          Neue Versuche mit Vibrato (leichtes Zittern der Tonhöhe, wie eine echte Stimme) und Atem-Textur statt reiner
+          Elektronik-Töne.
+        </p>
+        <p className="text-[12px] text-[var(--color-primary)] mb-5">
+          ✓ Klick = Variante B, ✓ Hauptmenü = Variante B — beide schon entschieden, nicht mehr hier.
         </p>
 
         <Row
-          label="1) Kichern beim Antippen des Wesens"
+          label="1) Kichern — soll süß, stimmhaft, nicht mechanisch sein"
           options={[
-            { name: 'A (bisherig)', onPress: () => playPreview(previewGiggleA) },
-            { name: 'B (höher, schneller)', onPress: () => playPreview(previewGiggleB) },
-            { name: 'C (weich, gleitend)', onPress: () => playPreview(previewGiggleC) },
+            { name: 'D (sanftes Vibrato)', onPress: () => playPreview(previewGiggleD) },
+            { name: 'E (mehr Silben, wackeliger)', onPress: () => playPreview(previewGiggleE) },
+            { name: 'F (baby-tierhaft, höher)', onPress: () => playPreview(previewGiggleF) },
           ]}
         />
 
         <Row
-          label="2) Seufzer beim Schlafen legen (höher + länger gewünscht)"
+          label="2) Seufzer — soll wie Baby/Baby-Tier klingen, nicht mechanisch"
           options={[
-            { name: 'A (höher, 0.8s)', onPress: () => playPreview(previewSighA) },
-            { name: 'B (noch höher, 1.1s)', onPress: () => playPreview(previewSighB) },
+            { name: 'A (dein Favorit aus Runde 1)', onPress: () => playPreview(previewSighA) },
+            { name: 'C (mit Vibrato + Atem)', onPress: () => playPreview(previewSighC) },
+            { name: 'D (Coo-Laut, babyhafter)', onPress: () => playPreview(previewSighD) },
           ]}
         />
 
         <Row
-          label="3) Aufwecken-Ton (komplett neu)"
+          label="3) Aufwecken — komplett neuer Versuch, babyhaft/verspielt"
           options={[
-            { name: 'A (sanft steigend)', onPress: () => playPreview(previewWakeA) },
-            { name: 'B (zwei Töne)', onPress: () => playPreview(previewWakeB) },
-            { name: 'C (fragend, wie bisher aber anders)', onPress: () => playPreview(previewWakeC) },
+            { name: 'D (sanft fragend, Vibrato)', onPress: () => playPreview(previewWakeD) },
+            { name: 'E (zwei verschlafene mrrn-Silben)', onPress: () => playPreview(previewWakeE) },
           ]}
         />
 
         <Row
-          label="4) Klick-Ton (weicher als aktuell)"
+          label="5) Kreuz/Abbrechen — muss klar anders klingen als der Klick (der ist jetzt ein weiches Rauschen)"
           options={[
-            { name: 'A (etwas weicher)', onPress: () => playPreview(previewClickSoft) },
-            { name: 'B (deutlich weicher)', onPress: () => playPreview(previewClickSofter) },
+            { name: 'A (dein Favorit aus Runde 1)', onPress: () => playPreview(previewCloseA) },
+            { name: 'C (klarer, tonaler Ton statt Rauschen)', onPress: () => playPreview(previewCloseC) },
+            { name: 'D (zwei fallende Töne)', onPress: () => playPreview(previewCloseD) },
           ]}
         />
 
         <Row
-          label="5) Kreuz / Abbrechen (neu)"
+          label="6) Belohnung/Abschluss — B-Richtung war gut, aber weicher"
           options={[
-            { name: 'A (weiches Wisch-Geräusch)', onPress: () => playPreview(previewCloseA) },
-            { name: 'B (kurzer, tieferer Ton)', onPress: () => playPreview(previewCloseB) },
+            { name: 'B (dein Favorit aus Runde 1, Referenz)', onPress: () => playPreview(previewRewardB) },
+            { name: 'C (deutlich leiser/weicher)', onPress: () => playPreview(previewRewardC) },
+            { name: 'D (nur ein ganz sanfter Ton)', onPress: () => playPreview(previewRewardD) },
           ]}
         />
 
         <Row
-          label="6) Belohnung / Abschluss (neu)"
-          options={[
-            { name: 'A (drei aufsteigende Töne)', onPress: () => playPreview(previewRewardA) },
-            { name: 'B (warmer Doppelklang)', onPress: () => playPreview(previewRewardB) },
-          ]}
-        />
-
-        <Row
-          label="7) Hauptmenü-Punkte (wärmer/tiefer als normaler Klick)"
-          options={[
-            { name: 'A (tiefer Klick)', onPress: () => playPreview(previewMenuA) },
-            { name: 'B (warmer Ton)', onPress: () => playPreview(previewMenuB) },
-          ]}
-        />
-
-        <Row
-          label="8) Haptik-Varianten (nur fühlbar, kein Ton)"
+          label="8) Haptik-Varianten — jetzt OHNE Klick-Ton dabei, nur die Vibration"
           options={[
             { name: 'Ganz leicht (15ms)', onPress: () => previewVibrate(15) },
             { name: 'Normal (25ms)', onPress: () => previewVibrate(25) },

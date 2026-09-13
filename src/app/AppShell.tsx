@@ -60,7 +60,12 @@ export function AppShell() {
       const btn = target?.closest('button, [role="button"], a[href]');
       if (!btn || btn.hasAttribute('data-no-tap-feedback')) return;
       if ((btn as HTMLButtonElement).disabled) return;
-      playSound('click', settingsRef.current);
+      // "Anderer Ton fuer die Hauptmenue-Punkte"-Auftrag — the bottom
+      // navigation gets its own distinct, warmer tone instead of the
+      // everyday click, so switching between Home/Zugang/Entdecken/etc
+      // feels like its own kind of action.
+      const isMainNav = !!btn.closest('nav');
+      playSound(isMainNav ? 'menu' : 'click', settingsRef.current);
       triggerHaptic('tap', settingsRef.current);
     }
     document.addEventListener('pointerdown', onPointerDown, true);

@@ -12,7 +12,7 @@ import type { UserSettings } from '../data/types';
  * pass, saving a bridge) keep a very soft sine underneath for a touch
  * of warmth, but quieter and slower than a notification chime.
  */
-type SoundKind = 'click' | 'select' | 'settle';
+type SoundKind = 'click' | 'select' | 'settle' | 'menu';
 
 let ctx: AudioContext | null = null;
 function getContext(): AudioContext | null {
@@ -70,23 +70,39 @@ function scheduleClick(audioCtx: AudioContext) {
   source.buffer = getNoiseBuffer(audioCtx);
   const filter = audioCtx.createBiquadFilter();
   filter.type = 'lowpass';
-  // Sweeping the cutoff down very quickly is what makes filtered noise
-  // read as a "click" rather than a hiss — most of the energy is gone
-  // within ~20ms. Cutoff lowered further (1600->300 instead of
-  // 2200->300) and gain lowered (0.22->0.13) — softer overall per
-  // direct feedback.
-  filter.frequency.setValueAtTime(1600, now);
-  filter.frequency.exponentialRampToValueAtTime(300, now + 0.03);
+  // "Zu hart, soll weicher sein"-Auftrag — chosen in the sound
+  // workshop (variant B): lower starting cutoff (600 vs 1600) and
+  // lower gain (0.055 vs 0.13) than the previous version.
+  filter.frequency.setValueAtTime(600, now);
+  filter.frequency.exponentialRampToValueAtTime(200, now + 0.035);
   const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(0.13, now);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
+  gain.gain.setValueAtTime(0.055, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
   source.connect(filter);
   filter.connect(gain);
   gain.connect(audioCtx.destination);
   source.start(now);
-  source.stop(now + 0.05);
+  source.stop(now + 0.06);
 }
 
+
+/** "Anderer Ton fuer die Hauptmenue-Punkte"-Auftrag — gewaehlt: die
+ * waermere, tonale Variante (B) statt des Rausch-Klicks, damit sich
+ * die untere Hauptnavigation eigenstaendig anfuehlt. */
+function scheduleMenu(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = 180;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.09, now + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.1);
+}
 function scheduleTone(audioCtx: AudioContext, freq: number, duration: number) {
   const now = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
@@ -200,6 +216,7 @@ export function playSound(kind: SoundKind, settings: Pick<UserSettings, 'soundsE
     try {
       if (kind === 'click') scheduleClick(audioCtx);
       else if (kind === 'select') scheduleTone(audioCtx, 660, 0.18);
+      else if (kind === 'menu') scheduleMenu(audioCtx);
       else scheduleTone(audioCtx, 520, 0.3);
     } catch {
       // Sound is a pure nice-to-have — never let it break the actual
@@ -473,4 +490,246 @@ export function previewMenuB(ctx: AudioContext) {
 
 export function playPreview(fn: (ctx: AudioContext) => void) {
   previewPlay(fn);
+}
+
+// ============================================================
+// RUNDE 2 — nach Nutzer-Feedback: "kein mechanisches Piepen,
+// soll wie ein Lebewesen klingen (Baby/Baby-Tier)". Der Trick
+// dafuer mit reiner Web-Audio-Synthese (keine Aufnahmen): echte
+// Stimmen haben Vibrato (staendiges leichtes Zittern der
+// Tonhoehe) und einen Hauch Atem-Rauschen darunter — beides fehlte
+// in Runde 1 komplett, was den "elektronischen Beep"-Charakter
+// erzeugt hat.
+// ============================================================
+
+/** Ein Oszillator mit echtem Vibrato (LFO moduliert die Frequenz) —
+ * die Grundzutat fuer alles "Stimmhafte" unten. */
+function vibratoTone(
+  ctx: AudioContext,
+  startAt: number,
+  baseFreq: number,
+  duration: number,
+  peakGain: number,
+  vibratoHz: number,
+  vibratoDepth: number,
+  waveform: OscillatorType = 'sine'
+) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  osc.type = waveform;
+  osc.frequency.value = baseFreq;
+  lfo.type = 'sine';
+  lfo.frequency.value = vibratoHz;
+  lfoGain.gain.value = vibratoDepth;
+  lfo.connect(lfoGain);
+  lfoGain.connect(osc.frequency);
+  gain.gain.setValueAtTime(0, startAt);
+  gain.gain.linearRampToValueAtTime(peakGain, startAt + duration * 0.25);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  lfo.start(startAt);
+  osc.start(startAt);
+  lfo.stop(startAt + duration + 0.05);
+  osc.stop(startAt + duration + 0.05);
+}
+
+/** Ganz leises Atem-Rauschen darunter mischen — macht eine reine
+ * Tonhoehe organischer/koerperlicher statt rein elektronisch. */
+function breathLayer(ctx: AudioContext, startAt: number, duration: number, peakGain: number) {
+  const source = ctx.createBufferSource();
+  source.buffer = getNoiseBuffer(ctx);
+  source.loop = true;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 900;
+  filter.Q.value = 0.6;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0, startAt);
+  gain.gain.linearRampToValueAtTime(peakGain, startAt + duration * 0.3);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  source.start(startAt);
+  source.stop(startAt + duration + 0.05);
+}
+
+// --- Kichern, Runde 2: kurze stimmhafte "hihi"-Silben mit Vibrato ---
+export function previewGiggleD(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  [520, 620, 700].forEach((f, i) => vibratoTone(ctx, now + i * 0.1, f, 0.13, 0.055, 28, 55, 'sine'));
+}
+export function previewGiggleE(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  [460, 580, 520, 640].forEach((f, i) => vibratoTone(ctx, now + i * 0.085, f, 0.11, 0.05, 32, 70, 'sine'));
+}
+export function previewGiggleF(ctx: AudioContext) {
+  // Baby-Tier-artig: etwas hoeher, staerkeres Vibrato, kuerzer, mit
+  // einem winzigen Hauch Atem-Textur pro Silbe.
+  const now = ctx.currentTime;
+  [660, 740, 820].forEach((f, i) => {
+    const t = now + i * 0.095;
+    vibratoTone(ctx, t, f, 0.1, 0.05, 35, 90, 'sine');
+    breathLayer(ctx, t, 0.08, 0.012);
+  });
+}
+
+// --- Seufzer, Runde 2: organischer mit Vibrato + Atem ---
+export function previewSighC(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(480, now);
+  osc.frequency.exponentialRampToValueAtTime(230, now + 0.9);
+  lfo.type = 'sine';
+  lfo.frequency.value = 5.5;
+  lfoGain.gain.value = 8;
+  lfo.connect(lfoGain);
+  lfoGain.connect(osc.frequency);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.06, now + 0.15);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.95);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  lfo.start(now);
+  osc.start(now);
+  lfo.stop(now + 1);
+  osc.stop(now + 1);
+  breathLayer(ctx, now, 1.0, 0.02);
+}
+export function previewSighD(ctx: AudioContext) {
+  // Babyhafter "Coo"-Laut: leicht ansteigend dann sanft abfallend,
+  // deutliches aber langsames Vibrato, mehr Atem-Anteil.
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(380, now);
+  osc.frequency.linearRampToValueAtTime(430, now + 0.25);
+  osc.frequency.exponentialRampToValueAtTime(210, now + 1.1);
+  lfo.type = 'sine';
+  lfo.frequency.value = 4.5;
+  lfoGain.gain.value = 10;
+  lfo.connect(lfoGain);
+  lfoGain.connect(osc.frequency);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.055, now + 0.2);
+  gain.gain.setValueAtTime(0.055, now + 0.5);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.15);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  lfo.start(now);
+  osc.start(now);
+  lfo.stop(now + 1.2);
+  osc.stop(now + 1.2);
+  breathLayer(ctx, now, 1.15, 0.025);
+}
+
+// --- Aufwecken, Runde 2: verspielte, babyhafte Fragelaute ---
+export function previewWakeD(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(300, now);
+  osc.frequency.linearRampToValueAtTime(420, now + 0.4);
+  lfo.type = 'sine';
+  lfo.frequency.value = 6;
+  lfoGain.gain.value = 10;
+  lfo.connect(lfoGain);
+  lfoGain.connect(osc.frequency);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.06, now + 0.1);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  lfo.start(now);
+  osc.start(now);
+  lfo.stop(now + 0.55);
+  osc.stop(now + 0.55);
+  breathLayer(ctx, now, 0.5, 0.018);
+}
+export function previewWakeE(ctx: AudioContext) {
+  // Zwei kurze verschlafene "mrrn?"-Silben
+  const now = ctx.currentTime;
+  vibratoTone(ctx, now, 320, 0.22, 0.055, 20, 40);
+  vibratoTone(ctx, now + 0.26, 400, 0.28, 0.05, 22, 55);
+  breathLayer(ctx, now, 0.55, 0.015);
+}
+
+// --- Kreuz/Abbrechen, Runde 2: deutlich anders als der Klick (tonal statt Rauschen) ---
+export function previewCloseC(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(520, now);
+  osc.frequency.exponentialRampToValueAtTime(260, now + 0.16);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.07, now + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.22);
+}
+export function previewCloseD(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  [440, 330].forEach((f, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = f;
+    const t = now + i * 0.07;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.06, t + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.12);
+  });
+}
+
+// --- Belohnung, Runde 2: noch weicher als Runde-1-B ---
+export function previewRewardC(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  [523, 659].forEach((f, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    const t = now + i * 0.11;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.045, t + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.55);
+  });
+}
+export function previewRewardD(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = 587;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.04, now + 0.1);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.65);
 }
