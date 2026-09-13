@@ -8,9 +8,6 @@ import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useT } from '../../i18n';
-import { useSettings } from '../../state/SettingsContext';
-import { triggerHaptic } from '../../services/haptics';
-import { playSound } from '../../services/sounds';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { bridgesRepo, seedBridgesIfEmpty, patchKnownDemoContentIssues, migrateBridgeCategoriesIfNeeded } from './bridgesRepo';
@@ -55,7 +52,6 @@ function emptyBridge(category: BridgeCategory): Bridge {
 export function BridgesPage() {
   const t = useT();
   const say = useCompanionSay();
-  const { settings } = useSettings();
   const location = useLocation();
   const navigate = useNavigate();
   const [category, setCategory] = useState<BridgeCategory>('koerper_intra');
@@ -106,8 +102,6 @@ export function BridgesPage() {
     setBridges(bridgesRepo.getAll());
     setCreating(null);
     setJustBuilt(bridge.title);
-    triggerHaptic('settle', settings);
-    playSound('settle', settings);
     say(pickLine({ page: '/bruecken', trigger: 'speichern' }), { joy: true });
   }
 

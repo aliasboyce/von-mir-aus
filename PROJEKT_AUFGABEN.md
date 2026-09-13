@@ -492,6 +492,8 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Update-Benachrichtigung für Nutzer: bei jedem neuen App-Update sollen bestehende Nutzer eine Nachricht sehen ("[Name] hat wieder was verbessert, bitte lade die App neu auf deinen Home-Bildschirm") — Mechanismus noch zu klären (z. B. Versionsnummer-Vergleich beim Start)
 - Low-Capacity-Prinzip: Oberfläche passt sich rein interaktionsbasiert an geringere Kapazität an (noch nicht umgesetzt — siehe Notiz unten)
 - Kostenpflichtige Zusatzfunktionen / Spendenmöglichkeit prüfen
+- Mehr vorgespeicherte Beispiel-Vorlagen fürs Tagebuch
+- "Das ist mir hier jetzt grad alles zu viel"-Option: das Wesen lenkt gezielt durch, weil die App sehr viele Funktionen hat
 - Zusatzfunktionen für Therapeutinnen/Institutionen, optionale Auswertungen
 - "Neuroaffektives Bilderbuch" als fachliche Inspirationsquelle prüfen
 - Vollständige Gesamtanalyse der App

@@ -20,8 +20,6 @@ import { MiniCurve } from '../polyvagal/MiniCurve';
 import { WeatherWheel } from './WeatherWheel';
 import { WeatherAnimation } from './WeatherAnimation';
 import { useSettings } from '../../state/SettingsContext';
-import { triggerHaptic } from '../../services/haptics';
-import { playSound } from '../../services/sounds';
 import { createId } from '../../services/storage/repository';
 import type { NeedDirection, WeatherCondition, PolyvagalZone, ZugangSurvivalState } from '../../data/types';
 import { saveInnerWeatherDraft, loadRecentInnerWeatherDraft, clearInnerWeatherDraft } from './innerWeatherDraft';
@@ -90,8 +88,6 @@ export function InnerWeatherPage() {
   }
 
   function chooseZone(zone: PolyvagalZone, survivalState?: ZugangSurvivalState) {
-    triggerHaptic('select', settings);
-    playSound('select', settings);
     polyvagalRepo.save({ id: createId('pv'), createdAt: new Date().toISOString(), zone, survivalState, tensionValue });
     tensionRepo.save({ id: createId('tension'), createdAt: new Date().toISOString(), value: tensionValue });
     // "Wird nicht farbig markiert"-Fund — this used to jump to the

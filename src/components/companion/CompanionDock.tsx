@@ -11,6 +11,7 @@ import { useRegisterHeroCompanion } from '../../state/HeroCompanionContext';
 import { getCompanionOffset, setCompanionOffset } from '../../services/companionPosition';
 import { getCompanionScale } from '../../services/companionScale';
 import { useT } from '../../i18n';
+import { playCompanionSound } from '../../services/sounds';
 import { pickTip } from './pageTips';
 import './companion.css';
 
@@ -249,10 +250,12 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
   function toggleSleep() {
     setMenuOpen(false);
     if (isSleeping) {
+      playCompanionSound('wake', settings);
       updateSettings({ brainState: 'waking' });
       setTimeout(() => updateSettings({ brainState: 'awake' }), 1150);
       return;
     }
+    playCompanionSound('sleep', settings);
     updateSettings({ brainState: 'settling' });
     setTimeout(() => updateSettings({ brainState: 'sleeping' }), 850);
   }

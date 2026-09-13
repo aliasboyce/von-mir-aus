@@ -5,7 +5,6 @@ import { InlineCompanionNote } from './InlineCompanionNote';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { getActiveGroundingSteps } from './groundingManagement';
-import { startBreathTone, stopBreathTone } from '../../services/sounds';
 import { triggerHaptic } from '../../services/haptics';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
@@ -54,22 +53,20 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
     // unhurried rather than trying to match any specific breathing
     // technique's exact timing, since the point here is a gentle shared
     // moment, not a precise exercise.
-    startBreathTone('in', 4, settings);
-    triggerHaptic('tap', settings);
+    // "Ton bei Atmen macht Angst"-Auftrag — the hum tone is gone
+    // entirely; vibration alone now carries the "the phone breathes
+    // with you" moment. 'select' (a touch longer than the everyday
+    // 'tap' click) so it reads as its own distinct cue.
+    triggerHaptic('select', settings);
     const interval = setInterval(() => {
       setBreathPhase((p) => {
-        const next = p === 'in' ? 'out' : 'in';
-        startBreathTone(next, 4, settings);
-        triggerHaptic('tap', settings);
-        return next;
+        triggerHaptic('select', settings);
+        return p === 'in' ? 'out' : 'in';
       });
     }, 4000);
-    return () => {
-      clearInterval(interval);
-      stopBreathTone();
-    };
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isBreathStep, settings.reduceMotion, settings.soundsEnabled, settings.hapticsEnabled]);
+  }, [isBreathStep, settings.reduceMotion, settings.hapticsEnabled]);
 
   return createPortal(
     <div

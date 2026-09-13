@@ -23,6 +23,27 @@ function getContext(): AudioContext | null {
   return ctx;
 }
 
+/**
+ * "Klick-Sound ist verzoegert"-Auftrag — resuming a suspended
+ * AudioContext is async (audioCtx.resume() returns a promise), so
+ * scheduling a sound right after calling resume() means waiting for
+ * that promise on every tap where the context happened to be
+ * suspended — which on mobile can be most or all taps, since phones
+ * aggressively suspend audio contexts between interactions. Calling
+ * this once, as early as possible (the very first pointerdown
+ * anywhere, before any sound actually needs to play), gets the
+ * context running ahead of time so the actual click sound later can
+ * skip the resume-and-wait step entirely and schedule synchronously.
+ */
+export function warmUpAudio() {
+  const audioCtx = getContext();
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {
+      // best-effort warmup; a real tap's own resume() call is the fallback
+    });
+  }
+}
+
 // A short buffer of white noise, generated once and reused for every
 // click — cheaper than building a new buffer per tap, and the buffer
 // itself is inaudible until shaped by the filter+envelope below.
@@ -45,11 +66,13 @@ function scheduleClick(audioCtx: AudioContext) {
   filter.type = 'lowpass';
   // Sweeping the cutoff down very quickly is what makes filtered noise
   // read as a "click" rather than a hiss — most of the energy is gone
-  // within ~20ms.
-  filter.frequency.setValueAtTime(2200, now);
+  // within ~20ms. Cutoff lowered further (1600->300 instead of
+  // 2200->300) and gain lowered (0.22->0.13) — softer overall per
+  // direct feedback.
+  filter.frequency.setValueAtTime(1600, now);
   filter.frequency.exponentialRampToValueAtTime(300, now + 0.03);
   const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(0.22, now);
+  gain.gain.setValueAtTime(0.13, now);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
   source.connect(filter);
   filter.connect(gain);
@@ -73,88 +96,92 @@ function scheduleTone(audioCtx: AudioContext, freq: number, duration: number) {
   osc.stop(now + duration + 0.02);
 }
 
-// Kept alive across the whole breathing exercise (not recreated per
-// phase) so the pitch/volume can glide smoothly between phases
-// instead of clicking on/off every 4 seconds.
-let breathOsc: OscillatorNode | null = null;
-let breathGain: GainNode | null = null;
-
 /**
- * "Ein-/Ausatmen soll das Handy mitmachen lassen"-Auftrag — a low,
- * warm hum (not a melody, not a beep) that swells as the person
- * breathes in and eases back as they breathe out, mirroring the
- * growing/shrinking circle already on screen. Low frequencies and a
- * slow, humming quality are the closest a synthesized tone can get to
- * the calming, "vagus nerve" register the person asked for (think a
- * soft, sustained "mmm" rather than a chime) without needing a real
- * recorded nature sample.
+ * "Wesen-Toene beim Antippen/Schlafen/Aufwecken"-Auftrag — three
+ * short, warm, vaguely vocal-like blips in the spirit of a Minecraft
+ * villager "hmm" (a few short pitched tone bursts, not a melody, not
+ * a chime). Built from a handful of very short triangle-wave notes
+ * with soft envelopes; triangle instead of sine gives a slightly
+ * rounder, "vocal" character without needing any recorded sample.
  */
-export function startBreathTone(phase: 'in' | 'out', durationSec: number, settings: Pick<UserSettings, 'soundsEnabled'>) {
+function scheduleBlip(audioCtx: AudioContext, startAt: number, freq: number, duration: number, gainPeak: number) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(freq, startAt);
+  gain.gain.setValueAtTime(0, startAt);
+  gain.gain.linearRampToValueAtTime(gainPeak, startAt + duration * 0.3);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(startAt);
+  osc.stop(startAt + duration + 0.02);
+}
+
+/** Tapped/tickled — a tiny, quick giggle: three short rising blips. */
+function scheduleGiggle(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  const notes = [330, 392, 440];
+  notes.forEach((freq, i) => scheduleBlip(audioCtx, now + i * 0.09, freq, 0.09, 0.06));
+}
+
+/** Put to sleep — a single soft, descending sigh. */
+function scheduleSleepSigh(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(300, now);
+  osc.frequency.exponentialRampToValueAtTime(160, now + 0.5);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.06, now + 0.1);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.6);
+}
+
+/** Waking up — a short, questioning "hmm?": low, rising slightly at the end. */
+function scheduleWakeHmm(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(210, now);
+  osc.frequency.setValueAtTime(210, now + 0.18);
+  osc.frequency.linearRampToValueAtTime(260, now + 0.32);
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.07, now + 0.06);
+  gain.gain.setValueAtTime(0.07, now + 0.22);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.4);
+}
+
+type CompanionSoundKind = 'giggle' | 'sleep' | 'wake';
+
+export function playCompanionSound(kind: CompanionSoundKind, settings: Pick<UserSettings, 'soundsEnabled'>) {
   if (!settings.soundsEnabled) return;
   const audioCtx = getContext();
   if (!audioCtx) return;
-
   function schedule() {
     if (!audioCtx) return;
     try {
-      const now = audioCtx.currentTime;
-      if (!breathOsc || !breathGain) {
-        breathOsc = audioCtx.createOscillator();
-        breathGain = audioCtx.createGain();
-        breathOsc.type = 'sine';
-        breathOsc.frequency.value = 110;
-        breathGain.gain.value = 0;
-        breathOsc.connect(breathGain);
-        breathGain.connect(audioCtx.destination);
-        breathOsc.start(now);
-      }
-      // Breathing in: pitch and volume rise gently. Breathing out: both
-      // ease back down. Always a soft, low register — never loud enough
-      // to feel like a notification.
-      const targetGain = phase === 'in' ? 0.05 : 0.02;
-      const targetFreq = phase === 'in' ? 132 : 98;
-      breathGain.gain.cancelScheduledValues(now);
-      breathGain.gain.setValueAtTime(breathGain.gain.value, now);
-      breathGain.gain.linearRampToValueAtTime(targetGain, now + durationSec * 0.7);
-      breathOsc.frequency.cancelScheduledValues(now);
-      breathOsc.frequency.setValueAtTime(breathOsc.frequency.value, now);
-      breathOsc.frequency.linearRampToValueAtTime(targetFreq, now + durationSec * 0.9);
+      if (kind === 'giggle') scheduleGiggle(audioCtx);
+      else if (kind === 'sleep') scheduleSleepSigh(audioCtx);
+      else scheduleWakeHmm(audioCtx);
     } catch {
-      // Sound is a pure nice-to-have — never let it break the actual
-      // interaction it's attached to.
+      // nice-to-have only
     }
   }
-
   if (audioCtx.state === 'suspended') {
     audioCtx.resume().then(schedule).catch(schedule);
   } else {
     schedule();
   }
-}
-
-/** Call when the breathing exercise closes/unmounts, so the hum doesn't
- * keep humming in the background after the person has moved on. */
-export function stopBreathTone() {
-  if (breathGain) {
-    try {
-      const now = breathGain.context.currentTime;
-      breathGain.gain.cancelScheduledValues(now);
-      breathGain.gain.setValueAtTime(breathGain.gain.value, now);
-      breathGain.gain.linearRampToValueAtTime(0.0001, now + 0.3);
-    } catch {
-      // ignore
-    }
-  }
-  const osc = breathOsc;
-  window.setTimeout(() => {
-    try {
-      osc?.stop();
-    } catch {
-      // already stopped
-    }
-  }, 350);
-  breathOsc = null;
-  breathGain = null;
 }
 
 export function playSound(kind: SoundKind, settings: Pick<UserSettings, 'soundsEnabled'>) {

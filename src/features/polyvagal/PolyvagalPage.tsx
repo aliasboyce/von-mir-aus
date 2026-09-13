@@ -12,8 +12,6 @@ import { ReminderControl } from '../../components/shared/ReminderControl';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { useSettings } from '../../state/SettingsContext';
-import { triggerHaptic } from '../../services/haptics';
-import { playSound } from '../../services/sounds';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { polyvagalRepo, todaysCheckIns } from './polyvagalRepo';
 import { NervousSystemLadder } from './NervousSystemLadder';
@@ -143,8 +141,6 @@ export function PolyvagalPage() {
   }, []);
 
   function logZone(zone: PolyvagalZone, survivalState?: ZugangSurvivalState) {
-    triggerHaptic('select', settings);
-    playSound('select', settings);
     polyvagalRepo.save({ id: createId('pv'), createdAt: new Date().toISOString(), zone, survivalState, tensionValue });
     setCheckIns(todaysCheckIns());
     setJustSaved(true);

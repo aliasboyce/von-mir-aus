@@ -90,6 +90,9 @@ export const COMPANION_LINES: CompanionLine[] = [
   { id: 'home-1', text: 'Du musst hier nichts leisten — nur schauen, was gerade da ist.', textEn: 'There\'s nothing to achieve here — just notice what\'s there right now.', category: 'beruhigend', page: '*', trigger: 'erstes_oeffnen' },
   { id: 'home-2', text: 'Ein kleiner Check-in reicht schon.', textEn: 'A quick check-in is plenty.', category: 'tipp', page: '/', trigger: 'leerlauf' },
   { id: 'home-3', text: 'Kein Druck. Du entscheidest, was du gerade brauchst.', textEn: 'No pressure. You decide what you need right now.', category: 'beruhigend', page: '*', trigger: 'leerlauf' },
+  { id: 'home-4', text: 'Sein braucht kein Wissen darüber, wer du bist.', textEn: 'Being doesn\'t need to know who you are.', category: 'beruhigend', page: '*', trigger: 'leerlauf' },
+  { id: 'home-5', text: 'Du darfst sein, auch wenn du noch nicht weißt, wer du bist.', textEn: 'You\'re allowed to be, even if you don\'t know yet who you are.', category: 'beruhigend', page: '*', trigger: 'leerlauf' },
+  { id: 'home-6', text: 'Manchmal beginnt das Sein dort, wo das Wissen endet.', textEn: 'Sometimes being begins where knowing ends.', category: 'beruhigend', page: '*', trigger: 'leerlauf' },
 
   // ---- Inner Weather ----
   { id: 'iw-1', text: 'Es gibt kein falsches Wetter.', textEn: 'There\'s no wrong weather.', category: 'beruhigend', page: '*', trigger: 'erstes_oeffnen' },

@@ -118,6 +118,7 @@ export function DiaryPage() {
   const { settings, updateSettings } = useSettings();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
   const diaryFont: DiaryFont = settings.diaryFont ?? 'klar';
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const diaryFontMeta = DIARY_FONT_META[diaryFont];
 
   // A category with its own saved style overrides the global default;
@@ -518,11 +519,27 @@ export function DiaryPage() {
                       </button>
                     </div>
                     <p
-                      className="text-[var(--color-text)] line-clamp-3 whitespace-pre-wrap"
+                      className={expandedIds.has(entry.id) ? 'text-[var(--color-text)] whitespace-pre-wrap' : 'text-[var(--color-text)] line-clamp-3 whitespace-pre-wrap'}
                       style={styleForCategory(effectiveDiaryCategory(entry.categoryId))}
                     >
                       {entry.content}
                     </p>
+                    {entry.content.length > 140 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedIds((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(entry.id)) next.delete(entry.id);
+                            else next.add(entry.id);
+                            return next;
+                          });
+                        }}
+                        className="text-[12px] text-[var(--color-primary)] mt-1"
+                      >
+                        {expandedIds.has(entry.id) ? t.diary.showLess : t.diary.showMore}
+                      </button>
+                    )}
                     {entry.photo && (
                       <img src={entry.photo} alt="" className="mt-2 rounded-[var(--radius-md)] max-h-[120px] max-w-full object-cover" />
                     )}

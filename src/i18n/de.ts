@@ -1302,6 +1302,8 @@ const de = {
     title: 'Tagebuch',
     subtitle: 'Ein ruhiger, privater Ort für deine Gedanken.',
     newEntry: 'Neuer Eintrag',
+    showMore: 'Mehr anzeigen',
+    showLess: 'Weniger anzeigen',
     placeholder: 'Schreib, was gerade da ist …',
     addPhoto: 'Foto hinzufügen',
     removePhoto: 'Foto entfernen',

@@ -15,7 +15,7 @@ import { BUILT_IN_PALETTE_IDS } from '../data/types';
 import { StorageErrorBanner } from './StorageErrorBanner';
 import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
 import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
-import { playSound } from '../services/sounds';
+import { playSound, warmUpAudio } from '../services/sounds';
 import { triggerHaptic } from '../services/haptics';
 
 /** Top-level section key used for per-page palette overrides — everything
@@ -43,6 +43,13 @@ export function AppShell() {
   settingsRef.current = settings;
   useEffect(() => {
     function onPointerDown(e: PointerEvent) {
+      // Warm up ahead of the actual click-sound need, on ANY touch
+      // (not just button taps) — resuming the AudioContext is async,
+      // so doing this as early and as often as there's an opportunity
+      // means an actual button tap moments later can schedule its
+      // sound synchronously instead of waiting on that promise, which
+      // is what caused the perceptible delay.
+      warmUpAudio();
       const target = e.target as HTMLElement | null;
       const btn = target?.closest('button, [role="button"], a[href]');
       if (!btn || btn.hasAttribute('data-no-tap-feedback')) return;

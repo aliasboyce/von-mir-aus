@@ -41,8 +41,6 @@ import { resourcesRepo } from '../resources/resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { useSettings } from '../../state/SettingsContext';
-import { triggerHaptic } from '../../services/haptics';
-import { playSound } from '../../services/sounds';
 import type { ZugangSurvivalState } from '../../data/types';
 import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
@@ -153,8 +151,6 @@ export function ZugangPage() {
   }
 
   function chooseSurvivalState(state: ZugangSurvivalState) {
-    triggerHaptic('select', settings);
-    playSound('select', settings);
     setSurvivalState(state);
     // Reused, not reinvented: this is the exact same PolyvagalCheckIn
     // record the Tageskurve reads — Zugang never keeps its own separate
@@ -200,8 +196,6 @@ export function ZugangPage() {
   }
 
   function saveEntry(endedVia: 'complete' | 'bridge' | 'safetynet' = 'complete') {
-    triggerHaptic('settle', settings);
-    playSound('settle', settings);
     const now = new Date().toISOString();
     zugangRepo.save({
       id: createId('zugang'),

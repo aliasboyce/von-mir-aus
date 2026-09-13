@@ -1304,6 +1304,8 @@ const en: TranslationDictionary = {
     title: 'Diary',
     subtitle: 'A quiet, private place for your thoughts.',
     newEntry: 'New entry',
+    showMore: 'Show more',
+    showLess: 'Show less',
     placeholder: "Write what's here right now …",
     addPhoto: 'Add photo',
     removePhoto: 'Remove photo',

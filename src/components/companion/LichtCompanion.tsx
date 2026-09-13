@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSettings } from '../../state/SettingsContext';
+import { playCompanionSound } from '../../services/sounds';
 import { getAnyLichtwesen } from './customLichtwesen';
 import { LichtwesenEyes } from './LichtwesenEyes';
 import './companion.css';
@@ -67,6 +68,8 @@ export function LichtCompanion({
   }, [isSleeping, isSettling, isWaking, settings.reduceMotion]);
 
   function handleTap() {
+    // "Suesser Ton beim Antippen, wie gekitzelt"-Auftrag
+    playCompanionSound('giggle', settings);
     onTap?.();
   }
 
@@ -92,6 +95,7 @@ export function LichtCompanion({
       <button
         type="button"
         onClick={handleTap}
+        data-no-tap-feedback
         aria-label={being.name}
         className={[
           'lichtwesen',
