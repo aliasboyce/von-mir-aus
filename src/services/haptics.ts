@@ -38,3 +38,13 @@ export function triggerHaptic(kind: HapticKind, settings: Pick<UserSettings, 'ha
     // let a missing/failed vibration break the actual interaction.
   }
 }
+
+/** TEMPORAER — fuer die Haptik-Auswahl mit dem Nutzer. */
+export function previewVibrate(pattern: number | number[]) {
+  if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
+  try {
+    navigator.vibrate(pattern);
+  } catch {
+    // preview only
+  }
+}

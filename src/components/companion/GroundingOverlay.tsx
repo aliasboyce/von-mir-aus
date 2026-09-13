@@ -48,15 +48,20 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
 
   useEffect(() => {
     if (!isBreathStep) return;
-    if (settings.reduceMotion) return;
+    // "Atem-Vibration wurde nicht wahrgenommen"-Auftrag — this used to
+    // also skip entirely when settings.reduceMotion is on. That's a
+    // category error: reduceMotion means "less visual animation", not
+    // "no haptic feedback" — vibration isn't motion on screen. The
+    // circle's own growing/shrinking already respects reduceMotion
+    // separately (see the width/height/transition below); the
+    // interval driving it and the haptic pulses at each phase change
+    // should keep running regardless, since haptics are likely the
+    // more important channel for exactly the people who turn
+    // reduceMotion on in the first place.
     // A slow, fixed 4s-in/4s-out rhythm — deliberately simple and
     // unhurried rather than trying to match any specific breathing
     // technique's exact timing, since the point here is a gentle shared
     // moment, not a precise exercise.
-    // "Ton bei Atmen macht Angst"-Auftrag — the hum tone is gone
-    // entirely; vibration alone now carries the "the phone breathes
-    // with you" moment. 'select' (a touch longer than the everyday
-    // 'tap' click) so it reads as its own distinct cue.
     triggerHaptic('select', settings);
     const interval = setInterval(() => {
       setBreathPhase((p) => {
@@ -66,7 +71,7 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
     }, 4000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isBreathStep, settings.reduceMotion, settings.hapticsEnabled]);
+  }, [isBreathStep, settings.hapticsEnabled]);
 
   return createPortal(
     <div

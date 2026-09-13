@@ -42,14 +42,20 @@ export function AppShell() {
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   useEffect(() => {
-    function onPointerDown(e: PointerEvent) {
-      // Warm up ahead of the actual click-sound need, on ANY touch
-      // (not just button taps) — resuming the AudioContext is async,
-      // so doing this as early and as often as there's an opportunity
-      // means an actual button tap moments later can schedule its
-      // sound synchronously instead of waiting on that promise, which
-      // is what caused the perceptible delay.
+    // "Sound kommt bei jeder Beruehrung statt nur bei Auswahl"-Auftrag —
+    // pointerdown fires the instant a finger touches the screen,
+    // before it's known whether that touch will actually land on and
+    // activate something (an accidental brush, then dragging the
+    // finger away, still fired the sound). Warming up the audio
+    // system stays on pointerdown (see below) since that's purely
+    // preparation with no audible effect — but the sound/haptic
+    // itself now only fires on 'click', which only ever fires after a
+    // genuine press-and-release on the same element, so a mere touch
+    // that doesn't result in an actual activation stays silent.
+    function onPointerDown() {
       warmUpAudio();
+    }
+    function onClick(e: MouseEvent) {
       const target = e.target as HTMLElement | null;
       const btn = target?.closest('button, [role="button"], a[href]');
       if (!btn || btn.hasAttribute('data-no-tap-feedback')) return;
@@ -58,7 +64,11 @@ export function AppShell() {
       triggerHaptic('tap', settingsRef.current);
     }
     document.addEventListener('pointerdown', onPointerDown, true);
-    return () => document.removeEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('click', onClick, true);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('click', onClick, true);
+    };
   }, []);
   const { anyModalOpen } = useModalStack();
   const { heroMounted } = useHeroCompanion();

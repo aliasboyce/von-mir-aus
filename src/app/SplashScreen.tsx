@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LichtCompanion } from '../components/companion/LichtCompanion';
 import { useSettings } from '../state/SettingsContext';
 import { createKeyValueStore } from '../services/storage/keyValueStore';
@@ -6,21 +6,16 @@ import { createKeyValueStore } from '../services/storage/keyValueStore';
 /**
  * "Start-Bild beim App-Start"-Auftrag — a brief, quiet moment before
  * the home screen: companion + app name, then a rotating one-line
- * phrase, then the companion "floats back" toward its resting corner
- * as everything fades, landing on the real home screen. Shown once
- * per browser session (sessionStorage) — reopening in a fresh tab
- * shows it again, navigating inside the app never re-triggers it, and
- * it never blocks anyone (timed, not dismiss-gated) or shows itself
- * at all if reduceMotion is on.
+ * phrase, then the companion floats to EXACTLY where it already sits
+ * on the home screen underneath (measured live via
+ * data-hero-companion-anchor, not guessed), landing there as
+ * everything fades. Shown once per browser session (sessionStorage);
+ * skips itself entirely if reduceMotion is on.
  */
 const SESSION_KEY = 'von-mir-aus-splash-shown';
 const PHRASE_INDEX_KEY = 'splash-phrase-index';
 const phraseIndexStore = createKeyValueStore<number>(PHRASE_INDEX_KEY, 0);
 
-// The last entry is deliberately two lines shown one after another
-// (see below) rather than a single string — kept as a 2-tuple so the
-// rotation logic below can treat every entry uniformly by index while
-// still rendering that last one specially.
 const PHRASES: string[] = [
   '… irgendwo muss man ja anfangen.',
   '… ich fang einfach mal bei mir an.',
@@ -44,7 +39,7 @@ const PHRASE_DELAY_MS = 500;
 const PHRASE_IN_MS = 700;
 const SECOND_LINE_DELAY_MS = 900;
 const HOLD_MS = 900;
-const FLOAT_OUT_MS = 900;
+const FLOAT_OUT_MS = 950;
 
 export function SplashScreen({ children }: { children: React.ReactNode }) {
   const { settings } = useSettings();
@@ -59,6 +54,8 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
   });
   const [phrase] = useState(() => nextPhraseAndAdvance());
   const [showSecondLine, setShowSecondLine] = useState(false);
+  const companionWrapRef = useRef<HTMLDivElement>(null);
+  const [floatTransform, setFloatTransform] = useState('translate(0, 0) scale(1)');
 
   useEffect(() => {
     if (phase === 'done') return;
@@ -70,7 +67,25 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
     const holdStart = TITLE_IN_MS + PHRASE_DELAY_MS + PHRASE_IN_MS;
     const timers = [
       window.setTimeout(() => setPhase('hold'), holdStart),
-      window.setTimeout(() => setPhase('out'), holdStart + HOLD_MS),
+      window.setTimeout(() => {
+        // Measure right before starting the float-out (not earlier —
+        // the real home companion needs a moment to have settled into
+        // its actual layout position first) and compute the exact
+        // delta from the splash companion's current center to the
+        // real one's center, so the CSS transition below can animate
+        // precisely onto it instead of an approximated offset.
+        const from = companionWrapRef.current?.getBoundingClientRect();
+        const to = document.querySelector('[data-hero-companion-anchor] [data-no-tap-feedback]')?.getBoundingClientRect();
+        if (from && to) {
+          const fromCenterX = from.left + from.width / 2;
+          const fromCenterY = from.top + from.height / 2;
+          const toCenterX = to.left + to.width / 2;
+          const toCenterY = to.top + to.height / 2;
+          const scale = to.width / from.width;
+          setFloatTransform(`translate(${toCenterX - fromCenterX}px, ${toCenterY - fromCenterY}px) scale(${scale})`);
+        }
+        setPhase('out');
+      }, holdStart + HOLD_MS),
       window.setTimeout(() => setPhase('done'), holdStart + HOLD_MS + FLOAT_OUT_MS),
     ];
     if (phrase.isLast) {
@@ -86,25 +101,18 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      {/* Mounted first (underneath), so the real hero companion exists
+          in the DOM and can be measured before the float-out starts. */}
+      {children}
       <div
         className="fixed inset-0 z-[300] flex flex-col items-center justify-center"
         style={{ background: 'var(--color-bg)', pointerEvents: floating ? 'none' : undefined }}
       >
         <div
+          ref={companionWrapRef}
           style={{
-            transition: `transform ${FLOAT_OUT_MS}ms cubic-bezier(0.4, 0, 0.2, 1), opacity ${FLOAT_OUT_MS}ms ease`,
-            // "Wesen schwebt nach hinten zur Ausgangsposition"-Auftrag —
-            // during the float-out, the companion visually drifts toward
-            // its actual resting corner (bottom-right, matching
-            // companion.css's floating-dock position and the intro
-            // flow's own hero placement) instead of the whole splash
-            // just fading uniformly in place. Approximate screen-relative
-            // offset rather than a pixel-perfect handoff to the real
-            // dock element — the destination differs slightly by
-            // viewport/whether the intro or home screen follows, so a
-            // convincing "drifts toward the corner" motion matters more
-            // here than an exact handoff.
-            transform: floating ? 'translate(38vw, 34vh) scale(0.35)' : 'translate(0, 0) scale(1)',
+            transition: `transform ${FLOAT_OUT_MS}ms cubic-bezier(0.45, 0, 0.2, 1), opacity ${FLOAT_OUT_MS}ms ease`,
+            transform: floating ? floatTransform : 'translate(0, 0) scale(1)',
           }}
         >
           <LichtCompanion size="large" />
@@ -115,7 +123,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
             fontFamily: 'var(--font-display)',
             color: 'var(--color-text)',
             opacity: floating ? 0 : 1,
-            transition: `opacity ${floating ? FLOAT_OUT_MS : TITLE_IN_MS}ms ease`,
+            transition: `opacity ${floating ? FLOAT_OUT_MS * 0.6 : TITLE_IN_MS}ms ease`,
           }}
         >
           von mir aus
@@ -124,7 +132,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
           className="mt-2 text-center px-8"
           style={{
             opacity: floating ? 0 : 1,
-            transition: `opacity ${floating ? FLOAT_OUT_MS : PHRASE_IN_MS}ms ease ${floating ? 0 : PHRASE_DELAY_MS}ms`,
+            transition: `opacity ${floating ? FLOAT_OUT_MS * 0.6 : PHRASE_IN_MS}ms ease ${floating ? 0 : PHRASE_DELAY_MS}ms`,
           }}
         >
           <p className="text-[14px]" style={{ color: 'var(--color-text-muted)', opacity: 0.7 }}>
@@ -144,9 +152,6 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
           )}
         </div>
       </div>
-      {/* Mount the real app underneath right away so the first paint
-          after the splash is already the fully-loaded home screen. */}
-      {children}
     </>
   );
 }

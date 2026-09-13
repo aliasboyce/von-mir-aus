@@ -50,6 +50,7 @@ import { KontaktePage } from './features/safetyNet/KontaktePage';
 import { SafetyPlanPage } from './features/safetyPlan/SafetyPlanPage';
 import { DiaryPage } from './features/diary/DiaryPage';
 import { SettingsPage } from './features/settings/SettingsPage';
+import { SoundWorkshopPage } from './features/settings/SoundWorkshopPage';
 
 function App() {
   return (
@@ -111,6 +112,7 @@ function App() {
                 <Route path="/sicherheit/tagebuch" element={<DiaryPage />} />
 
                 <Route path="/einstellungen" element={<SettingsPage />} />
+                <Route path="/einstellungen/ton-werkstatt" element={<SoundWorkshopPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
               </Routes>

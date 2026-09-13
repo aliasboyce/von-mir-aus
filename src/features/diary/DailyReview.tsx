@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
 import { EmptyState } from '../../components/ui/EmptyState';
@@ -36,6 +36,7 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
   const t = useT();
   const { settings } = useSettings();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const showWeather = settings.dailyReviewShowWeather !== false;
   const showPolyvagal = settings.dailyReviewShowPolyvagal !== false;
   const showTension = settings.dailyReviewShowTension !== false;
@@ -179,9 +180,28 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
           {diary.length > 0 && (
             <div className="flex flex-col gap-1.5">
               {diary.map((entry) => (
-                <p key={entry.id} className="text-[13px] text-[var(--color-text)] line-clamp-2">
-                  „{entry.content}"
-                </p>
+                <div key={entry.id}>
+                  <p
+                    className={expandedIds.has(entry.id) ? 'text-[13px] text-[var(--color-text)]' : 'text-[13px] text-[var(--color-text)] line-clamp-2'}
+                  >
+                    „{entry.content}"
+                  </p>
+                  {entry.content.length > 90 && (
+                    <button
+                      onClick={() =>
+                        setExpandedIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(entry.id)) next.delete(entry.id);
+                          else next.add(entry.id);
+                          return next;
+                        })
+                      }
+                      className="text-[11px] text-[var(--color-primary)]"
+                    >
+                      {expandedIds.has(entry.id) ? t.diary.showLess : t.diary.showMore}
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           )}

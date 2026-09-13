@@ -266,7 +266,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
 
   if (variant === 'hero') {
     return (
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-3" data-hero-companion-anchor>
         <LichtCompanion size="large" onTap={() => setMenuOpen((v) => !v)} presence={!!showTip} joyBurst={joyBurst} />
         <p className="text-[15px] text-[var(--color-text)] -mt-1" style={{ fontFamily: 'var(--font-companion)', fontWeight: 600 }}>{being.name}</p>
         {showTip && (

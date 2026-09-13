@@ -13,6 +13,20 @@
 html, body, #root {
   height: 100%;
   height: 100dvh;
+  /* "Ansicht ist wackelig beim Scrollen"-Auftrag — the viewport meta
+   * tag's user-scalable=no is the primary fix (see index.html), but
+   * some browsers have historically ignored that for accessibility
+   * reasons. touch-action here is the modern, more robust backup: it
+   * tells the browser to only ever interpret touch gestures as
+   * panning, never as a pinch-zoom of the whole page — which is what
+   * was causing an accidental two-finger touch during normal
+   * scrolling to zoom the entire app in and get stuck that way until
+   * manually pinched back out. Doesn't affect the app's OWN pinch
+   * gestures (image crop, network graph) since those call
+   * preventDefault via their own pointer handlers on a specific
+   * element, independent of this page-level setting.
+   */
+  touch-action: pan-x pan-y;
 }
 
 /* iOS Safari's address bar can grow/shrink, which historically caused
