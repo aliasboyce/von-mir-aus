@@ -139,7 +139,19 @@ export function AppShell() {
           <Outlet />
         </ErrorBoundary>
       </main>
-      {!anyModalOpen && !hideCompanionDock && (
+      {/*
+       * "Lenk mich ab funktioniert nicht auf anderen Seiten"-Auftrag —
+       * this used to also require !anyModalOpen. But DistractionOverlay
+       * and GroundingOverlay are rendered AS CHILDREN of CompanionDock
+       * itself and register themselves via useRegisterModalOpen the
+       * moment they open. That flipped anyModalOpen to true, which
+       * immediately unmounted CompanionDock (their own parent) right
+       * here — destroying the overlay the instant it opened, before a
+       * person could ever see it. Dropped that condition: CompanionDock
+       * only needs to hide for the hero/tour cases, not for its own
+       * child overlays opening.
+       */}
+      {!hideCompanionDock && (
         <div className="no-print">
           <CompanionDock bottomOffset={hideNav ? 16 : 92} />
         </div>
