@@ -226,7 +226,8 @@ export function SafetyNetPage() {
       <div className="flex items-start justify-between mb-1">
         <h1 className="text-[24px]">{t.network.title}</h1>
       </div>
-      <p className="text-[14px] text-[var(--color-text-muted)] mb-5">{t.network.subtitle}</p>
+      <p className="text-[14px] text-[var(--color-text-muted)] mb-2">{t.network.subtitle}</p>
+      <p className="text-[12px] text-[var(--color-text-faint)] mb-5 leading-relaxed">{t.network.examplesHint}</p>
 
       <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-4">
         {t.network.addNew}

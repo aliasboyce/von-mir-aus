@@ -71,7 +71,7 @@
   /* ---- Motion ---- */
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --duration-sm: 180ms;
-  --duration-md: 320ms;
+  --duration-md: 500ms;
   --duration-lg: 600ms;
 
   /* ---- Layout ---- */

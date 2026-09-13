@@ -18,6 +18,7 @@ import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { useSettings } from '../../state/SettingsContext';
 import { weatherRepo } from '../innerWeather/weatherRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
+import { getDueCustomReminders, dismissCustomReminder, type CustomReminder } from '../../services/customReminders';
 import { BRIDGE_CATEGORY_META } from '../bridges/bridgeMeta';
 import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
@@ -60,6 +61,7 @@ export function HomePage() {
   const [groundingOpen, setGroundingOpen] = useState(false);
   const [openLetter, setOpenLetter] = useState<LetterToSelf | null>(null);
   const dueLetters = dueUnopenedLetters();
+  const [dueCustomReminders, setDueCustomReminders] = useState<CustomReminder[]>(() => getDueCustomReminders());
 
   // Auto-add yesterday's day-curve summary to the diary once per day, if
   // the person opted in — runs at most once per calendar day.
@@ -223,6 +225,24 @@ export function HomePage() {
           </button>
         </Card>
       )}
+
+      {dueCustomReminders.map((r) => (
+        <Card key={r.id} padding="md" className="mb-6 flex items-start gap-3 animate-in">
+          <div className="flex-1">
+            <p className="text-[13px] text-[var(--color-text)]">{r.label}</p>
+          </div>
+          <button
+            onClick={() => {
+              dismissCustomReminder(r.id);
+              setDueCustomReminders((prev) => prev.filter((x) => x.id !== r.id));
+            }}
+            aria-label={t.home.reminderDismiss}
+            className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0"
+          >
+            <X size={16} />
+          </button>
+        </Card>
+      ))}
 
       {settings.nurJetztMode ? (
         <Card padding="none" className="mb-4 animate-in flex items-center justify-between gap-3 px-3.5 py-2.5" style={{ background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', borderWidth: 1.5 }}>

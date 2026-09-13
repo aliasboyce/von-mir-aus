@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ErrorBoundary } from './ErrorBoundary';
 import { BottomNav } from '../components/navigation/BottomNav';
@@ -15,6 +15,8 @@ import { BUILT_IN_PALETTE_IDS } from '../data/types';
 import { StorageErrorBanner } from './StorageErrorBanner';
 import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
 import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
+import { playSound } from '../services/sounds';
+import { triggerHaptic } from '../services/haptics';
 
 /** Top-level section key used for per-page palette overrides — everything
  * under e.g. /sicherheit/* shares one override, not each sub-route separately. */
@@ -27,6 +29,30 @@ export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
+
+  // "Bei jedem Tippen von Buttons ein Sound"-Auftrag — one listener
+  // here covers every button in the app (including ones added later),
+  // instead of wiring playSound/triggerHaptic into hundreds of
+  // individual button components by hand. Uses capture-phase + a ref
+  // to settings so the listener never needs re-attaching when the
+  // person toggles sounds/haptics in Settings. Ignores clicks already
+  // marked as handled elsewhere (data-no-tap-feedback) for the rare
+  // case a button already has its own distinct sound (e.g. the bridge
+  // "settle" tone) and would otherwise double up.
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+  useEffect(() => {
+    function onPointerDown(e: PointerEvent) {
+      const target = e.target as HTMLElement | null;
+      const btn = target?.closest('button, [role="button"], a[href]');
+      if (!btn || btn.hasAttribute('data-no-tap-feedback')) return;
+      if ((btn as HTMLButtonElement).disabled) return;
+      playSound('click', settingsRef.current);
+      triggerHaptic('tap', settingsRef.current);
+    }
+    document.addEventListener('pointerdown', onPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onPointerDown, true);
+  }, []);
   const { anyModalOpen } = useModalStack();
   const { heroMounted } = useHeroCompanion();
   const resolvedTheme = useResolvedTheme();

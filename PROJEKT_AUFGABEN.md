@@ -488,7 +488,8 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 
 - Neue Anleitung: die große Anfangsanleitung selbst noch nicht überarbeitet/verkleinert (Kontexthilfe-Buttons sind bereits umgesetzt, das war der erste Teil davon)
 - Tagebuch-Vorlagen, insbesondere eine bewusst einfache "Diary Card" (druckbar, PDF, an Therapeutin weitergebbar)
-- Bedürfnis-Spiel/-Erkennung als spielerischer Zugang (die Bedürfnis-*Seite* selbst existiert bereits und wurde fachlich nach GFK überarbeitet)
+- Bedürfnis-Spiel/-Erkennung als spielerischer Zugang (die Bedürfnis-*Seite* selbst existiert bereits und wurde fachlich nach GFK überarbeitet) — konkretisiert: ein Spiel MIT dem Wesen über Gefühle und Bedürfnisse, das gleichzeitig beim Lernen/Benennen hilft (explizit vom Nutzer gewünscht)
+- Update-Benachrichtigung für Nutzer: bei jedem neuen App-Update sollen bestehende Nutzer eine Nachricht sehen ("[Name] hat wieder was verbessert, bitte lade die App neu auf deinen Home-Bildschirm") — Mechanismus noch zu klären (z. B. Versionsnummer-Vergleich beim Start)
 - Low-Capacity-Prinzip: Oberfläche passt sich rein interaktionsbasiert an geringere Kapazität an (noch nicht umgesetzt — siehe Notiz unten)
 - Kostenpflichtige Zusatzfunktionen / Spendenmöglichkeit prüfen
 - Zusatzfunktionen für Therapeutinnen/Institutionen, optionale Auswertungen

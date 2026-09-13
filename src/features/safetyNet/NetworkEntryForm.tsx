@@ -363,6 +363,7 @@ export function NetworkEntryForm({
 
       {(draft.category === 'aktivitaet' || draft.category === 'ressource') && relevantResources.length > 0 && (
         <Field label={`${t.network.linkedResource} ${t.common.optional}`}>
+          <p className="text-[11px] text-[var(--color-text-faint)] -mt-1 mb-1">{t.network.linkedResourceHint}</p>
           <select
             className="input"
             value={draft.linkedResourceId ?? ''}

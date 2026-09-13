@@ -5,6 +5,8 @@ import { InlineCompanionNote } from './InlineCompanionNote';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { getActiveGroundingSteps } from './groundingManagement';
+import { startBreathTone, stopBreathTone } from '../../services/sounds';
+import { triggerHaptic } from '../../services/haptics';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
 interface GroundingOverlayProps {
@@ -46,14 +48,28 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
   const showInput = current.hasInput;
 
   useEffect(() => {
-    if (!isBreathStep || settings.reduceMotion) return;
+    if (!isBreathStep) return;
+    if (settings.reduceMotion) return;
     // A slow, fixed 4s-in/4s-out rhythm — deliberately simple and
     // unhurried rather than trying to match any specific breathing
     // technique's exact timing, since the point here is a gentle shared
     // moment, not a precise exercise.
-    const interval = setInterval(() => setBreathPhase((p) => (p === 'in' ? 'out' : 'in')), 4000);
-    return () => clearInterval(interval);
-  }, [isBreathStep, settings.reduceMotion]);
+    startBreathTone('in', 4, settings);
+    triggerHaptic('tap', settings);
+    const interval = setInterval(() => {
+      setBreathPhase((p) => {
+        const next = p === 'in' ? 'out' : 'in';
+        startBreathTone(next, 4, settings);
+        triggerHaptic('tap', settings);
+        return next;
+      });
+    }, 4000);
+    return () => {
+      clearInterval(interval);
+      stopBreathTone();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isBreathStep, settings.reduceMotion, settings.soundsEnabled, settings.hapticsEnabled]);
 
   return createPortal(
     <div

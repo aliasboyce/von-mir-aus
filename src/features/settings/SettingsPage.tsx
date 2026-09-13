@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
-import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass } from 'lucide-react';
+import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell } from 'lucide-react';
 import { getAllLichtwesen } from '../../components/companion/customLichtwesen';
 import { customLichtwesenRepo } from '../../components/companion/customLichtwesen';
 import type { LichtwesenConfig } from '../../components/companion/lichtwesen';
@@ -18,6 +18,8 @@ import { resetAllAppData } from '../../services/resetAppData';
 import { customPalettesRepo, deleteCustomPalette } from '../../services/customPalettes';
 import { CreatePaletteModal } from '../../components/settings/CreatePaletteModal';
 import type { SupportedLanguage, ThemeMode } from '../../data/types';
+import { customRemindersRepo, type CustomReminder } from '../../services/customReminders';
+import { createId } from '../../services/storage/repository';
 import { BUILT_IN_PALETTE_IDS } from '../../data/types';
 import { StorageOverviewCard } from './StorageOverviewCard';
 
@@ -61,6 +63,36 @@ export function SettingsPage() {
   const t = useT();
   const { settings, updateSettings } = useSettings();
   const [createCompanionOpen, setCreateCompanionOpen] = useState(false);
+  const [customReminders, setCustomReminders] = useState<CustomReminder[]>(() => customRemindersRepo.getAll());
+  const [addingReminder, setAddingReminder] = useState(false);
+  const [newReminderLabel, setNewReminderLabel] = useState('');
+  const [newReminderTime, setNewReminderTime] = useState('18:00');
+
+  function addCustomReminder() {
+    if (!newReminderLabel.trim()) return;
+    const now = new Date().toISOString();
+    customRemindersRepo.save({
+      id: createId('reminder'),
+      label: newReminderLabel.trim(),
+      time: newReminderTime,
+      enabled: true,
+      createdAt: now,
+    });
+    setCustomReminders(customRemindersRepo.getAll());
+    setNewReminderLabel('');
+    setNewReminderTime('18:00');
+    setAddingReminder(false);
+  }
+
+  function toggleCustomReminder(r: CustomReminder) {
+    customRemindersRepo.save({ ...r, enabled: !r.enabled });
+    setCustomReminders(customRemindersRepo.getAll());
+  }
+
+  function removeCustomReminder(id: string) {
+    customRemindersRepo.remove(id);
+    setCustomReminders(customRemindersRepo.getAll());
+  }
   const [companionScale, setCompanionScaleState] = useState(() => getCompanionScale());
   const [editingBeing, setEditingBeing] = useState<LichtwesenConfig | null>(null);
   const [allBeings, setAllBeings] = useState(() => getAllLichtwesen());
@@ -444,6 +476,60 @@ export function SettingsPage() {
                 style={{ width: 110 }}
               />
             </label>
+          )}
+        </Card>
+
+        <Card className="mb-6" padding="md">
+          <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.customRemindersTitle}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.customRemindersHint}</p>
+          {customReminders.map((r) => (
+            <div key={r.id} className="flex items-center gap-2 py-2 border-t border-[var(--color-border)]">
+              <Bell size={15} className="text-[var(--color-text-faint)] flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[14px] text-[var(--color-text)] truncate">{r.label}</p>
+                <p className="text-[12px] text-[var(--color-text-faint)]">{r.time}</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={r.enabled}
+                onChange={() => toggleCustomReminder(r)}
+                className="w-5 h-5 accent-[var(--color-primary)] flex-shrink-0"
+                aria-label={r.label}
+              />
+              <button onClick={() => removeCustomReminder(r.id)} aria-label={t.common.delete} className="p-1 text-[var(--color-danger)] flex-shrink-0">
+                <Trash2 size={15} />
+              </button>
+            </div>
+          ))}
+          {addingReminder ? (
+            <div className="flex flex-col gap-2 pt-3 border-t border-[var(--color-border)] mt-1">
+              <input
+                autoFocus
+                className="input"
+                placeholder={t.settings.customReminderLabelPlaceholder}
+                value={newReminderLabel}
+                onChange={(e) => setNewReminderLabel(e.target.value)}
+              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={newReminderTime}
+                  onChange={(e) => setNewReminderTime(e.target.value)}
+                  className="input"
+                  style={{ width: 110 }}
+                />
+                <button onClick={addCustomReminder} className="flex-1 py-2 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">
+                  {t.common.save}
+                </button>
+                <button onClick={() => setAddingReminder(false)} className="px-3 py-2 text-[13px] text-[var(--color-text-faint)]">
+                  {t.common.cancel}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button onClick={() => setAddingReminder(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] pt-3 border-t border-[var(--color-border)] mt-1 w-full">
+              <Plus size={14} /> {t.settings.addCustomReminderCta}
+            </button>
           )}
         </Card>
 

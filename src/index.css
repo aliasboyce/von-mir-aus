@@ -125,11 +125,11 @@ button {
  * viewport afterwards.
  */
 @keyframes card-reveal {
-  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  from { opacity: 0; transform: scale(0.92) translateY(14px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 .card-reveal {
-  animation: card-reveal 0.35s cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation: card-reveal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 @media (prefers-reduced-motion: reduce) {
   .card-reveal {
@@ -314,7 +314,7 @@ button {
 }
 
 .page-transition {
-  animation: page-transition-in 0.32s var(--ease-soft) both;
+  animation: page-transition-in 0.55s var(--ease-soft) both;
 }
 
 /* Press feedback used across cards, chips, and rows app-wide */

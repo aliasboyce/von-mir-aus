@@ -539,6 +539,8 @@ export function ResourcesPage() {
               onChange={(ids) => setEditing({ ...editing, sensoryModalities: ids })}
             />
 
+            <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed">{t.resources.favoriteToNetworkHint}</p>
+
             <Button type="submit" fullWidth>
               {t.common.save}
             </Button>

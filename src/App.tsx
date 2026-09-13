@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from './app/ErrorBoundary';
 import { SettingsProvider } from './state/SettingsContext';
+import { SplashScreen } from './app/SplashScreen';
 import { ThemeEffect } from './state/ThemeEffect';
 import { ModalStackProvider } from './state/ModalStackContext';
 import { CompanionSpeechProvider } from './state/CompanionSpeechContext';
@@ -55,6 +56,7 @@ function App() {
     <ErrorBoundary>
     <SettingsProvider>
       <ThemeEffect />
+      <SplashScreen>
       <I18nProvider>
         <ModalStackProvider>
           <CompanionSpeechProvider>
@@ -117,6 +119,7 @@ function App() {
           </CompanionSpeechProvider>
         </ModalStackProvider>
       </I18nProvider>
+      </SplashScreen>
     </SettingsProvider>
     </ErrorBoundary>
   );

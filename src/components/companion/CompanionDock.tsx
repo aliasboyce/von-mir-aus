@@ -191,8 +191,17 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     // up could push part of it off-screen even at a position that was
     // perfectly fine at the default size.
     const sizeAllowance = 60 * scale;
-    const maxX = window.innerWidth / 2 - sizeAllowance;
-    const minX = -maxX;
+    // "Kann nur bis zur Mitte bewegt werden"-Auftrag — the dock's resting
+    // position (before any drag) is anchored at `right: 16px` (see
+    // companion.css), not screen-centered. The old maxX/minX were
+    // symmetric around that anchor (+-viewportWidth/2), so dragging left
+    // only ever reached the middle of the screen — reaching the actual
+    // left edge from a right-anchored start needs a much bigger negative
+    // range than positive one. Asymmetric bounds: almost no room to
+    // travel further right (it's already at the right edge), full width
+    // of travel to the left.
+    const maxX = sizeAllowance;
+    const minX = -(window.innerWidth - sizeAllowance * 2);
     const maxY = 0;
     const minY = -(window.innerHeight - bottomOffset - 140 * scale);
     return {
@@ -277,7 +286,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
           </div>
         )}
         {menuOpen && (
-          <div className="companion-menu animate-in">
+          <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right' }}>
             <p className="companion-menu__hint">{t.companion.moveHint}</p>
             <button onClick={requestTip} className="companion-menu__item">
               <MessageCircle size={15} />
@@ -355,7 +364,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
       )}
 
       {menuOpen && (
-        <div className="companion-menu animate-in">
+        <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right' }}>
             <p className="companion-menu__hint">{t.companion.moveHint}</p>
           <button onClick={requestTip} className="companion-menu__item">
             <MessageCircle size={15} />

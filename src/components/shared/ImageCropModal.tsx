@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useT } from '../../i18n';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
@@ -12,14 +12,20 @@ interface ImageCropModalProps {
 const FRAME = 280;
 
 /**
- * "Bilder zuschneiden"-Auftrag — deliberately the simplest interaction
- * that still gives real control: the photo sits behind a fixed square
- * frame, drag to reposition it, a slider to zoom, confirm extracts
- * exactly what's inside the frame via canvas. No external cropping
- * library needed (keeps the bundle small and avoids a new dependency
- * for one modal), works the same on touch and mouse since it's plain
- * pointer events, and the original uploaded file is never touched —
- * only a new cropped data URL is produced.
+ * "Bildausschnitt waehlen am Handy geht nicht"-Auftrag — the previous
+ * version relied on setPointerCapture to keep receiving move events
+ * once a drag started. iOS Safari has long-standing, well-documented
+ * unreliability with setPointerCapture specifically for touch-origin
+ * pointers — it can silently fail to actually capture, so the moment
+ * a real finger (imprecise, unlike a mouse) drifts a few pixels
+ * outside this deliberately small 280px frame during a drag, move
+ * events simply stop arriving and the drag appears to "not work" —
+ * matching exactly what was reported. The robust, capture-independent
+ * fix: attach the move/up listeners to the document itself for the
+ * duration of the drag, so they keep firing no matter where the
+ * finger physically is on screen. Also adds real two-finger pinch to
+ * zoom (the second half of "mit den Fingern groesser stellen"),
+ * alongside the existing slider — both control the same zoom value.
  */
 export function ImageCropModal({ src, onCancel, onConfirm }: ImageCropModalProps) {
   const t = useT();
@@ -27,38 +33,63 @@ export function ImageCropModal({ src, onCancel, onConfirm }: ImageCropModalProps
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const dragRef = useRef<{ startX: number; startY: number; startOffX: number; startOffY: number } | null>(null);
+  const pinchRef = useRef<{ startDist: number; startZoom: number } | null>(null);
+  const activePointers = useRef<Map<number, { x: number; y: number }>>(new Map());
   const imgRef = useRef<HTMLImageElement>(null);
   const naturalRef = useRef({ w: 1, h: 1 });
+  const frameRef = useRef<HTMLDivElement>(null);
 
   function onImgLoad() {
     const img = imgRef.current;
     if (img) naturalRef.current = { w: img.naturalWidth, h: img.naturalHeight };
   }
 
-  function onPointerDown(e: React.PointerEvent) {
-    // Capture on currentTarget (the container that actually holds
-    // these listeners), not target (which can be the child <img> on
-    // some mobile browsers and silently fail to capture there).
-    // Guarded because setPointerCapture can throw for pointer ids the
-    // platform doesn't recognize as active — a throw here must never
-    // prevent the drag from starting.
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId);
-    } catch {
-      // dragging still works without capture; capture only prevents
-      // the drag from ending early if the pointer leaves the frame.
+  useEffect(() => {
+    function handleMove(e: PointerEvent) {
+      if (activePointers.current.has(e.pointerId)) {
+        activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+      // Two fingers down: pinch-to-zoom, drag is suspended for the
+      // duration (matches the natural feel of photo apps).
+      if (activePointers.current.size === 2) {
+        const pts = Array.from(activePointers.current.values());
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (!pinchRef.current) {
+          pinchRef.current = { startDist: dist, startZoom: zoom };
+        } else {
+          const scale = dist / pinchRef.current.startDist;
+          const next = Math.min(3, Math.max(1, pinchRef.current.startZoom * scale));
+          setZoom(next);
+        }
+        return;
+      }
+      if (!dragRef.current) return;
+      setOffset({
+        x: dragRef.current.startOffX + (e.clientX - dragRef.current.startX),
+        y: dragRef.current.startOffY + (e.clientY - dragRef.current.startY),
+      });
     }
-    dragRef.current = { startX: e.clientX, startY: e.clientY, startOffX: offset.x, startOffY: offset.y };
-  }
-  function onPointerMove(e: React.PointerEvent) {
-    if (!dragRef.current) return;
-    setOffset({
-      x: dragRef.current.startOffX + (e.clientX - dragRef.current.startX),
-      y: dragRef.current.startOffY + (e.clientY - dragRef.current.startY),
-    });
-  }
-  function onPointerUp() {
-    dragRef.current = null;
+    function handleUp(e: PointerEvent) {
+      activePointers.current.delete(e.pointerId);
+      if (activePointers.current.size < 2) pinchRef.current = null;
+      if (activePointers.current.size === 0) dragRef.current = null;
+    }
+    document.addEventListener('pointermove', handleMove);
+    document.addEventListener('pointerup', handleUp);
+    document.addEventListener('pointercancel', handleUp);
+    return () => {
+      document.removeEventListener('pointermove', handleMove);
+      document.removeEventListener('pointerup', handleUp);
+      document.removeEventListener('pointercancel', handleUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom]);
+
+  function onPointerDown(e: React.PointerEvent) {
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (activePointers.current.size === 1) {
+      dragRef.current = { startX: e.clientX, startY: e.clientY, startOffX: offset.x, startOffY: offset.y };
+    }
   }
 
   function confirm() {
@@ -95,12 +126,10 @@ export function ImageCropModal({ src, onCancel, onConfirm }: ImageCropModalProps
       <div className="bg-[var(--color-surface)] rounded-[24px] p-5 w-[90vw] max-w-[360px]">
         <p className="text-[15px] text-[var(--color-text)] mb-3 text-center">{t.imageCrop.title}</p>
         <div
+          ref={frameRef}
           className="relative mx-auto overflow-hidden rounded-[var(--radius-lg)] touch-none"
           style={{ width: FRAME, height: FRAME, background: '#00000015', cursor: 'grab' }}
           onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
         >
           <img
             ref={imgRef}
