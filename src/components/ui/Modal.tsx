@@ -72,6 +72,7 @@ export function Modal({ open, onClose, title, subtitle, children }: ModalProps) 
           <button
             onClick={onClose}
             aria-label={t.common.close}
+            data-sound="close"
             className="p-2 -mr-2 -mt-1 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] flex-shrink-0"
           >
             <X size={20} />

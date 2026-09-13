@@ -984,7 +984,7 @@ export function ZugangPage() {
               </Card>
             )}
 
-            <Button fullWidth onClick={finish}>
+            <Button fullWidth onClick={finish} data-sound="complete">
               {t.common.save}
             </Button>
           </div>

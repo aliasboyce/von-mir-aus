@@ -12,7 +12,7 @@ import type { UserSettings } from '../data/types';
  * pass, saving a bridge) keep a very soft sine underneath for a touch
  * of warmth, but quieter and slower than a notification chime.
  */
-type SoundKind = 'click' | 'select' | 'settle' | 'menu';
+type SoundKind = 'click' | 'select' | 'settle' | 'menu' | 'close' | 'complete' | 'cancelFlow';
 
 let ctx: AudioContext | null = null;
 function getContext(): AudioContext | null {
@@ -103,6 +103,68 @@ function scheduleMenu(audioCtx: AudioContext) {
   osc.start(now);
   osc.stop(now + 0.1);
 }
+
+/** "Extra Ton fuer Kreuz/Schliessen"-Auftrag — gewaehlt: Variante A,
+ * ein weiches, aufsteigendes Wisch-Geraeusch (Rauschen, tiefer als
+ * der Klick beginnend), fuer das Schliessen/Abbrechen eines
+ * einzelnen Dialogs. */
+function scheduleClose(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  const source = audioCtx.createBufferSource();
+  source.buffer = getNoiseBuffer(audioCtx);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(300, now);
+  filter.frequency.exponentialRampToValueAtTime(900, now + 0.04);
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.09, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+  source.start(now);
+  source.stop(now + 0.06);
+}
+
+/** "Beenden"-Auftrag — gewaehlt: Variante C, ein weicher, warmer
+ * Zweiklang fuer den Abschluss eines Durchgangs (Zugang beenden,
+ * Bruecke speichern usw). */
+function scheduleComplete(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  [523, 659].forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    const t = now + i * 0.11;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.045, t + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + 0.55);
+  });
+}
+
+/** "Zurueck / Abbruch bei bestimmten Funktionen"-Auftrag — gewaehlt:
+ * Variante D, ein einzelner, sehr sanfter Ton fuer das Verlassen
+ * eines mehrstufigen Ablaufs ohne ihn abzuschliessen (unterscheidet
+ * sich bewusst von scheduleClose, das fuer einfache Dialoge ist). */
+function scheduleCancelFlow(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.value = 587;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(0.04, now + 0.1);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.65);
+}
 function scheduleTone(audioCtx: AudioContext, freq: number, duration: number) {
   const now = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
@@ -141,46 +203,76 @@ function scheduleBlip(audioCtx: AudioContext, startAt: number, freq: number, dur
 }
 
 /** Tapped/tickled — a tiny, quick giggle: three short rising blips. */
+// "D und E abwechselnd"-Auftrag — simple alternating counters so
+// consecutive taps don't sound identical (matches the requested
+// variation, "wie es eben bei Apps ist").
+let giggleToggle = 0;
+let wakeToggle = 0;
+
 function scheduleGiggle(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
-  const notes = [330, 392, 440];
-  notes.forEach((freq, i) => scheduleBlip(audioCtx, now + i * 0.09, freq, 0.09, 0.06));
+  giggleToggle = 1 - giggleToggle;
+  if (giggleToggle === 0) {
+    // Variante D: sanftes Vibrato, drei Silben
+    [520, 620, 700].forEach((f, i) => vibratoTone(audioCtx, now + i * 0.1, f, 0.13, 0.055, 28, 55, 'sine'));
+  } else {
+    // Variante E: mehr Silben, wackeliger
+    [460, 580, 520, 640].forEach((f, i) => vibratoTone(audioCtx, now + i * 0.085, f, 0.11, 0.05, 32, 70, 'sine'));
+  }
 }
 
-/** Put to sleep — a single soft, descending sigh. */
+/** Put to sleep — chosen variant A: higher pitch, longer than the
+ * original attempt, per direct feedback. */
 function scheduleSleepSigh(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = 'sine';
-  osc.frequency.setValueAtTime(300, now);
-  osc.frequency.exponentialRampToValueAtTime(160, now + 0.5);
+  osc.frequency.setValueAtTime(450, now);
+  osc.frequency.exponentialRampToValueAtTime(220, now + 0.8);
   gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.06, now + 0.1);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+  gain.gain.linearRampToValueAtTime(0.06, now + 0.12);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
   osc.connect(gain);
   gain.connect(audioCtx.destination);
   osc.start(now);
-  osc.stop(now + 0.6);
+  osc.stop(now + 0.9);
 }
 
 /** Waking up — a short, questioning "hmm?": low, rising slightly at the end. */
 function scheduleWakeHmm(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(210, now);
-  osc.frequency.setValueAtTime(210, now + 0.18);
-  osc.frequency.linearRampToValueAtTime(260, now + 0.32);
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.07, now + 0.06);
-  gain.gain.setValueAtTime(0.07, now + 0.22);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start(now);
-  osc.stop(now + 0.4);
+  wakeToggle = 1 - wakeToggle;
+  if (wakeToggle === 0) {
+    // Variante D: sanft fragend, mit Vibrato
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, now);
+    osc.frequency.linearRampToValueAtTime(420, now + 0.4);
+    lfo.type = 'sine';
+    lfo.frequency.value = 6;
+    lfoGain.gain.value = 10;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.06, now + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    lfo.start(now);
+    osc.start(now);
+    lfo.stop(now + 0.55);
+    osc.stop(now + 0.55);
+    breathLayer(audioCtx, now, 0.5, 0.018);
+  } else {
+    // Variante E: zwei kurze verschlafene "mrrn?"-Silben
+    vibratoTone(audioCtx, now, 320, 0.22, 0.055, 20, 40);
+    vibratoTone(audioCtx, now + 0.26, 400, 0.28, 0.05, 22, 55);
+    breathLayer(audioCtx, now, 0.55, 0.015);
+  }
 }
 
 type CompanionSoundKind = 'giggle' | 'sleep' | 'wake';
@@ -217,7 +309,10 @@ export function playSound(kind: SoundKind, settings: Pick<UserSettings, 'soundsE
       if (kind === 'click') scheduleClick(audioCtx);
       else if (kind === 'select') scheduleTone(audioCtx, 660, 0.18);
       else if (kind === 'menu') scheduleMenu(audioCtx);
-      else scheduleTone(audioCtx, 520, 0.3);
+      else if (kind === 'close') scheduleClose(audioCtx);
+      else if (kind === 'complete') scheduleComplete(audioCtx);
+      else if (kind === 'cancelFlow') scheduleCancelFlow(audioCtx);
+      else scheduleComplete(audioCtx); // 'settle' — same as 'complete', see below
     } catch {
       // Sound is a pure nice-to-have — never let it break the actual
       // interaction it's attached to.
@@ -732,4 +827,23 @@ export function previewRewardD(ctx: AudioContext) {
   gain.connect(ctx.destination);
   osc.start(now);
   osc.stop(now + 0.65);
+}
+
+// ============================================================
+// RUNDE 3 — zusaetzliche kreative Ideen (Trillern per schnellem
+// Vibrato fuer mehr "Niedlichkeit", falls D/E noch nicht 100% passen).
+// ============================================================
+
+/** Kichern mit staerkerem, schnellerem Triller — noch verspielter. */
+export function previewGiggleG(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  [580, 660, 620, 720].forEach((f, i) => vibratoTone(ctx, now + i * 0.075, f, 0.1, 0.05, 45, 100, 'sine'));
+}
+
+/** Aufwecken als zwei ganz sanfte, hohe "piep-piep"-Silben — wie ein
+ * gerade wach werdendes Kuecken/Vogeljunges statt "mrrn". */
+export function previewWakeF(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  vibratoTone(ctx, now, 560, 0.14, 0.045, 18, 30);
+  vibratoTone(ctx, now + 0.2, 640, 0.16, 0.045, 18, 35);
 }

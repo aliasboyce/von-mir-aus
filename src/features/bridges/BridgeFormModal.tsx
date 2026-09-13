@@ -396,7 +396,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
           <input className="input" value={draft.tip ?? ''} onChange={(e) => setDraft({ ...draft, tip: e.target.value })} />
         </label>
 
-        <Button type="submit" fullWidth>
+        <Button type="submit" fullWidth data-sound="complete">
           {t.common.save}
         </Button>
       </form>

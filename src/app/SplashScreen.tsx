@@ -7,10 +7,18 @@ import { createKeyValueStore } from '../services/storage/keyValueStore';
  * "Start-Bild beim App-Start"-Auftrag — a brief, quiet moment before
  * the home screen: companion + app name, then a rotating one-line
  * phrase, then the companion floats to EXACTLY where it already sits
- * on the home screen underneath (measured live via
- * data-hero-companion-anchor, not guessed), landing there as
+ * on the home screen underneath (measured live), landing there as
  * everything fades. Shown once per browser session (sessionStorage);
  * skips itself entirely if reduceMotion is on.
+ *
+ * "Uebergang wirkt noch etwas abrupt"-Auftrag — the previous version
+ * jumped straight from phase 'out' (companion still mid-float) to
+ * 'done' (the ENTIRE overlay, including its opaque background,
+ * instantly unmounted). The float itself was smooth, but that final
+ * disappearance was a hard cut. Added a 'fadeOut' phase: once the
+ * float finishes, the whole overlay's own opacity eases to 0 (a
+ * proper crossfade onto the real page, which is already sitting
+ * ready underneath) before it actually unmounts.
  */
 const SESSION_KEY = 'von-mir-aus-splash-shown';
 const PHRASE_INDEX_KEY = 'splash-phrase-index';
@@ -34,16 +42,19 @@ function nextPhraseAndAdvance(): { text: string; isLast: boolean } {
   return { text: PHRASES[safeIdx], isLast: safeIdx === PHRASES.length - 1 };
 }
 
-const TITLE_IN_MS = 900;
-const PHRASE_DELAY_MS = 500;
-const PHRASE_IN_MS = 700;
-const SECOND_LINE_DELAY_MS = 900;
+// "Langsamer einblenden"-Auftrag — title/phrase fade-in durations
+// raised noticeably (900->1400, 700->1100).
+const TITLE_IN_MS = 1400;
+const PHRASE_DELAY_MS = 600;
+const PHRASE_IN_MS = 1100;
+const SECOND_LINE_DELAY_MS = 1000;
 const HOLD_MS = 900;
 const FLOAT_OUT_MS = 950;
+const FADE_OUT_MS = 450;
 
 export function SplashScreen({ children }: { children: React.ReactNode }) {
   const { settings } = useSettings();
-  const [phase, setPhase] = useState<'in' | 'hold' | 'out' | 'done'>(() => {
+  const [phase, setPhase] = useState<'in' | 'hold' | 'out' | 'fadeOut' | 'done'>(() => {
     if (settings.reduceMotion) return 'done';
     try {
       if (sessionStorage.getItem(SESSION_KEY)) return 'done';
@@ -65,6 +76,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
       // best-effort only
     }
     const holdStart = TITLE_IN_MS + PHRASE_DELAY_MS + PHRASE_IN_MS;
+    const fadeOutStart = holdStart + HOLD_MS + FLOAT_OUT_MS;
     const timers = [
       window.setTimeout(() => setPhase('hold'), holdStart),
       window.setTimeout(() => {
@@ -86,7 +98,8 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
         }
         setPhase('out');
       }, holdStart + HOLD_MS),
-      window.setTimeout(() => setPhase('done'), holdStart + HOLD_MS + FLOAT_OUT_MS),
+      window.setTimeout(() => setPhase('fadeOut'), fadeOutStart),
+      window.setTimeout(() => setPhase('done'), fadeOutStart + FADE_OUT_MS),
     ];
     if (phrase.isLast) {
       timers.push(window.setTimeout(() => setShowSecondLine(true), TITLE_IN_MS + PHRASE_DELAY_MS + SECOND_LINE_DELAY_MS));
@@ -97,7 +110,8 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
 
   if (phase === 'done') return <>{children}</>;
 
-  const floating = phase === 'out';
+  const floating = phase === 'out' || phase === 'fadeOut';
+  const fadingOutWhole = phase === 'fadeOut';
 
   return (
     <>
@@ -106,7 +120,12 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
       {children}
       <div
         className="fixed inset-0 z-[300] flex flex-col items-center justify-center"
-        style={{ background: 'var(--color-bg)', pointerEvents: floating ? 'none' : undefined }}
+        style={{
+          background: 'var(--color-bg)',
+          pointerEvents: floating ? 'none' : undefined,
+          opacity: fadingOutWhole ? 0 : 1,
+          transition: `opacity ${FADE_OUT_MS}ms ease`,
+        }}
       >
         <div
           ref={companionWrapRef}

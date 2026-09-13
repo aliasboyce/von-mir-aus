@@ -2,14 +2,11 @@ import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import {
   playPreview,
-  previewGiggleD,
-  previewGiggleE,
-  previewGiggleF,
+  previewGiggleG,
   previewSighA,
   previewSighC,
   previewSighD,
-  previewWakeD,
-  previewWakeE,
+  previewWakeF,
   previewCloseA,
   previewCloseC,
   previewCloseD,
@@ -20,10 +17,10 @@ import {
 import { previewVibrate } from '../../services/haptics';
 
 /**
- * TEMPORAER — Runde 2, nach Nutzer-Feedback zu Runde 1. Bereits
- * entschiedene Punkte (Klick = B, Hauptmenue = B) sind nicht mehr
- * hier, nur noch das, was noch offen ist. Wird nach der Entscheidung
- * komplett entfernt.
+ * TEMPORAER — Runde 3. Bereits entschiedene Punkte (Klick=B,
+ * Hauptmenue=B, Kichern=D/E, Aufwecken=D/E, Seufzer=A, Kreuz=A,
+ * Beenden=C, Zurueck/Abbruch=D) sind schon in Produktion und nicht
+ * mehr hier — nur noch offene Punkte plus ein paar neue Ideen.
  */
 function Row({ label, options }: { label: string; options: { name: string; onPress: () => void }[] }) {
   return (
@@ -50,61 +47,51 @@ export function SoundWorkshopPage() {
     <div className="animate-in">
       <TopBar />
       <div className="px-5 pb-10">
-        <h1 className="text-[22px] mb-1">Ton-Werkstatt — Runde 2</h1>
+        <h1 className="text-[22px] mb-1">Ton-Werkstatt — Runde 3</h1>
         <p className="text-[13px] text-[var(--color-text-muted)] mb-2">
-          Neue Versuche mit Vibrato (leichtes Zittern der Tonhöhe, wie eine echte Stimme) und Atem-Textur statt reiner
-          Elektronik-Töne.
-        </p>
-        <p className="text-[12px] text-[var(--color-primary)] mb-5">
-          ✓ Klick = Variante B, ✓ Hauptmenü = Variante B — beide schon entschieden, nicht mehr hier.
+          Bereits fest eingebaut: Klick, Hauptmenü, Kichern (D/E), Aufwecken (D/E), Seufzer (A), Kreuz (A), Beenden (C),
+          Zurück/Abbruch (D). Hier nur noch offene Fragen plus zwei neue Ideen.
         </p>
 
         <Row
-          label="1) Kichern — soll süß, stimmhaft, nicht mechanisch sein"
-          options={[
-            { name: 'D (sanftes Vibrato)', onPress: () => playPreview(previewGiggleD) },
-            { name: 'E (mehr Silben, wackeliger)', onPress: () => playPreview(previewGiggleE) },
-            { name: 'F (baby-tierhaft, höher)', onPress: () => playPreview(previewGiggleF) },
-          ]}
+          label="Neue Idee: noch verspielteres Kichern (zusätzlich zu D/E, falls das noch besser passt)"
+          options={[{ name: 'G (stärkerer Triller)', onPress: () => playPreview(previewGiggleG) }]}
         />
 
         <Row
-          label="2) Seufzer — soll wie Baby/Baby-Tier klingen, nicht mechanisch"
+          label="Neue Idee: Aufwecken als sanftes „Piep-Piep“ wie ein Vogeljunges (zusätzlich zu D/E)"
+          options={[{ name: 'F (zwei hohe, sanfte Silben)', onPress: () => playPreview(previewWakeF) }]}
+        />
+
+        <Row
+          label="Seufzer — A ist gewählt. Falls noch babyhafter gewünscht, hier zwei Alternativen:"
           options={[
-            { name: 'A (dein Favorit aus Runde 1)', onPress: () => playPreview(previewSighA) },
+            { name: 'A (aktuell gewählt, Referenz)', onPress: () => playPreview(previewSighA) },
             { name: 'C (mit Vibrato + Atem)', onPress: () => playPreview(previewSighC) },
             { name: 'D (Coo-Laut, babyhafter)', onPress: () => playPreview(previewSighD) },
           ]}
         />
 
         <Row
-          label="3) Aufwecken — komplett neuer Versuch, babyhaft/verspielt"
+          label="Kreuz/Abbrechen — A ist gewählt. Zum Vergleich die Alternativen:"
           options={[
-            { name: 'D (sanft fragend, Vibrato)', onPress: () => playPreview(previewWakeD) },
-            { name: 'E (zwei verschlafene mrrn-Silben)', onPress: () => playPreview(previewWakeE) },
-          ]}
-        />
-
-        <Row
-          label="5) Kreuz/Abbrechen — muss klar anders klingen als der Klick (der ist jetzt ein weiches Rauschen)"
-          options={[
-            { name: 'A (dein Favorit aus Runde 1)', onPress: () => playPreview(previewCloseA) },
-            { name: 'C (klarer, tonaler Ton statt Rauschen)', onPress: () => playPreview(previewCloseC) },
+            { name: 'A (aktuell gewählt, Referenz)', onPress: () => playPreview(previewCloseA) },
+            { name: 'C (klarer, tonaler Ton)', onPress: () => playPreview(previewCloseC) },
             { name: 'D (zwei fallende Töne)', onPress: () => playPreview(previewCloseD) },
           ]}
         />
 
         <Row
-          label="6) Belohnung/Abschluss — B-Richtung war gut, aber weicher"
+          label="Belohnung/Abschluss — C ist gewählt. Zum Vergleich:"
           options={[
-            { name: 'B (dein Favorit aus Runde 1, Referenz)', onPress: () => playPreview(previewRewardB) },
-            { name: 'C (deutlich leiser/weicher)', onPress: () => playPreview(previewRewardC) },
+            { name: 'B (Referenz, ungefiltert)', onPress: () => playPreview(previewRewardB) },
+            { name: 'C (aktuell gewählt)', onPress: () => playPreview(previewRewardC) },
             { name: 'D (nur ein ganz sanfter Ton)', onPress: () => playPreview(previewRewardD) },
           ]}
         />
 
         <Row
-          label="8) Haptik-Varianten — jetzt OHNE Klick-Ton dabei, nur die Vibration"
+          label="Haptik-Varianten — jetzt ohne Klick-Ton dabei, nur die reine Vibration"
           options={[
             { name: 'Ganz leicht (15ms)', onPress: () => previewVibrate(15) },
             { name: 'Normal (25ms)', onPress: () => previewVibrate(25) },
@@ -114,6 +101,17 @@ export function SoundWorkshopPage() {
             { name: 'Dreifach (für Wichtiges)', onPress: () => previewVibrate([20, 30, 20, 30, 30]) },
           ]}
         />
+        <Card className="mb-4" padding="md">
+          <p className="text-[14px] text-[var(--color-text)] mb-1">Unterstützt dieses Gerät Vibration überhaupt?</p>
+          <p
+            className="text-[13px]"
+            style={{ color: 'vibrate' in navigator ? 'var(--color-primary)' : '#c0392b' }}
+          >
+            {'vibrate' in navigator
+              ? '✓ Ja — die Funktion ist im Browser vorhanden. Falls du trotzdem nichts spürst: bitte "Kräftig" oben antippen und prüfen, ob der Klingeltonschalter/Stumm-Schalter am Handy auf laut steht (manche Handys koppeln Vibration daran), und ob das Handy nicht im absoluten Ruhemodus ist.'
+              : '✗ Nein — dieser Browser/dieses Gerät unterstützt Vibration technisch gar nicht. Das ist auf iPhones in Safari (und jedem Browser auf dem iPhone, da alle intern Safari nutzen) eine feste Einschränkung von Apple selbst, nicht reparierbar. Auf Android-Handys sollte es funktionieren.'}
+          </p>
+        </Card>
       </div>
     </div>
   );

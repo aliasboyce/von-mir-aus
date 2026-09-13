@@ -60,6 +60,16 @@ export function AppShell() {
       const btn = target?.closest('button, [role="button"], a[href]');
       if (!btn || btn.hasAttribute('data-no-tap-feedback')) return;
       if ((btn as HTMLButtonElement).disabled) return;
+      // "Extra Toene fuer Kreuz/Beenden/Zurueck"-Auftrag — any button
+      // can opt into one of these distinct sounds via data-sound,
+      // instead of hardcoding a huge list of selectors here. Falls
+      // through to the nav-vs-everyday-click distinction otherwise.
+      const explicitSound = btn.getAttribute('data-sound') as 'close' | 'complete' | 'cancelFlow' | null;
+      if (explicitSound) {
+        playSound(explicitSound, settingsRef.current);
+        triggerHaptic('tap', settingsRef.current);
+        return;
+      }
       // "Anderer Ton fuer die Hauptmenue-Punkte"-Auftrag — the bottom
       // navigation gets its own distinct, warmer tone instead of the
       // everyday click, so switching between Home/Zugang/Entdecken/etc
