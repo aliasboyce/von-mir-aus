@@ -201,7 +201,7 @@ export function BridgeDetailPage() {
   const activeLevel = bridge.levels.find((l) => l.level === Math.max(...selectedLevels, bridge.levels[0]?.level ?? 1)) ?? bridge.levels[0];
 
   return (
-    <div className="animate-in card-reveal">
+    <div className="animate-in card-flip">
       <div className="no-print">
       <PhotoBackground
         src={bridge.image}

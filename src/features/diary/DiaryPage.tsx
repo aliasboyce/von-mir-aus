@@ -527,7 +527,19 @@ export function DiaryPage() {
                     {entry.content.length > 140 && (
                       <button
                         onClick={(e) => {
+                          // "Funktioniert auf dem Handy nicht"-Auftrag —
+                          // e.stopPropagation() alone stops React's own
+                          // synthetic bubbling, but the surrounding Card
+                          // is `interactive` (its own onClick + an
+                          // active:scale-[0.99] CSS transform) — nested
+                          // tappable elements with a transform on the
+                          // ancestor are a known source of inconsistent
+                          // touch behavior on iOS Safari specifically.
+                          // stopImmediatePropagation on the native event
+                          // is the more aggressive, more reliable stop
+                          // for exactly this pattern.
                           e.stopPropagation();
+                          e.nativeEvent.stopImmediatePropagation();
                           setExpandedIds((prev) => {
                             const next = new Set(prev);
                             if (next.has(entry.id)) next.delete(entry.id);
@@ -535,7 +547,8 @@ export function DiaryPage() {
                             return next;
                           });
                         }}
-                        className="text-[12px] text-[var(--color-primary)] mt-1"
+                        data-no-tap-feedback
+                        className="text-[12px] text-[var(--color-primary)] mt-1 py-1.5 -my-1.5"
                       >
                         {expandedIds.has(entry.id) ? t.diary.showLess : t.diary.showMore}
                       </button>

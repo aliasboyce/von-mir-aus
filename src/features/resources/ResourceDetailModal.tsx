@@ -86,7 +86,7 @@ export function ResourceDetailModal({
   }
 
   return (
-    <Modal open={!!resource} onClose={onClose} title={resource.title} subtitle={categoryLabel(resource.category)}>
+    <Modal open={!!resource} onClose={onClose} title={resource.title} subtitle={categoryLabel(resource.category)} flipAnimation>
       <div className="flex flex-col gap-4">
         {resource.image && (
           <PhotoBackground src={resource.image} className="w-full h-40 rounded-[var(--radius-lg)] bg-cover bg-center bg-[var(--color-surface-muted)]" />

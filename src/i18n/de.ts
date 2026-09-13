@@ -186,10 +186,10 @@ const de = {
       {
         id: 'warum-von-mir-aus',
         title: 'Warum diese App „von mir aus" heißt',
-        whatIsIt: 'Diese App ist nicht darauf ausgelegt, Übungen und Skills abzuhaken, Punkte zu sammeln oder dich zur bestmöglichen Bewältigungsstrategie zu drängen. Sie ist ein Safe Space und ein Begleiter, der dich dort abholt, wo du gerade bist.',
-        whenHelpful: 'Nicht jeder Skill hilft jeder Person in jeder Situation — und allein die Frage „Hast du Skills angewendet?" kann irgendwann selbst belastend werden. Deswegen bekommst du hier keine vorgeschriebenen Übungen, sondern die freie Entscheidung.',
-        whereConfigure: '„Von mir aus" heißt: Es geht von dir aus. Du entscheidest, was du tust, wann du es tust und wie — und auch, ob du etwas davon überhaupt nutzen willst. Genau deswegen ist so viel an dieser App selbst gestaltbar: Je mehr du sie dir zu eigen machst, desto mehr wirst du aus ihr ziehen können. Das ist auch ein bisschen Aufwand — aber bewusst so gewollt.',
-        howDisable: 'Das ist keine Funktion zum Ein- oder Ausschalten, sondern die Grundhaltung der ganzen App.',
+        whatIsIt: 'Diese App ist nicht darauf ausgelegt, Übungen und Skills abzuhaken, Punkte zu sammeln oder dich zur bestmöglichen Bewältigungsstrategie zu drängen. Sie ist ein Safe Space und ein Begleiter, der dich dort abholt, wo du gerade bist — und dir dabei so viel Selbstbestimmung gibt wie nur möglich.',
+        whenHelpful: 'Nicht jeder Skill hilft jeder Person in jeder Situation — und allein die Frage „Haben Sie Ihre Skills angewendet?" treibt wahrscheinlich mittlerweile viele Menschen in den Wahnsinn. Deswegen bekommst du hier keine vorgeschriebenen Übungen, sondern die freie Entscheidung: Du tust, was du tun willst. Du tust nicht, was du nicht tun willst. Du entscheidest, was dir hilft — und ob du es überhaupt nutzen willst.',
+        whereConfigure: '„Von mir aus" heißt genau das: Es geht von dir aus. Genau deswegen ist so viel an dieser App selbst gestaltbar — die Beispiele, das Wesen, die Ressourcen, die Brücken, das Sicherheitsnetz. Je mehr du sie dir zu eigen machst, desto mehr wirst du aus ihr ziehen können. Das ist auch ein bisschen Aufwand, und das ist bewusst so — Selbstgestaltung statt Vorgabe ist der ganze Sinn dahinter.',
+        howDisable: 'Das ist keine Funktion zum Ein- oder Ausschalten, sondern die Grundhaltung der ganzen App. Sie soll dich als Begleiter unterstützen, nicht als Programm mit Leistungsanspruch — mit voller Entscheidungsfreiheit darüber, was du wann und wie nutzt.',
       },
       {
         id: 'orientierung',

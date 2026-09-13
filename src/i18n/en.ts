@@ -188,10 +188,10 @@ const en: TranslationDictionary = {
       {
         id: 'warum-von-mir-aus',
         title: 'Why this app is called "von mir aus"',
-        whatIsIt: "This app isn't built around ticking off exercises and skills, collecting points, or pushing you toward the best possible coping strategy. It's a safe space and a companion that meets you where you actually are.",
-        whenHelpful: 'Not every skill helps every person in every situation — and the question "did you use your skills?" can eventually become exhausting in itself. So instead of prescribed exercises, you get the free choice.',
-        whereConfigure: '"Von mir aus" (roughly: "up to me" / "it starts from me") means: it goes from you. You decide what you do, when, and how — and whether you want to use any of it at all. That\'s exactly why so much of this app is left for you to shape yourself: the more you make it your own, the more you\'ll get out of it. That does take a bit of effort — deliberately so.',
-        howDisable: "This isn't a feature to switch on or off — it's the attitude the whole app is built on.",
+        whatIsIt: "This app isn't built around ticking off exercises and skills, collecting points, or pushing you toward the best possible coping strategy. It's a safe space and a companion that meets you where you actually are — giving you as much self-determination as possible.",
+        whenHelpful: 'Not every skill helps every person in every situation — and the question "did you use your skills?" has probably driven most people a little crazy by now. So instead of prescribed exercises, you get the free choice: you do what you want to do, and you don\'t do what you don\'t want to do. You decide what helps you — and whether you want to use it at all.',
+        whereConfigure: '"Von mir aus" (roughly: "up to me" / "it starts from me") means exactly that: it goes from you. That\'s exactly why so much of this app is left for you to shape yourself — the examples, the companion, the resources, the bridges, the safety net. The more you make it your own, the more you\'ll get out of it. That does take a bit of effort, and that\'s deliberate — shaping it yourself instead of following a prescription is the whole point.',
+        howDisable: "This isn't a feature to switch on or off — it's the attitude the whole app is built on. It's meant to support you as a companion, not as a program with performance expectations, with full freedom to decide what you use, when, and how.",
       },
       {
         id: 'orientierung',

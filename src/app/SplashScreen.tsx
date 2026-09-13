@@ -44,11 +44,17 @@ function nextPhraseAndAdvance(): { text: string; isLast: boolean } {
 
 // "Langsamer einblenden"-Auftrag — title/phrase fade-in durations
 // raised noticeably (900->1400, 700->1100).
-const TITLE_IN_MS = 1400;
-const PHRASE_DELAY_MS = 600;
-const PHRASE_IN_MS = 1100;
-const SECOND_LINE_DELAY_MS = 1000;
-const HOLD_MS = 900;
+// "Blende darf noch etwas mehr sein / Text soll langsam ein- UND
+// ausblenden"-Auftrag — fade-in raised further, and the title/phrase
+// fade-OUT (previously a quick 60% of the float duration) now takes
+// its own full, slow beat instead of rushing to keep up with the
+// companion's float.
+const TITLE_IN_MS = 1700;
+const PHRASE_DELAY_MS = 700;
+const PHRASE_IN_MS = 1300;
+const SECOND_LINE_DELAY_MS = 1100;
+const HOLD_MS = 1000;
+const TEXT_OUT_MS = 1000;
 const FLOAT_OUT_MS = 950;
 const FADE_OUT_MS = 450;
 
@@ -76,7 +82,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
       // best-effort only
     }
     const holdStart = TITLE_IN_MS + PHRASE_DELAY_MS + PHRASE_IN_MS;
-    const fadeOutStart = holdStart + HOLD_MS + FLOAT_OUT_MS;
+    const fadeOutStart = holdStart + HOLD_MS + Math.max(FLOAT_OUT_MS, TEXT_OUT_MS);
     const timers = [
       window.setTimeout(() => setPhase('hold'), holdStart),
       window.setTimeout(() => {
@@ -142,7 +148,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
             fontFamily: 'var(--font-display)',
             color: 'var(--color-text)',
             opacity: floating ? 0 : 1,
-            transition: `opacity ${floating ? FLOAT_OUT_MS * 0.6 : TITLE_IN_MS}ms ease`,
+            transition: `opacity ${floating ? TEXT_OUT_MS : TITLE_IN_MS}ms ease`,
           }}
         >
           von mir aus
@@ -151,7 +157,7 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
           className="mt-2 text-center px-8"
           style={{
             opacity: floating ? 0 : 1,
-            transition: `opacity ${floating ? FLOAT_OUT_MS * 0.6 : PHRASE_IN_MS}ms ease ${floating ? 0 : PHRASE_DELAY_MS}ms`,
+            transition: `opacity ${floating ? TEXT_OUT_MS : PHRASE_IN_MS}ms ease ${floating ? 0 : PHRASE_DELAY_MS}ms`,
           }}
         >
           <p className="text-[14px]" style={{ color: 'var(--color-text-muted)', opacity: 0.7 }}>

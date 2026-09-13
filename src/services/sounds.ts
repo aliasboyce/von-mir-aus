@@ -203,11 +203,10 @@ function scheduleBlip(audioCtx: AudioContext, startAt: number, freq: number, dur
 }
 
 /** Tapped/tickled — a tiny, quick giggle: three short rising blips. */
-// "D und E abwechselnd"-Auftrag — simple alternating counters so
+// "D und E abwechselnd"-Auftrag — simple alternating counter so
 // consecutive taps don't sound identical (matches the requested
 // variation, "wie es eben bei Apps ist").
 let giggleToggle = 0;
-let wakeToggle = 0;
 
 function scheduleGiggle(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
@@ -242,37 +241,10 @@ function scheduleSleepSigh(audioCtx: AudioContext) {
 /** Waking up — a short, questioning "hmm?": low, rising slightly at the end. */
 function scheduleWakeHmm(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
-  wakeToggle = 1 - wakeToggle;
-  if (wakeToggle === 0) {
-    // Variante D: sanft fragend, mit Vibrato
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    const lfo = audioCtx.createOscillator();
-    const lfoGain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(300, now);
-    osc.frequency.linearRampToValueAtTime(420, now + 0.4);
-    lfo.type = 'sine';
-    lfo.frequency.value = 6;
-    lfoGain.gain.value = 10;
-    lfo.connect(lfoGain);
-    lfoGain.connect(osc.frequency);
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.06, now + 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    lfo.start(now);
-    osc.start(now);
-    lfo.stop(now + 0.55);
-    osc.stop(now + 0.55);
-    breathLayer(audioCtx, now, 0.5, 0.018);
-  } else {
-    // Variante E: zwei kurze verschlafene "mrrn?"-Silben
-    vibratoTone(audioCtx, now, 320, 0.22, 0.055, 20, 40);
-    vibratoTone(audioCtx, now + 0.26, 400, 0.28, 0.05, 22, 55);
-    breathLayer(audioCtx, now, 0.55, 0.015);
-  }
+  // "Aufwecken = F"-Auftrag — zwei sanfte, hohe Silben wie ein gerade
+  // wach werdendes Vogeljunges/Kueken statt eines fragenden "mrrn".
+  vibratoTone(audioCtx, now, 560, 0.14, 0.045, 18, 30);
+  vibratoTone(audioCtx, now + 0.2, 640, 0.16, 0.045, 18, 35);
 }
 
 type CompanionSoundKind = 'giggle' | 'sleep' | 'wake';

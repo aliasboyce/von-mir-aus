@@ -88,7 +88,14 @@ export function CenterNodeEditModal({ open, config, onClose, onSave }: CenterNod
             scale={draft.photoScale ?? 1}
             offsetX={draft.photoOffsetX ?? 0}
             offsetY={draft.photoOffsetY ?? 0}
-            onChange={(patch) => setDraft((d) => ({ ...d, ...patch }))}
+            onChange={(patch) =>
+              setDraft((d) => ({
+                ...d,
+                ...(patch.scale !== undefined && { photoScale: patch.scale }),
+                ...(patch.offsetX !== undefined && { photoOffsetX: patch.offsetX }),
+                ...(patch.offsetY !== undefined && { photoOffsetY: patch.offsetY }),
+              }))
+            }
           />
         )}
 

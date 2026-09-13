@@ -10,6 +10,9 @@ interface ModalProps {
   title: string;
   subtitle?: string;
   children: ReactNode;
+  /** "Umdrehen wie eine Karte"-Auftrag — Ressourcen-Detailansicht nutzt
+   * die 3D-Flip-Animation statt des ueblichen sanften Aufklappens. */
+  flipAnimation?: boolean;
 }
 
 /**
@@ -30,7 +33,7 @@ interface ModalProps {
  * navigation hides itself while this is open — that, not z-index tuning,
  * is what guarantees the Save button is never covered by the nav bar.
  */
-export function Modal({ open, onClose, title, subtitle, children }: ModalProps) {
+export function Modal({ open, onClose, title, subtitle, children, flipAnimation }: ModalProps) {
   const t = useT();
   useRegisterModalOpen(open);
 
@@ -59,7 +62,7 @@ export function Modal({ open, onClose, title, subtitle, children }: ModalProps) 
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-[420px] flex flex-col bg-[var(--color-bg)] rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] animate-in card-reveal modal-sheet-height"
+        className={`w-full sm:max-w-[420px] flex flex-col bg-[var(--color-bg)] rounded-t-[var(--radius-xl)] sm:rounded-[var(--radius-xl)] shadow-[var(--shadow-lg)] animate-in ${flipAnimation ? 'card-flip' : 'card-reveal'} modal-sheet-height`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between px-6 pt-6 pb-4 flex-shrink-0">

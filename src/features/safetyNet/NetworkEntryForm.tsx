@@ -209,7 +209,14 @@ export function NetworkEntryForm({
               scale={draft.photoScale ?? 1}
               offsetX={draft.photoOffsetX ?? 0}
               offsetY={draft.photoOffsetY ?? 0}
-              onChange={(patch) => onChange({ ...draft, ...patch })}
+              onChange={(patch) =>
+                onChange({
+                  ...draft,
+                  ...(patch.scale !== undefined && { photoScale: patch.scale }),
+                  ...(patch.offsetX !== undefined && { photoOffsetX: patch.offsetX }),
+                  ...(patch.offsetY !== undefined && { photoOffsetY: patch.offsetY }),
+                })
+              }
             />
           </div>
         )}

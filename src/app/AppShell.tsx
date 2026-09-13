@@ -14,6 +14,7 @@ import { customPalettesRepo, derivePaletteVars } from '../services/customPalette
 import { BUILT_IN_PALETTE_IDS } from '../data/types';
 import { StorageErrorBanner } from './StorageErrorBanner';
 import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
+import { VisualHapticPulse } from '../components/shared/VisualHapticPulse';
 import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
 import { playSound, warmUpAudio } from '../services/sounds';
 import { triggerHaptic } from '../services/haptics';
@@ -225,6 +226,7 @@ export function AppShell() {
         />
       )}
       <StorageErrorBanner />
+      <VisualHapticPulse />
       {showPrintFallback && <IOSPrintFallbackModal onClose={() => setShowPrintFallback(false)} />}
     </div>
   );
