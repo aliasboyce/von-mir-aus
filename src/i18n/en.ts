@@ -1228,6 +1228,8 @@ const en: TranslationDictionary = {
     ladderSliderLabel: 'Position on the nervous system ladder',
     ladderPctLabel: 'how far into this range',
     ladderWhatFitsLabel: 'What fits best?',
+    ladderStatusLabel: 'Status level',
+    ladderZoneLabel: 'Nervous system state',
     todayChart: "Today's course",
     saved: 'Saved.',
     emptyChart: 'No entries yet today.',

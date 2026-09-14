@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { POLYVAGAL_ZONE_META } from './polyvagalMeta';
 import { useT } from '../../i18n';
 import { EXTENDED_STATE_GROUPS, SURVIVAL_STATE_META } from '../zugang/zugangContent';
@@ -7,75 +7,90 @@ import { triggerHaptic } from '../../services/haptics';
 import type { PolyvagalZone, ZugangSurvivalState } from '../../data/types';
 
 /**
- * "Regenbogen-Leiter mit Prozent-Zuweisung"-Auftrag — replaces the
- * discrete three-zone button grid with a continuous vertical slider,
- * following the shared brief closely: people in an ordinary,
- * in-between everyday moment (neither wound up nor completely shut
- * down) struggled to pick one of three hard-edged buttons. A
- * continuous position plus a "how far into this zone" percentage is
- * meant to fit that everyday in-between far more naturally, without
- * asking for more precision than someone actually has access to —
- * the zone + F-tags below are still the thing that actually gets
- * saved, the slider is just a more honest way to arrive there.
+ * "Regenbogen-Leiter, Farben ueber die ganze Seite, Video-Analyse"-
+ * Auftrag — rebuilt to closely match the person's own working
+ * prototype (analyzed frame-by-frame from their screen recording),
+ * not just a similarly-colored slider on its own:
  *
- * Deliberately reuses the SAME data (EXTENDED_STATE_GROUPS,
- * SURVIVAL_STATE_META, POLYVAGAL_ZONE_META) as the rest of the app —
- * this is a new way to ARRIVE at a state, not a new set of states.
+ * - Three full-width zone BANDS stacked vertically (Hyperarousal /
+ *   Toleranzbereich / Hypoarousal) instead of color confined to the
+ *   14px slider bar — the color now genuinely spans the whole width,
+ *   matching "ich will dass die Farben ueber die ganze Seite gehen".
+ * - Only the band the slider currently sits in gets a tinted
+ *   background + the animated line, exactly like the reference video.
+ * - The label shown for a band is looked up by THAT band's own zone,
+ *   never derived from the slider value a second, separately-rounded
+ *   way — the fix for "der Text bei der jeweiligen Farbe stimmt
+ *   nicht" (the previous version computed the zone label from a
+ *   slightly different threshold than the one used for the band
+ *   layout itself, which could drift apart at the edges).
+ * - "Status-Niveau/Anspannung vereinen"-Auftrag — this raw 0-100
+ *   slider value IS the single number now (no separate tension
+ *   question elsewhere asks for a second, independent number).
  */
 interface NervousSystemLadderSliderProps {
   onSelect: (zone: PolyvagalZone, state: ZugangSurvivalState) => void;
   selectedState?: ZugangSurvivalState | null;
+  /** Raw 0-100 ladder value. Uncontrolled (starts at 75) if omitted —
+   * pass both value+onValueChange to read/drive the single unified
+   * number from a parent (e.g. to also store it as tensionValue). */
+  value?: number;
+  onValueChange?: (v: number) => void;
 }
 
-// Top to bottom: green (ventral) at 100, through the sympathetic
-// middle, to blue/dorsal at 0 — matches the reference material's
-// "leiter" orientation (calm at the top, shutdown at the bottom).
+const ZONE_ORDER_TOP_TO_BOTTOM: PolyvagalZone[] = ['sympathetic', 'ventral', 'dorsal'];
+
+// Same stops as before, just still used for the thin slider handle bar.
 const GRADIENT = [
-  '#3d6b35 0%',   // deep ventral green
-  '#7a9a3f 15%',  // yellow-green
-  '#e4c23b 30%',  // gold — upper edge of the window
-  '#e4a63b 40%',  // amber — into sympathetic
-  '#c17a56 55%',  // clay/orange
-  '#b5533f 68%',  // red — sympathetic peak
-  '#8b6a9e 80%',  // purple transition
-  '#6e9bb8 100%', // dorsal blue
+  '#3d6b35 0%',
+  '#7a9a3f 15%',
+  '#e4c23b 30%',
+  '#e4a63b 40%',
+  '#c17a56 55%',
+  '#b5533f 68%',
+  '#8b6a9e 80%',
+  '#6e9bb8 100%',
 ].join(', ');
 
-function zoneForValue(v: number): { zone: PolyvagalZone; pct: number } {
-  if (v >= 67) return { zone: 'ventral', pct: Math.round(((v - 67) / 33) * 100) };
-  if (v >= 34) return { zone: 'sympathetic', pct: Math.round(((66 - v) / 32) * 100) };
-  return { zone: 'dorsal', pct: Math.round(((33 - v) / 33) * 100) };
+function zoneForValue(v: number): PolyvagalZone {
+  if (v >= 67) return 'ventral';
+  if (v >= 34) return 'sympathetic';
+  return 'dorsal';
 }
 
-export function NervousSystemLadderSlider({ onSelect, selectedState }: NervousSystemLadderSliderProps) {
+const BAND_ICON: Record<PolyvagalZone, string> = { sympathetic: '🔥', ventral: '🌿', dorsal: '❄️' };
+
+export function NervousSystemLadderSlider({ onSelect, selectedState, value: controlledValue, onValueChange }: NervousSystemLadderSliderProps) {
   const t = useT();
   const { settings } = useSettings();
-  const [value, setValue] = useState(75);
-  const [lastZone, setLastZone] = useState<PolyvagalZone>('ventral');
-  const { zone, pct } = useMemo(() => zoneForValue(value), [value]);
+  const [internalValue, setInternalValue] = useState(75);
+  const value = controlledValue ?? internalValue;
+  const [lastZone, setLastZone] = useState<PolyvagalZone>(() => zoneForValue(value));
+  const zone = useMemo(() => zoneForValue(value), [value]);
   const meta = POLYVAGAL_ZONE_META[zone];
   const states = EXTENDED_STATE_GROUPS.find((g) => g.zone === zone)?.states ?? [];
 
-  function handleChange(v: number) {
-    setValue(v);
-    const { zone: newZone } = zoneForValue(v);
-    if (newZone !== lastZone) {
-      // A small, distinct pulse right when crossing into a new zone —
-      // not on every pixel of drag, which would feel buzzy rather than
-      // meaningful.
+  useEffect(() => {
+    if (zone !== lastZone) {
       triggerHaptic('select', settings);
-      setLastZone(newZone);
+      setLastZone(zone);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zone]);
+
+  function handleChange(v: number) {
+    if (onValueChange) onValueChange(v);
+    else setInternalValue(v);
   }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-5">
-        {/* vertical rainbow slider */}
-        <div className="relative flex-shrink-0" style={{ height: 220, width: 44 }}>
+      <div className="flex items-stretch gap-4 rounded-[var(--radius-lg)] overflow-hidden" style={{ height: 260, background: 'var(--color-surface-muted)' }}>
+        {/* vertical rainbow handle bar */}
+        <div className="relative flex-shrink-0 py-3" style={{ width: 44 }}>
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full"
-            style={{ top: 0, bottom: 0, width: 14, background: `linear-gradient(to top, ${GRADIENT})` }}
+            style={{ top: 12, bottom: 12, width: 14, background: `linear-gradient(to top, ${GRADIENT})` }}
           />
           <input
             type="range"
@@ -87,43 +102,91 @@ export function NervousSystemLadderSlider({ onSelect, selectedState }: NervousSy
             style={{
               WebkitAppearance: 'none',
               appearance: 'none',
-              width: 220,
+              width: 236,
               height: 44,
               background: 'transparent',
               transform: 'rotate(-90deg)',
               transformOrigin: 'center',
               position: 'absolute',
-              left: -88,
-              top: 88,
+              left: -96,
+              top: 108,
               margin: 0,
               cursor: 'pointer',
             }}
           />
           <div
-            className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 pointer-events-none"
+            className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 pointer-events-none"
             style={{
-              bottom: `${value}%`,
-              transform: 'translate(-50%, 50%)',
-              width: 30,
-              height: 30,
-              background: meta.color,
+              top: `calc(12px + ${100 - value}% * (100% - 24px - 30px) / 100%)`,
+              width: 28,
+              height: 28,
+              background: '#1a1a1a',
               borderColor: 'var(--color-surface)',
               boxShadow: '0 1px 6px rgba(0,0,0,0.3)',
             }}
           />
         </div>
 
-        {/* live zone + percentage readout */}
-        <div className="flex-1 rounded-[var(--radius-lg)] p-4 min-h-[160px] flex flex-col items-center justify-center text-center" style={{ background: `${meta.color}14` }}>
-          <p className="text-[15px] font-medium mb-1" style={{ color: meta.color }}>
+        {/* three full-width zone bands */}
+        <div className="relative flex-1 flex flex-col">
+          {ZONE_ORDER_TOP_TO_BOTTOM.map((z, i) => {
+            const zMeta = POLYVAGAL_ZONE_META[z];
+            const isActive = z === zone;
+            return (
+              <div
+                key={z}
+                className="relative flex-1 flex items-start px-3 pt-2.5"
+                style={{
+                  background: isActive ? `${zMeta.color}1f` : 'transparent',
+                  borderTop: i > 0 ? '1px dashed var(--color-border)' : undefined,
+                  alignItems: z === 'dorsal' ? 'flex-end' : 'flex-start',
+                  paddingBottom: z === 'dorsal' ? 10 : 0,
+                  transition: 'background 0.25s ease',
+                }}
+              >
+                <span
+                  className="text-[12.5px] flex items-center gap-1.5 px-2 py-1 rounded-full flex-shrink-0"
+                  style={{ background: isActive ? 'var(--color-surface)' : 'transparent', color: isActive ? zMeta.color : 'var(--color-text-faint)' }}
+                >
+                  <span>{BAND_ICON[z]}</span>
+                  {zMeta.label(t)}
+                </span>
+                {isActive && (
+                  <svg viewBox="0 0 300 60" preserveAspectRatio="none" className="absolute left-0 right-0" style={{ top: '50%', height: 60, transform: 'translateY(-50%)' }}>
+                    <path
+                      d="M 20 30 Q 80 18, 140 30 T 260 26"
+                      fill="none"
+                      stroke={zMeta.color}
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      className="ladder-curve-line"
+                    />
+                    <circle cx="270" cy="27" r="4.5" fill={zMeta.color} className="ladder-curve-dot" />
+                  </svg>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* single unified status readout */}
+      <div className="flex items-center justify-between px-1">
+        <div>
+          <p className="text-[11px] text-[var(--color-text-faint)]">{t.polyvagal.ladderStatusLabel}</p>
+          <p className="text-[22px] font-medium" style={{ color: meta.color }}>
+            {value}%
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] text-[var(--color-text-faint)]">{t.polyvagal.ladderZoneLabel}</p>
+          <p className="text-[15px] font-medium" style={{ color: meta.color }}>
             {meta.label(t)}
           </p>
-          <p className="text-[13px] text-[var(--color-text-muted)] mb-2">{meta.hint(t)}</p>
-          <p className="text-[26px] font-medium" style={{ color: meta.color }}>
-            {pct}%
-          </p>
-          <p className="text-[11px] text-[var(--color-text-faint)]">{t.polyvagal.ladderPctLabel}</p>
         </div>
+      </div>
+      <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: `${meta.color}14` }}>
+        <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{meta.hint(t)}</p>
       </div>
 
       {/* dynamic F-tags for the current zone */}
@@ -145,7 +208,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState }: NervousSy
                 }}
               >
                 <span>{sMeta.emoji}</span>
-                <span>{isEnLang(settings) ? sMeta.labelEn : sMeta.label}</span>
+                <span>{settings.language === 'en' ? sMeta.labelEn : sMeta.label}</span>
               </button>
             );
           })}
@@ -161,8 +224,4 @@ export function NervousSystemLadderSlider({ onSelect, selectedState }: NervousSy
       )}
     </div>
   );
-}
-
-function isEnLang(settings: { language: string }): boolean {
-  return settings.language === 'en';
 }

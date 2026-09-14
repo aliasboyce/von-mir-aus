@@ -14,7 +14,6 @@ import { polyvagalRepo, todaysCheckIns } from '../polyvagal/polyvagalRepo';
 import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
 import { WindowOfToleranceIllustration } from '../polyvagal/WindowOfToleranceIllustration';
 import { tensionRepo } from '../polyvagal/tensionRepo';
-import { TensionScale } from '../polyvagal/TensionScale';
 import { MiniCurve } from '../polyvagal/MiniCurve';
 import { WeatherWheel } from './WeatherWheel';
 import { WeatherAnimation } from './WeatherAnimation';
@@ -258,13 +257,6 @@ export function InnerWeatherPage() {
       {step === 'zone' && (
         <div className="animate-in flex-1">
           <div className="flex flex-col items-center mb-4">
-            <h1 className="text-[20px] text-center">{t.tension.whichIntensityQuestion}</h1>
-          </div>
-          <Card className="mb-5">
-            <TensionScale value={tensionValue} onChange={setTensionValue} descriptionStyle="gentle" />
-          </Card>
-
-          <div className="flex flex-col items-center mb-4">
             <h1 className="text-[20px] text-center">{t.polyvagal.quickPrompt}</h1>
             <p className="text-[14px] text-[var(--color-text-muted)] text-center mt-1 max-w-[280px]">
               {t.home.zoneStepHint}
@@ -284,6 +276,8 @@ export function InnerWeatherPage() {
           <NervousSystemLadderSlider
             onSelect={(zone, state) => chooseZone(zone, state)}
             selectedState={justPickedState as ZugangSurvivalState | null}
+            value={tensionValue}
+            onValueChange={setTensionValue}
           />
           <Link to="/entdecken/tageskurve" className="block text-[13px] text-[var(--color-primary)] text-center mt-4">
             {t.home.zoneMoreDetail}

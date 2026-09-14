@@ -3,7 +3,6 @@ import { HelpButton } from '../../components/navigation/HelpButton';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, History } from 'lucide-react';
 import { ZugangStepHeader } from './ZugangStepHeader';
-import { TensionScale } from '../polyvagal/TensionScale';
 import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
 import { saveZugangDraft, loadZugangDraft, clearZugangDraft, isDraftRecent } from './zugangDraft';
 import { Card } from '../../components/ui/Card';
@@ -34,6 +33,7 @@ import { findSimilarPastEntry } from './zugangPatterns';
 import { AccessGapModal } from './AccessGapModal';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
+import { tensionRepo } from '../polyvagal/tensionRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import { BRIDGE_CATEGORY_META } from '../bridges/bridgeMeta';
 import { resourcesRepo } from '../resources/resourcesRepo';
@@ -154,7 +154,12 @@ export function ZugangPage() {
     // Reused, not reinvented: this is the exact same PolyvagalCheckIn
     // record the Tageskurve reads — Zugang never keeps its own separate
     // "what state am I in" data.
-    polyvagalRepo.save({ id: createId('pv'), createdAt: new Date().toISOString(), zone: SURVIVAL_TO_POLYVAGAL_ZONE[state] });
+    // "Status-Niveau/Anspannung vereinen"-Auftrag — tensionValue is now
+    // the ladder's own raw value (set in the same interaction, see the
+    // NervousSystemLadderSlider above), so it's included here too
+    // instead of leaving this particular PolyvagalCheckIn without one.
+    polyvagalRepo.save({ id: createId('pv'), createdAt: new Date().toISOString(), zone: SURVIVAL_TO_POLYVAGAL_ZONE[state], survivalState: state, tensionValue });
+    tensionRepo.save({ id: createId('tension'), createdAt: new Date().toISOString(), value: tensionValue, survivalState: state });
   }
 
   function offerGardenIfRelevant(strategies: string[]) {
@@ -410,15 +415,12 @@ export function ZugangPage() {
 
         {step === 2 && (
           <div>
-            <ZugangStepHeader question={t.tension.whichIntensityQuestion} questionOnly />
-            <Card className="mb-5">
-              <TensionScale value={tensionValue} onChange={setTensionValue} />
-            </Card>
-
             <ZugangStepHeader question={t.zugang.step2Question} questionOnly />
             <NervousSystemLadderSlider
               onSelect={(_zone, state) => chooseSurvivalState(state)}
               selectedState={survivalState}
+              value={tensionValue}
+              onValueChange={setTensionValue}
             />
             <Link to="/entdecken/nervensystem" className="text-[12px] text-[var(--color-primary)] block mt-4">
               {t.zugang.nervousSystemRefLink}

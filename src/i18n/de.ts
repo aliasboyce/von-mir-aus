@@ -1226,6 +1226,8 @@ const de = {
     ladderSliderLabel: 'Position auf der Nervensystem-Leiter',
     ladderPctLabel: 'wie weit in diesem Bereich',
     ladderWhatFitsLabel: 'Was trifft am ehesten zu?',
+    ladderStatusLabel: 'Status-Niveau',
+    ladderZoneLabel: 'Nervensystem-Zustand',
     todayChart: 'Heutiger Verlauf',
     saved: 'Gespeichert.',
     emptyChart: 'Noch keine Einträge heute.',

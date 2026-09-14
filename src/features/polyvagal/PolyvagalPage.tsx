@@ -1,13 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
-import { triggerPrint } from '../../services/printSupport';
 import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Maximize2, X, LineChart, ChevronDown, NotebookPen, Check, Plus, FileDown, Pencil } from 'lucide-react';
+import { Maximize2, X, LineChart, ChevronDown, NotebookPen, Check } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { Chip } from '../../components/ui/Chip';
 import { ReminderControl } from '../../components/shared/ReminderControl';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
@@ -18,17 +16,10 @@ import { NervousSystemLadder } from './NervousSystemLadder';
 import { NervousSystemLadderSlider } from './NervousSystemLadderSlider';
 import { PolyvagalDayChart } from './PolyvagalDayChart';
 import { describeDay } from './describeDay';
-import { tensionRepo, todaysTensionEntries } from './tensionRepo';
-import { TensionDayChart } from './TensionDayChart';
-import { TensionHistoryChart } from './TensionHistoryChart';
-import { TensionEntryModal } from './TensionEntryModal';
-import { TensionPrintView } from './TensionPrintView';
-import { describeTensionDay } from './describeTensionDay';
+import { tensionRepo } from './tensionRepo';
 import { diaryRepo } from '../diary/diaryRepo';
 import { createId } from '../../services/storage/repository';
-import type { PolyvagalCheckIn, PolyvagalZone, TensionEntry, ZugangSurvivalState } from '../../data/types';
-import { tensionColorFor, TensionScale } from './TensionScale';
-import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
+import type { PolyvagalCheckIn, PolyvagalZone, ZugangSurvivalState } from '../../data/types';
 
 type ExplainerSection =
   | 'nervousSystem'
@@ -123,25 +114,17 @@ export function PolyvagalPage() {
   const [savedToDiary, setSavedToDiary] = useState(false);
   const [openSection, setOpenSection] = useState<ExplainerSection | null>(null);
 
-  const [tensionEntries, setTensionEntries] = useState<TensionEntry[]>(() => todaysTensionEntries());
-  const [tensionView, setTensionView] = useState<'today' | 'history'>('today');
-  const [tensionEntryOpen, setTensionEntryOpen] = useState(false);
-  const [editingTension, setEditingTension] = useState<TensionEntry | null>(null);
-  const [tensionFullscreen, setTensionFullscreen] = useState(false);
-  const [printingTension, setPrintingTension] = useState(false);
-
   const dayDescription = describeDay(checkIns, t);
-  const tensionDescription = describeTensionDay(tensionEntries, t);
-  const allTensionEntries = tensionRepo.getAll();
-
-  useEffect(() => {
-    const clear = () => setPrintingTension(false);
-    window.addEventListener('afterprint', clear);
-    return () => window.removeEventListener('afterprint', clear);
-  }, []);
 
   function logZone(zone: PolyvagalZone, survivalState?: ZugangSurvivalState) {
-    polyvagalRepo.save({ id: createId('pv'), createdAt: new Date().toISOString(), zone, survivalState, tensionValue });
+    const now = new Date().toISOString();
+    polyvagalRepo.save({ id: createId('pv'), createdAt: now, zone, survivalState, tensionValue });
+    // "Status-Niveau/Anspannung vereinen"-Auftrag — the separate "Meine
+    // Spannung" section (its own add-entry flow + two extra charts) is
+    // gone, but DailyReview still reads tensionRepo for its own daily
+    // summary — this keeps that fed from the one unified slider
+    // instead of a second, now-removed manual entry point.
+    tensionRepo.save({ id: createId('tension'), createdAt: now, value: tensionValue, survivalState });
     setCheckIns(todaysCheckIns());
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 1800);
@@ -161,28 +144,6 @@ export function PolyvagalPage() {
     setTimeout(() => setSavedToDiary(false), 1800);
   }
 
-  function saveTensionEntry(value: number, time: string, survivalState?: ZugangSurvivalState) {
-    const [hours, minutes] = time.split(':').map(Number);
-    const date = editingTension ? new Date(editingTension.createdAt) : new Date();
-    date.setHours(hours, minutes, 0, 0);
-    tensionRepo.save({ id: editingTension?.id ?? createId('tension'), createdAt: date.toISOString(), value, survivalState });
-    setTensionEntries(todaysTensionEntries());
-    setEditingTension(null);
-  }
-
-  function deleteTensionEntry() {
-    if (!editingTension) return;
-    tensionRepo.remove(editingTension.id);
-    setTensionEntries(todaysTensionEntries());
-    setEditingTension(null);
-    setTensionEntryOpen(false);
-  }
-
-  function exportTensionPdf() {
-    setPrintingTension(true);
-    setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
-  }
-
   return (
     <div className="animate-in">
       <div className="no-print">
@@ -193,20 +154,19 @@ export function PolyvagalPage() {
 
         {/* ================= Interactive state ladder + check-in ================= */}
         <Card padding="lg" className="mb-3">
-          <p className="text-[14px] text-[var(--color-text)] mb-3 text-center">{t.tension.whichIntensityQuestion}</p>
-          <TensionScale value={tensionValue} onChange={setTensionValue} descriptionStyle="gentle" />
+          <p className="text-[14px] text-[var(--color-text)] mt-1 mb-4 text-center">{t.polyvagal.quickPrompt}</p>
 
-          <p className="text-[14px] text-[var(--color-text)] mt-6 mb-4 text-center">{t.polyvagal.quickPrompt}</p>
-
-          {/* "Regenbogen-Leiter"-Auftrag — the same continuous slider
-           * Zugang and the daily check-in now use, as the primary way
-           * to log a state here too, instead of the fixed button grid
-           * this used before. The richer per-zone detail content
-           * (meaning/feeling/physical/behavior) isn't deleted — it's
-           * still available right below via "Mehr erfahren", so
-           * nothing already written is lost, only demoted from
-           * primary interaction to optional depth. */}
-          <NervousSystemLadderSlider onSelect={logZone} selectedState={checkIns[checkIns.length - 1]?.survivalState} />
+          {/* "Status-Niveau/Anspannung vereinen"-Auftrag — the ladder's
+           * own raw 0-100 value now IS tensionValue directly (passed
+           * in/out below), instead of asking a separate "how tense are
+           * you" question with its own independent number right above
+           * this. One slider, one number, everywhere it's asked. */}
+          <NervousSystemLadderSlider
+            onSelect={logZone}
+            selectedState={checkIns[checkIns.length - 1]?.survivalState}
+            value={tensionValue}
+            onValueChange={setTensionValue}
+          />
 
           {justSaved && (
             <p className="text-[12px] text-[var(--color-primary)] text-center mt-4 animate-in">{t.polyvagal.saved}</p>
@@ -293,125 +253,6 @@ export function PolyvagalPage() {
           </Card>
         </Link>
 
-        {/* ================= Meine Spannung — independent, clearly distinguished ================= */}
-        <div className="pt-2 border-t border-[var(--color-border)]">
-          <div className="flex items-center justify-between mt-6 mb-1">
-            <h2 className="text-[18px] text-[var(--color-text)]">{t.tension.title}</h2>
-            <button
-              onClick={exportTensionPdf}
-              aria-label={t.tension.exportPdf}
-              className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
-            >
-              <FileDown size={15} />
-            </button>
-          </div>
-          <p className="text-[13px] text-[var(--color-text-muted)] mb-1">{t.tension.subtitle}</p>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-4">{t.tension.distinctionNote}</p>
-
-          <Button
-            fullWidth
-            icon={<Plus size={16} />}
-            onClick={() => {
-              setEditingTension(null);
-              setTensionEntryOpen(true);
-            }}
-            className="mb-4"
-          >
-            {t.tension.addNew}
-          </Button>
-
-          <div className="flex gap-2 mb-3">
-            <Chip selected={tensionView === 'today'} onClick={() => setTensionView('today')}>
-              {t.tension.todayView}
-            </Chip>
-            <Chip selected={tensionView === 'history'} onClick={() => setTensionView('history')}>
-              {t.tension.historyView}
-            </Chip>
-            <button
-              onClick={() => setTensionFullscreen(true)}
-              aria-label={t.tension.enlargeChart}
-              className="ml-auto p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
-            >
-              <Maximize2 size={15} />
-            </button>
-          </div>
-
-          <Card padding="lg" className="mb-3">
-            {tensionView === 'today' ? (
-              <TensionDayChart entries={tensionEntries} />
-            ) : (
-              <TensionHistoryChart entries={allTensionEntries} />
-            )}
-          </Card>
-
-          {tensionView === 'today' && (
-            <Card className="mb-4">
-              <p className="text-[14px] text-[var(--color-text)] leading-relaxed mb-3">{tensionDescription}</p>
-              {tensionEntries.length > 0 && (
-                <div className="flex flex-col gap-1.5 pt-2 border-t border-[var(--color-border)]">
-                  <p className="text-[11px] text-[var(--color-text-faint)] mb-1">{t.tension.savedEntries}</p>
-                  {tensionEntries.map((e) => (
-                    <div key={e.id} className="flex items-center gap-2 text-[13px]">
-                      <span className="text-[var(--color-text-faint)] flex-shrink-0">
-                        {new Date(e.createdAt).toLocaleTimeString(settings.language === 'de' ? 'de-DE' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: tensionColorFor(e.value) }} aria-hidden="true" />
-                      <span className="text-[var(--color-text)] flex-1">
-                        {e.value}/100
-                        {e.survivalState && <span className="ml-1.5">{SURVIVAL_STATE_META[e.survivalState].emoji}</span>}
-                      </span>
-                      <button
-                        onClick={() => {
-                          setEditingTension(e);
-                          setTensionEntryOpen(true);
-                        }}
-                        aria-label={t.common.edit}
-                        className="p-1 text-[var(--color-text-faint)]"
-                      >
-                        <Pencil size={13} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          )}
-
-          <Card padding="md" className="mb-3 flex items-center justify-between">
-            <span className="text-[13px] text-[var(--color-text)]">{t.settings.dailyReviewTension}</span>
-            <button
-              role="switch"
-              aria-checked={settings.dailyReviewShowTension !== false}
-              onClick={() => updateSettings({ dailyReviewShowTension: !(settings.dailyReviewShowTension !== false) })}
-              className="w-10 h-6 rounded-full relative flex-shrink-0"
-              style={{ background: settings.dailyReviewShowTension !== false ? 'var(--color-primary)' : 'var(--color-border)' }}
-            >
-              <span
-                className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-                style={{ left: settings.dailyReviewShowTension !== false ? 18 : 2 }}
-              />
-            </button>
-          </Card>
-
-          <Card padding="md" className="mb-6">
-            <div className="flex items-center justify-between">
-              <span className="text-[13px] text-[var(--color-text)]">{t.tension.autoAddSetting}</span>
-              <button
-                role="switch"
-                aria-checked={!!settings.autoAddTensionToDiary}
-                onClick={() => updateSettings({ autoAddTensionToDiary: !settings.autoAddTensionToDiary })}
-                className="w-10 h-6 rounded-full relative flex-shrink-0"
-                style={{ background: settings.autoAddTensionToDiary ? 'var(--color-primary)' : 'var(--color-border)' }}
-              >
-                <span
-                  className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-                  style={{ left: settings.autoAddTensionToDiary ? 18 : 2 }}
-                />
-              </button>
-            </div>
-            <p className="text-[11px] text-[var(--color-text-faint)] mt-1">{t.tension.autoAddHint}</p>
-          </Card>
-        </div>
       </div>
       </div>
 
@@ -435,35 +276,6 @@ export function PolyvagalPage() {
             </div>
             <div className="flex-1 flex items-center justify-center px-4">
               <PolyvagalDayChart checkIns={checkIns} expanded />
-            </div>
-          </div>,
-          document.body,
-        )}
-
-      {tensionFullscreen &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[200] bg-[var(--color-bg)] flex flex-col animate-in"
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="flex items-center justify-between p-5" style={{ paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
-              <button
-                onClick={() => setTensionFullscreen(false)}
-                aria-label={t.common.close}
-                className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
-              >
-                <X size={20} />
-              </button>
-              <p className="text-[14px] text-[var(--color-text-muted)]">{t.tension.title}</p>
-              <div style={{ width: 40 }} />
-            </div>
-            <div className="flex-1 flex flex-col items-center justify-center px-4 gap-4 overflow-auto pb-8">
-              {tensionView === 'today' ? (
-                <TensionDayChart entries={tensionEntries} expanded zoomable />
-              ) : (
-                <TensionHistoryChart entries={allTensionEntries} width={560} height={340} zoomable />
-              )}
             </div>
           </div>,
           document.body,
@@ -502,26 +314,6 @@ export function PolyvagalPage() {
             })}
           </div>
         </Card>
-
-      <TensionEntryModal
-        open={tensionEntryOpen}
-        onClose={() => {
-          setTensionEntryOpen(false);
-          setEditingTension(null);
-        }}
-        onSave={saveTensionEntry}
-        onDelete={editingTension ? deleteTensionEntry : undefined}
-        editing={editingTension}
-      />
-
-      {printingTension && (
-        <TensionPrintView
-          entries={allTensionEntries}
-          labels={{ title: t.tension.exportTitle, subtitle: t.tension.subtitle, exportedOn: t.network.exportedOn }}
-          formatDate={(iso) => new Date(iso).toLocaleDateString(settings.language === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-          formatTime={(iso) => new Date(iso).toLocaleTimeString(settings.language === 'de' ? 'de-DE' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
-        />
-      )}
     </div>
   );
 }

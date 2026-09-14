@@ -1,4 +1,4 @@
-import { POLYVAGAL_ZONE_META, POLYVAGAL_ZONE_ORDER } from './polyvagalMeta';
+import { POLYVAGAL_ZONE_ORDER, POLYVAGAL_ZONE_META } from './polyvagalMeta';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import type { PolyvagalCheckIn } from '../../data/types';
@@ -16,39 +16,56 @@ function xFor(date: Date, width: number, padX: number): number {
   return padX + (minutesSinceMidnight / (24 * 60)) * (width - padX - 12);
 }
 
+/**
+ * "Nur noch eine Kurve, Status-Niveau vereint"-Auftrag — this used to
+ * plot each check-in on one of three fixed rows (the zone only), with
+ * two entirely separate charts (TensionDayChart, TensionHistoryChart)
+ * covering the tensionValue number elsewhere on the same page. Since
+ * tensionValue and zone are now literally the same single number
+ * (see NervousSystemLadderSlider — the ladder's own raw value IS
+ * tensionValue), this is now the one chart: a smooth continuous
+ * position (falls back to the old 3-row snap only for older entries
+ * saved before tensionValue existed), colored by zone.
+ *
+ * Orientation deliberately matches the ladder slider itself (calm/
+ * ventral high on the page, shutdown/dorsal low) rather than the old
+ * chart's inverted "tension rises visually" convention — the slider
+ * is the primary interaction now, and the chart reading the same
+ * direction as the control that feeds it matters more than preserving
+ * the old convention.
+ */
+function yForCheckIn(c: PolyvagalCheckIn, padTop: number, height: number): number {
+  const raw = c.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[c.zone];
+  return padTop + (1 - raw / 100) * (height - padTop - PAD_BOTTOM);
+}
+
 export function PolyvagalDayChart({ checkIns, expanded = false }: PolyvagalDayChartProps) {
   const t = useT();
   const { settings } = useSettings();
   const width = expanded ? 640 : 320;
   const height = expanded ? 320 : 180;
-  // The zone labels ("Ruhig & verbunden" etc.) render at a larger font size
-  // when expanded — without giving them proportionally more left margin,
-  // they visually collide with the dashed reference lines and the curve
-  // itself, which is what made the enlarged chart look broken/overlapping.
   const padX = expanded ? 118 : 66;
-  // Expanded mode also shows a little time label above each point — without
-  // extra top margin, a point in the topmost row can push that label
-  // outside the visible chart area.
   const padTop = expanded ? 28 : PAD_TOP;
-  const rowHeight = (height - padTop - PAD_BOTTOM) / 2;
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
 
   const sorted = [...checkIns].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  // Inverted on purpose (2 - value) rather than changing the y values in
-  // polyvagalMeta.ts itself — those are also read by MiniCurve, the
-  // weekly review, and other places that share this metadata, and this
-  // keeps the fix scoped to this chart's own vertical pixel math.
-  // Ventral (0) ends up at the bottom row, dorsal (2) at the top —
-  // rising tension reads as rising on the page, the order this app
-  // deliberately chose.
   const points = sorted.map((c) => ({
     x: xFor(new Date(c.createdAt), width, padX),
-    y: padTop + (2 - POLYVAGAL_ZONE_META[c.zone].y) * rowHeight,
+    y: yForCheckIn(c, padTop, height),
     zone: c.zone,
     time: new Date(c.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
   }));
 
   const pathD = points.length > 1 ? `M ${points.map((p) => `${p.x},${p.y}`).join(' L ')}` : '';
+
+  // Reference lines/labels at the same three zone boundaries the
+  // ladder slider itself uses (67/34/0), converted to this chart's
+  // continuous y-scale.
+  const zoneBoundaries: { zone: (typeof POLYVAGAL_ZONE_ORDER)[number]; atValue: number }[] = [
+    { zone: 'ventral', atValue: 83 },
+    { zone: 'sympathetic', atValue: 50 },
+    { zone: 'dorsal', atValue: 17 },
+  ];
 
   return (
     <svg
@@ -58,27 +75,17 @@ export function PolyvagalDayChart({ checkIns, expanded = false }: PolyvagalDayCh
       role="img"
       aria-label={t.polyvagal.title}
     >
-      {POLYVAGAL_ZONE_ORDER.map((zone, i) => (
-        <g key={zone}>
-          <line
-            x1={padX}
-            y1={padTop + (2 - i) * rowHeight}
-            x2={width - 8}
-            y2={padTop + (2 - i) * rowHeight}
-            stroke="var(--color-border)"
-            strokeWidth={1}
-            strokeDasharray="2 4"
-          />
-          <text
-            x={4}
-            y={padTop + (2 - i) * rowHeight + 3}
-            fontSize={expanded ? 11 : 9}
-            fill="var(--color-text-faint)"
-          >
-            {POLYVAGAL_ZONE_META[zone].label(t)}
-          </text>
-        </g>
-      ))}
+      {zoneBoundaries.map(({ zone, atValue }) => {
+        const y = padTop + (1 - atValue / 100) * (height - padTop - PAD_BOTTOM);
+        return (
+          <g key={zone}>
+            <line x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />
+            <text x={4} y={y + 3} fontSize={expanded ? 11 : 9} fill="var(--color-text-faint)">
+              {POLYVAGAL_ZONE_META[zone].label(t)}
+            </text>
+          </g>
+        );
+      })}
 
       {pathD && <path d={pathD} fill="none" stroke="var(--color-text-faint)" strokeWidth={1.5} opacity={0.5} />}
 
