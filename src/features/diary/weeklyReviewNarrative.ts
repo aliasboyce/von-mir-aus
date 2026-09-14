@@ -85,26 +85,42 @@ function weekSeed(): number {
   return Math.floor(days / 7);
 }
 
-export function weeklyNarrative(zoneCounts: Record<PolyvagalZone, number>, isEn: boolean): string {
+export function weeklyNarrative(zoneCounts: Record<PolyvagalZone, number>, isEn: boolean, periodLabel?: { de: string; en: string }): string {
   const total = zoneCounts.ventral + zoneCounts.sympathetic + zoneCounts.dorsal;
   const seed = weekSeed();
-  if (total === 0) return pick(isEn ? NO_DATA.en : NO_DATA.de, seed);
+  let text: string;
+  if (total === 0) {
+    text = pick(isEn ? NO_DATA.en : NO_DATA.de, seed);
+  } else {
+    const entries: [PolyvagalZone, number][] = [
+      ['ventral', zoneCounts.ventral],
+      ['sympathetic', zoneCounts.sympathetic],
+      ['dorsal', zoneCounts.dorsal],
+    ];
+    entries.sort((a, b) => b[1] - a[1]);
+    const [topZone, topCount] = entries[0];
+    const [, secondCount] = entries[1];
 
-  const entries: [PolyvagalZone, number][] = [
-    ['ventral', zoneCounts.ventral],
-    ['sympathetic', zoneCounts.sympathetic],
-    ['dorsal', zoneCounts.dorsal],
-  ];
-  entries.sort((a, b) => b[1] - a[1]);
-  const [topZone, topCount] = entries[0];
-  const [, secondCount] = entries[1];
-
-  // If the top zone doesn't clearly lead (within ~20% of the runner-up),
-  // treat the week as genuinely mixed rather than picking a "winner"
-  // that isn't really representative.
-  const isMixed = topCount === 0 || (topCount - secondCount) / total < 0.2;
-  if (isMixed) return pick(isEn ? MIXED.en : MIXED.de, seed);
-
-  const variants = topZone === 'ventral' ? DOMINANT_VENTRAL : topZone === 'sympathetic' ? DOMINANT_SYMPATHETIC : DOMINANT_DORSAL;
-  return pick(isEn ? variants.en : variants.de, seed);
+    // If the top zone doesn't clearly lead (within ~20% of the runner-up),
+    // treat the period as genuinely mixed rather than picking a "winner"
+    // that isn't really representative.
+    const isMixed = topCount === 0 || (topCount - secondCount) / total < 0.2;
+    if (isMixed) {
+      text = pick(isEn ? MIXED.en : MIXED.de, seed);
+    } else {
+      const variants = topZone === 'ventral' ? DOMINANT_VENTRAL : topZone === 'sympathetic' ? DOMINANT_SYMPATHETIC : DOMINANT_DORSAL;
+      text = pick(isEn ? variants.en : variants.de, seed);
+    }
+  }
+  // "Monatsrueckblick"-Auftrag — every phrase above was written for a
+  // week ("diese Woche"/"this week"); rather than duplicating the
+  // entire phrase set for months, swap the one idiomatic time phrase
+  // each sentence uses. Both "diese Woche" and "diesen Monat" (and
+  // their English equivalents) are used the same way grammatically —
+  // as a time adverbial — so a straight substring swap stays correct
+  // in every sentence position above.
+  if (periodLabel) {
+    text = isEn ? text.replace(/this week/gi, periodLabel.en) : text.replaceAll('diese Woche', periodLabel.de);
+  }
+  return text;
 }

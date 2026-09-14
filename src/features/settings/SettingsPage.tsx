@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
 import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell } from 'lucide-react';
@@ -19,6 +19,7 @@ import { customPalettesRepo, deleteCustomPalette } from '../../services/customPa
 import { CreatePaletteModal } from '../../components/settings/CreatePaletteModal';
 import type { SupportedLanguage, ThemeMode } from '../../data/types';
 import { customRemindersRepo, type CustomReminder } from '../../services/customReminders';
+import { downloadBackup, importBackup } from '../../services/backup';
 import { createId } from '../../services/storage/repository';
 import { BUILT_IN_PALETTE_IDS } from '../../data/types';
 import { StorageOverviewCard } from './StorageOverviewCard';
@@ -65,6 +66,7 @@ export function SettingsPage() {
   const [createCompanionOpen, setCreateCompanionOpen] = useState(false);
   const [customReminders, setCustomReminders] = useState<CustomReminder[]>(() => customRemindersRepo.getAll());
   const [addingReminder, setAddingReminder] = useState(false);
+  const backupFileInputRef = useRef<HTMLInputElement>(null);
   const [newReminderLabel, setNewReminderLabel] = useState('');
   const [newReminderTime, setNewReminderTime] = useState('18:00');
 
@@ -666,6 +668,45 @@ export function SettingsPage() {
         <Card padding="md" className="mb-6">
           <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.settings.myDataExportTitle}</p>
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.settings.myDataExportHint}</p>
+        </Card>
+
+        <Card padding="md" className="mb-6">
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.settings.fullBackupTitle}</p>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.settings.fullBackupHint}</p>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => downloadBackup()}
+              className="py-2.5 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+            >
+              {t.settings.fullBackupCreateCta}
+            </button>
+            <button
+              onClick={() => backupFileInputRef.current?.click()}
+              className="py-2.5 rounded-[var(--radius-md)] text-[14px] border border-[var(--color-border)] text-[var(--color-text)]"
+            >
+              {t.settings.fullBackupRestoreCta}
+            </button>
+            <input
+              ref={backupFileInputRef}
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file) return;
+                if (!window.confirm(t.settings.fullBackupConfirmOverwrite)) return;
+                const text = await file.text();
+                const result = importBackup(text);
+                if (result.ok) {
+                  window.alert(t.settings.fullBackupRestoreSuccess);
+                  window.location.reload();
+                } else {
+                  window.alert(t.settings.fullBackupRestoreError);
+                }
+              }}
+            />
+          </div>
         </Card>
         <p className="text-[12px] text-[var(--color-text-faint)] mb-6 -mt-3 leading-relaxed">{t.settings.myDataDeleteAllPointer}</p>
 

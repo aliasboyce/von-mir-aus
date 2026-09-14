@@ -25,7 +25,7 @@ import { gardenRepo } from '../garden/gardenRepo';
 import { distinctCheckInDays } from '../garden/gardenGrowth';
 import type { PolyvagalZone } from '../../data/types';
 
-const DAYS = 7;
+const PERIOD_DAYS = { week: 7, month: 30 } as const;
 
 /**
  * Deliberately synthesizes existing data (activity log, check-ins, diary)
@@ -45,6 +45,8 @@ export function WeeklyReviewPage() {
   const { settings } = useSettings();
   const isEn = settings.language === 'en';
   const [printingWeekly, setPrintingWeekly] = useState(false);
+  const [period, setPeriod] = useState<'week' | 'month'>('week');
+  const DAYS = PERIOD_DAYS[period];
 
   useEffect(() => {
     const clear = () => setPrintingWeekly(false);
@@ -136,10 +138,13 @@ export function WeeklyReviewPage() {
       checkIns, zoneCounts, resourceUses, bridgeUses, resourceNames, bridgeNames, helpfulYes,
       diaryEntries, achievements, momentOfWeek, mediLogWeekly, zugangCount, gardenThisWeek, totalActivity,
     };
-  }, [settings.dailyReviewShowMediLog]);
+  }, [settings.dailyReviewShowMediLog, DAYS]);
 
   const maxZoneCount = Math.max(...POLYVAGAL_ZONE_ORDER.map((z) => stats.zoneCounts[z]), 1);
-  const narrative = useMemo(() => weeklyNarrative(stats.zoneCounts, isEn), [stats.zoneCounts, isEn]);
+  const narrative = useMemo(
+    () => weeklyNarrative(stats.zoneCounts, isEn, period === 'month' ? { de: 'diesen Monat', en: 'this month' } : undefined),
+    [stats.zoneCounts, isEn, period],
+  );
 
   return (
     <div className="animate-in">
@@ -164,8 +169,31 @@ export function WeeklyReviewPage() {
         }
       />
       <div className="px-5 pb-6">
-        <h1 className="text-[24px] mb-1">{t.weeklyReview.title}</h1>
-        <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.weeklyReview.subtitle}</p>
+        <h1 className="text-[24px] mb-1">{period === 'month' ? t.weeklyReview.titleMonthly : t.weeklyReview.title}</h1>
+        <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{period === 'month' ? t.weeklyReview.subtitleMonthly : t.weeklyReview.subtitle}</p>
+
+        <div className="flex gap-2 mb-6 no-print">
+          <button
+            onClick={() => setPeriod('week')}
+            className="px-4 py-2 rounded-full text-[13px]"
+            style={{
+              background: period === 'week' ? 'var(--color-primary)' : 'var(--color-surface-muted)',
+              color: period === 'week' ? 'var(--color-surface)' : 'var(--color-text-muted)',
+            }}
+          >
+            {t.weeklyReview.periodToggleWeek}
+          </button>
+          <button
+            onClick={() => setPeriod('month')}
+            className="px-4 py-2 rounded-full text-[13px]"
+            style={{
+              background: period === 'month' ? 'var(--color-primary)' : 'var(--color-surface-muted)',
+              color: period === 'month' ? 'var(--color-surface)' : 'var(--color-text-muted)',
+            }}
+          >
+            {t.weeklyReview.periodToggleMonth}
+          </button>
+        </div>
 
         {stats.totalActivity === 0 ? (
           <EmptyState title={t.weeklyReview.empty} />
@@ -231,7 +259,7 @@ export function WeeklyReviewPage() {
             {stats.checkIns.length > 0 && (
               <Card>
                 <p className="text-[13px] font-medium text-[var(--color-text)] mb-3">
-                  {t.weeklyReview.checkInsCount.replace('{count}', String(stats.checkIns.length))}
+                  {(period === 'month' ? t.weeklyReview.checkInsCountMonthly : t.weeklyReview.checkInsCount).replace('{count}', String(stats.checkIns.length))}
                 </p>
                 <div className="flex flex-col gap-2">
                   {POLYVAGAL_ZONE_ORDER.map((zone) => {
@@ -306,7 +334,11 @@ export function WeeklyReviewPage() {
           diaryEntries={stats.diaryEntries}
           achievements={stats.achievements}
           mediLogWeekly={stats.mediLogWeekly}
-          labels={{ title: t.weeklyReview.title, subtitle: t.weeklyReview.subtitle, exportedOn: t.network.exportedOn }}
+          labels={{
+            title: period === 'month' ? t.weeklyReview.titleMonthly : t.weeklyReview.title,
+            subtitle: period === 'month' ? t.weeklyReview.subtitleMonthly : t.weeklyReview.subtitle,
+            exportedOn: t.network.exportedOn,
+          }}
           formatDate={(iso) => new Date(iso).toLocaleDateString(settings.language === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })}
         />
       )}
