@@ -10,6 +10,13 @@ import { useT } from '../../i18n';
 
 interface IntroSlide {
   text: string;
+  /** "Wesen-Name in eigener Schriftart"-Auftrag — only set on slide 0,
+   * where {name} in the raw string gets split out instead of just
+   * substituted in-place, so the companion's own name can render in
+   * the same distinct font used for it everywhere else in the app
+   * (CompanionDock's name label, etc.) rather than blending into the
+   * surrounding sentence. */
+  namePart?: string;
 }
 
 export function IntroFlow() {
@@ -21,9 +28,22 @@ export function IntroFlow() {
   const [step, setStep] = useState(0);
   const [joyBurst, setJoyBurst] = useState<'hop' | 'spin' | 'wobble' | 'dance' | null>(null);
 
-  const slides: IntroSlide[] = t.companion.introSlides.map((text, i) => ({
-    text: i === 0 ? text.replace('{name}', being.name) : text,
-  }));
+  const slides: IntroSlide[] = t.companion.introSlides.map((text, i) => {
+    // "Wiederholt ich bin Verlaesslich"-Auftrag — FirstNameStep already
+    // showed "Hallo, ich bin {companion}" once, right before this flow
+    // starts, whenever a person just entered their own name there. This
+    // first slide used to say the exact same "Hallo, ich bin ..." line
+    // again immediately after — replaced with a personalized "Hallo
+    // {userName}!" instead in that case, since the companion intro was
+    // already just said a moment ago and doesn't need repeating.
+    if (i === 0 && settings.userName) {
+      return { text: t.companion.helloAfterName.replace('{name}', settings.userName) };
+    }
+    return {
+      text: i === 0 ? text.replace('{name}', '\u0000') : text,
+      namePart: i === 0 ? being.name : undefined,
+    };
+  });
 
   const isLast = step === slides.length - 1;
 
@@ -84,8 +104,11 @@ export function IntroFlow() {
               ];
               const pos = positions[i] ?? positions[0];
               return (
-                <div key={b.id} className="absolute opacity-40" style={pos}>
+                <div key={b.id} className="absolute flex flex-col items-center opacity-40" style={pos}>
                   <LichtCompanion size="small" beingOverride={b} />
+                  <span className="text-[10px] mt-0.5" style={{ color: b.color, fontFamily: 'var(--font-companion)' }}>
+                    {b.name}
+                  </span>
                 </div>
               );
             })}
@@ -95,7 +118,16 @@ export function IntroFlow() {
           <LichtCompanion size="large" joyBurst={joyBurst} />
         )}
         <p key={step} className="text-[16px] text-[var(--color-text)] w-full max-w-[300px] mx-auto leading-relaxed animate-in">
-          {slides[step].text}
+          {slides[step].namePart
+            ? slides[step].text.split('\u0000').map((part, i, arr) => (
+                <span key={i}>
+                  {part}
+                  {i < arr.length - 1 && (
+                    <span style={{ fontFamily: 'var(--font-companion)', fontWeight: 600 }}>{slides[step].namePart}</span>
+                  )}
+                </span>
+              ))
+            : slides[step].text}
         </p>
         {step === 0 && (
           <p className="text-[12px] text-[var(--color-text-faint)] w-full max-w-[280px] mx-auto leading-relaxed -mt-3">

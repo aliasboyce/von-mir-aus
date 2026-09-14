@@ -442,13 +442,14 @@ const en: TranslationDictionary = {
     personalityHint: 'Choose up to 2 — this shapes what it likes to say.',
     createSubmit: 'Create being',
     askNameTitle: 'And who are you?',
+    helloAfterName: 'Hi {name}! Glad you\'re here.',
     helloIAmCompanion: "Hi, I'm Reliable, your companion.",
     helloWarmWelcome: "Glad you're here. I'm looking forward to walking a stretch of this with you — entirely at your own pace, whatever suits you.",
     askNamePlaceholder: 'Your name',
     askNameSkip: "I'd rather not say",
     introSlides: [
       "Hi, I'm {name}. Glad you're here.",
-      '"Von mir aus" — the app\'s name means something like "on my own terms". A quiet, personal space, without diagnosis or control. It draws on established approaches from trauma therapy and nervous-system regulation, no jargon.',
+      '"Von mir aus" — the app\'s name means something like "on my own terms". A quiet, personal space, without diagnosis or control. It draws on approaches such as Acceptance and Commitment Therapy, Nonviolent Communication, and nervous-system regulation based on polyvagal theory, no jargon.',
       "There are two ways to reach yourself: Check-In — short and quick — and Access, the fuller, guided version. You decide what fits right now.",
       'Under "Explore" you\'ll find Resources (things that steady you) and Bridges (small steps that reconnect you — to yourself, your body, other people, or the world).',
       'My Garden stands for what you want to change or build up over time — no competition, just a calm observation.',
@@ -471,7 +472,7 @@ const en: TranslationDictionary = {
       },
       {
         title: 'How is your inner weather?',
-        text: 'Pick whichever state fits best right now — clear, cloudy, stormy, and so on. No test, no judgment, just a snapshot.',
+        text: 'Pick whichever state fits best right now — clear, cloudy, stormy, or whatever else matches your moment. No test, no judgment, just a snapshot.',
       },
       {
         title: 'Where are you right now?',
@@ -1236,7 +1237,7 @@ const en: TranslationDictionary = {
     sensitiveNote:
       'This curve is a personal observation, not a diagnosis. In acute distress, please reach out to someone you trust or a professional service.',
     ventral: {
-      label: 'Calm & connected',
+      label: 'Window of Tolerance (Optimal)',
       hint: 'I feel safe, present, in contact.',
       meaning: "Your nervous system is signaling: it's safe enough right now to open up — to others, to something new, to rest.",
       feeling: 'You might recognize yourself here: a kind of inner softness, openness, a sense of "I am here."',
@@ -1245,7 +1246,7 @@ const en: TranslationDictionary = {
       behavior: 'Eye contact feels easy · wanting to connect · listening comes easily',
     },
     sympathetic: {
-      label: 'Activated',
+      label: 'Hyperarousal',
       hint: 'Restlessness, tension, fight/flight feeling.',
       meaning: "Your nervous system is mobilizing energy — in response to something that currently calls for action or alertness.",
       feeling: 'You might recognize yourself here: a feeling of "go, something has to happen," inner restlessness, being driven.',
@@ -1254,7 +1255,7 @@ const en: TranslationDictionary = {
       behavior: 'Talking or acting a lot · seeking control · hard to sit still',
     },
     dorsal: {
-      label: 'Reduced',
+      label: 'Hypoarousal',
       hint: 'Withdrawal, exhaustion, shut down.',
       meaning: 'Your nervous system is powering down — a protective response when there\'s currently too much to manage another way.',
       feeling: 'You might recognize yourself here: like behind glass, far away, numb, or switched off.',
@@ -1553,6 +1554,7 @@ const en: TranslationDictionary = {
     myDataSection: 'My data',
     myDataWhere: "Your personal content is stored only on this device — there's no user account and no server.",
     myDataBackupNote: "That also means: if you switch devices, reset this one, delete the app, or lose the device, your data can be lost — unless you've made a backup first. Exporting is the simplest way to do that.",
+    myDataMultiDeviceNote: "Using the app on both your phone and your laptop? Those are two separate data stores — what you enter on one doesn't automatically show up on the other. Use \"Create backup\" and \"Restore backup\" to manually carry your data over to the other device.",
     myDataExportTitle: 'Where do I find the export?',
     myDataExportHint: "You'll find an export button right where you need it — in your diary, at resources, at bridges, and at the safety network.",
     fullBackupTitle: 'Full backup',

@@ -219,7 +219,11 @@
   gap: 8px;
   max-width: min(240px, 62vw);
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  /* "Andere Randfarbe fuer Hinweise/Erklaerungen"-Auftrag — a visibly
+   * distinct, warm border (instead of the plain neutral one shared
+   * with every other card in the app) marks this specifically as the
+   * companion explaining something, not just decoration. */
+  border: 1.5px solid var(--color-accent-sun);
   color: var(--color-text);
   font-size: 13px;
   line-height: 1.4;

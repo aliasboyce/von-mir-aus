@@ -26,6 +26,9 @@ export function WhatsNewCard() {
           <Sparkles size={16} className="text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
           <p className="text-[13px] font-medium text-[var(--color-text)] flex-1">
             {settings.language === 'en' ? "What's new" : 'Was ist neu'}
+            <span className="text-[11px] font-normal text-[var(--color-text-faint)] ml-1.5">
+              {settings.language === 'en' ? '(Boycie was unhappy again)' : '(Boycie war schon wieder unzufrieden)'}
+            </span>
           </p>
           <button onClick={dismiss} data-sound="close" aria-label={settings.language === 'en' ? 'Close' : 'Schließen'} className="p-1 -mr-1 -mt-1 text-[var(--color-text-faint)]">
             <X size={16} />

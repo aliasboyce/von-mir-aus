@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { POLYVAGAL_ZONE_META } from './polyvagalMeta';
 import { useT } from '../../i18n';
 import { EXTENDED_STATE_GROUPS, SURVIVAL_STATE_META } from '../zugang/zugangContent';
@@ -38,7 +38,17 @@ interface NervousSystemLadderSliderProps {
   onValueChange?: (v: number) => void;
 }
 
-const ZONE_ORDER_TOP_TO_BOTTOM: PolyvagalZone[] = ['sympathetic', 'ventral', 'dorsal'];
+// "Reihenfolge korrigieren, exakte Video-Begriffe"-Auftrag — per
+// direct correction: Hypoarousal/dorsal at the top, Hyperarousal/
+// sympathetic in the middle, the Toleranzbereich/ventral band at the
+// bottom. Low slider values sit near the top (dorsal) and high values
+// near the bottom (ventral) to match — see the thumb position and
+// gradient direction below, both flipped to stay consistent with
+// this order (the earlier version had the gradient bar's own colors
+// pointing the opposite way from the band layout, which is what
+// caused the mismatch: blue visually at the top while the band
+// actually showing there was labelled for a different zone).
+const ZONE_ORDER_TOP_TO_BOTTOM: PolyvagalZone[] = ['dorsal', 'sympathetic', 'ventral'];
 
 // Same stops as before, just still used for the thin slider handle bar.
 const GRADIENT = [
@@ -79,45 +89,89 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   }, [zone]);
 
   function handleChange(v: number) {
-    if (onValueChange) onValueChange(v);
-    else setInternalValue(v);
+    const clamped = Math.max(0, Math.min(100, Math.round(v)));
+    if (onValueChange) onValueChange(clamped);
+    else setInternalValue(clamped);
+  }
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+
+  function valueFromClientY(clientY: number): number {
+    const track = trackRef.current;
+    if (!track) return value;
+    const rect = track.getBoundingClientRect();
+    const usableTop = rect.top + 12;
+    const usableHeight = rect.height - 24;
+    const ratio = (clientY - usableTop) / usableHeight;
+    return Math.round(ratio * 100);
+  }
+
+  useEffect(() => {
+    function onMove(e: PointerEvent) {
+      if (!dragging.current) return;
+      handleChange(valueFromClientY(e.clientY));
+    }
+    function onUp() {
+      dragging.current = false;
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onValueChange]);
+
+  function onTrackPointerDown(e: React.PointerEvent) {
+    dragging.current = true;
+    handleChange(valueFromClientY(e.clientY));
   }
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-stretch gap-4 rounded-[var(--radius-lg)] overflow-hidden" style={{ height: 260, background: 'var(--color-surface-muted)' }}>
-        {/* vertical rainbow handle bar */}
-        <div className="relative flex-shrink-0 py-3" style={{ width: 44 }}>
+        {/* vertical rainbow handle bar — "Regler auch per Ziehen
+         * bedienbar"-Auftrag: rebuilt from a CSS-rotated native
+         * <input type="range"> to a direct pointer-driven track. A
+         * rotated native range input has known, inconsistent touch-
+         * coordinate handling on some mobile browsers — taps could
+         * land fine (a single point), but a smooth continuous drag
+         * gesture could silently stop tracking partway through.
+         * Reading the pointer position straight off the track's own
+         * bounding box, with document-level move/up listeners (the
+         * same robust pattern already used for image cropping and
+         * photo positioning elsewhere in the app), sidesteps that
+         * entirely regardless of rotation. */}
+        <div
+          ref={trackRef}
+          className="relative flex-shrink-0 py-3"
+          style={{ width: 44, touchAction: 'none', cursor: 'grab' }}
+          onPointerDown={onTrackPointerDown}
+          role="slider"
+          tabIndex={0}
+          aria-label={t.polyvagal.ladderSliderLabel}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={value}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowUp') handleChange(value - 2);
+            else if (e.key === 'ArrowDown') handleChange(value + 2);
+          }}
+        >
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full"
             style={{ top: 12, bottom: 12, width: 14, background: `linear-gradient(to top, ${GRADIENT})` }}
           />
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={value}
-            onChange={(e) => handleChange(Number(e.target.value))}
-            aria-label={t.polyvagal.ladderSliderLabel}
-            style={{
-              WebkitAppearance: 'none',
-              appearance: 'none',
-              width: 236,
-              height: 44,
-              background: 'transparent',
-              transform: 'rotate(-90deg)',
-              transformOrigin: 'center',
-              position: 'absolute',
-              left: -96,
-              top: 108,
-              margin: 0,
-              cursor: 'pointer',
-            }}
-          />
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 pointer-events-none"
             style={{
-              top: `calc(12px + ${100 - value}% * (100% - 24px - 30px) / 100%)`,
+              // Low values near the top (dorsal), high values near the
+              // bottom (ventral) — matches ZONE_ORDER_TOP_TO_BOTTOM above.
+              top: `calc(12px + ${value}% * (100% - 24px - 30px) / 100%)`,
               width: 28,
               height: 28,
               background: '#1a1a1a',
@@ -139,8 +193,8 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
                 style={{
                   background: isActive ? `${zMeta.color}1f` : 'transparent',
                   borderTop: i > 0 ? '1px dashed var(--color-border)' : undefined,
-                  alignItems: z === 'dorsal' ? 'flex-end' : 'flex-start',
-                  paddingBottom: z === 'dorsal' ? 10 : 0,
+                  alignItems: z === 'ventral' ? 'flex-end' : 'flex-start',
+                  paddingBottom: z === 'ventral' ? 10 : 0,
                   transition: 'background 0.25s ease',
                 }}
               >

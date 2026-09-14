@@ -664,6 +664,7 @@ export function SettingsPage() {
         <Card padding="md" className="mb-3">
           <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{t.settings.myDataWhere}</p>
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.settings.myDataBackupNote}</p>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-2">{t.settings.myDataMultiDeviceNote}</p>
         </Card>
         <Card padding="md" className="mb-6">
           <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.settings.myDataExportTitle}</p>

@@ -440,13 +440,14 @@ const de = {
     personalityHint: 'Wähle bis zu 2 — das beeinflusst, was es am liebsten sagt.',
     createSubmit: 'Wesen erschaffen',
     askNameTitle: 'Und wer bist du?',
+    helloAfterName: 'Hallo {name}! Schön, dass du hier bist.',
     helloIAmCompanion: 'Hallo, ich bin Verlässlich, dein Begleiter.',
     helloWarmWelcome: 'Schön, dass du hier bist. Ich freue mich, dich ein Stück zu begleiten — ganz in deinem Tempo, so wie es für dich passt.',
     askNamePlaceholder: 'Dein Name',
     askNameSkip: 'Lieber nicht sagen',
     introSlides: [
       'Hallo, ich bin {name}. Schön, dass du hier bist.',
-      'Diese App heißt „von mir aus" — ein ruhiger, persönlicher Ort ohne Diagnose oder Kontrolle. Sie verbindet anerkannte Ansätze aus Traumatherapie und Nervensystem-Regulation, ganz ohne Fachjargon.',
+      'Diese App heißt „von mir aus" — ein ruhiger, persönlicher Ort ohne Diagnose oder Kontrolle. Sie verbindet Ansätze aus z. B. der Akzeptanz- und Commitmenttherapie, der Gewaltfreien Kommunikation und der Nervensystem-Regulation nach der Polyvagal-Theorie, ganz ohne Fachjargon.',
       'Es gibt zwei Wege zu dir selbst: den Check-In — kurz und schnell — und Zugang, die ausführlichere, geführte Variante. Du entscheidest, was gerade passt.',
       'Unter „Entdecken" findest du Ressourcen (Dinge, die dir Halt geben) und Brücken (kleine Schritte, die dich zurückverbinden — zu dir, deinem Körper, anderen Menschen oder der Welt).',
       'Mein Garten steht für das, was du mit der Zeit verändern oder aufbauen möchtest — kein Wettbewerb, nur eine ruhige Beobachtung.',
@@ -469,7 +470,7 @@ const de = {
       },
       {
         title: 'Wie ist dein inneres Wetter?',
-        text: 'Wähle den Zustand, der gerade am ehesten passt — klar, bewölkt, stürmisch und so weiter. Kein Test, keine Bewertung, nur eine Momentaufnahme.',
+        text: 'Wähle den Zustand, der gerade am ehesten passt — klar, bewölkt, stürmisch, und was sonst noch zu deinem Moment passt. Kein Test, keine Bewertung, nur eine Momentaufnahme.',
       },
       {
         title: 'Wo bist du gerade?',
@@ -1234,7 +1235,7 @@ const de = {
     sensitiveNote:
       'Diese Kurve ist eine persönliche Beobachtung, keine Diagnose. Bei akuter Belastung wende dich bitte an eine Vertrauensperson oder Fachstelle.',
     ventral: {
-      label: 'Ruhig & verbunden',
+      label: 'Toleranzbereich (Optimal)',
       hint: 'Ich fühle mich sicher, präsent, im Kontakt.',
       meaning: 'Dein Nervensystem signalisiert: Gerade ist es sicher genug, um dich zu öffnen — für andere, für Neues, für Ruhe.',
       feeling: 'Vielleicht erkennst du dich hier wieder: eine Art innere Weichheit, Zugänglichkeit, das Gefühl „ich bin hier".',
@@ -1243,7 +1244,7 @@ const de = {
       behavior: 'Blickkontakt fällt leicht · Lust auf Austausch · Zuhören fällt leicht',
     },
     sympathetic: {
-      label: 'Aktiviert',
+      label: 'Hyperarousal (Übererregung)',
       hint: 'Unruhe, Anspannung, Kampf-/Fluchtgefühl.',
       meaning: 'Dein Nervensystem mobilisiert Energie — als Antwort auf etwas, das gerade nach Handeln oder Wachsamkeit verlangt.',
       feeling: 'Vielleicht erkennst du dich hier wieder: ein Gefühl von „los, irgendwas muss passieren", innere Unruhe, Getriebenheit.',
@@ -1252,7 +1253,7 @@ const de = {
       behavior: 'Viel reden oder handeln · Kontrolle suchen · schwer stillsitzen',
     },
     dorsal: {
-      label: 'Reduziert',
+      label: 'Hypoarousal (Untererregung)',
       hint: 'Rückzug, Erschöpfung, wie abgeschaltet.',
       meaning: 'Dein Nervensystem fährt herunter — ein Schutzmechanismus, wenn gerade zu viel da ist, um es anders zu bewältigen.',
       feeling: 'Vielleicht erkennst du dich hier wieder: wie hinter Glas, weit weg, taub oder wie ausgeknipst.',
@@ -1551,6 +1552,7 @@ const de = {
     myDataSection: 'Meine Daten',
     myDataWhere: 'Deine persönlichen Inhalte werden ausschließlich auf diesem Gerät gespeichert — es gibt kein Nutzerkonto und keinen Server.',
     myDataBackupNote: 'Das heißt auch: Wenn du das Gerät wechselst, es zurücksetzt, die App löschst oder das Gerät verloren geht, können deine Daten verloren gehen — es sei denn, du hast vorher eine Sicherung erstellt. Ein Export ist der einfachste Weg dazu.',
+    myDataMultiDeviceNote: 'Nutzt du die App sowohl am Handy als auch am Laptop? Das sind zwei getrennte Datenspeicher — was du auf dem einen einträgst, erscheint nicht automatisch auf dem anderen. Über "Sicherung erstellen" und "Sicherung wiederherstellen" kannst du deinen Stand manuell auf das jeweils andere Gerät übertragen.',
     myDataExportTitle: 'Wo finde ich den Export?',
     myDataExportHint: 'Im Tagebuch, bei Ressourcen, bei Brücken und beim Sicherheitsnetz findest du jeweils einen Export-Button direkt vor Ort.',
     fullBackupTitle: 'Vollständige Sicherung',

@@ -34,9 +34,12 @@ function xFor(date: Date, width: number, padX: number): number {
  * direction as the control that feeds it matters more than preserving
  * the old convention.
  */
+// "Reihenfolge korrigieren"-Auftrag — low values now sit near the top
+// (dorsal/Hypoarousal) and high values near the bottom (ventral/
+// Toleranzbereich), matching the corrected ladder slider order.
 function yForCheckIn(c: PolyvagalCheckIn, padTop: number, height: number): number {
   const raw = c.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[c.zone];
-  return padTop + (1 - raw / 100) * (height - padTop - PAD_BOTTOM);
+  return padTop + (raw / 100) * (height - padTop - PAD_BOTTOM);
 }
 
 export function PolyvagalDayChart({ checkIns, expanded = false }: PolyvagalDayChartProps) {
@@ -76,7 +79,7 @@ export function PolyvagalDayChart({ checkIns, expanded = false }: PolyvagalDayCh
       aria-label={t.polyvagal.title}
     >
       {zoneBoundaries.map(({ zone, atValue }) => {
-        const y = padTop + (1 - atValue / 100) * (height - padTop - PAD_BOTTOM);
+        const y = padTop + (atValue / 100) * (height - padTop - PAD_BOTTOM);
         return (
           <g key={zone}>
             <line x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />
