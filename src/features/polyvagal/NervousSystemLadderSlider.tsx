@@ -68,18 +68,6 @@ function zoneForValue(v: number): PolyvagalZone {
   return 'dorsal';
 }
 
-/** "Bei gruen soll es mit 1 Prozent anfangen bis 100"-Auftrag — the
- * Status-Niveau readout shows progress WITHIN the current zone (1 at
- * the zone's own start, 100 at its far end) rather than the raw
- * 0-100 ladder position, which only ever showed a partial slice
- * (e.g. 67-100) while sitting in ventral. The underlying stored
- * value stays the raw ladder position for chart continuity — this is
- * purely how it's read out on screen. */
-function pctWithinZone(v: number, zone: PolyvagalZone): number {
-  const [lo, hi] = zone === 'ventral' ? [67, 100] : zone === 'sympathetic' ? [34, 66] : [0, 33];
-  return Math.max(1, Math.round(((v - lo) / (hi - lo)) * 100));
-}
-
 const BAND_ICON: Record<PolyvagalZone, string> = { sympathetic: '🔥', ventral: '🌿', dorsal: '❄️' };
 
 export function NervousSystemLadderSlider({ onSelect, selectedState, value: controlledValue, onValueChange }: NervousSystemLadderSliderProps) {
@@ -89,7 +77,15 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   const value = controlledValue ?? internalValue;
   const [lastZone, setLastZone] = useState<PolyvagalZone>(() => zoneForValue(value));
   const zone = useMemo(() => zoneForValue(value), [value]);
-  const displayPct = useMemo(() => pctWithinZone(value, zone), [value, zone]);
+  // "Prozent zaehlt dreimal bis 100"-Auftrag — the per-zone reset
+  // (1-100 within whichever zone you're in) looked fine as a single
+  // static screenshot, but while actually dragging continuously it
+  // meant the number visibly reset back down every time you crossed a
+  // zone boundary — climbing to 100, snapping back to 1, climbing
+  // again. Reverted to the one continuous number the whole ladder
+  // already uses (matches the stored value 1:1, no separate
+  // display-only calculation to drift out of sync with the data).
+  const displayPct = Math.max(1, value);
   const meta = POLYVAGAL_ZONE_META[zone];
   const states = EXTENDED_STATE_GROUPS.find((g) => g.zone === zone)?.states ?? [];
 
@@ -202,12 +198,10 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
             return (
               <div
                 key={z}
-                className="relative flex-1 flex items-start px-3 pt-2.5"
+                className="relative flex-1 flex items-center px-3"
                 style={{
                   background: isActive ? `${zMeta.color}1f` : 'transparent',
-                  borderTop: i > 0 ? '1px dashed var(--color-border)' : undefined,
-                  alignItems: z === 'ventral' ? 'flex-end' : 'flex-start',
-                  paddingBottom: z === 'ventral' ? 10 : 0,
+                  borderTop: i > 0 ? `1px dashed ${POLYVAGAL_ZONE_META[ZONE_ORDER_TOP_TO_BOTTOM[i - 1]].color}55` : undefined,
                   transition: 'background 0.25s ease',
                 }}
               >
