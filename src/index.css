@@ -561,18 +561,31 @@ button {
  * than a static illustration. A slow vertical drift plus a soft pulse
  * on the dot approximates that without needing a real live data feed.
  */
+/**
+ * "Fliessende Kurven-Animation"-Auftrag — the earlier version only
+ * drifted +-3px, far too subtle to actually notice. Rebuilt to
+ * genuinely travel between several different vertical positions
+ * within the band (not just a small ripple), with an organic,
+ * uneven easing rhythm across more keyframe stops so it doesn't feel
+ * mechanically bouncing between two fixed points — closer to the
+ * reference recording's own quietly-alive movement.
+ */
 @keyframes ladder-curve-drift {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  0% { transform: translateY(6px); }
+  22% { transform: translateY(-10px); }
+  45% { transform: translateY(3px); }
+  68% { transform: translateY(-14px); }
+  86% { transform: translateY(-2px); }
+  100% { transform: translateY(6px); }
 }
 .ladder-curve-line {
-  animation: ladder-curve-drift 4s ease-in-out infinite;
+  animation: ladder-curve-drift 9s ease-in-out infinite;
 }
 @keyframes ladder-curve-pulse {
   0%, 100% { r: 4.5; opacity: 1; }
   50% { r: 6; opacity: 0.7; }
 }
 .ladder-curve-dot {
-  animation: ladder-curve-pulse 2s ease-in-out infinite;
+  animation: ladder-curve-pulse 2s ease-in-out infinite, ladder-curve-drift 9s ease-in-out infinite;
   transform-origin: center;
 }

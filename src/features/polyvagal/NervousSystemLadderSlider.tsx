@@ -68,6 +68,18 @@ function zoneForValue(v: number): PolyvagalZone {
   return 'dorsal';
 }
 
+/** "Bei gruen soll es mit 1 Prozent anfangen bis 100"-Auftrag — the
+ * Status-Niveau readout shows progress WITHIN the current zone (1 at
+ * the zone's own start, 100 at its far end) rather than the raw
+ * 0-100 ladder position, which only ever showed a partial slice
+ * (e.g. 67-100) while sitting in ventral. The underlying stored
+ * value stays the raw ladder position for chart continuity — this is
+ * purely how it's read out on screen. */
+function pctWithinZone(v: number, zone: PolyvagalZone): number {
+  const [lo, hi] = zone === 'ventral' ? [67, 100] : zone === 'sympathetic' ? [34, 66] : [0, 33];
+  return Math.max(1, Math.round(((v - lo) / (hi - lo)) * 100));
+}
+
 const BAND_ICON: Record<PolyvagalZone, string> = { sympathetic: '🔥', ventral: '🌿', dorsal: '❄️' };
 
 export function NervousSystemLadderSlider({ onSelect, selectedState, value: controlledValue, onValueChange }: NervousSystemLadderSliderProps) {
@@ -77,6 +89,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   const value = controlledValue ?? internalValue;
   const [lastZone, setLastZone] = useState<PolyvagalZone>(() => zoneForValue(value));
   const zone = useMemo(() => zoneForValue(value), [value]);
+  const displayPct = useMemo(() => pctWithinZone(value, zone), [value, zone]);
   const meta = POLYVAGAL_ZONE_META[zone];
   const states = EXTENDED_STATE_GROUPS.find((g) => g.zone === zone)?.states ?? [];
 
@@ -229,7 +242,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
         <div>
           <p className="text-[11px] text-[var(--color-text-faint)]">{t.polyvagal.ladderStatusLabel}</p>
           <p className="text-[22px] font-medium" style={{ color: meta.color }}>
-            {value}%
+            {displayPct}%
           </p>
         </div>
         <div className="text-right">
