@@ -18,7 +18,11 @@ export const SURVIVAL_TO_POLYVAGAL_ZONE: Record<ZugangSurvivalState, PolyvagalZo
   angepasst: 'sympathetic',
   erstarren: 'dorsal',
   kollaps: 'dorsal',
-  fine: 'dorsal',
-  flood: 'sympathetic',
-  friend: 'sympathetic',
+  // "Fine/Flood/Friend gehoeren ins Toleranzfenster"-Korrektur — all
+  // three belong to the ventral zone (see zugangContent.ts for the
+  // full reasoning), not scattered into sympathetic/dorsal.
+  fine: 'ventral',
+  flood: 'ventral',
+  friend: 'ventral',
+  fakeRuhe: 'dorsal',
 };

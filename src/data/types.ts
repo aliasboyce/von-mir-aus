@@ -841,7 +841,16 @@ export type ZugangSurvivalState =
    * zone-grouped list used specifically by the selection pickers. */
   | 'fine'
   | 'flood'
-  | 'friend';
+  | 'friend'
+  /** "Fake-Ruhe"-Auftrag — chronic functional dissociation that reads
+   * as calm from the outside (and sometimes from the inside too) but
+   * is actually a dorsal shutdown state, not genuine ventral ease.
+   * Named explicitly per the Stresstoleranzfenster/"Faux window"
+   * material — without a distinct option for this, someone in this
+   * state has no accurate way to log it; picking "erstarren" or
+   * "kollaps" doesn't capture the specific "funktioniere wie ein
+   * Roboter, spüre aber nichts"-quality of it. */
+  | 'fakeRuhe';
 
 export interface ZugangEntry {
   id: string;

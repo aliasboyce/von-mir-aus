@@ -11,11 +11,10 @@ import { pickLine } from '../../components/companion/companionRegistry';
 import { weatherRepo } from './weatherRepo';
 import { WEATHER_META, NEED_META, NEED_ORDER } from './weatherMeta';
 import { polyvagalRepo, todaysCheckIns } from '../polyvagal/polyvagalRepo';
-import { POLYVAGAL_ZONE_META } from '../polyvagal/polyvagalMeta';
+import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
 import { WindowOfToleranceIllustration } from '../polyvagal/WindowOfToleranceIllustration';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { TensionScale } from '../polyvagal/TensionScale';
-import { EXTENDED_STATE_GROUPS, SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { MiniCurve } from '../polyvagal/MiniCurve';
 import { WeatherWheel } from './WeatherWheel';
 import { WeatherAnimation } from './WeatherAnimation';
@@ -282,44 +281,11 @@ export function InnerWeatherPage() {
             </Card>
           )}
 
-          {/* "Genauso wie im Zugang, mit dem zusammen und den Farben"-
-           * Auftrag — this is the actual page "Kurz einchecken" on the
-           * home screen links to, distinct from (and previously out of
-           * sync with) /entdecken/tageskurve. Same colorful, zone-
-           * grouped state grid as Zugang and the Tageskurve page now
-           * both use, instead of the old plain three-circle picker. */}
-          <div className="flex flex-col gap-4 mb-4">
-            {EXTENDED_STATE_GROUPS.map(({ zone, states }) => (
-              <div key={zone}>
-                <p className="text-[12px] font-semibold uppercase tracking-wide mb-2" style={{ color: POLYVAGAL_ZONE_META[zone].color }}>
-                  {POLYVAGAL_ZONE_META[zone].label(t)}
-                </p>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {states.map((s) => {
-                    const meta = SURVIVAL_STATE_META[s];
-                    const isSelected = justPickedState === s;
-                    return (
-                      <button
-                        key={s}
-                        onClick={() => chooseZone(zone, s)}
-                        className="flex flex-col items-center gap-1.5 py-4 rounded-[var(--radius-lg)] border"
-                        style={{
-                          borderColor: isSelected ? 'var(--color-primary)' : 'var(--color-border)',
-                          background: isSelected ? 'var(--color-primary-soft)' : 'var(--color-surface)',
-                          borderWidth: isSelected ? 1.5 : 1,
-                          transition: 'background 0.15s ease, border-color 0.15s ease',
-                        }}
-                      >
-                        <span className="text-[24px]">{meta.emoji}</span>
-                        <span className="text-[13px] text-[var(--color-text)]">{settings.language === 'de' ? meta.label : meta.labelEn}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-          <Link to="/entdecken/tageskurve" className="block text-[13px] text-[var(--color-primary)] text-center">
+          <NervousSystemLadderSlider
+            onSelect={(zone, state) => chooseZone(zone, state)}
+            selectedState={justPickedState as ZugangSurvivalState | null}
+          />
+          <Link to="/entdecken/tageskurve" className="block text-[13px] text-[var(--color-primary)] text-center mt-4">
             {t.home.zoneMoreDetail}
           </Link>
         </div>

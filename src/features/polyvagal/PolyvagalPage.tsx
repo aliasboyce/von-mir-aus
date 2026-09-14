@@ -15,6 +15,7 @@ import { useSettings } from '../../state/SettingsContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { polyvagalRepo, todaysCheckIns } from './polyvagalRepo';
 import { NervousSystemLadder } from './NervousSystemLadder';
+import { NervousSystemLadderSlider } from './NervousSystemLadderSlider';
 import { PolyvagalDayChart } from './PolyvagalDayChart';
 import { describeDay } from './describeDay';
 import { tensionRepo, todaysTensionEntries } from './tensionRepo';
@@ -27,8 +28,7 @@ import { diaryRepo } from '../diary/diaryRepo';
 import { createId } from '../../services/storage/repository';
 import type { PolyvagalCheckIn, PolyvagalZone, TensionEntry, ZugangSurvivalState } from '../../data/types';
 import { tensionColorFor, TensionScale } from './TensionScale';
-import { SURVIVAL_STATE_META, EXTENDED_STATE_GROUPS } from '../zugang/zugangContent';
-import { POLYVAGAL_ZONE_META } from './polyvagalMeta';
+import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
 
 type ExplainerSection =
   | 'nervousSystem'
@@ -198,45 +198,15 @@ export function PolyvagalPage() {
 
           <p className="text-[14px] text-[var(--color-text)] mt-6 mb-4 text-center">{t.polyvagal.quickPrompt}</p>
 
-          {/* "Genauso wie im Zugang, mit dem zusammen und den Farben"-
-           * Auftrag — the exact same zone-grouped, colorful button grid
-           * Zugang step 2 uses, as the primary way to log a state here
-           * too, instead of the more muted expand-to-see-detail stack
-           * this used before. That richer per-zone detail content
+          {/* "Regenbogen-Leiter"-Auftrag — the same continuous slider
+           * Zugang and the daily check-in now use, as the primary way
+           * to log a state here too, instead of the fixed button grid
+           * this used before. The richer per-zone detail content
            * (meaning/feeling/physical/behavior) isn't deleted — it's
            * still available right below via "Mehr erfahren", so
            * nothing already written is lost, only demoted from
            * primary interaction to optional depth. */}
-          <div className="flex flex-col gap-4">
-            {EXTENDED_STATE_GROUPS.map(({ zone, states }) => (
-              <div key={zone}>
-                <p className="text-[12px] font-semibold uppercase tracking-wide mb-2" style={{ color: POLYVAGAL_ZONE_META[zone].color }}>
-                  {POLYVAGAL_ZONE_META[zone].label(t)}
-                </p>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {states.map((s) => {
-                    const meta = SURVIVAL_STATE_META[s];
-                    const isSelected = checkIns[checkIns.length - 1]?.survivalState === s;
-                    return (
-                      <button
-                        key={s}
-                        onClick={() => logZone(zone, s)}
-                        className="flex flex-col items-center gap-1.5 py-4 rounded-[var(--radius-lg)] border"
-                        style={{
-                          borderColor: isSelected ? 'var(--color-primary)' : 'var(--color-border)',
-                          background: isSelected ? 'var(--color-primary-soft)' : 'var(--color-surface)',
-                          borderWidth: isSelected ? 1.5 : 1,
-                        }}
-                      >
-                        <span className="text-[24px]">{meta.emoji}</span>
-                        <span className="text-[13px] text-[var(--color-text)]">{settings.language === 'de' ? meta.label : meta.labelEn}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+          <NervousSystemLadderSlider onSelect={logZone} selectedState={checkIns[checkIns.length - 1]?.survivalState} />
 
           {justSaved && (
             <p className="text-[12px] text-[var(--color-primary)] text-center mt-4 animate-in">{t.polyvagal.saved}</p>

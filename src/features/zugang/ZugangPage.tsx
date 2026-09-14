@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, History } from 'lucide-react';
 import { ZugangStepHeader } from './ZugangStepHeader';
 import { TensionScale } from '../polyvagal/TensionScale';
-import { POLYVAGAL_ZONE_META } from '../polyvagal/polyvagalMeta';
+import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
 import { saveZugangDraft, loadZugangDraft, clearZugangDraft, isDraftRecent } from './zugangDraft';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -19,7 +19,6 @@ import { getCustomSuggestions, addCustomSuggestion, editCustomSuggestion, remove
 import {
   BODY_SENSATIONS_DE,
   SURVIVAL_STATE_META,
-  EXTENDED_STATE_GROUPS,
   FEELING_GROUPS,
   PROTECTION_STRATEGIES_DE,
   PROTECTION_GARDEN_SUGGESTIONS,
@@ -417,45 +416,10 @@ export function ZugangPage() {
             </Card>
 
             <ZugangStepHeader question={t.zugang.step2Question} questionOnly />
-            <div className="flex flex-col gap-4">
-              {EXTENDED_STATE_GROUPS.map(({ zone, states }) => (
-                <div key={zone}>
-                  <p className="text-[12px] font-semibold uppercase tracking-wide mb-2" style={{ color: POLYVAGAL_ZONE_META[zone].color }}>
-                    {POLYVAGAL_ZONE_META[zone].label(t)}
-                  </p>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {states.map((s) => {
-                      const meta = SURVIVAL_STATE_META[s];
-                      return (
-                        <button
-                          key={s}
-                          onClick={() => chooseSurvivalState(s)}
-                          className="flex flex-col items-center gap-1.5 py-4 rounded-[var(--radius-lg)] border"
-                          style={{
-                            borderColor: survivalState === s ? 'var(--color-primary)' : 'var(--color-border)',
-                            background: survivalState === s ? 'var(--color-primary-soft)' : 'var(--color-surface)',
-                            borderWidth: survivalState === s ? 1.5 : 1,
-                          }}
-                        >
-                          <span className="text-[24px]">{meta.emoji}</span>
-                          <span className="text-[13px] text-[var(--color-text)]">{isEnLang(settings) ? meta.labelEn : meta.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-            {survivalState && (
-              <Card className="mt-4 animate-in">
-                <div className="flex items-start gap-3">
-                  <InlineCompanionNote />
-                  <p className="text-[13px] text-[var(--color-text)] leading-relaxed flex-1">
-                    {t.zugang.survivalExplainers[SURVIVAL_STATE_META[survivalState].explanationKey as keyof typeof t.zugang.survivalExplainers]}
-                  </p>
-                </div>
-              </Card>
-            )}
+            <NervousSystemLadderSlider
+              onSelect={(_zone, state) => chooseSurvivalState(state)}
+              selectedState={survivalState}
+            />
             <Link to="/entdecken/nervensystem" className="text-[12px] text-[var(--color-primary)] block mt-4">
               {t.zugang.nervousSystemRefLink}
             </Link>

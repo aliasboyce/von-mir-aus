@@ -12,6 +12,7 @@ import { ActivationWave } from './ActivationWave';
 import { PolyvagalLadderIllustration } from '../polyvagal/PolyvagalLadderIllustration';
 import { AutonomicOrgansIllustration } from '../polyvagal/AutonomicOrgansIllustration';
 import { ArousalBranchIllustration } from '../polyvagal/ArousalBranchIllustration';
+import { WindowOfToleranceIllustration } from '../polyvagal/WindowOfToleranceIllustration';
 import type { PolyvagalZone } from '../../data/types';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
 
@@ -85,10 +86,10 @@ export function NervousSystemReferencePage() {
     zone,
     states: SURVIVAL_STATE_ORDER.filter((s) => SURVIVAL_TO_POLYVAGAL_ZONE[s] === zone && CORE_ZONE_STATES.has(s)),
   }));
-  type ExtendedItem = { zone: 'sympathetic' | 'dorsal'; emoji: string; name: string; meaning: string; mechanism: string };
+  type ExtendedItem = { zone: PolyvagalZone; emoji: string; name: string; meaning: string; mechanism: string };
   const movedCoreStates: ExtendedItem[] = (['angepasst', 'kollaps'] as const).map((s) => {
     const meta = SURVIVAL_STATE_META[s];
-    const zone = SURVIVAL_TO_POLYVAGAL_ZONE[s] as 'sympathetic' | 'dorsal';
+    const zone = SURVIVAL_TO_POLYVAGAL_ZONE[s];
     return {
       zone,
       emoji: meta.emoji,
@@ -98,7 +99,10 @@ export function NervousSystemReferencePage() {
     };
   });
   const allExtended: ExtendedItem[] = [...(t.nervousSystemRef.extendedResponses as ExtendedItem[]), ...movedCoreStates];
-  const extendedByZone = (['sympathetic', 'dorsal'] as const).map((zone) => ({
+  // "Fine/Flood/Friend gehoeren ins Toleranzfenster"-Korrektur — these
+  // are now correctly tagged 'ventral' (see zugangContent.ts), so this
+  // section now covers all three zones, not just sympathetic/dorsal.
+  const extendedByZone = (['ventral', 'sympathetic', 'dorsal'] as const).map((zone) => ({
     zone,
     items: allExtended.filter((r) => r.zone === zone),
   }));
@@ -207,6 +211,37 @@ export function NervousSystemReferencePage() {
           <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-3">{t.nervousSystemRef.neuroceptionText}</p>
           <ArousalBranchIllustration />
         </Card>
+
+        {/* 3b. STRESSTOLERANZFENSTER — neu ergaenzt: das Fenster selbst,
+         * woher es kommt, wie es sich veraendert, und das "Fake-
+         * Fenster"-Konzept fuer chronisch verschobene Zustaende. */}
+        <p className="text-[19px] mb-1">{t.nervousSystemRef.wotTitle}</p>
+        <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.nervousSystemRef.wotIntro}</p>
+        <Card className="mb-3">
+          <WindowOfToleranceIllustration />
+        </Card>
+        <div className="flex flex-col gap-2 mb-4">
+          <BasicsItem id="wotOrigin" title={t.nervousSystemRef.wotOriginTitle} openId={openBasicsItem} setOpenId={setOpenBasicsItem}>
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.nervousSystemRef.wotOriginText}</p>
+            <SourceNoteCard text={t.nervousSystemRef.wotOriginSourcesTitle} sourceIds={['psychologytools-window-of-tolerance', 'siegel-window-of-tolerance']} />
+          </BasicsItem>
+          <BasicsItem id="wotChange" title={t.nervousSystemRef.wotChangeTitle} openId={openBasicsItem} setOpenId={setOpenBasicsItem}>
+            <ul className="flex flex-col gap-2 mb-3">
+              <li className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">• {t.nervousSystemRef.wotNarrowing}</li>
+              <li className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">• {t.nervousSystemRef.wotWidening}</li>
+            </ul>
+            <SourceNoteCard text={t.nervousSystemRef.wotChangeSourcesTitle} sourceIds={['suesens-stresstoleranz', 'khiron-polyvagal-ladder']} />
+          </BasicsItem>
+          <BasicsItem id="wotFake" title={t.nervousSystemRef.wotFakeTitle} openId={openBasicsItem} setOpenId={setOpenBasicsItem}>
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2">{t.nervousSystemRef.wotFakeIntro}</p>
+            <ul className="flex flex-col gap-2 mb-3">
+              <li className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">• {t.nervousSystemRef.wotFakeHyper}</li>
+              <li className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">• {t.nervousSystemRef.wotFakeHypo}</li>
+            </ul>
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.nervousSystemRef.wotFakeNote}</p>
+            <SourceNoteCard text={t.nervousSystemRef.wotFakeSourcesTitle} sourceIds={['dis-sos-verschobenes-fenster']} />
+          </BasicsItem>
+        </div>
 
         {/* 4. DIE DREI HAUPTZUSTÄNDE — die EINE zentrale, ausführliche
          * Stelle. Leiter-Illustration mit beiden Richtungen, dann pro
@@ -345,12 +380,20 @@ export function NervousSystemReferencePage() {
             </div>
             <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mb-4">{t.nervousSystemRef.regulationOrderHint}</p>
             <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.nervousSystemRef.regulationHint}</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 mb-4">
               {t.nervousSystemRef.regulationItems.map((item) => (
                 <span key={item} className="px-2.5 py-1.5 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
                   {item}
                 </span>
               ))}
+            </div>
+            <div className="rounded-[var(--radius-lg)] p-3" style={{ background: 'var(--color-primary-soft)' }}>
+              <p className="text-[13px] font-medium text-[var(--color-text)] mb-1.5">{t.nervousSystemRef.titrationTitle}</p>
+              <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2">{t.nervousSystemRef.titrationText}</p>
+              <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.nervousSystemRef.pendulationText}</p>
+            </div>
+            <div className="mt-3">
+              <SourceNoteCard text={t.nervousSystemRef.titrationSourcesTitle} sourceIds={['levine-titration-pendulation']} />
             </div>
           </Card>
         )}

@@ -41,10 +41,19 @@ export const SURVIVAL_STATE_ORDER: ZugangSurvivalState[] = ['verbunden', 'mobili
  * underneath it, so someone sees the three basic states as the frame
  * and all eight+ specific reactions as options within that frame.
  */
+/**
+ * "Fine/Flood/Friend gehoeren ins Toleranzfenster"-Korrektur — nach
+ * den neuen Quellen zum Stresstoleranzfenster gehoeren alle drei klar
+ * in die gruene/ventrale Zone (Fine = neutraler Normalzustand, Friend
+ * = soziale Co-Regulation, Flood = der UEBERGANG an der oberen Grenze
+ * des Fensters) — vorher waren Friend/Flood faelschlich unter
+ * "sympathetic" einsortiert. "Fake-Ruhe" neu ergaenzt in dorsal (siehe
+ * ZugangSurvivalState in types.ts fuer die Begruendung).
+ */
 export const EXTENDED_STATE_GROUPS: { zone: PolyvagalZone; states: ZugangSurvivalState[] }[] = [
-  { zone: 'ventral', states: ['verbunden'] },
-  { zone: 'sympathetic', states: ['mobilisiert', 'flucht', 'kampf', 'angepasst', 'flood', 'friend'] },
-  { zone: 'dorsal', states: ['erstarren', 'kollaps', 'fine'] },
+  { zone: 'ventral', states: ['verbunden', 'fine', 'friend', 'flood'] },
+  { zone: 'sympathetic', states: ['mobilisiert', 'flucht', 'kampf', 'angepasst'] },
+  { zone: 'dorsal', states: ['erstarren', 'kollaps', 'fakeRuhe'] },
 ];
 
 export const SURVIVAL_STATE_META: Record<ZugangSurvivalState, SurvivalStateMeta> = {
@@ -55,9 +64,10 @@ export const SURVIVAL_STATE_META: Record<ZugangSurvivalState, SurvivalStateMeta>
   erstarren: { emoji: '🧊', label: 'Erstarren', labelEn: 'Freeze', group: 'reduziert', explanationKey: 'erstarren' },
   kollaps: { emoji: '🪨', label: 'Kollaps', labelEn: 'Collapse', group: 'reduziert', explanationKey: 'kollaps' },
   angepasst: { emoji: '🤝', label: 'Angepasst', labelEn: 'Fawn', group: 'aktiviert', explanationKey: 'angepasst' },
-  fine: { emoji: '🙂', label: 'Fine', labelEn: 'Fine', group: 'reduziert', explanationKey: 'fine' },
-  flood: { emoji: '🌊', label: 'Flood', labelEn: 'Flood', group: 'aktiviert', explanationKey: 'flood' },
-  friend: { emoji: '🧑\u200d🤝\u200d🧑', label: 'Friend', labelEn: 'Friend', group: 'aktiviert', explanationKey: 'friend' },
+  fine: { emoji: '🙂', label: 'Fine', labelEn: 'Fine', group: 'verbunden', explanationKey: 'fine' },
+  flood: { emoji: '🌊', label: 'Flood', labelEn: 'Flood', group: 'verbunden', explanationKey: 'flood' },
+  friend: { emoji: '🧑\u200d🤝\u200d🧑', label: 'Friend', labelEn: 'Friend', group: 'verbunden', explanationKey: 'friend' },
+  fakeRuhe: { emoji: '🤖', label: 'Fake-Ruhe', labelEn: 'False calm', group: 'reduziert', explanationKey: 'fakeRuhe' },
 };
 
 // ---------------------------------------------------------------------
