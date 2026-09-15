@@ -91,4 +91,88 @@ export const DEMO_BRIDGES: Bridge[] = [
     favorite: false,
     isCustom: false,
   },
+  /**
+   * "Sofort-Hilfe-Uebungen nach Stufen"-Auftrag — six brand-new bridge
+   * entries, one per arousal-ladder zone, each holding the specific
+   * technique from the person's detailed clinical brief (including the
+   * origin/source of each — kept in the tip field, briefly, matching
+   * how sourcing already appears elsewhere in this file rather than
+   * inventing a new field). Each is linked from its own zone's hint
+   * (see arousalBands.ts / ArousalModelExplainer) via bridgeId.
+   */
+  {
+    id: 'bridge_478_atmung',
+    title: '4-7-8 Atmung',
+    category: 'koerper_intra',
+    image: img('Atem atmen Wind'),
+    description: 'Eine ruhige, verlängerte Ausatmung, um den Körper aus reiner Unter-Aktivierung sanft aufzuwecken.',
+    levels: [
+      { level: 1, title: 'Ein Durchgang', description: '4 Sekunden einatmen, 7 Sekunden halten (oder kürzer, falls das Halten unangenehm ist), 8 Sekunden ausatmen.', energyLevel: 1 },
+      { level: 2, title: 'Mehrere Runden', description: 'Den Zyklus 3-4 Mal wiederholen, in deinem eigenen Tempo.', energyLevel: 2 },
+    ],
+    tip: 'Entwickelt von Dr. Andrew Weil, basierend auf der Pranayama-Atemlehre — die verlängerte Ausatmung aktiviert nachweislich den beruhigenden Teil deines Nervensystems (ventraler Vagus). Wenn das Halten der Luft unangenehm ist, lass diesen Teil einfach weg.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    id: 'bridge_grounding_54321',
+    title: 'Kognitives Grounding',
+    category: 'koerper_intra',
+    image: img('Achtsamkeit Sinne wahrnehmen'),
+    description: 'Die 5-4-3-2-1-Methode holt deine Aufmerksamkeit aus dem Kreisen zurück in den gegenwärtigen Moment.',
+    levels: [
+      { level: 1, title: 'Kurzfassung', description: 'Finde 5 Dinge, die du gerade siehst, und 4, die du körperlich spürst.', energyLevel: 1 },
+      { level: 2, title: 'Vollständig', description: '5 Dinge sehen, 4 spüren, 3 hören, 2 riechen, 1 schmecken — der Reihe nach.', energyLevel: 2 },
+    ],
+    tip: 'Ein Standardverfahren aus der kognitiven Verhaltenstherapie und den Achtsamkeitsprotokollen (MBSR) nach Dr. Jon Kabat-Zinn — lenkt die Aufmerksamkeit gezielt weg vom Grübeln hin zum Hier und Jetzt.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    id: 'bridge_voo_atem',
+    title: 'Orientierung & Voo-Atem',
+    category: 'koerper_intra',
+    image: img('Raum Orientierung Umschauen'),
+    description: 'Den Raum nach sicheren Dingen absuchen und mit einem tönenden Ausatmen emotionale Überflutung dämpfen.',
+    levels: [
+      { level: 1, title: 'Nur orientieren', description: 'Lass deinen Blick langsam durch den Raum wandern und finde 3 Dinge, die sich neutral oder beruhigend anfühlen.', energyLevel: 1 },
+      { level: 2, title: 'Mit Voo-Ton', description: 'Danach tief einatmen und beim Ausatmen ein tiefes, tönendes „Vooo" erklingen lassen — so lange und ruhig wie angenehm.', energyLevel: 2 },
+    ],
+    tip: 'Entwickelt von Dr. Peter Levine (Somatic Experiencing) — das Scannen aktiviert die Suche nach Sicherheit, die Vibration des Tönens dämpft über den Vagusnerv im Kehlkopfbereich emotionale Überflutung.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    id: 'bridge_physio_seufzer',
+    title: 'Physiologischer Seufzer',
+    category: 'koerper_intra',
+    image: img('Atem atmen Wind'),
+    description: 'Zwei kurze Einatmer durch die Nase, dann lang und seufzend durch den Mund ausatmen — senkt den Puls in Echtzeit.',
+    levels: [{ level: 1, title: 'Ein bis drei Durchgänge', description: 'Doppelt kurz durch die Nase einatmen, dann lang und hörbar durch den Mund ausatmen. 1-3 Mal wiederholen.', energyLevel: 1 }],
+    tip: 'Bekannt gemacht durch Prof. Andrew Huberman (Stanford) und Dr. David Spiegel, in einer klinischen Studie (Cell Reports Medicine, 2023) bestätigt — die schnellste bekannte Methode, den Puls biochemisch zu senken.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    id: 'bridge_salamander_blick',
+    title: 'Der Salamander-Blick',
+    category: 'koerper_intra',
+    image: img('Augen Blick Orientierung'),
+    description: 'Kopf ruhig halten, Augen weit zur Seite bewegen, bis sich Gähnen oder Schlucken einstellt — löst innere Erstarrung.',
+    levels: [{ level: 1, title: 'Einmal probieren', description: 'Kopf geradeaus halten. Nur die Augen ganz nach rechts bewegen und einige Atemzüge dort verweilen, bis sich Gähnen oder Schlucken einstellt. Dann zur anderen Seite.', energyLevel: 1 }],
+    tip: 'Entwickelt von Stanley Rosenberg (Vagus-Regulation) — die extreme Augenbewegung ohne Kopfdrehung entkoppelt die für die Freeze-Reaktion verantwortlichen Hirnnerven. Das unwillkürliche Gähnen zeigt: das System löst sich.',
+    favorite: false,
+    isCustom: false,
+  },
+  {
+    id: 'bridge_schmetterling_klopf',
+    title: 'Schmetterlings-Klopfen',
+    category: 'koerper_intra',
+    image: img('Umarmung Selbstfürsorge Halt'),
+    description: 'Arme vor der Brust kreuzen, abwechselnd sanft links und rechts klopfen — bringt beide Gehirnhälften wieder in Kontakt.',
+    levels: [{ level: 1, title: 'Ein paar Minuten', description: 'Arme vor der Brust kreuzen, Hände auf die Oberarme legen. Ganz langsam und sanft abwechselnd links, dann rechts klopfen — so lange es guttut.', energyLevel: 1 }],
+    tip: 'Entwickelt von Lucina Artigas, Teil des EMDR-Protokolls nach Dr. Francine Shapiro — die wechselseitige Stimulation hilft, aus Taubheit und Dissoziation sanft in den Körper zurückzufinden.',
+    favorite: false,
+    isCustom: false,
+  },
 ];

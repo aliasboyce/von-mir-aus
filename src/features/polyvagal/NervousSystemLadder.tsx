@@ -2,11 +2,16 @@ import { useState } from 'react';
 import { ChevronDown, Check } from 'lucide-react';
 import { POLYVAGAL_ZONE_META } from './polyvagalMeta';
 import { useT } from '../../i18n';
-import { EXTENDED_STATE_GROUPS, SURVIVAL_STATE_META } from '../zugang/zugangContent';
-import type { PolyvagalZone, ZugangSurvivalState } from '../../data/types';
+import type { PolyvagalZone } from '../../data/types';
 
 interface NervousSystemLadderProps {
-  onSelect: (zone: PolyvagalZone, survivalState?: ZugangSurvivalState) => void;
+  /** "Das passt jetzt gerade zu mir entfernen"-Auftrag — this reference
+   * card is purely informational now (state is measured directly via
+   * the arousal ladder slider elsewhere), so selecting a state here no
+   * longer exists. `selected` is kept, purely to show a small checkmark
+   * on whichever zone matched the most recent check-in — a nice
+   * "that's where you last were" touch, without offering a second,
+   * separate way to log one. */
   selected?: PolyvagalZone | null;
   /** "Check-in muss an exakt derselben Stelle fortgesetzt werden"-
    * Auftrag — optional controlled mode. Without these two props the
@@ -40,7 +45,7 @@ const TOP_TO_BOTTOM: PolyvagalZone[] = ['dorsal', 'sympathetic', 'ventral'];
  * states aren't sealed-off boxes — a person moves between them — without
  * drawing a literal staircase that would suggest a fixed 1→2→3 order.
  */
-export function NervousSystemLadder({ onSelect, selected, expanded: controlledExpanded, onExpandedChange }: NervousSystemLadderProps) {
+export function NervousSystemLadder({ selected, expanded: controlledExpanded, onExpandedChange }: NervousSystemLadderProps) {
   const t = useT();
   const [internalExpanded, setInternalExpanded] = useState<PolyvagalZone | null>(null);
   const isControlled = controlledExpanded !== undefined;
@@ -105,37 +110,6 @@ export function NervousSystemLadder({ onSelect, selected, expanded: controlledEx
                     <DetailRow label={t.polyvagal.detailEmotions} value={detail.emotions} />
                     <DetailRow label={t.polyvagal.detailBehavior} value={detail.behavior} />
                   </div>
-
-                  {/* "Alle Fs mit dazu"-Auftrag — specific-state chips
-                   * for this zone (including the extended Fine/Flood/
-                   * Friend reactions where relevant), so tapping one
-                   * both picks the zone AND the specific reaction in
-                   * one motion, without losing the existing rich
-                   * zone-level detail above. */}
-                  <div className="flex flex-wrap gap-1.5 mb-3">
-                    {(EXTENDED_STATE_GROUPS.find((g) => g.zone === zone)?.states ?? []).map((s) => {
-                      const sMeta = SURVIVAL_STATE_META[s];
-                      return (
-                        <button
-                          key={s}
-                          onClick={() => onSelect(zone, s)}
-                          className="px-2.5 py-1.5 rounded-full text-[12px] flex items-center gap-1"
-                          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-                        >
-                          <span>{sMeta.emoji}</span>
-                          <span className="text-[var(--color-text)]">{sMeta.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <button
-                    onClick={() => onSelect(zone)}
-                    className="text-[13px] px-3.5 py-2 rounded-full"
-                    style={{ background: meta.color, color: '#fff' }}
-                  >
-                    {t.polyvagal.selectThisState}
-                  </button>
                 </div>
               )}
             </div>

@@ -11,7 +11,7 @@ import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { useSettings } from '../../state/SettingsContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { polyvagalRepo, todaysCheckIns } from './polyvagalRepo';
+import { polyvagalRepo, todaysCheckIns, checkInsInLastDays } from './polyvagalRepo';
 import { NervousSystemLadder } from './NervousSystemLadder';
 import { NervousSystemLadderSlider } from './NervousSystemLadderSlider';
 import { ArousalModelExplainer } from './ArousalModelExplainer';
@@ -108,6 +108,8 @@ export function PolyvagalPage() {
     setSearchParams(next, { replace: true });
   };
   const [checkIns, setCheckIns] = useState<PolyvagalCheckIn[]>(() => todaysCheckIns());
+  const [chartPeriod, setChartPeriod] = useState<'day' | 'week' | 'month'>('day');
+  const chartCheckIns = chartPeriod === 'day' ? checkIns : chartPeriod === 'week' ? checkInsInLastDays(7) : checkInsInLastDays(30);
   const [tensionValue, setTensionValue] = useState(50);
   const [showLadderDetail, setShowLadderDetail] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
@@ -182,7 +184,7 @@ export function PolyvagalPage() {
           </button>
           {showLadderDetail && (
             <div className="mt-3 animate-in">
-              <NervousSystemLadder onSelect={logZone} selected={checkIns[checkIns.length - 1]?.zone} expanded={expandedZoneParam} onExpandedChange={setExpandedZoneParam} />
+              <NervousSystemLadder selected={checkIns[checkIns.length - 1]?.zone} expanded={expandedZoneParam} onExpandedChange={setExpandedZoneParam} />
             </div>
           )}
         </Card>
@@ -212,9 +214,21 @@ export function PolyvagalPage() {
         </Card>
 
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[13px] uppercase tracking-wide text-[var(--color-text-faint)]">
-            {t.polyvagal.todayChart}
-          </p>
+          <div className="flex gap-1.5">
+            {(['day', 'week', 'month'] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setChartPeriod(p)}
+                className="px-2.5 py-1 rounded-full text-[12px]"
+                style={{
+                  background: chartPeriod === p ? 'var(--color-primary)' : 'var(--color-surface-muted)',
+                  color: chartPeriod === p ? 'var(--color-surface)' : 'var(--color-text-muted)',
+                }}
+              >
+                {p === 'day' ? t.polyvagal.periodDay : p === 'week' ? t.polyvagal.periodWeek : t.polyvagal.periodMonth}
+              </button>
+            ))}
+          </div>
           <button
             onClick={() => setFullscreen(true)}
             aria-label={t.polyvagal.expandChart}
@@ -224,7 +238,7 @@ export function PolyvagalPage() {
           </button>
         </div>
         <Card padding="lg" className="mb-3">
-          <PolyvagalDayChart checkIns={checkIns} />
+          <PolyvagalDayChart checkIns={chartCheckIns} period={chartPeriod} />
         </Card>
 
         <Card className="mb-6">
@@ -277,7 +291,7 @@ export function PolyvagalPage() {
               <div style={{ width: 40 }} />
             </div>
             <div className="flex-1 flex items-center justify-center px-4">
-              <PolyvagalDayChart checkIns={checkIns} expanded />
+              <PolyvagalDayChart checkIns={chartCheckIns} expanded period={chartPeriod} />
             </div>
           </div>,
           document.body,

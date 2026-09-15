@@ -678,6 +678,13 @@ export interface UserSettings {
   remindersEnabled: boolean;
   /** "HH:MM" 24h format — when set + remindersEnabled, Home shows a gentle nudge after this time if no check-in happened yet today */
   weatherReminderTime?: string;
+  /** "Erinnerung immer an, mehrere Uhrzeiten"-Auftrag — the daily
+   * check-in reminder is no longer an opt-in toggle (remindersEnabled
+   * still exists for other reminder types, but the check-in nudge
+   * itself is always active) and now supports multiple times per day
+   * instead of just one. weatherReminderTime above is kept only for
+   * reading old saved data; new writes go here. */
+  weatherReminderTimes?: string[];
   /** when true, the previous day's polyvagal curve summary is auto-added to the diary the next time the app opens on a new day */
   autoAddCurveToDiary?: boolean;
   /** Same "write an actual diary entry" mechanism as autoAddCurveToDiary,

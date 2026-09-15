@@ -89,18 +89,18 @@ export function InnerWeatherPage() {
   function chooseZone(zone: PolyvagalZone, survivalState?: ZugangSurvivalState) {
     polyvagalRepo.save({ id: createId('pv'), createdAt: new Date().toISOString(), zone, survivalState, tensionValue });
     tensionRepo.save({ id: createId('tension'), createdAt: new Date().toISOString(), value: tensionValue });
-    // "Wird nicht farbig markiert"-Fund — this used to jump to the
-    // 'need' step immediately, giving zero time to actually see the
-    // tap register before the screen changed, which reads as "did
-    // that even save?". A brief, visibly-highlighted pause before
-    // advancing gives real confirmation, matching the pattern used
-    // elsewhere in the app (e.g. justSaved flashes).
+    // "Nicht sofort weiterspringen"-Auftrag — this used to auto-advance
+    // to the 'need' step 450ms after tapping an F-tag, with no way to
+    // stay and look around. Now it only marks the pick (for the visible
+    // selected/highlighted state) — moving on is a deliberate "Weiter"
+    // tap below, matching how Zugang's equivalent step already works.
     setJustPickedState(survivalState ?? zone);
-    window.setTimeout(() => {
-      setStep('need');
-      setJustPickedState(null);
-      say(pickLine({ page: '/inneres-wetter', trigger: 'checkin_zu_beduerfnis' }));
-    }, 450);
+  }
+
+  function advanceFromZone() {
+    setStep('need');
+    setJustPickedState(null);
+    say(pickLine({ page: '/inneres-wetter', trigger: 'checkin_zu_beduerfnis' }));
   }
 
   function chooseCondition(c: WeatherCondition) {
@@ -281,6 +281,15 @@ export function InnerWeatherPage() {
             value={tensionValue}
             onValueChange={setTensionValue}
           />
+          {justPickedState && (
+            <button
+              onClick={advanceFromZone}
+              className="w-full text-center text-[15px] mt-4 py-3 rounded-full animate-in"
+              style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}
+            >
+              {t.common.next} →
+            </button>
+          )}
           <Link to="/entdecken/tageskurve" className="block text-[13px] text-[var(--color-primary)] text-center mt-4">
             {t.home.zoneMoreDetail}
           </Link>

@@ -36,13 +36,26 @@ function hasCheckedInToday(): boolean {
   return weatherRepo.getAll().some((c) => new Date(c.createdAt).toDateString() === today);
 }
 
-function reminderIsDue(time: string | undefined): boolean {
-  if (!time) return false;
-  const [h, m] = time.split(':').map(Number);
+function reminderIsDue(times: string[] | undefined): boolean {
+  if (!times || times.length === 0) return false;
   const now = new Date();
-  const target = new Date();
-  target.setHours(h, m, 0, 0);
-  return now >= target;
+  return times.some((time) => {
+    const [h, m] = time.split(':').map(Number);
+    const target = new Date();
+    target.setHours(h, m, 0, 0);
+    return now >= target;
+  });
+}
+
+/** "Erinnerung immer an, mehrere Uhrzeiten"-Auftrag — reads the new
+ * array field, falling back to the old single-time field for anyone
+ * who saved a reminder time before this change, and finally to a
+ * sensible 09:00 default so the reminder is genuinely always on
+ * rather than needing an explicit opt-in. */
+function reminderTimesFor(settings: { weatherReminderTimes?: string[]; weatherReminderTime?: string }): string[] {
+  if (settings.weatherReminderTimes && settings.weatherReminderTimes.length > 0) return settings.weatherReminderTimes;
+  if (settings.weatherReminderTime) return [settings.weatherReminderTime];
+  return ['09:00'];
 }
 
 function dateKey(d: Date): string {
@@ -135,9 +148,8 @@ export function HomePage() {
   }, []);
 
   const showReminder =
-    settings.remindersEnabled &&
     !reminderDismissed &&
-    reminderIsDue(settings.weatherReminderTime) &&
+    reminderIsDue(reminderTimesFor(settings)) &&
     !hasCheckedInToday();
 
   // "Wesen soll auf Erinnerung/Brief hinweisen"-Auftrag — a separate,

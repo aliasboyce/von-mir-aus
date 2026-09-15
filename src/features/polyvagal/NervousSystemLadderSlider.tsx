@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Settings, Info, X, AlertTriangle } from 'lucide-react';
 import { useT } from '../../i18n';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
@@ -24,6 +25,7 @@ interface NervousSystemLadderSliderProps {
 
 export function NervousSystemLadderSlider({ onSelect, selectedState, value: controlledValue, onValueChange }: NervousSystemLadderSliderProps) {
   const t = useT();
+  const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
   const [internalValue, setInternalValue] = useState(20);
   const value = controlledValue ?? internalValue;
@@ -36,7 +38,19 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   const hasCalibration = settings.arousalWindowStart != null && settings.arousalWindowEnd != null;
   const windowStart = settings.arousalWindowStart ?? 0;
   const windowEnd = settings.arousalWindowEnd ?? 55;
-  const isDysregulated = hasCalibration && (value < windowStart || value > windowEnd);
+  // "Basic-Fenster 0-55%"-Auftrag — the dysregulation check now always
+  // applies, using the clinical default window (0-55%) when nobody has
+  // calibrated their own — it's no longer an opt-in feature that does
+  // nothing until someone visits the gear icon first.
+  const isDysregulated = value < windowStart || value > windowEnd;
+  // "Fenster erst nach Loslassen einblenden, Aufblitz-Effekt"-Auftrag —
+  // both the window overlay on the slider bar and the dysregulation
+  // warning stay completely invisible until the person has released
+  // the slider at least once, so the very first, unbiased read of the
+  // slider happens with zero judgment or expectation in view. After
+  // that first release they fade/flash in and stay visible from then on.
+  const [hasReleased, setHasReleased] = useState(false);
+  const [justFlashed, setJustFlashed] = useState(false);
 
   const [draftStart, setDraftStart] = useState(String(windowStart));
   const [draftEnd, setDraftEnd] = useState(String(windowEnd));
@@ -45,6 +59,14 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
     const clamped = Math.max(0, Math.min(100, Math.round(v)));
     if (onValueChange) onValueChange(clamped);
     else setInternalValue(clamped);
+  }
+
+  function handleRelease() {
+    if (!hasReleased) {
+      setHasReleased(true);
+      setJustFlashed(true);
+      window.setTimeout(() => setJustFlashed(false), 900);
+    }
   }
 
   const trackRef = useRef<HTMLDivElement>(null);
@@ -74,6 +96,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
       handleChange(valueFromClientY(e.clientY));
     }
     function onUp() {
+      if (dragging.current) handleRelease();
       dragging.current = false;
     }
     document.addEventListener('pointermove', onMove);
@@ -120,8 +143,19 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
         </button>
       </div>
 
-      {isDysregulated && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-full animate-in" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)' }}>
+      {hasReleased && (
+        <div
+          className="flex items-center gap-2 px-3 py-2 rounded-full transition-opacity duration-200"
+          style={{
+            background: 'var(--color-danger-soft)',
+            color: 'var(--color-danger)',
+            opacity: isDysregulated ? 1 : 0,
+            pointerEvents: isDysregulated ? 'auto' : 'none',
+            boxShadow: justFlashed && isDysregulated ? '0 0 0 3px var(--color-danger)' : 'none',
+            transition: 'opacity 0.2s ease, box-shadow 0.5s ease',
+          }}
+          aria-hidden={!isDysregulated}
+        >
           <AlertTriangle size={15} />
           <span className="text-[12px] font-medium tracking-wide">{t.polyvagal.arousalDysregulationWarning}</span>
         </div>
@@ -187,11 +221,26 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
                 <X size={18} />
               </button>
             </div>
-            {t.polyvagal.arousalCalibrationInfoText.split('\n\n').map((para, i) => (
-              <p key={i} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">
-                {para}
-              </p>
-            ))}
+            {t.polyvagal.arousalCalibrationInfoText.split('\n\n').map((para, i) => {
+              // "Uebersichtlicher strukturieren"-Auftrag — bolds the
+              // short lead-in label before the first colon (e.g. "Es
+              // verengt sich:") as a mini-heading, without altering or
+              // duplicating the person's own carefully-worded text.
+              const colonIdx = para.indexOf(':');
+              const hasLabel = colonIdx > 0 && colonIdx < 45;
+              return (
+                <p key={i} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">
+                  {hasLabel ? (
+                    <>
+                      <span className="font-medium text-[var(--color-text)]">{para.slice(0, colonIdx + 1)}</span>
+                      {para.slice(colonIdx + 1)}
+                    </>
+                  ) : (
+                    para
+                  )}
+                </p>
+              );
+            })}
           </div>
         </div>
       )}
@@ -212,24 +261,31 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
           onKeyDown={(e) => {
             if (e.key === 'ArrowUp') handleChange(value - 2);
             else if (e.key === 'ArrowDown') handleChange(value + 2);
+            else return;
+            handleRelease();
           }}
         >
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full"
             style={{ top: 12, bottom: 12, width: 14, background: `linear-gradient(to bottom, ${AROUSAL_GRADIENT_STOPS})` }}
           />
-          {hasCalibration && (
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
-              style={{
-                top: `calc(12px + ${windowStart}% * (100% - 24px) / 100%)`,
-                height: `calc(${windowEnd - windowStart}% * (100% - 24px) / 100%)`,
-                width: 22,
-                border: '2px dashed rgba(255,255,255,0.85)',
-                borderRadius: 11,
-              }}
-            />
-          )}
+          {/* "Fenster erst nach Loslassen einblenden, Aufblitz"-Auftrag
+           * — always rendered now (the basic 0-55% window applies even
+           * without custom calibration), but invisible until the first
+           * release, then a brief glow marks the moment it appears. */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
+            style={{
+              top: `calc(12px + ${windowStart}% * (100% - 24px) / 100%)`,
+              height: `calc(${windowEnd - windowStart}% * (100% - 24px) / 100%)`,
+              width: 22,
+              border: '2px dashed rgba(255,255,255,0.85)',
+              borderRadius: 11,
+              opacity: hasReleased ? 1 : 0,
+              boxShadow: justFlashed ? '0 0 12px 4px rgba(255,255,255,0.9)' : 'none',
+              transition: 'opacity 0.4s ease, box-shadow 0.6s ease',
+            }}
+          />
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 pointer-events-none"
             style={{
@@ -293,7 +349,18 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
         </div>
       </div>
       <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: `${band.color}14` }}>
-        <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{zoneT.hint}</p>
+        <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{zoneT.hint}</p>
+        <button
+          onClick={() => {
+            if (window.confirm(t.polyvagal.arousalExerciseConfirm.replace('{name}', band.exerciseName))) {
+              navigate(`/bruecken/${band.bridgeId}`);
+            }
+          }}
+          className="text-[12.5px] font-medium flex items-center gap-1"
+          style={{ color: band.color }}
+        >
+          {t.polyvagal.arousalExercisePrompt.replace('{name}', band.exerciseName)} →
+        </button>
       </div>
 
       {/* dynamic F-tags, 2-column grid, change per band */}

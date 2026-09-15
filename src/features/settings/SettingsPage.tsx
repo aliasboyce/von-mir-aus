@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
-import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell } from 'lucide-react';
+import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell, X } from 'lucide-react';
 import { getAllLichtwesen } from '../../components/companion/customLichtwesen';
 import { customLichtwesenRepo } from '../../components/companion/customLichtwesen';
 import type { LichtwesenConfig } from '../../components/companion/lichtwesen';
@@ -461,24 +461,46 @@ export function SettingsPage() {
         {/* ================= Erinnerungen ================= */}
         <SectionLabel>🔔 {t.settings.reminders}</SectionLabel>
         <Card className="mb-6" padding="md">
-          <ToggleRow
-            label={t.settings.reminders}
-            checked={settings.remindersEnabled}
-            onChange={(v) => updateSettings({ remindersEnabled: v, weatherReminderTime: v ? (settings.weatherReminderTime ?? '09:00') : undefined })}
-          />
-          <p className="text-[12px] text-[var(--color-text-faint)] mt-1">{t.settings.remindersHint}</p>
-          {settings.remindersEnabled && (
-            <label className="flex items-center justify-between py-2 mt-2 border-t border-[var(--color-border)] pt-3">
-              <span className="text-[14px] text-[var(--color-text)]">{t.settings.reminderTimeLabel}</span>
-              <input
-                type="time"
-                value={settings.weatherReminderTime ?? '09:00'}
-                onChange={(e) => updateSettings({ weatherReminderTime: e.target.value })}
-                className="input"
-                style={{ width: 110 }}
-              />
-            </label>
-          )}
+          <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.reminders}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.remindersHint}</p>
+          <div className="flex flex-col gap-2">
+            {(settings.weatherReminderTimes ?? (settings.weatherReminderTime ? [settings.weatherReminderTime] : ['09:00'])).map((time, i) => {
+              const times = settings.weatherReminderTimes ?? (settings.weatherReminderTime ? [settings.weatherReminderTime] : ['09:00']);
+              return (
+                <div key={i} className="flex items-center justify-between py-2 border-t border-[var(--color-border)] pt-3 first:border-t-0 first:pt-0">
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => {
+                      const next = [...times];
+                      next[i] = e.target.value;
+                      updateSettings({ weatherReminderTimes: next, weatherReminderTime: undefined });
+                    }}
+                    className="input"
+                    style={{ width: 110 }}
+                  />
+                  {times.length > 1 && (
+                    <button
+                      onClick={() => updateSettings({ weatherReminderTimes: times.filter((_, idx) => idx !== i), weatherReminderTime: undefined })}
+                      className="text-[13px] text-[var(--color-text-faint)] px-2"
+                      aria-label={t.settings.reminderRemoveCta}
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <button
+            onClick={() => {
+              const times = settings.weatherReminderTimes ?? (settings.weatherReminderTime ? [settings.weatherReminderTime] : ['09:00']);
+              updateSettings({ weatherReminderTimes: [...times, '15:00'], weatherReminderTime: undefined });
+            }}
+            className="text-[13px] text-[var(--color-primary)] mt-3"
+          >
+            + {t.settings.reminderAddCta}
+          </button>
         </Card>
 
         <Card className="mb-6" padding="md">

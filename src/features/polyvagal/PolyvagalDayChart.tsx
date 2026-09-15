@@ -1,48 +1,34 @@
-import { POLYVAGAL_ZONE_ORDER, POLYVAGAL_ZONE_META } from './polyvagalMeta';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
+import { AROUSAL_BANDS, bandForValue } from './arousalBands';
 import type { PolyvagalCheckIn } from '../../data/types';
 
 interface PolyvagalDayChartProps {
   checkIns: PolyvagalCheckIn[];
   expanded?: boolean;
+  /** "Verlauf soll Tag/Woche/Monat zeigen"-Auftrag — controls the
+   * x-axis: 'day' spans 24h by time-of-day (the original behavior),
+   * 'week'/'month' span the actual date range of the check-ins passed
+   * in, so multiple days' points read left-to-right chronologically. */
+  period?: 'day' | 'week' | 'month';
 }
 
 const PAD_TOP = 16;
 const PAD_BOTTOM = 16;
 
-function xFor(date: Date, width: number, padX: number): number {
-  const minutesSinceMidnight = date.getHours() * 60 + date.getMinutes();
-  return padX + (minutesSinceMidnight / (24 * 60)) * (width - padX - 12);
-}
-
 /**
- * "Nur noch eine Kurve, Status-Niveau vereint"-Auftrag — this used to
- * plot each check-in on one of three fixed rows (the zone only), with
- * two entirely separate charts (TensionDayChart, TensionHistoryChart)
- * covering the tensionValue number elsewhere on the same page. Since
- * tensionValue and zone are now literally the same single number
- * (see NervousSystemLadderSlider — the ladder's own raw value IS
- * tensionValue), this is now the one chart: a smooth continuous
- * position (falls back to the old 3-row snap only for older entries
- * saved before tensionValue existed), colored by zone.
- *
- * Orientation deliberately matches the ladder slider itself (calm/
- * ventral high on the page, shutdown/dorsal low) rather than the old
- * chart's inverted "tension rises visually" convention — the slider
- * is the primary interaction now, and the chart reading the same
- * direction as the control that feeds it matters more than preserving
- * the old convention.
+ * "Nur noch eine Kurve, Status-Niveau vereint"-Auftrag, extended for
+ * "Verlauf soll genauso wie die Messung aufgebaut sein" — one smooth
+ * continuous line, colored by the same six arousal bands the ladder
+ * slider itself uses (not the older three-zone palette), across day,
+ * week, or month.
  */
-// "Reihenfolge korrigieren"-Auftrag — low values now sit near the top
-// (dorsal/Hypoarousal) and high values near the bottom (ventral/
-// Toleranzbereich), matching the corrected ladder slider order.
 function yForCheckIn(c: PolyvagalCheckIn, padTop: number, height: number): number {
   const raw = c.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[c.zone];
   return padTop + (raw / 100) * (height - padTop - PAD_BOTTOM);
 }
 
-export function PolyvagalDayChart({ checkIns, expanded = false }: PolyvagalDayChartProps) {
+export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day' }: PolyvagalDayChartProps) {
   const t = useT();
   const { settings } = useSettings();
   const width = expanded ? 640 : 320;
@@ -52,23 +38,40 @@ export function PolyvagalDayChart({ checkIns, expanded = false }: PolyvagalDayCh
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
 
   const sorted = [...checkIns].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const points = sorted.map((c) => ({
-    x: xFor(new Date(c.createdAt), width, padX),
-    y: yForCheckIn(c, padTop, height),
-    zone: c.zone,
-    time: new Date(c.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' }),
-  }));
+
+  function xFor(date: Date): number {
+    const usableWidth = width - padX - 12;
+    if (period === 'day') {
+      const minutesSinceMidnight = date.getHours() * 60 + date.getMinutes();
+      return padX + (minutesSinceMidnight / (24 * 60)) * usableWidth;
+    }
+    // week/month: spread across the actual span of check-ins passed in.
+    if (sorted.length === 0) return padX;
+    const first = new Date(sorted[0].createdAt).getTime();
+    const last = new Date(sorted[sorted.length - 1].createdAt).getTime();
+    const span = Math.max(last - first, 60 * 60 * 1000);
+    return padX + ((date.getTime() - first) / span) * usableWidth;
+  }
+
+  const points = sorted.map((c) => {
+    const raw = c.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[c.zone];
+    return {
+      x: xFor(new Date(c.createdAt)),
+      y: yForCheckIn(c, padTop, height),
+      color: bandForValue(raw).color,
+      time:
+        period === 'day'
+          ? new Date(c.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+          : new Date(c.createdAt).toLocaleDateString(locale, { day: '2-digit', month: '2-digit' }),
+      id: c.id,
+    };
+  });
 
   const pathD = points.length > 1 ? `M ${points.map((p) => `${p.x},${p.y}`).join(' L ')}` : '';
 
-  // Reference lines/labels at the same three zone boundaries the
-  // ladder slider itself uses (67/34/0), converted to this chart's
-  // continuous y-scale.
-  const zoneBoundaries: { zone: (typeof POLYVAGAL_ZONE_ORDER)[number]; atValue: number }[] = [
-    { zone: 'ventral', atValue: 83 },
-    { zone: 'sympathetic', atValue: 50 },
-    { zone: 'dorsal', atValue: 17 },
-  ];
+  function yAt(pct: number) {
+    return padTop + (pct / 100) * (height - padTop - PAD_BOTTOM);
+  }
 
   return (
     <svg
@@ -78,23 +81,36 @@ export function PolyvagalDayChart({ checkIns, expanded = false }: PolyvagalDayCh
       role="img"
       aria-label={t.polyvagal.title}
     >
-      {zoneBoundaries.map(({ zone, atValue }) => {
-        const y = padTop + (atValue / 100) * (height - padTop - PAD_BOTTOM);
-        return (
-          <g key={zone}>
-            <line x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />
-            <text x={4} y={y + 3} fontSize={expanded ? 11 : 9} fill="var(--color-text-faint)">
-              {POLYVAGAL_ZONE_META[zone].label(t)}
-            </text>
-          </g>
-        );
+      {/* "Fokus-Sweetspot hervorheben"-Auftrag — zone 2 (16-35%,
+       * optimal arousal) gets its own soft tinted band on the chart so
+       * it's visible at a glance whether a point landed not just
+       * "in the window" but in the specific ideal-focus range. */}
+      {AROUSAL_BANDS.map((b) => (
+        <rect
+          key={b.id}
+          x={padX}
+          y={yAt(b.min)}
+          width={width - padX - 8}
+          height={Math.max(yAt(b.max) - yAt(b.min), 1)}
+          fill={b.id === 'zone2' ? `${b.color}1f` : 'transparent'}
+        />
+      ))}
+      {AROUSAL_BANDS.map((b, i) => {
+        if (i === 0) return null;
+        const y = yAt(b.min);
+        return <line key={b.id} x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />;
       })}
+      {expanded && (
+        <text x={4} y={yAt(25) + 3} fontSize={10} fill={AROUSAL_BANDS[1].color} fontWeight={600}>
+          {t.polyvagal.arousalZones.zone2.label}
+        </text>
+      )}
 
       {pathD && <path d={pathD} fill="none" stroke="var(--color-text-faint)" strokeWidth={1.5} opacity={0.5} />}
 
       {points.map((p, i) => (
-        <g key={i}>
-          <circle cx={p.x} cy={p.y} r={expanded ? 6 : 4.5} fill={POLYVAGAL_ZONE_META[p.zone].color} />
+        <g key={p.id ?? i}>
+          <circle cx={p.x} cy={p.y} r={expanded ? 6 : 4.5} fill={p.color} />
           {expanded && (
             <text x={p.x} y={p.y - 12} fontSize={9} textAnchor="middle" fill="var(--color-text-faint)">
               {p.time}
