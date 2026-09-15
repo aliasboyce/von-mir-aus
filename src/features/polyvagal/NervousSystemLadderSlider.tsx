@@ -34,6 +34,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   const zoneT = t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones];
 
   const [calibrationOpen, setCalibrationOpen] = useState(false);
+  const [exercisePickerOpen, setExercisePickerOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const hasCalibration = settings.arousalWindowStart != null && settings.arousalWindowEnd != null;
   const windowStart = settings.arousalWindowStart ?? 0;
@@ -163,12 +164,13 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
 
       {calibrationOpen && (
         <div className="rounded-[var(--radius-lg)] p-4 animate-in" style={{ background: 'var(--color-surface-muted)' }}>
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-2">
             <p className="text-[13px] font-medium text-[var(--color-text)] flex-1">{t.polyvagal.arousalCalibrationTitle}</p>
             <button onClick={() => setInfoOpen(true)} aria-label="Info" className="text-[var(--color-text-faint)]">
               <Info size={16} />
             </button>
           </div>
+          <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.polyvagal.arousalCalibrationIntro}</p>
           <div className="flex gap-3 mb-3">
             <label className="flex-1">
               <span className="text-[11px] text-[var(--color-text-faint)] block mb-1">{t.polyvagal.arousalCalibrationStart}</span>
@@ -351,17 +353,51 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
       <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: `${band.color}14` }}>
         <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{zoneT.hint}</p>
         <button
-          onClick={() => {
-            if (window.confirm(t.polyvagal.arousalExerciseConfirm.replace('{name}', band.exerciseName))) {
-              navigate(`/bruecken/${band.bridgeId}`);
-            }
-          }}
+          onClick={() => setExercisePickerOpen(true)}
           className="text-[12.5px] font-medium flex items-center gap-1"
           style={{ color: band.color }}
         >
-          {t.polyvagal.arousalExercisePrompt.replace('{name}', band.exerciseName)} →
+          {t.polyvagal.arousalExercisePrompt.replace('{name}', band.exercises[0].exerciseName)} →
         </button>
       </div>
+
+      {exercisePickerOpen && (
+        <div
+          className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.4)' }}
+          onClick={() => setExercisePickerOpen(false)}
+        >
+          <div
+            className="w-full max-w-[420px] rounded-[var(--radius-xl)] p-5 animate-in"
+            style={{ background: 'var(--color-surface)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-2 mb-1">
+              <p className="text-[15px] font-medium text-[var(--color-text)] flex-1">{t.polyvagal.arousalExercisePickerTitle}</p>
+              <button onClick={() => setExercisePickerOpen(false)} className="text-[var(--color-text-faint)]">
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-4">{zoneT.label} · {zoneT.sublabel}</p>
+            <div className="flex flex-col gap-2">
+              {band.exercises.map((ex) => (
+                <button
+                  key={ex.bridgeId}
+                  onClick={() => {
+                    setExercisePickerOpen(false);
+                    navigate(`/bruecken/${ex.bridgeId}`);
+                  }}
+                  className="flex items-center justify-between px-4 py-3 rounded-[var(--radius-md)] text-[14px] text-left"
+                  style={{ border: `1.5px solid ${band.color}55`, background: `${band.color}0f`, color: 'var(--color-text)' }}
+                >
+                  {ex.exerciseName}
+                  <span style={{ color: band.color }}>→</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* dynamic F-tags, 2-column grid, change per band */}
       <div>

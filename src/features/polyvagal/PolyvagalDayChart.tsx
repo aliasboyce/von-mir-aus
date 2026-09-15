@@ -59,6 +59,7 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day' }
       x: xFor(new Date(c.createdAt)),
       y: yForCheckIn(c, padTop, height),
       color: bandForValue(raw).color,
+      pct: raw,
       time:
         period === 'day'
           ? new Date(c.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
@@ -111,9 +112,18 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day' }
       {points.map((p, i) => (
         <g key={p.id ?? i}>
           <circle cx={p.x} cy={p.y} r={expanded ? 6 : 4.5} fill={p.color} />
-          {expanded && (
-            <text x={p.x} y={p.y - 12} fontSize={9} textAnchor="middle" fill="var(--color-text-faint)">
-              {p.time}
+          {expanded ? (
+            <>
+              <text x={p.x} y={p.y - 12} fontSize={9} textAnchor="middle" fill="var(--color-text-faint)">
+                {p.time}
+              </text>
+              <text x={p.x} y={p.y + 18} fontSize={10} fontWeight={600} textAnchor="middle" fill={p.color}>
+                {p.pct}%
+              </text>
+            </>
+          ) : (
+            <text x={p.x} y={p.y - 9} fontSize={7.5} fontWeight={600} textAnchor="middle" fill={p.color}>
+              {p.pct}%
             </text>
           )}
         </g>
