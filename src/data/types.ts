@@ -665,6 +665,15 @@ export interface UserSettings {
   companionChosen: boolean;
   /** true once the first-launch intro (companion explains the app) has been completed */
   introSeen: boolean;
+  /** "Klinische Fenster-Kalibrierung"-Auftrag — an optional, individually
+   * calibrated window of tolerance (0-100 scale, matching the arousal
+   * ladder), for people whose window has narrowed or shifted. null/
+   * undefined means no calibration set (uses the default 0-55 window).
+   * When the ladder value falls outside [start,end], a "Dysregulation"
+   * signal is shown. Deliberately optional and off by default — most
+   * people never need to touch this. */
+  arousalWindowStart?: number;
+  arousalWindowEnd?: number;
   /** future: reminders are opt-in and never guilt-based */
   remindersEnabled: boolean;
   /** "HH:MM" 24h format — when set + remindersEnabled, Home shows a gentle nudge after this time if no check-in happened yet today */
@@ -850,7 +859,22 @@ export type ZugangSurvivalState =
    * state has no accurate way to log it; picking "erstarren" or
    * "kollaps" doesn't capture the specific "funktioniere wie ein
    * Roboter, spüre aber nichts"-quality of it. */
-  | 'fakeRuhe';
+  | 'fakeRuhe'
+  /** "6-Zonen-Modell nach Yerkes-Dodson + Stresstoleranzfenster"-Auftrag
+   * — four genuinely new states from the person's detailed clinical
+   * spec that don't already exist under another name:
+   * - 'fokus'/'praesent': the 16-35% optimal-arousal sweetspot zone's
+   *   own pair, distinct from the calmer 0-15% "fine"/"friend".
+   * - 'unruhe': the 36-55% Grenzzone/Flood-adjacent state — restless,
+   *   circling thoughts, still technically inside the window.
+   * - 'blockiert': the 76-85% freeze/mixed-state zone's second tag,
+   *   alongside the existing 'erstarren'.
+   * ('Faint' at 86-100% intentionally reuses the existing 'kollaps'
+   * rather than adding a fifth new state — same clinical concept.) */
+  | 'fokus'
+  | 'praesent'
+  | 'unruhe'
+  | 'blockiert';
 
 export interface ZugangEntry {
   id: string;

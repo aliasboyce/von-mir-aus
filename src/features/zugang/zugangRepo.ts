@@ -25,4 +25,8 @@ export const SURVIVAL_TO_POLYVAGAL_ZONE: Record<ZugangSurvivalState, PolyvagalZo
   flood: 'ventral',
   friend: 'ventral',
   fakeRuhe: 'dorsal',
+  fokus: 'ventral',
+  praesent: 'ventral',
+  unruhe: 'ventral',
+  blockiert: 'dorsal',
 };

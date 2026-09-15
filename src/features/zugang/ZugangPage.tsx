@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, History } from 'lucide-react';
 import { ZugangStepHeader } from './ZugangStepHeader';
 import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
+import { ArousalModelExplainer } from '../polyvagal/ArousalModelExplainer';
 import { saveZugangDraft, loadZugangDraft, clearZugangDraft, isDraftRecent } from './zugangDraft';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -416,6 +417,7 @@ export function ZugangPage() {
         {step === 2 && (
           <div>
             <ZugangStepHeader question={t.zugang.step2Question} questionOnly />
+            <ArousalModelExplainer />
             <NervousSystemLadderSlider
               onSelect={(_zone, state) => chooseSurvivalState(state)}
               selectedState={survivalState}

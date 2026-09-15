@@ -1,101 +1,45 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { POLYVAGAL_ZONE_META } from './polyvagalMeta';
+import { Settings, Info, X, AlertTriangle } from 'lucide-react';
 import { useT } from '../../i18n';
-import { EXTENDED_STATE_GROUPS, SURVIVAL_STATE_META } from '../zugang/zugangContent';
+import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { useSettings } from '../../state/SettingsContext';
 import { triggerHaptic } from '../../services/haptics';
+import { AROUSAL_BANDS, AROUSAL_GRADIENT_STOPS, bandForValue } from './arousalBands';
 import type { PolyvagalZone, ZugangSurvivalState } from '../../data/types';
 
 /**
- * "Regenbogen-Leiter, Farben ueber die ganze Seite, Video-Analyse"-
- * Auftrag — rebuilt to closely match the person's own working
- * prototype (analyzed frame-by-frame from their screen recording),
- * not just a similarly-colored slider on its own:
- *
- * - Three full-width zone BANDS stacked vertically (Hyperarousal /
- *   Toleranzbereich / Hypoarousal) instead of color confined to the
- *   14px slider bar — the color now genuinely spans the whole width,
- *   matching "ich will dass die Farben ueber die ganze Seite gehen".
- * - Only the band the slider currently sits in gets a tinted
- *   background + the animated line, exactly like the reference video.
- * - The label shown for a band is looked up by THAT band's own zone,
- *   never derived from the slider value a second, separately-rounded
- *   way — the fix for "der Text bei der jeweiligen Farbe stimmt
- *   nicht" (the previous version computed the zone label from a
- *   slightly different threshold than the one used for the band
- *   layout itself, which could drift apart at the edges).
- * - "Status-Niveau/Anspannung vereinen"-Auftrag — this raw 0-100
- *   slider value IS the single number now (no separate tension
- *   question elsewhere asks for a second, independent number).
+ * "6-Zonen-Modell nach Yerkes-Dodson + Stresstoleranzfenster"-Auftrag
+ * — complete rebuild on the person's detailed clinical spec. Scale
+ * now runs 0% (top) to 100% (bottom), HIGHER = more activation/
+ * dysregulation, across six precisely-bounded bands instead of the
+ * earlier three. See arousalBands.ts for the full band definitions
+ * and sourcing.
  */
 interface NervousSystemLadderSliderProps {
   onSelect: (zone: PolyvagalZone, state: ZugangSurvivalState) => void;
   selectedState?: ZugangSurvivalState | null;
-  /** Raw 0-100 ladder value. Uncontrolled (starts at 75) if omitted —
-   * pass both value+onValueChange to read/drive the single unified
-   * number from a parent (e.g. to also store it as tensionValue). */
   value?: number;
   onValueChange?: (v: number) => void;
 }
 
-// "Reihenfolge korrigieren, exakte Video-Begriffe"-Auftrag — per
-// direct correction: Hypoarousal/dorsal at the top, Hyperarousal/
-// sympathetic in the middle, the Toleranzbereich/ventral band at the
-// bottom. Low slider values sit near the top (dorsal) and high values
-// near the bottom (ventral) to match — see the thumb position and
-// gradient direction below, both flipped to stay consistent with
-// this order (the earlier version had the gradient bar's own colors
-// pointing the opposite way from the band layout, which is what
-// caused the mismatch: blue visually at the top while the band
-// actually showing there was labelled for a different zone).
-const ZONE_ORDER_TOP_TO_BOTTOM: PolyvagalZone[] = ['dorsal', 'sympathetic', 'ventral'];
-
-// Same stops as before, just still used for the thin slider handle bar.
-const GRADIENT = [
-  '#3d6b35 0%',
-  '#7a9a3f 15%',
-  '#e4c23b 30%',
-  '#e4a63b 40%',
-  '#c17a56 55%',
-  '#b5533f 68%',
-  '#8b6a9e 80%',
-  '#6e9bb8 100%',
-].join(', ');
-
-function zoneForValue(v: number): PolyvagalZone {
-  if (v >= 67) return 'ventral';
-  if (v >= 34) return 'sympathetic';
-  return 'dorsal';
-}
-
-const BAND_ICON: Record<PolyvagalZone, string> = { sympathetic: '🔥', ventral: '🌿', dorsal: '❄️' };
-
 export function NervousSystemLadderSlider({ onSelect, selectedState, value: controlledValue, onValueChange }: NervousSystemLadderSliderProps) {
   const t = useT();
-  const { settings } = useSettings();
-  const [internalValue, setInternalValue] = useState(75);
+  const { settings, updateSettings } = useSettings();
+  const [internalValue, setInternalValue] = useState(20);
   const value = controlledValue ?? internalValue;
-  const [lastZone, setLastZone] = useState<PolyvagalZone>(() => zoneForValue(value));
-  const zone = useMemo(() => zoneForValue(value), [value]);
-  // "Prozent zaehlt dreimal bis 100"-Auftrag — the per-zone reset
-  // (1-100 within whichever zone you're in) looked fine as a single
-  // static screenshot, but while actually dragging continuously it
-  // meant the number visibly reset back down every time you crossed a
-  // zone boundary — climbing to 100, snapping back to 1, climbing
-  // again. Reverted to the one continuous number the whole ladder
-  // already uses (matches the stored value 1:1, no separate
-  // display-only calculation to drift out of sync with the data).
-  const displayPct = Math.max(1, value);
-  const meta = POLYVAGAL_ZONE_META[zone];
-  const states = EXTENDED_STATE_GROUPS.find((g) => g.zone === zone)?.states ?? [];
+  const band = useMemo(() => bandForValue(value), [value]);
+  const [lastBandId, setLastBandId] = useState(band.id);
+  const zoneT = t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones];
 
-  useEffect(() => {
-    if (zone !== lastZone) {
-      triggerHaptic('select', settings);
-      setLastZone(zone);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zone]);
+  const [calibrationOpen, setCalibrationOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const hasCalibration = settings.arousalWindowStart != null && settings.arousalWindowEnd != null;
+  const windowStart = settings.arousalWindowStart ?? 0;
+  const windowEnd = settings.arousalWindowEnd ?? 55;
+  const isDysregulated = hasCalibration && (value < windowStart || value > windowEnd);
+
+  const [draftStart, setDraftStart] = useState(String(windowStart));
+  const [draftEnd, setDraftEnd] = useState(String(windowEnd));
 
   function handleChange(v: number) {
     const clamped = Math.max(0, Math.min(100, Math.round(v)));
@@ -115,6 +59,14 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
     const ratio = (clientY - usableTop) / usableHeight;
     return Math.round(ratio * 100);
   }
+
+  useEffect(() => {
+    if (band.id !== lastBandId) {
+      triggerHaptic('select', settings);
+      setLastBandId(band.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [band.id]);
 
   useEffect(() => {
     function onMove(e: PointerEvent) {
@@ -140,21 +92,112 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
     handleChange(valueFromClientY(e.clientY));
   }
 
+  function saveCalibration() {
+    const s = Math.max(0, Math.min(100, Number(draftStart) || 0));
+    const e = Math.max(0, Math.min(100, Number(draftEnd) || 100));
+    updateSettings({ arousalWindowStart: Math.min(s, e), arousalWindowEnd: Math.max(s, e) });
+    setCalibrationOpen(false);
+  }
+
+  function resetCalibration() {
+    updateSettings({ arousalWindowStart: undefined, arousalWindowEnd: undefined });
+    setDraftStart('0');
+    setDraftEnd('55');
+    setCalibrationOpen(false);
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-stretch gap-4 rounded-[var(--radius-lg)] overflow-hidden" style={{ height: 260, background: 'var(--color-surface-muted)' }}>
-        {/* vertical rainbow handle bar — "Regler auch per Ziehen
-         * bedienbar"-Auftrag: rebuilt from a CSS-rotated native
-         * <input type="range"> to a direct pointer-driven track. A
-         * rotated native range input has known, inconsistent touch-
-         * coordinate handling on some mobile browsers — taps could
-         * land fine (a single point), but a smooth continuous drag
-         * gesture could silently stop tracking partway through.
-         * Reading the pointer position straight off the track's own
-         * bounding box, with document-level move/up listeners (the
-         * same robust pattern already used for image cropping and
-         * photo positioning elsewhere in the app), sidesteps that
-         * entirely regardless of rotation. */}
+      <div className="flex items-center justify-between">
+        <p className="text-[12px] text-[var(--color-text-faint)]">{t.polyvagal.ladderSliderLabel}</p>
+        <button
+          onClick={() => setCalibrationOpen((v) => !v)}
+          aria-label={t.polyvagal.arousalCalibrationTitle}
+          className="p-1.5 rounded-full"
+          style={{ background: hasCalibration ? 'var(--color-primary-soft)' : 'transparent', color: hasCalibration ? 'var(--color-primary)' : 'var(--color-text-faint)' }}
+        >
+          <Settings size={16} />
+        </button>
+      </div>
+
+      {isDysregulated && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-full animate-in" style={{ background: 'var(--color-danger-soft)', color: 'var(--color-danger)' }}>
+          <AlertTriangle size={15} />
+          <span className="text-[12px] font-medium tracking-wide">{t.polyvagal.arousalDysregulationWarning}</span>
+        </div>
+      )}
+
+      {calibrationOpen && (
+        <div className="rounded-[var(--radius-lg)] p-4 animate-in" style={{ background: 'var(--color-surface-muted)' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <p className="text-[13px] font-medium text-[var(--color-text)] flex-1">{t.polyvagal.arousalCalibrationTitle}</p>
+            <button onClick={() => setInfoOpen(true)} aria-label="Info" className="text-[var(--color-text-faint)]">
+              <Info size={16} />
+            </button>
+          </div>
+          <div className="flex gap-3 mb-3">
+            <label className="flex-1">
+              <span className="text-[11px] text-[var(--color-text-faint)] block mb-1">{t.polyvagal.arousalCalibrationStart}</span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={draftStart}
+                onChange={(e) => setDraftStart(e.target.value)}
+                className="w-full px-2.5 py-2 rounded-[var(--radius-md)] text-[14px]"
+                style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }}
+              />
+            </label>
+            <label className="flex-1">
+              <span className="text-[11px] text-[var(--color-text-faint)] block mb-1">{t.polyvagal.arousalCalibrationEnd}</span>
+              <input
+                type="number"
+                min={0}
+                max={100}
+                value={draftEnd}
+                onChange={(e) => setDraftEnd(e.target.value)}
+                className="w-full px-2.5 py-2 rounded-[var(--radius-md)] text-[14px]"
+                style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }}
+              />
+            </label>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={saveCalibration} className="flex-1 py-2 rounded-full text-[13px]" style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}>
+              {t.polyvagal.arousalCalibrationSave}
+            </button>
+            {hasCalibration && (
+              <button onClick={resetCalibration} className="px-4 py-2 rounded-full text-[13px]" style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
+                {t.polyvagal.arousalCalibrationReset}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {infoOpen && (
+        <div className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={() => setInfoOpen(false)}>
+          <div
+            className="w-full max-w-[420px] max-h-[80vh] overflow-y-auto rounded-[var(--radius-xl)] p-5 animate-in"
+            style={{ background: 'var(--color-surface)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-2 mb-3">
+              <p className="text-[15px] font-medium text-[var(--color-text)] flex-1">{t.polyvagal.arousalCalibrationInfoTitle}</p>
+              <button onClick={() => setInfoOpen(false)} className="text-[var(--color-text-faint)]">
+                <X size={18} />
+              </button>
+            </div>
+            {t.polyvagal.arousalCalibrationInfoText.split('\n\n').map((para, i) => (
+              <p key={i} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">
+                {para}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-stretch gap-4 rounded-[var(--radius-lg)] overflow-hidden" style={{ height: 340, background: 'var(--color-surface-muted)' }}>
+        {/* vertical rainbow handle bar, 6 gradient stops */}
         <div
           ref={trackRef}
           className="relative flex-shrink-0 py-3"
@@ -173,13 +216,23 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
         >
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full"
-            style={{ top: 12, bottom: 12, width: 14, background: `linear-gradient(to top, ${GRADIENT})` }}
+            style={{ top: 12, bottom: 12, width: 14, background: `linear-gradient(to bottom, ${AROUSAL_GRADIENT_STOPS})` }}
           />
+          {hasCalibration && (
+            <div
+              className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
+              style={{
+                top: `calc(12px + ${windowStart}% * (100% - 24px) / 100%)`,
+                height: `calc(${windowEnd - windowStart}% * (100% - 24px) / 100%)`,
+                width: 22,
+                border: '2px dashed rgba(255,255,255,0.85)',
+                borderRadius: 11,
+              }}
+            />
+          )}
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 pointer-events-none"
             style={{
-              // Low values near the top (dorsal), high values near the
-              // bottom (ventral) — matches ZONE_ORDER_TOP_TO_BOTTOM above.
               top: `calc(12px + ${value}% * (100% - 24px - 30px) / 100%)`,
               width: 28,
               height: 28,
@@ -190,39 +243,32 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
           />
         </div>
 
-        {/* three full-width zone bands */}
+        {/* six full-width zone bands */}
         <div className="relative flex-1 flex flex-col">
-          {ZONE_ORDER_TOP_TO_BOTTOM.map((z, i) => {
-            const zMeta = POLYVAGAL_ZONE_META[z];
-            const isActive = z === zone;
+          {AROUSAL_BANDS.map((b, i) => {
+            const bZoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
+            const isActive = b.id === band.id;
             return (
               <div
-                key={z}
-                className="relative flex-1 flex items-center px-3"
+                key={b.id}
+                className="relative flex-1 flex items-center px-2.5"
                 style={{
-                  background: isActive ? `${zMeta.color}1f` : 'transparent',
-                  borderTop: i > 0 ? `1px dashed ${POLYVAGAL_ZONE_META[ZONE_ORDER_TOP_TO_BOTTOM[i - 1]].color}55` : undefined,
+                  flexGrow: b.max - b.min,
+                  background: isActive ? `${b.color}22` : 'transparent',
+                  borderTop: i > 0 ? `1px dashed ${AROUSAL_BANDS[i - 1].color}55` : undefined,
                   transition: 'background 0.25s ease',
                 }}
               >
                 <span
-                  className="text-[12.5px] flex items-center gap-1.5 px-2 py-1 rounded-full flex-shrink-0"
-                  style={{ background: isActive ? 'var(--color-surface)' : 'transparent', color: isActive ? zMeta.color : 'var(--color-text-faint)' }}
+                  className="text-[11px] leading-tight flex flex-col px-2 py-1 rounded-[10px] flex-shrink-0"
+                  style={{ background: isActive ? 'var(--color-surface)' : 'transparent', color: isActive ? b.color : 'var(--color-text-faint)' }}
                 >
-                  <span>{BAND_ICON[z]}</span>
-                  {zMeta.label(t)}
+                  <span className="font-medium">{bZoneT.label}</span>
                 </span>
                 {isActive && (
-                  <svg viewBox="0 0 300 60" preserveAspectRatio="none" className="absolute left-0 right-0" style={{ top: '50%', height: 60, transform: 'translateY(-50%)' }}>
-                    <path
-                      d="M 20 30 Q 80 18, 140 30 T 260 26"
-                      fill="none"
-                      stroke={zMeta.color}
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      className="ladder-curve-line"
-                    />
-                    <circle cx="270" cy="27" r="4.5" fill={zMeta.color} className="ladder-curve-dot" />
+                  <svg viewBox="0 0 300 40" preserveAspectRatio="none" className="absolute left-0 right-0" style={{ top: '50%', height: 40, transform: 'translateY(-50%)' }}>
+                    <path d="M 20 20 Q 80 12, 140 20 T 260 17" fill="none" stroke={b.color} strokeWidth="2.5" strokeLinecap="round" className="ladder-curve-line" />
+                    <circle cx="270" cy="18" r="4.5" fill={b.color} className="ladder-curve-dot" />
                   </svg>
                 )}
               </div>
@@ -235,36 +281,36 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
       <div className="flex items-center justify-between px-1">
         <div>
           <p className="text-[11px] text-[var(--color-text-faint)]">{t.polyvagal.ladderStatusLabel}</p>
-          <p className="text-[22px] font-medium" style={{ color: meta.color }}>
-            {displayPct}%
+          <p className="text-[22px] font-medium" style={{ color: band.color }}>
+            {value}%
           </p>
         </div>
         <div className="text-right">
           <p className="text-[11px] text-[var(--color-text-faint)]">{t.polyvagal.ladderZoneLabel}</p>
-          <p className="text-[15px] font-medium" style={{ color: meta.color }}>
-            {meta.label(t)}
+          <p className="text-[15px] font-medium" style={{ color: band.color }}>
+            {zoneT.label} · {zoneT.sublabel}
           </p>
         </div>
       </div>
-      <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: `${meta.color}14` }}>
-        <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{meta.hint(t)}</p>
+      <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: `${band.color}14` }}>
+        <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{zoneT.hint}</p>
       </div>
 
-      {/* dynamic F-tags for the current zone */}
+      {/* dynamic F-tags, 2-column grid, change per band */}
       <div>
         <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.polyvagal.ladderWhatFitsLabel}</p>
-        <div className="flex flex-wrap gap-2">
-          {states.map((s) => {
+        <div className="grid grid-cols-2 gap-2">
+          {band.states.map((s) => {
             const sMeta = SURVIVAL_STATE_META[s];
             const isSelected = selectedState === s;
             return (
               <button
                 key={s}
-                onClick={() => onSelect(zone, s)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-[13px]"
+                onClick={() => onSelect(band.polyvagalZone, s)}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[var(--radius-md)] text-[13px]"
                 style={{
-                  border: `1.5px solid ${isSelected ? meta.color : 'var(--color-border)'}`,
-                  background: isSelected ? `${meta.color}1f` : 'var(--color-surface)',
+                  border: `1.5px solid ${isSelected ? band.color : 'var(--color-border)'}`,
+                  background: isSelected ? `${band.color}1f` : 'var(--color-surface)',
                   color: 'var(--color-text)',
                 }}
               >

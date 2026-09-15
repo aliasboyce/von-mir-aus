@@ -12,6 +12,7 @@ import { weatherRepo } from './weatherRepo';
 import { WEATHER_META, NEED_META, NEED_ORDER } from './weatherMeta';
 import { polyvagalRepo, todaysCheckIns } from '../polyvagal/polyvagalRepo';
 import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
+import { ArousalModelExplainer } from '../polyvagal/ArousalModelExplainer';
 import { WindowOfToleranceIllustration } from '../polyvagal/WindowOfToleranceIllustration';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { MiniCurve } from '../polyvagal/MiniCurve';
@@ -273,6 +274,7 @@ export function InnerWeatherPage() {
             </Card>
           )}
 
+          <ArousalModelExplainer />
           <NervousSystemLadderSlider
             onSelect={(zone, state) => chooseZone(zone, state)}
             selectedState={justPickedState as ZugangSurvivalState | null}

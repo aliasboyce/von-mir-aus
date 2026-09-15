@@ -16,6 +16,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-nervensystem-6-zonen',
+    date: '2026',
+    items: [
+      'Der Nervensystem-Regler ist komplett überarbeitet: sechs feinere Stufen statt drei, mit neuem Regenbogen-Design.',
+      'Neu: Klinische Fenster-Kalibrierung — stelle dein eigenes Toleranzfenster ein, samt sanfter Warnung, wenn du deinen persönlichen Bereich verlässt.',
+      'Ein neuer, ausführlicher Erklärtext zum Modell (zum Aufklappen) an allen drei Check-in-Stellen.',
+    ],
+    itemsEn: [
+      'The nervous system slider has been completely reworked: six finer stages instead of three, with a new rainbow design.',
+      'New: clinical window calibration — set your own window of tolerance, with a gentle warning when you leave your personal range.',
+      'A new, detailed explainer about the model (collapsible) at all three check-in spots.',
+    ],
+  },
+  {
     id: '2026-monatsrueckblick',
     date: '2026',
     items: [

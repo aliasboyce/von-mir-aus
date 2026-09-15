@@ -68,6 +68,10 @@ export const SURVIVAL_STATE_META: Record<ZugangSurvivalState, SurvivalStateMeta>
   flood: { emoji: '🌊', label: 'Flood', labelEn: 'Flood', group: 'verbunden', explanationKey: 'flood' },
   friend: { emoji: '🧑\u200d🤝\u200d🧑', label: 'Friend', labelEn: 'Friend', group: 'verbunden', explanationKey: 'friend' },
   fakeRuhe: { emoji: '🤖', label: 'Fake-Ruhe', labelEn: 'False calm', group: 'reduziert', explanationKey: 'fakeRuhe' },
+  fokus: { emoji: '🎯', label: 'Fokus', labelEn: 'Focus', group: 'verbunden', explanationKey: 'fokus' },
+  praesent: { emoji: '✨', label: 'Präsent', labelEn: 'Present', group: 'verbunden', explanationKey: 'praesent' },
+  unruhe: { emoji: '〰️', label: 'Unruhe', labelEn: 'Restlessness', group: 'aktiviert', explanationKey: 'unruhe' },
+  blockiert: { emoji: '🔒', label: 'Blockiert', labelEn: 'Blocked', group: 'reduziert', explanationKey: 'blockiert' },
 };
 
 // ---------------------------------------------------------------------

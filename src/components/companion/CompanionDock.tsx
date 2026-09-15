@@ -202,30 +202,27 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     // up could push part of it off-screen even at a position that was
     // perfectly fine at the default size.
     const sizeAllowance = 60 * scale;
-    // "Am Desktop nur nach links bewegbar"-Auftrag — this used raw
-    // window.innerWidth, but on desktop the app renders as a centered
-    // card narrower than the browser window (see --app-max-width-
-    // desktop in companion.css), with the dock's own resting position
-    // anchored to THAT card's right edge, not the true window edge.
-    // Using the full window width here meant the leftward range
-    // extended far past the card into empty background on wide
-    // monitors, while the rightward range (measured from the card's
-    // edge, which is well inside the window) was effectively used up
-    // almost immediately — reading as "stuck" going right. Clamping to
-    // the actual card width fixes both directions at once.
-    const desktopMaxWidth = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--app-max-width-desktop')) || window.innerWidth;
-    const effectiveWidth = Math.min(window.innerWidth, desktopMaxWidth);
-    // "Kann nur bis zur Mitte bewegt werden"-Auftrag — the dock's resting
-    // position (before any drag) is anchored at `right: 16px` (see
-    // companion.css), not screen-centered. The old maxX/minX were
-    // symmetric around that anchor (+-viewportWidth/2), so dragging left
-    // only ever reached the middle of the screen — reaching the actual
-    // left edge from a right-anchored start needs a much bigger negative
-    // range than positive one. Asymmetric bounds: almost no room to
-    // travel further right (it's already at the right edge), full width
-    // of travel to the left.
+    // "Am Desktop nicht mehr frei verschiebbar, am Handy nicht ganz nach
+    // links"-Auftrag — the previous fix always read
+    // --app-max-width-desktop (560px), but that value is only what
+    // .app-frame actually uses above the 768px breakpoint (see
+    // index.css's `@media (min-width: 768px)` block) — below it, the
+    // card is capped at the mobile --app-max-width (480px) instead.
+    // Assuming 560px on a narrower-than-768px window (a laptop browser
+    // that isn't maximized, e.g.) meant the clamp bounds didn't match
+    // the card's real rendered width at all, cutting off free movement.
+    // Reading whichever variable actually applies at the current width
+    // fixes both the desktop and the narrow-viewport case together.
+    const rootStyle = getComputedStyle(document.documentElement);
+    const desktopMaxWidth = parseFloat(rootStyle.getPropertyValue('--app-max-width-desktop'));
+    const mobileMaxWidth = parseFloat(rootStyle.getPropertyValue('--app-max-width'));
+    const cardMaxWidth = window.innerWidth >= 768 ? desktopMaxWidth : mobileMaxWidth;
+    const effectiveWidth = Math.min(window.innerWidth, cardMaxWidth || window.innerWidth);
     const maxX = sizeAllowance;
-    const minX = -(effectiveWidth - sizeAllowance * 2);
+    // Slightly less than the full sizeAllowance*2 here specifically —
+    // "nicht ganz nach links"-Auftrag: the previous margin left a small
+    // but noticeable gap before reaching the true left edge.
+    const minX = -(effectiveWidth - sizeAllowance * 1.3);
     const maxY = 0;
     const minY = -(window.innerHeight - bottomOffset - 140 * scale);
     return {

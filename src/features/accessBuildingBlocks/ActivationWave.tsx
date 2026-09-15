@@ -28,7 +28,7 @@ export function ActivationWave() {
   // wave only ever cycles through the original seven core states via
   // SURVIVAL_STATE_ORDER (unchanged by the "alle Fs"-Auftrag, which
   // only extended the separate selection pickers, not this wave).
-  type CoreSurvivalState = Exclude<ZugangSurvivalState, 'fine' | 'flood' | 'friend' | 'fakeRuhe'>;
+  type CoreSurvivalState = Exclude<ZugangSurvivalState, 'fine' | 'flood' | 'friend' | 'fakeRuhe' | 'fokus' | 'praesent' | 'unruhe' | 'blockiert'>;
   const [active, setActive] = useState<CoreSurvivalState>(SURVIVAL_STATE_ORDER[0] as CoreSurvivalState);
   const [scenario, setScenario] = useState<'stress' | 'social' | 'calm'>('social');
 

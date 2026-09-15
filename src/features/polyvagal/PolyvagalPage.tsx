@@ -14,6 +14,7 @@ import { pickLine } from '../../components/companion/companionRegistry';
 import { polyvagalRepo, todaysCheckIns } from './polyvagalRepo';
 import { NervousSystemLadder } from './NervousSystemLadder';
 import { NervousSystemLadderSlider } from './NervousSystemLadderSlider';
+import { ArousalModelExplainer } from './ArousalModelExplainer';
 import { PolyvagalDayChart } from './PolyvagalDayChart';
 import { describeDay } from './describeDay';
 import { tensionRepo } from './tensionRepo';
@@ -161,6 +162,7 @@ export function PolyvagalPage() {
            * in/out below), instead of asking a separate "how tense are
            * you" question with its own independent number right above
            * this. One slider, one number, everywhere it's asked. */}
+          <ArousalModelExplainer />
           <NervousSystemLadderSlider
             onSelect={logZone}
             selectedState={checkIns[checkIns.length - 1]?.survivalState}

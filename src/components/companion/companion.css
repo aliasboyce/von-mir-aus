@@ -219,11 +219,12 @@
   gap: 8px;
   max-width: min(240px, 62vw);
   background: var(--color-surface);
-  /* "Andere Randfarbe fuer Hinweise/Erklaerungen"-Auftrag — a visibly
-   * distinct, warm border (instead of the plain neutral one shared
-   * with every other card in the app) marks this specifically as the
-   * companion explaining something, not just decoration. */
-  border: 1.5px solid var(--color-accent-sun);
+  /* "Verschiedene Pastelltoene, die durchwechseln"-Auftrag — cycles
+   * through a slow rotation of pastel border colors rather than one
+   * fixed warm tone, so repeated tips feel a little more varied and
+   * alive rather than always identically styled. */
+  border: 1.5px solid;
+  animation: companion-tip-border-cycle 16s linear infinite;
   color: var(--color-text);
   font-size: 13px;
   line-height: 1.4;
@@ -464,4 +465,27 @@
 [data-reduce-motion='true'] .lichtwesen--joy-wobble,
 [data-reduce-motion='true'] .lichtwesen--joy-dance {
   animation: none !important;
+}
+
+/* "Verschiedene Pastelltoene, die durchwechseln"-Auftrag — six soft
+ * pastel tones the tip border slowly rotates through. Chosen to stay
+ * visible against var(--color-surface) in both light and dark themes
+ * (moderate saturation, not washed-out white-pastels that would
+ * vanish against a light card). */
+@keyframes companion-tip-border-cycle {
+  0% { border-color: #e8b4bc; }
+  16% { border-color: #e8b4bc; }
+  20% { border-color: #e4c290; }
+  36% { border-color: #e4c290; }
+  40% { border-color: #c3d896; }
+  56% { border-color: #c3d896; }
+  60% { border-color: #9ecdd6; }
+  76% { border-color: #9ecdd6; }
+  80% { border-color: #b8aee0; }
+  96% { border-color: #b8aee0; }
+  100% { border-color: #e8b4bc; }
+}
+[data-reduce-motion='true'] .companion-tip {
+  animation: none !important;
+  border-color: var(--color-accent-sun) !important;
 }
