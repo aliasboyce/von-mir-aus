@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Info, X, AlertTriangle } from 'lucide-react';
+import { Settings, Info, X, AlertTriangle, Search } from 'lucide-react';
 import { useT } from '../../i18n';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { useSettings } from '../../state/SettingsContext';
 import { triggerHaptic } from '../../services/haptics';
 import { AROUSAL_BANDS, AROUSAL_GRADIENT_STOPS, bandForValue } from './arousalBands';
+import { BodyDetectiveModal } from './BodyDetectiveModal';
 import type { PolyvagalZone, ZugangSurvivalState } from '../../data/types';
 
 /**
@@ -35,6 +36,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
 
   const [calibrationOpen, setCalibrationOpen] = useState(false);
   const [exercisePickerOpen, setExercisePickerOpen] = useState(false);
+  const [bodyDetectiveOpen, setBodyDetectiveOpen] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const hasCalibration = settings.arousalWindowStart != null && settings.arousalWindowEnd != null;
   const windowStart = settings.arousalWindowStart ?? 0;
@@ -143,6 +145,20 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
           <Settings size={16} />
         </button>
       </div>
+
+      {/* "Koerper-Detektiv"-Auftrag — placed right next to the main
+       * slider, for anyone who genuinely can't tell where they are
+       * right now (a real, documented effect of high stress or
+       * dissociation blocking interoception), not just a decorative
+       * extra. */}
+      <button
+        onClick={() => setBodyDetectiveOpen(true)}
+        className="flex items-center justify-center gap-1.5 py-2 rounded-full text-[13px]"
+        style={{ border: '1.5px solid var(--color-border)', color: 'var(--color-text-muted)' }}
+      >
+        <Search size={14} />
+        {t.polyvagal.bodyDetective.triggerCta}
+      </button>
 
       {hasReleased && (
         <div
@@ -431,6 +447,16 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
             {t.zugang.survivalExplainers[SURVIVAL_STATE_META[selectedState].explanationKey as keyof typeof t.zugang.survivalExplainers]}
           </p>
         </div>
+      )}
+
+      {bodyDetectiveOpen && (
+        <BodyDetectiveModal
+          onClose={() => setBodyDetectiveOpen(false)}
+          onResult={(v) => {
+            handleChange(v);
+            handleRelease();
+          }}
+        />
       )}
     </div>
   );

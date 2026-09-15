@@ -1254,6 +1254,43 @@ const de = {
     arousalExplainerWindowTitle: '🟢 Das Toleranzfenster',
     arousalExplainerDysregTitle: '⚠️ Die Dysregulation',
     arousalSourcesTitle: 'Quellen zum Erregungs-Stufenmodell',
+    bodyDetective: {
+      title: 'Körper-Detektiv',
+      intro: 'Manchmal ist es schwer, den eigenen Zustand einfach zu benennen — besonders bei viel Stress. Beantworte stattdessen drei kurze, ganz konkrete Fragen zu dem, was du gerade körperlich spürst.',
+      questions: [
+        {
+          question: 'Wie fühlt sich dein Herz und deine Atmung an?',
+          options: [
+            'Ganz flach, langsam, fast unspürbar.',
+            'Ruhig, gleichmäßig und entspannt.',
+            'Es pocht schnell, die Atmung ist hektisch oder flach im Brustkorb.',
+          ],
+          weights: [90, 20, 65],
+        },
+        {
+          question: 'Wenn du versuchst, deine Muskeln zu bewegen...',
+          options: [
+            '...fühlen sie sich schwer, schlapp und völlig kraftlos an.',
+            '...sind sie beweglich, locker und normal einsatzbereit.',
+            '...sind sie total angespannt, zappelig oder wie starr eingefroren.',
+          ],
+          weights: [92, 20, 68],
+        },
+        {
+          question: 'Wie nimmst du deine Umgebung gerade wahr?',
+          options: [
+            'Normal, ich kann mich gut konzentrieren und mit Menschen sprechen.',
+            'Alles ist zu laut, zu hell, zu viel. Ich bin total ablenkbar oder gereizt.',
+            'Wie durch Watte, weit weg, neblig oder wie im Film.',
+          ],
+          weights: [20, 65, 85],
+        },
+      ],
+      evaluateCta: 'Auswerten',
+      resultIntro: 'Dein Körper-Detektiv hat gesprochen:',
+      applyCta: 'Auf dem Regler übernehmen',
+      triggerCta: 'Ich weiß es gerade nicht',
+    },
     arousalExercisePrompt: 'Soforthilfe: {name}',
     arousalExercisePickerTitle: 'Welche Übung passt gerade?',
     todayChart: 'Heutiger Verlauf',

@@ -1256,6 +1256,43 @@ const en: TranslationDictionary = {
     arousalExplainerWindowTitle: '🟢 The window of tolerance',
     arousalExplainerDysregTitle: '⚠️ Dysregulation',
     arousalSourcesTitle: 'Sources for the arousal stage model',
+    bodyDetective: {
+      title: 'Body detective',
+      intro: "Sometimes it's hard to simply name your own state — especially under a lot of stress. Instead, answer three short, very concrete questions about what you can physically feel right now.",
+      questions: [
+        {
+          question: 'How do your heart and breathing feel?',
+          options: [
+            'Very flat, slow, almost unnoticeable.',
+            'Calm, steady, and relaxed.',
+            "Pounding fast, breathing is hectic or shallow in the chest.",
+          ],
+          weights: [90, 20, 65],
+        },
+        {
+          question: 'When you try to move your muscles...',
+          options: [
+            '...they feel heavy, limp, and completely without strength.',
+            '...they are mobile, loose, and normally ready to go.',
+            '...they are totally tense, jittery, or frozen stiff.',
+          ],
+          weights: [92, 20, 68],
+        },
+        {
+          question: 'How do you perceive your surroundings right now?',
+          options: [
+            "Normal, I can concentrate well and talk with people.",
+            "Everything is too loud, too bright, too much. I'm very distractible or irritable.",
+            'As if through cotton wool, far away, foggy, or like watching a film.',
+          ],
+          weights: [20, 65, 85],
+        },
+      ],
+      evaluateCta: 'Evaluate',
+      resultIntro: 'Your body detective found:',
+      applyCta: 'Apply to the slider',
+      triggerCta: "I don't know right now",
+    },
     arousalExercisePrompt: 'Quick help: {name}',
     arousalExercisePickerTitle: 'Which exercise fits right now?',
     todayChart: "Today's course",
