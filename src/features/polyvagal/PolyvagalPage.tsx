@@ -15,6 +15,7 @@ import { polyvagalRepo, todaysCheckIns, checkInsInLastDays } from './polyvagalRe
 import { NervousSystemLadder } from './NervousSystemLadder';
 import { NervousSystemLadderSlider } from './NervousSystemLadderSlider';
 import { ArousalModelExplainer } from './ArousalModelExplainer';
+import { ReflectionModal } from './ReflectionModal';
 import { PolyvagalDayChart } from './PolyvagalDayChart';
 import { describeDay } from './describeDay';
 import { tensionRepo } from './tensionRepo';
@@ -109,6 +110,7 @@ export function PolyvagalPage() {
   };
   const [checkIns, setCheckIns] = useState<PolyvagalCheckIn[]>(() => todaysCheckIns());
   const [chartPeriod, setChartPeriod] = useState<'day' | 'week' | 'month'>('day');
+  const [reflectingOn, setReflectingOn] = useState<PolyvagalCheckIn | null>(null);
   const chartCheckIns = chartPeriod === 'day' ? checkIns : chartPeriod === 'week' ? checkInsInLastDays(7) : checkInsInLastDays(30);
   const [tensionValue, setTensionValue] = useState(50);
   const [showLadderDetail, setShowLadderDetail] = useState(false);
@@ -291,7 +293,7 @@ export function PolyvagalPage() {
               <div style={{ width: 40 }} />
             </div>
             <div className="flex-1 flex items-center justify-center px-4">
-              <PolyvagalDayChart checkIns={chartCheckIns} expanded period={chartPeriod} />
+              <PolyvagalDayChart checkIns={chartCheckIns} expanded period={chartPeriod} onPointClick={(c) => setReflectingOn(c)} />
             </div>
           </div>,
           document.body,
@@ -330,6 +332,9 @@ export function PolyvagalPage() {
             })}
           </div>
         </Card>
+      {reflectingOn && (
+        <ReflectionModal checkIn={reflectingOn} onClose={() => setReflectingOn(null)} onSaved={() => setCheckIns(todaysCheckIns())} />
+      )}
     </div>
   );
 }

@@ -241,6 +241,9 @@ export function NervousSystemReferencePage() {
             <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.nervousSystemRef.wotFakeNote}</p>
             <SourceNoteCard text={t.nervousSystemRef.wotFakeSourcesTitle} sourceIds={['dis-sos-verschobenes-fenster']} />
           </BasicsItem>
+          <div className="rounded-[var(--radius-lg)] p-3.5 mt-2" style={{ background: 'var(--color-primary-soft)' }}>
+            <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{t.nervousSystemRef.wotToCheckInNote}</p>
+          </div>
         </div>
 
         {/* 4. DIE DREI HAUPTZUSTÄNDE — die EINE zentrale, ausführliche

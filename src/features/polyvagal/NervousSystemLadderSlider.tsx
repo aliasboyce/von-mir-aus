@@ -7,6 +7,10 @@ import { useSettings } from '../../state/SettingsContext';
 import { triggerHaptic } from '../../services/haptics';
 import { AROUSAL_BANDS, AROUSAL_GRADIENT_STOPS, bandForValue } from './arousalBands';
 import { BodyDetectiveModal } from './BodyDetectiveModal';
+import { windowProgressRepo } from './windowProgressRepo';
+import { createId } from '../../services/storage/repository';
+import { triggerPrint } from '../../services/printSupport';
+import { WindowProgressPrintView } from './WindowProgressPrintView';
 import type { PolyvagalZone, ZugangSurvivalState } from '../../data/types';
 
 /**
@@ -37,6 +41,9 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   const [calibrationOpen, setCalibrationOpen] = useState(false);
   const [exercisePickerOpen, setExercisePickerOpen] = useState(false);
   const [bodyDetectiveOpen, setBodyDetectiveOpen] = useState(false);
+  const [progressSaved, setProgressSaved] = useState(false);
+  const [chronicleOpen, setChronicleOpen] = useState(false);
+  const [printingChronicle, setPrintingChronicle] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
   const hasCalibration = settings.arousalWindowStart != null && settings.arousalWindowEnd != null;
   const windowStart = settings.arousalWindowStart ?? 0;
@@ -94,6 +101,12 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   }, [band.id]);
 
   useEffect(() => {
+    const clear = () => setPrintingChronicle(false);
+    window.addEventListener('afterprint', clear);
+    return () => window.removeEventListener('afterprint', clear);
+  }, []);
+
+  useEffect(() => {
     function onMove(e: PointerEvent) {
       if (!dragging.current) return;
       handleChange(valueFromClientY(e.clientY));
@@ -130,6 +143,12 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
     setDraftStart('0');
     setDraftEnd('55');
     setCalibrationOpen(false);
+  }
+
+  function saveWindowProgress() {
+    windowProgressRepo.save({ id: createId('winprog'), createdAt: new Date().toISOString(), windowStart, windowEnd });
+    setProgressSaved(true);
+    window.setTimeout(() => setProgressSaved(false), 2200);
   }
 
   return (
@@ -223,6 +242,42 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
               </button>
             )}
           </div>
+
+          <button onClick={saveWindowProgress} className="w-full mt-2 py-2 rounded-full text-[13px]" style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
+            {progressSaved ? t.polyvagal.arousalProgressSaved : t.polyvagal.arousalProgressSaveCta}
+          </button>
+          <button onClick={() => setChronicleOpen((v) => !v)} className="w-full mt-2 text-[12.5px] text-[var(--color-primary)]">
+            {chronicleOpen ? t.polyvagal.arousalChronicleHide : t.polyvagal.arousalChronicleShow}
+          </button>
+          {chronicleOpen && (
+            <div className="mt-2 flex flex-col gap-1.5 animate-in">
+              {windowProgressRepo
+                .getAll()
+                .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+                .map((entry) => (
+                  <div key={entry.id} className="flex items-center justify-between text-[12.5px] px-3 py-2 rounded-[var(--radius-md)]" style={{ background: 'var(--color-surface)' }}>
+                    <span className="text-[var(--color-text-faint)]">
+                      {new Date(entry.createdAt).toLocaleDateString(settings.language === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                    </span>
+                    <span className="text-[var(--color-text)] font-medium">
+                      {entry.windowStart}% – {entry.windowEnd}%
+                    </span>
+                  </div>
+                ))}
+              {windowProgressRepo.getAll().length === 0 && <p className="text-[12px] text-[var(--color-text-faint)] text-center py-2">{t.polyvagal.arousalChronicleEmpty}</p>}
+              {windowProgressRepo.getAll().length > 0 && (
+                <button
+                  onClick={() => {
+                    setPrintingChronicle(true);
+                    window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
+                  }}
+                  className="text-[12.5px] text-[var(--color-primary)] mt-1"
+                >
+                  {t.polyvagal.arousalChronicleExportCta}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -456,6 +511,20 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
             handleChange(v);
             handleRelease();
           }}
+        />
+      )}
+
+      {printingChronicle && (
+        <WindowProgressPrintView
+          entries={windowProgressRepo.getAll()}
+          labels={{
+            title: t.polyvagal.arousalChronicleTitle,
+            subtitle: t.polyvagal.arousalCalibrationTitle,
+            exportedOn: t.network.exportedOn,
+            rangeLabel: t.polyvagal.arousalChronicleRangeLabel,
+            dateLabel: t.polyvagal.arousalChronicleDateLabel,
+          }}
+          formatDate={(iso) => new Date(iso).toLocaleDateString(settings.language === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })}
         />
       )}
     </div>

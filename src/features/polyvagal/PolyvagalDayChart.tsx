@@ -11,6 +11,9 @@ interface PolyvagalDayChartProps {
    * 'week'/'month' span the actual date range of the check-ins passed
    * in, so multiple days' points read left-to-right chronologically. */
   period?: 'day' | 'week' | 'month';
+  /** "Auf jeden Punkt antworten koennen"-Auftrag — lets the expanded
+   * chart open a reflection prompt for whichever check-in was tapped. */
+  onPointClick?: (checkIn: PolyvagalCheckIn) => void;
 }
 
 const PAD_TOP = 16;
@@ -28,7 +31,7 @@ function yForCheckIn(c: PolyvagalCheckIn, padTop: number, height: number): numbe
   return padTop + (raw / 100) * (height - padTop - PAD_BOTTOM);
 }
 
-export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day' }: PolyvagalDayChartProps) {
+export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', onPointClick }: PolyvagalDayChartProps) {
   const t = useT();
   const { settings } = useSettings();
   const width = expanded ? 640 : 320;
@@ -65,6 +68,7 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day' }
           ? new Date(c.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
           : new Date(c.createdAt).toLocaleDateString(locale, { day: '2-digit', month: '2-digit' }),
       id: c.id,
+      checkIn: c,
     };
   });
 
@@ -111,7 +115,13 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day' }
 
       {points.map((p, i) => (
         <g key={p.id ?? i}>
-          <circle cx={p.x} cy={p.y} r={expanded ? 6 : 4.5} fill={p.color} />
+          {onPointClick && (
+            <circle cx={p.x} cy={p.y} r={14} fill="transparent" style={{ cursor: 'pointer' }} onClick={() => onPointClick(p.checkIn)} />
+          )}
+          <circle cx={p.x} cy={p.y} r={expanded ? 6 : 4.5} fill={p.color} pointerEvents="none" />
+          {(p.checkIn.reflectionTrigger || p.checkIn.reflectionWhatHelped) && (
+            <circle cx={p.x} cy={p.y} r={expanded ? 9 : 7} fill="none" stroke={p.color} strokeWidth={1.5} pointerEvents="none" />
+          )}
           {expanded ? (
             <>
               <text x={p.x} y={p.y - 12} fontSize={9} textAnchor="middle" fill="var(--color-text-faint)">

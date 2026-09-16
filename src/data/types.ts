@@ -771,6 +771,13 @@ export interface PolyvagalCheckIn {
    * as a separately-reached section. Optional so older check-ins
    * remain valid. */
   tensionValue?: number;
+  /** "Wertfreie Nachbesprechung/Reflexions-Tagebuch"-Auftrag — two
+   * simple, non-judgmental reflection questions a person can
+   * optionally answer for this specific check-in, to surface patterns
+   * (e.g. chronic shutdown at certain times) over time. Both optional
+   * and answerable later, never required to save a check-in. */
+  reflectionTrigger?: string;
+  reflectionWhatHelped?: string;
 }
 
 /**
