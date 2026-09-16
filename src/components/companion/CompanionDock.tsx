@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass } from 'lucide-react';
 import { LichtCompanion } from './LichtCompanion';
 import { DistractionOverlay } from './DistractionOverlay';
@@ -310,7 +310,12 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         )}
         {menuOpen && (
           <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right' }}>
-            <p className="companion-menu__hint">{t.companion.moveHint}</p>
+            <div className="flex items-start justify-between gap-2">
+              <p className="companion-menu__hint">{t.companion.moveHint}</p>
+              <button onClick={() => setMenuOpen(false)} aria-label={t.common.close} className="companion-menu__close">
+                <X size={15} />
+              </button>
+            </div>
             <button onClick={requestTip} className="companion-menu__item">
               <MessageCircle size={15} />
               {t.companion.requestTip}
@@ -333,7 +338,10 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
               className="companion-menu__item"
             >
               <Compass size={15} />
-              {t.companion.helpMeOrient}
+              <span>
+                {t.companion.helpMeOrient}
+                <span className="companion-menu__subtext">{t.companion.helpMeOrientSubtext}</span>
+              </span>
             </button>
             <button onClick={toggleSleep} className="companion-menu__item">
               {isSleeping ? <Sun size={15} /> : <Moon size={15} />}
@@ -349,6 +357,9 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
               <Shuffle size={15} />
               {t.companion.changeCompanion}
             </button>
+            <Link to="/einstellungen/wesen-info" onClick={() => setMenuOpen(false)} className="companion-menu__more">
+              {t.companion.whatCanIDoLink}
+            </Link>
           </div>
         )}
         {distractionOpen && <DistractionOverlay onClose={() => setDistractionOpen(false)} />}
@@ -388,7 +399,12 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
 
       {menuOpen && (
         <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right' }}>
-            <p className="companion-menu__hint">{t.companion.moveHint}</p>
+            <div className="flex items-start justify-between gap-2">
+              <p className="companion-menu__hint">{t.companion.moveHint}</p>
+              <button onClick={() => setMenuOpen(false)} aria-label={t.common.close} className="companion-menu__close">
+                <X size={15} />
+              </button>
+            </div>
           <button onClick={requestTip} className="companion-menu__item">
             <MessageCircle size={15} />
             {t.companion.requestTip}
@@ -411,7 +427,10 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
             className="companion-menu__item"
           >
             <Compass size={15} />
-            {t.companion.helpMeOrient}
+            <span>
+              {t.companion.helpMeOrient}
+              <span className="companion-menu__subtext">{t.companion.helpMeOrientSubtext}</span>
+            </span>
           </button>
           <button onClick={toggleSleep} className="companion-menu__item">
             {isSleeping ? <Sun size={15} /> : <Moon size={15} />}
@@ -427,6 +446,9 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
             <Shuffle size={15} />
             {t.companion.changeCompanion}
           </button>
+          <Link to="/einstellungen/wesen-info" onClick={() => setMenuOpen(false)} className="companion-menu__more">
+            {t.companion.whatCanIDoLink}
+          </Link>
         </div>
       )}
 

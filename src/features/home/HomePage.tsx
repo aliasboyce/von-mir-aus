@@ -326,9 +326,6 @@ export function HomePage() {
       <div className="flex flex-col items-center mb-6">
         <CompanionDock variant="hero" />
         <p className="text-[14px] text-[var(--color-text-muted)] mt-3">{t.companion.greetingHello}</p>
-        <Link to="/einstellungen/wesen-info" className="text-[12px] text-[var(--color-primary)] mt-1.5">
-          {t.companion.whatCanIDoLink}
-        </Link>
       </div>
 
       {/* Check-In is now the single, unambiguous primary action right
@@ -397,17 +394,13 @@ export function HomePage() {
       )}
 
       {/* Priority 6 + 20/21 of the "Verbinden, glätten" brief — the
-       * explicitly requested "Ich bin gerade nicht richtig da" shortcut.
-       * Deliberately one tap straight to the same GroundingOverlay
-       * Zugang and Krisenmodus already use, not a path through several
-       * check-in questions first. */}
-      <button
-        onClick={() => setGroundingOpen(true)}
-        className="flex items-center justify-center gap-2 w-full text-[13px] text-[var(--color-text-muted)] mb-6 -mt-3"
-      >
-        <Compass size={14} className="flex-shrink-0" />
-        {t.home.notPresentShortcut}
-      </button>
+       * explicitly requested "Ich bin gerade nicht richtig da"
+       * shortcut, now folded into the companion menu's "Hilf mir beim
+       * Orientieren" item instead of a separate standalone button here
+       * — both opened the exact same GroundingOverlay, which read as
+       * two different features doing the same thing. The companion's
+       * own menu (rendered right above via CompanionDock) already
+       * provides this. */}
 
       <WeatherExplainerModal open={showWeatherExplainer} onClose={() => setShowWeatherExplainer(false)} />
       {groundingOpen && <GroundingOverlay onClose={() => setGroundingOpen(false)} />}

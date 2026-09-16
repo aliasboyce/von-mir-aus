@@ -11,6 +11,24 @@ export function seedBridgesIfEmpty() {
 }
 
 /**
+ * "Bruecken-Weiterleitung geht immer noch nicht"-Auftrag — the real
+ * cause: seedBridgesIfEmpty() only ever runs on a completely empty
+ * repository, so anyone with an existing installation (like this
+ * one) never received the 18 new exercise bridges added later —
+ * clicking their "Soforthilfe" suggestion correctly named the
+ * exercise, but no matching bridge actually existed in THIS
+ * person's own data, hence "Brücke nicht gefunden". Same pattern as
+ * patchKnownDemoContentIssues() below: runs on every app start,
+ * only ADDS whichever specific demo bridge ids are missing from the
+ * person's existing data, never touches or duplicates anything else
+ * (including a same-id bridge the person may have customized).
+ */
+export function addMissingDemoBridges() {
+  const existingIds = new Set(bridgesRepo.getAll().map((b) => b.id));
+  DEMO_BRIDGES.filter((b) => !existingIds.has(b.id)).forEach((b) => bridgesRepo.save(b));
+}
+
+/**
  * "Bruecken-Kategorien komplett neu ordnen"-Auftrag — critical
  * migration step. Without this, every EXISTING bridge (both demo
  * content and anything the person created themselves) would keep its

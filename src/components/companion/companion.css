@@ -285,7 +285,34 @@
   font-size: 11px;
   line-height: 1.4;
   color: var(--color-text-faint);
+  flex: 1;
+}
+
+.companion-menu > div:first-child {
   border-bottom: 1px solid var(--color-border);
+}
+
+.companion-menu__close {
+  padding: 8px 10px 0 0;
+  color: var(--color-text-faint);
+  flex-shrink: 0;
+}
+
+.companion-menu__subtext {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--color-text-faint);
+  line-height: 1.3;
+  margin-top: 1px;
+}
+
+.companion-menu__more {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--color-primary);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
 }
 
 .companion-menu__item {

@@ -589,6 +589,7 @@ const en: TranslationDictionary = {
     ],
     distractMe: 'Distract me',
     helpMeOrient: 'Help me get oriented',
+    helpMeOrientSubtext: "when you feel lost or aren't quite here right now",
     distractionNext: 'Something else',
     revealAnswer: 'Reveal',
     freeTextPlaceholder: 'Your answer …',
@@ -1267,16 +1268,16 @@ const en: TranslationDictionary = {
     arousalSourcesTitle: 'Sources for the arousal stage model',
     arousalLevelTabs: { simple: 'Simple', standard: 'Standard', clinical: 'Clinical' },
     arousalLevelSimple: {
-      title: 'Explained like for a child',
+      title: '',
       paragraphs: [
-        "Imagine there's a little feelings-engine living in your tummy. Sometimes it runs super calm and you can play and learn wonderfully (that's green, right at the top). Sometimes it runs way too hot and you get angry or scared (that's red, in the middle). And sometimes it has no strength left at all and you feel totally worn out and tired (that's blue, right at the bottom).",
-        "With the big slider on the side, you can show the app how hot or cold your engine is right now. If you land on red or blue, the app shows you a secret trick (an exercise) for calming your engine back down.",
-        '**The hidden gear wheel (the shifted window):** Some children went through hard things earlier in life. Their engine learned: "I have to hide!" When these children are very sad and worn out in the blue zone, they often don\'t even notice — they think their engine is perfectly normal in the green zone, because they\'ve forgotten what real, happy calm feels like. We call that "false calm" (like a robot).',
-        'Tapping the gear wheel lets you tell the app: "Careful, my green comfort zone has actually gotten really tiny." The app then draws a small box on the colorful strip. As soon as the slider slips out of that box, a light flashes: careful, you\'re stressed! If the child practices, the box grows bigger over the months. You save that with the save button, to see how you keep growing stronger!',
+        "Your nervous system has something like an inner traffic light. When it's calm, you can think, play, or learn well — that's the green range, at the top of the slider. When it runs way too hot, you get angry or scared — that's red, in the middle. And sometimes it has no energy left at all, you feel worn out and empty — that's blue, right at the bottom.",
+        "With the slider, you show the app where you are right now. If you're at red or blue, the app shows you a matching exercise to calm back down.",
+        '**The gear wheel (the shifted window):** Some people went through difficult things earlier in life. Their system learned: "I have to protect myself." When these people are worn out and empty in the blue range, they often don\'t even notice — they mistake it for their normal, green calm, because they\'ve forgotten what real relaxation feels like. We call that "false calm".',
+        'Using the gear wheel, you can tell the app: "My green comfort zone has actually gotten much smaller." The app then draws a small box on the colorful strip. If the slider slips out of that box, the app lets you know. Practice regularly, and that box grows bigger over the months — you can save that with the save button, to see your own progress.',
       ],
     },
     arousalLevelClinical: {
-      title: 'Explained for clinicians',
+      title: '',
       paragraphs: [
         '**The application in a clinical context:** This system serves as an interoceptive feedback interface for restoring neuroception in complex trauma-related disorders (C-PTSD / DID). The vertical scaling (0% to 100%, top to bottom) mirrors the chronological cascade of defensive subsystems. The user quantifies their current central-nervous activation level. On decompensation (hyper- or hypoarousal), the system responds with phase- and state-specific top-down and bottom-up interventions (e.g. activating the oculomotor nerve to inhibit the periaqueductal gray in a freeze state).',
         '**Pathophysiology & the phenomenon of the faux window of tolerance:** Chronic traumatization leads to a lasting change in allostatic load and atrophy of the ventral vagal system. The autonomic nervous system loses its homeostatic flexibility. Clinically, this often manifests as chronic functional dissociation: the patient shows extremely high cortisol and adrenaline levels (sympathetic tone) while simultaneously collapsing psychologically and physically via the evolutionarily older dorsal vagus nerve (unmyelinated vagus). Because this chronic shutdown state is the pathological baseline, disrupted efferent and afferent signal processing (insula/thalamus) mistakenly reports "homeostasis/calm" to the prefrontal cortex (false calm).',

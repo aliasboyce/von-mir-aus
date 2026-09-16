@@ -6,7 +6,7 @@ import { ArrowLeft, Heart, Lightbulb, Pencil, NotebookPen, Check, Trash2, Timer 
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { bridgesRepo, migrateBridgeCategoriesIfNeeded } from './bridgesRepo';
+import { bridgesRepo, migrateBridgeCategoriesIfNeeded, addMissingDemoBridges } from './bridgesRepo';
 import { zugangRepo } from '../zugang/zugangRepo';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from './bridgeMeta';
@@ -117,6 +117,24 @@ export function BridgeDetailPage() {
     const clear = () => setPrintingBridge(false);
     window.addEventListener('afterprint', clear);
     return () => window.removeEventListener('afterprint', clear);
+  }, []);
+
+  // "Bruecken-Weiterleitung geht immer noch nicht"-Auftrag — the actual
+  // fix: this page's own bridge lookup ran once, synchronously, before
+  // any seeding could happen (seeding previously only ran when the
+  // separate bridges LIST page was visited) — someone navigating here
+  // directly (e.g. from the ladder slider's exercise suggestion,
+  // without ever visiting the list first) got "not found" even though
+  // the bridge is a real demo entry. Seeding runs here now too, and if
+  // the initial lookup came back empty, it's retried once seeding is done.
+  useEffect(() => {
+    migrateBridgeCategoriesIfNeeded();
+    addMissingDemoBridges();
+    if (!bridge && id) {
+      const found = bridgesRepo.getById(id);
+      if (found) setBridge(found);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function shareBridgeLink() {

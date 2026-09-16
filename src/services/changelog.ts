@@ -16,6 +16,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-koerper-detektiv-uebungen',
+    date: '2026',
+    items: [
+      'Neu: Körper-Detektiv (🔍) — falls du dich gerade nicht einschätzen kannst, drei einfache Körper-Fragen finden den passenden Stand für dich.',
+      '18 Soforthilfe-Übungen, drei pro Nervensystem-Stufe, direkt aus dem Regler erreichbar.',
+      'Neu: Reflexions-Tagebuch — tippe auf einen Punkt im Verlauf, um kurz festzuhalten, was da war.',
+      'Neu: Fenster-Fortschritt speichern und als Chronik nachlesen oder exportieren.',
+      '"Erklär\'s mir als..." — die Nervensystem-Erklärung jetzt auch einfacher oder fachlicher lesbar.',
+      'Ein hartnäckiger Fehler bei der Weiterleitung zu manchen Übungen ist behoben.',
+    ],
+    itemsEn: [
+      'New: Body detective (🔍) — if you can\'t tell where you are right now, three simple body questions find the right spot for you.',
+      '18 quick-help exercises, three per nervous-system stage, reachable straight from the slider.',
+      'New: reflection journal — tap a point in your history to briefly note what was going on.',
+      'New: save your window progress and look back at it as a chronicle, or export it.',
+      '"Explain it to me as..." — the nervous system explainer can now also be read simpler or more clinically.',
+      'A persistent bug where some exercises failed to open has been fixed.',
+    ],
+  },
+  {
     id: '2026-nervensystem-6-zonen',
     date: '2026',
     items: [

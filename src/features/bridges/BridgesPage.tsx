@@ -10,7 +10,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { bridgesRepo, seedBridgesIfEmpty, patchKnownDemoContentIssues, migrateBridgeCategoriesIfNeeded } from './bridgesRepo';
+import { bridgesRepo, seedBridgesIfEmpty, patchKnownDemoContentIssues, migrateBridgeCategoriesIfNeeded, addMissingDemoBridges } from './bridgesRepo';
 import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from './bridgeMeta';
 import { BridgeFormModal } from './BridgeFormModal';
 import { BridgeBuiltAnimation } from './BridgeBuiltAnimation';
@@ -27,6 +27,7 @@ import type { Bridge, BridgeCategory } from '../../data/types';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
 seedBridgesIfEmpty();
+addMissingDemoBridges();
 patchKnownDemoContentIssues();
 migrateBridgeCategoriesIfNeeded();
 

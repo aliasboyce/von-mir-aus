@@ -86,30 +86,27 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', 
       role="img"
       aria-label={t.polyvagal.title}
     >
-      {/* "Fokus-Sweetspot hervorheben"-Auftrag — zone 2 (16-35%,
-       * optimal arousal) gets its own soft tinted band on the chart so
-       * it's visible at a glance whether a point landed not just
-       * "in the window" but in the specific ideal-focus range. */}
+      {/* "Jede Zone mit Hintergrundfarbe"-Auftrag — all six bands get
+       * their own soft tinted background and label now, not just the
+       * zone 2 fokus-sweetspot, so the chart reads the same "six full-
+       * width colored bands" language as the ladder slider itself. */}
       {AROUSAL_BANDS.map((b) => (
-        <rect
-          key={b.id}
-          x={padX}
-          y={yAt(b.min)}
-          width={width - padX - 8}
-          height={Math.max(yAt(b.max) - yAt(b.min), 1)}
-          fill={b.id === 'zone2' ? `${b.color}1f` : 'transparent'}
-        />
+        <rect key={b.id} x={padX} y={yAt(b.min)} width={width - padX - 8} height={Math.max(yAt(b.max) - yAt(b.min), 1)} fill={`${b.color}1a`} />
       ))}
       {AROUSAL_BANDS.map((b, i) => {
         if (i === 0) return null;
         const y = yAt(b.min);
         return <line key={b.id} x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />;
       })}
-      {expanded && (
-        <text x={4} y={yAt(25) + 3} fontSize={10} fill={AROUSAL_BANDS[1].color} fontWeight={600}>
-          {t.polyvagal.arousalZones.zone2.label}
-        </text>
-      )}
+      {expanded &&
+        AROUSAL_BANDS.map((b) => {
+          const zoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
+          return (
+            <text key={b.id} x={4} y={yAt((b.min + b.max) / 2) + 3} fontSize={9.5} fill={b.color} fontWeight={600}>
+              {zoneT.label}
+            </text>
+          );
+        })}
 
       {pathD && <path d={pathD} fill="none" stroke="var(--color-text-faint)" strokeWidth={1.5} opacity={0.5} />}
 
