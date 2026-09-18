@@ -200,6 +200,16 @@ export interface Bridge {
   id: string;
   title: string;
   category: BridgeCategory;
+  /** "Mehrere Kategorien gleichzeitig auswaehlbar"-Auftrag — optional,
+   * additive alongside `category` (which stays the primary/first pick
+   * and is what every existing display spot still reads for a single
+   * badge or icon). When set, this is the FULL set the person chose,
+   * and is what filtering checks against so a bridge can show up
+   * under every category it belongs to, not just one. Undefined for
+   * any bridge that only ever had the single legacy `category` —
+   * callers that care about the full set should read
+   * `bridge.categories ?? [bridge.category]`. */
+  categories?: BridgeCategory[];
   /** Path or URL to a representative image */
   image: string;
   description: string;

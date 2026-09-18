@@ -11,6 +11,7 @@ import { suggestedImageOptions } from '../../services/suggestedImages';
 import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER, BRIDGE_CATEGORY_GROUPS_ORDER, BRIDGE_CATEGORY_GROUP_META } from './bridgeMeta';
 import { createCustomCategoryStore } from '../../services/customCategories';
 import { CONNECTION_ITEMS_DE, NEED_CATEGORY_GROUPS, OBSTACLES_DE } from '../zugang/zugangContent';
+import { getCustomSuggestions, addCustomSuggestion } from '../zugang/zugangSuggestions';
 
 const ALL_NEEDS_DE = NEED_CATEGORY_GROUPS.flatMap((g) => g.items);
 import { SensoryModalityPicker } from '../../components/shared/SensoryModalityPicker';
@@ -41,6 +42,9 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
   const [customCategories, setCustomCategories] = useState(() => customCategoryStore.getAll());
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [customObstacles, setCustomObstacles] = useState(() => getCustomSuggestions('obstacle'));
+  const [addingObstacle, setAddingObstacle] = useState(false);
+  const [newObstacleName, setNewObstacleName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Re-sync when a different bridge is opened (or the modal re-opens for "new").
@@ -50,6 +54,16 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
   }
 
   if (!draft) return null;
+
+  // "Mehrere Kategorien gleichzeitig auswaehlbar"-Auftrag
+  const currentDraft = draft;
+  const selectedCategories = currentDraft.categories ?? [currentDraft.category];
+  function toggleCategory(id: string) {
+    const next = selectedCategories.includes(id) ? selectedCategories.filter((c) => c !== id) : [...selectedCategories, id];
+    if (next.length === 0) return; // always keep at least one selected
+    const primary: BridgeCategory = next[0];
+    setDraft({ ...currentDraft, categories: next, category: primary });
+  }
 
   function categoryLabel(cat: BridgeCategory): string {
     if (BRIDGE_CATEGORY_META[cat]) return BRIDGE_CATEGORY_META[cat].label(t);
@@ -131,6 +145,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
 
         <label className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.resources.categoryLabel}</span>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.bridges.multiCategoryHint}</p>
           {BRIDGE_CATEGORY_GROUPS_ORDER.map((groupId) => (
             <div key={groupId} className="mb-1">
               <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">
@@ -140,13 +155,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
                 {allCategoryChips
                   .filter(({ id }) => BRIDGE_CATEGORY_META[id]?.group === groupId)
                   .map(({ id, label, icon: Icon }) => (
-                    <Chip
-                      key={id}
-                      type="button"
-                      selected={draft.category === id}
-                      onClick={() => setDraft({ ...draft, category: id })}
-                      icon={<Icon size={14} />}
-                    >
+                    <Chip key={id} type="button" selected={selectedCategories.includes(id)} onClick={() => toggleCategory(id)} icon={<Icon size={14} />}>
                       {label}
                     </Chip>
                   ))}
@@ -157,13 +166,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
             {allCategoryChips
               .filter(({ id }) => !BRIDGE_CATEGORY_META[id])
               .map(({ id, label, icon: Icon }) => (
-                <Chip
-                  key={id}
-                  type="button"
-                  selected={draft.category === id}
-                  onClick={() => setDraft({ ...draft, category: id })}
-                  icon={<Icon size={14} />}
-                >
+                <Chip key={id} type="button" selected={selectedCategories.includes(id)} onClick={() => toggleCategory(id)} icon={<Icon size={14} />}>
                   {label}
                 </Chip>
               ))}
@@ -265,7 +268,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
           <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.bridges.linkedObstaclesLabel}</span>
           <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.bridges.linkedObstaclesHint}</p>
           <div className="flex flex-wrap gap-1.5">
-            {OBSTACLES_DE.map((v) => {
+            {[...OBSTACLES_DE, ...customObstacles].map((v) => {
               const selected = (draft.linkedObstacles ?? []).includes(v);
               return (
                 <button
@@ -289,6 +292,48 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
                 </button>
               );
             })}
+            {/* "Eigene Hindernisse ergaenzen, app-weit verfuegbar"-Auftrag
+             * — saved through the same shared custom-suggestions store
+             * Zugang's own obstacle step already uses, so anything
+             * added here shows up there too (and vice versa), instead
+             * of being a second, disconnected list. */}
+            {addingObstacle ? (
+              <div className="flex items-center gap-1">
+                <input
+                  autoFocus
+                  className="input"
+                  style={{ width: 140, padding: '6px 10px', fontSize: 12 }}
+                  value={newObstacleName}
+                  onChange={(e) => setNewObstacleName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newObstacleName.trim()) {
+                      addCustomSuggestion('obstacle', newObstacleName.trim());
+                      setCustomObstacles(getCustomSuggestions('obstacle'));
+                      setDraft({ ...draft, linkedObstacles: [...(draft.linkedObstacles ?? []), newObstacleName.trim()] });
+                      setNewObstacleName('');
+                      setAddingObstacle(false);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (newObstacleName.trim()) {
+                      addCustomSuggestion('obstacle', newObstacleName.trim());
+                      setCustomObstacles(getCustomSuggestions('obstacle'));
+                      setDraft({ ...draft, linkedObstacles: [...(draft.linkedObstacles ?? []), newObstacleName.trim()] });
+                    }
+                    setNewObstacleName('');
+                    setAddingObstacle(false);
+                  }}
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setAddingObstacle(true)}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[12px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]"
+              >
+                <Plus size={12} /> {t.zugang.ownSuggestionCta}
+              </button>
+            )}
           </div>
         </label>
 

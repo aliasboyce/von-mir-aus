@@ -882,6 +882,7 @@ const de = {
     linkedNeedsHint: 'Mehrfachauswahl möglich — dieselbe Liste wie im Zugang.',
     linkedObstaclesLabel: 'Trotz welcher Hindernisse kann sie helfen? (optional)',
     linkedObstaclesHint: 'Die Brücke muss das Hindernis nicht beseitigen — nur einen kleinen Zugang trotzdem ermöglichen.',
+    multiCategoryHint: 'Mehrere passende Kategorien auswählbar — z. B. Natur und Verbindung zugleich.',
     conditionsLabel: '🧩 Unter welchen Bedingungen funktioniert das? (optional)',
     conditionsHint: 'Manchmal entscheidet nicht die Handlung allein, sondern die Umstände drumherum.',
     whatsTheDifference: 'Was unterscheidet Brücken von Ressourcen?',

@@ -77,7 +77,7 @@ export function BridgesPage() {
   const [showInfo, setShowInfo] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(false);
 
-  const filtered = useMemo(() => bridges.filter((b) => b.category === category), [bridges, category]);
+  const filtered = useMemo(() => bridges.filter((b) => (b.categories ?? [b.category]).includes(category)), [bridges, category]);
 
   function categoryLabel(cat: BridgeCategory): string {
     if (BRIDGE_CATEGORY_META[cat]) return BRIDGE_CATEGORY_META[cat].label(t);

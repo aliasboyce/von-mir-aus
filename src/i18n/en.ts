@@ -884,6 +884,7 @@ const en: TranslationDictionary = {
     linkedNeedsHint: 'Multiple selection possible — the same list as in Access.',
     linkedObstaclesLabel: 'Which obstacles can it help despite? (optional)',
     linkedObstaclesHint: "The bridge doesn't have to remove the obstacle — just make a small access possible anyway.",
+    multiCategoryHint: 'Multiple fitting categories can be selected — e.g. Nature and Connection at once.',
     conditionsLabel: '🧩 Under what conditions does this work? (optional)',
     conditionsHint: "Sometimes it isn't the action alone that decides, but the circumstances around it.",
     whatsTheDifference: 'What sets bridges apart from resources?',
