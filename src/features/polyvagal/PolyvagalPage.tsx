@@ -9,7 +9,6 @@ import { Button } from '../../components/ui/Button';
 import { ReminderControl } from '../../components/shared/ReminderControl';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
-import { useSettings } from '../../state/SettingsContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { polyvagalRepo, todaysCheckIns, checkInsInLastDays } from './polyvagalRepo';
 import { NervousSystemLadder } from './NervousSystemLadder';
@@ -99,7 +98,6 @@ const EXPLAINER_BODY_KEY: Record<ExplainerSection, ExplainerBodyKey> = {
 export function PolyvagalPage() {
   const t = useT();
   const say = useCompanionSay();
-  const { settings, updateSettings } = useSettings();
   const [searchParams, setSearchParams] = useSearchParams();
   const expandedZoneParam = (searchParams.get('zone') as PolyvagalZone | null) ?? null;
   const setExpandedZoneParam = (zone: PolyvagalZone | null) => {
@@ -197,22 +195,6 @@ export function PolyvagalPage() {
 
         <Card padding="md" className="mb-6">
           <ReminderControl compact />
-        </Card>
-
-        <Card padding="md" className="mb-6 flex items-center justify-between">
-          <span className="text-[13px] text-[var(--color-text)]">{t.settings.dailyReviewPolyvagal}</span>
-          <button
-            role="switch"
-            aria-checked={settings.dailyReviewShowPolyvagal !== false}
-            onClick={() => updateSettings({ dailyReviewShowPolyvagal: !(settings.dailyReviewShowPolyvagal !== false) })}
-            className="w-10 h-6 rounded-full relative flex-shrink-0"
-            style={{ background: settings.dailyReviewShowPolyvagal !== false ? 'var(--color-primary)' : 'var(--color-border)' }}
-          >
-            <span
-              className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-              style={{ left: settings.dailyReviewShowPolyvagal !== false ? 18 : 2 }}
-            />
-          </button>
         </Card>
 
         <div className="flex items-center justify-between mb-3">

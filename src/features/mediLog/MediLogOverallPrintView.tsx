@@ -112,7 +112,7 @@ export function MediLogOverallPrintView({ medications, fromDate, toDate, labels,
       </div>
 
       <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>{labels.summary}</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 24 }}>
         {series.map((m) => {
           const total = m.days.reduce((sum, d) => sum + d.value, 0);
           const daysWithEntry = m.days.filter((d) => d.value > 0).length;
@@ -124,6 +124,37 @@ export function MediLogOverallPrintView({ medications, fromDate, toDate, labels,
           );
         })}
       </div>
+
+      {/* "Auch bei Vergleichen die Tagesdaten unten auflisten"-Auftrag —
+       * same day-by-day table as the single-medication export, just
+       * one column per medication instead of one shared "amount"
+       * column, so exactly which day had how much of which medication
+       * stays readable even with several compared at once. */}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', borderBottom: '1px solid #ddd', padding: '6px 4px', color: '#555' }}>{labels.day}</th>
+            {series.map((m) => (
+              <th key={m.key} style={{ textAlign: 'right', borderBottom: '1px solid #ddd', padding: '6px 4px', color: '#555' }}>
+                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 999, background: m.color, marginRight: 4 }} />
+                {m.displayName}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {(series[0]?.days ?? []).map((d, i) => (
+            <tr key={d.day}>
+              <td style={{ padding: '4px', borderBottom: '1px solid #f0f0f0' }}>{formatDate(d.day)}</td>
+              {series.map((m) => (
+                <td key={m.key} style={{ padding: '4px', borderBottom: '1px solid #f0f0f0', textAlign: 'right' }}>
+                  {m.days[i]?.value > 0 ? m.days[i].value : '—'}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

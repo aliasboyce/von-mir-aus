@@ -16,6 +16,21 @@ export const BODY_SENSATIONS_DE = [
   // valid an answer to "what do I notice right now?".
   'warm', 'ruhig', 'entspannt', 'leicht', 'angenehm wach', 'weich',
   'ruhig atmend', 'gelöst', 'stabil', 'angenehm schwer', 'energiegeladen', 'wach',
+  // "Somatische Marker nach den 6 Zonen"-Auftrag — new terms compared
+  // against the person's own detailed clinical list of body markers
+  // per arousal zone, added where genuinely missing rather than
+  // duplicating what's already covered above under different wording.
+  // Each of these (and every term above) has its own zone/color
+  // mapping in sensationZones.ts.
+  'Magenknurren', 'gleichmäßige Atmung', 'ruhiger Puls', 'aufrechte Grundspannung',
+  'klarer Blick', 'entspannte Stirn', 'klarer Kopf', 'Atmung im Brustkorb',
+  'Puls im Hals spürbar', 'Verspannung im Nacken', 'hochgezogene Schultern', 'hektischer Blick',
+  'Kieferpresse', 'feuchte Hände', 'Hitzewallungen', 'Flauen im Magen',
+  'zugeschnürte Kehle', 'rasender Puls', 'Fäuste ballen', 'Tunnelblick',
+  'kalter Schweiß', 'Stechen im Magen', 'Atem anhalten', 'wie eingemauert',
+  'eingefrorene Mimik', 'Schluckbeschwerden', 'Druck im Kopf', 'sehr flache Atmung',
+  'Blutdruck sackt ab', 'schlaffe Muskeln', 'wie durch Watte', 'aus dem Körper schweben',
+  'sprachlos', 'glanzloser Blick',
 ];
 
 // ---------------------------------------------------------------------

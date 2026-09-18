@@ -170,7 +170,7 @@ export function BridgeDetailPage() {
 
   const [diaryDraft, setDiaryDraft] = useState<string | null>(null);
 
-  function openDiaryDraftFromTimer(durationMin: number) {
+  function openDiaryDraftFromTimer(durationMin: number, note?: string) {
     if (!bridge || !activeLevel) return;
     const timeLabel = new Date().toLocaleString(undefined, {
       day: '2-digit',
@@ -183,7 +183,7 @@ export function BridgeDetailPage() {
         ? `${(durationMin / 60).toFixed(durationMin % 60 === 0 ? 0 : 1)} h`
         : `${durationMin} min`;
     setDiaryDraft(
-      `${bridge.title} — ${activeLevel.title}\n${timeLabel} · ${durationLabel}\n${activeLevel.description}`,
+      `${bridge.title} — ${activeLevel.title}\n${timeLabel} · ${durationLabel}\n${activeLevel.description}${note ? `\n\n${note}` : ''}`,
     );
   }
 
@@ -474,9 +474,9 @@ export function BridgeDetailPage() {
           <BridgeTimerView
             contextLabel={`${bridge.title} — ${t.bridges.level} ${activeLevel.level}: ${activeLevel.title}`}
             onClose={() => setTimerOpen(false)}
-            onNaturalComplete={(durationMin) => {
+            onNaturalComplete={(durationMin, note) => {
               setTimerOpen(false);
-              openDiaryDraftFromTimer(durationMin);
+              openDiaryDraftFromTimer(durationMin, note);
             }}
           />
         )}

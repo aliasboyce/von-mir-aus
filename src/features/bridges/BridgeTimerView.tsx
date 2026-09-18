@@ -5,6 +5,9 @@ import { InlineCompanionNote } from '../../components/companion/InlineCompanionN
 import { CompanionGuidanceCard } from '../../components/companion/CompanionGuidanceCard';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
+import { triggerHaptic } from '../../services/haptics';
+import { playSound } from '../../services/sounds';
 import { CustomDurationInput } from '../timer/CustomDurationInput';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
 
@@ -13,8 +16,9 @@ interface BridgeTimerViewProps {
   onClose: () => void;
   /** called once the timer completes naturally (not on early cancel) —
    * lets the caller (e.g. BridgeDetailPage) offer a "save to diary" step
-   * with the actual duration that was run. */
-  onNaturalComplete?: (durationMin: number) => void;
+   * with the actual duration that was run, plus whatever note (if any)
+   * the person jotted down while the timer was running. */
+  onNaturalComplete?: (durationMin: number, note?: string) => void;
 }
 
 export const TIMER_DURATIONS_MIN = [2, 5, 10, 15, 20, 30, 60, 90, 120];
@@ -48,6 +52,7 @@ function formatDurationLabel(min: number, t: ReturnType<typeof useT>): string {
 
 export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: BridgeTimerViewProps) {
   const t = useT();
+  const { settings } = useSettings();
   useRegisterModalOpen(true);
   const [durationMin, setDurationMin] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
@@ -56,29 +61,72 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
   const [startLine] = useState(() => pickLine({ page: '/bruecken', trigger: 'timer_start' }));
   const [tapLine, setTapLine] = useState<string | null>(null);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
+  // "Notiz-Feld waehrend des Timers"-Auftrag — jotted down while
+  // waiting, not after; passed through to onNaturalComplete so the
+  // caller can fold it straight into the diary draft it offers.
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  // A ref mirror is needed here — tick() is captured once inside the
+  // countdown's useEffect closure (deps: [durationMin]), so without
+  // this it would keep reading whatever noteText was at mount time,
+  // not what the person has actually typed by the moment the timer
+  // completes.
+  const noteTextRef = useRef('');
+  useEffect(() => {
+    noteTextRef.current = noteText;
+  }, [noteText]);
   const [sleeping, setSleeping] = useState(false);
   const [sleepLine, setSleepLine] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sleepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tapLineTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  function notifyTimerDone() {
+    // "Wesen soll bei Timer-Ende Ton + Vibration machen"-Auftrag —
+    // real device vibration where available (Android, via triggerHaptic),
+    // with sound as the always-available companion cue (also the sole
+    // feedback on iOS, where the Vibration API doesn't exist).
+    triggerHaptic('settle', settings);
+    playSound('complete', settings);
+  }
+
   useEffect(() => {
     if (durationMin == null || done) return;
     const isStopwatch = durationMin === STOPWATCH_SENTINEL;
-    intervalRef.current = setInterval(() => {
-      setRemaining((r) => {
-        if (isStopwatch) return r + 1; // counts UP, no natural end
-        if (r <= 1) {
-          clearInterval(intervalRef.current!);
-          setDone(true);
-          setDoneLine(pickLine({ page: '/bruecken', trigger: 'timer_ende' }));
-          setSleeping(false);
-          onNaturalComplete?.(durationMin);
-          return 0;
-        }
-        return r - 1;
-      });
-    }, 1000);
+    const fixedDurationMin = durationMin;
+    // "Timer ging aus, als App im Hintergrund war"-Auftrag — setInterval
+    // gets throttled or paused by the browser/OS while the app is
+    // backgrounded (locked screen, switched tab/app), so decrementing a
+    // plain counter each tick silently drifts or stalls. Anchoring to a
+    // real wall-clock timestamp instead — recomputing remaining/elapsed
+    // from Date.now() on every tick, and also right away whenever the
+    // page becomes visible again — means the timer is always correct
+    // the moment you come back, whatever happened while it was hidden.
+    const anchorMs = Date.now();
+    const targetMs = isStopwatch ? null : anchorMs + durationMin * 60 * 1000;
+
+    function tick() {
+      if (isStopwatch) {
+        setRemaining(Math.floor((Date.now() - anchorMs) / 1000));
+        return;
+      }
+      const secondsLeft = Math.max(0, Math.round((targetMs! - Date.now()) / 1000));
+      setRemaining(secondsLeft);
+      if (secondsLeft <= 0) {
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        setDone(true);
+        setDoneLine(pickLine({ page: '/bruecken', trigger: 'timer_ende' }));
+        setSleeping(false);
+        notifyTimerDone();
+        onNaturalComplete?.(fixedDurationMin, noteTextRef.current.trim() || undefined);
+      }
+    }
+
+    intervalRef.current = setInterval(tick, 1000);
+    function onVisible() {
+      if (document.visibilityState === 'visible') tick();
+    }
+    document.addEventListener('visibilitychange', onVisible);
 
     // Only longer timers get a chance to have the companion doze off —
     // triggered once, randomly within a window roughly a third to two
@@ -99,6 +147,7 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (sleepTimeoutRef.current) clearTimeout(sleepTimeoutRef.current);
+      document.removeEventListener('visibilitychange', onVisible);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [durationMin]);
@@ -124,7 +173,8 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
     setDone(true);
     setDoneLine(pickLine({ page: '/bruecken', trigger: 'timer_ende' }));
     setSleeping(false);
-    onNaturalComplete?.(elapsedMin);
+    notifyTimerDone();
+    onNaturalComplete?.(elapsedMin, noteText.trim() || undefined);
   }
 
   function handleCompanionTap() {
@@ -239,6 +289,26 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
                   className="mt-5 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
                 >
                   {t.bridges.timerStopwatchDone}
+                </button>
+              )}
+
+              {/* "Waehrend des Timers ein Notiz-Feld"-Auftrag — jotted
+               * down while waiting, carried through onNaturalComplete
+               * into the diary draft the caller offers once done. */}
+              {noteOpen ? (
+                <textarea
+                  autoFocus
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
+                  placeholder={t.bridges.timerNotePlaceholder}
+                  rows={2}
+                  className="mt-5 w-full max-w-[280px] px-3 py-2 rounded-[var(--radius-md)] text-[13px]"
+                  style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', resize: 'vertical' }}
+                />
+              ) : (
+                <button onClick={() => setNoteOpen(true)} className="mt-5 flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)] mx-auto">
+                  <NotebookPen size={14} />
+                  {t.bridges.timerAddNoteCta}
                 </button>
               )}
             </div>

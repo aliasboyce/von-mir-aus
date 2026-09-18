@@ -141,3 +141,48 @@ export function bandForValue(v: number): ArousalBand {
 // matches each band's own representative color above for a coherent
 // gradient-to-band relationship rather than an arbitrary separate palette.
 export const AROUSAL_GRADIENT_STOPS = AROUSAL_BANDS.map((b, i) => `${b.color} ${(i / (AROUSAL_BANDS.length - 1)) * 100}%`).join(', ');
+
+/**
+ * "Dynamisch einfaerbender Regler (Erweiterter Modus)"-Auftrag — the
+ * biological rainbow color a given raw 0-100 value would naturally
+ * have, used to build the gradient stops OUTSIDE someone's
+ * calibrated window (the "further into real danger" direction keeps
+ * escalating normally; it's only the calibrated window itself that
+ * gets overridden to a uniform comfort color).
+ */
+function biologicalColorAt(v: number): string {
+  const idx = (v / 100) * (AROUSAL_BANDS.length - 1);
+  const lo = Math.floor(idx);
+  const hi = Math.min(lo + 1, AROUSAL_BANDS.length - 1);
+  const t = idx - lo;
+  return mixHex(AROUSAL_BANDS[lo].color, AROUSAL_BANDS[hi].color, t);
+}
+
+function mixHex(a: string, b: string, t: number): string {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  const mixed = pa.map((v, i) => Math.round(v + (pb[i] - v) * t));
+  return `#${mixed.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+}
+
+const COMFORT_ZONE_COLOR = '#6fae5a';
+
+/**
+ * Builds the gradient-bar CSS stops for Erweiterter Modus: a uniform
+ * comfort color across the person's own calibrated [start,end]
+ * window, a gray "currently unfamiliar/unreachable" zone toward the
+ * biologically calmer side, and the normal escalating biological
+ * colors continuing beyond the window toward the more extreme side —
+ * regardless of which direction their window happens to sit in.
+ */
+export function dynamicGradientStops(windowStart: number, windowEnd: number): string {
+  const stops: string[] = [];
+  if (windowStart > 0) {
+    stops.push(`#9a9a9a 0%`, `#9a9a9a ${windowStart}%`);
+  }
+  stops.push(`${COMFORT_ZONE_COLOR} ${windowStart}%`, `${COMFORT_ZONE_COLOR} ${windowEnd}%`);
+  if (windowEnd < 100) {
+    stops.push(`${biologicalColorAt(windowEnd)} ${windowEnd}%`, `${biologicalColorAt(100)} 100%`);
+  }
+  return stops.join(', ');
+}

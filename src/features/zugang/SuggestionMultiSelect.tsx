@@ -10,6 +10,11 @@ interface SuggestionMultiSelectProps {
   onAddCustom: (value: string) => void;
   onEditCustom: (oldValue: string, newValue: string) => void;
   onDeleteCustom: (value: string) => void;
+  /** "Farbige Einfaerbung nach Zone"-Auftrag — optional, only passed
+   * for the body-sensation step. Undefined for every other step
+   * (Schutzstrategie, Bedürfnis, Hindernis, Verbindung), which keep
+   * their plain neutral styling exactly as before. */
+  getColor?: (value: string) => string | undefined;
 }
 
 /**
@@ -28,6 +33,7 @@ export function SuggestionMultiSelect({
   onAddCustom,
   onEditCustom,
   onDeleteCustom,
+  getColor,
 }: SuggestionMultiSelectProps) {
   const t = useT();
   const [adding, setAdding] = useState(false);
@@ -49,19 +55,31 @@ export function SuggestionMultiSelect({
 
   return (
     <div className="flex flex-wrap gap-2">
-      {suggestions.map((s) => (
-        <button
-          key={s}
-          onClick={() => onToggle(s)}
-          className="px-3.5 py-2 rounded-full text-[14px]"
-          style={{
-            background: selected.includes(s) ? 'var(--color-primary)' : 'var(--color-surface-muted)',
-            color: selected.includes(s) ? 'var(--color-surface)' : 'var(--color-text)',
-          }}
-        >
-          {s}
-        </button>
-      ))}
+      {suggestions.map((s) => {
+        const color = getColor?.(s);
+        const isSelected = selected.includes(s);
+        return (
+          <button
+            key={s}
+            onClick={() => onToggle(s)}
+            className="px-3.5 py-2 rounded-full text-[14px]"
+            style={
+              color
+                ? {
+                    background: isSelected ? color : `${color}18`,
+                    color: isSelected ? '#fff' : color,
+                    border: `1.5px solid ${color}`,
+                  }
+                : {
+                    background: isSelected ? 'var(--color-primary)' : 'var(--color-surface-muted)',
+                    color: isSelected ? 'var(--color-surface)' : 'var(--color-text)',
+                  }
+            }
+          >
+            {s}
+          </button>
+        );
+      })}
 
       {customSuggestions.map((s) =>
         editing === s ? (

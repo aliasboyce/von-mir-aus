@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useT } from '../../i18n';
 import { BODY_REGION_ORDER, BODY_REGION_SENSATIONS, type BodyRegion } from './bodyRegions';
+import { colorForSensation } from '../zugang/sensationZones';
 
 /**
  * Priority 6 — a simple, warm silhouette (not a literal anatomical
@@ -80,11 +81,18 @@ export function BodySilhouette() {
       </div>
 
       <div className="flex flex-wrap gap-2 justify-center">
-        {BODY_REGION_SENSATIONS[region].map((s) => (
-          <span key={s} className="px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-            {s}
-          </span>
-        ))}
+        {BODY_REGION_SENSATIONS[region].map((s) => {
+          const color = colorForSensation(s);
+          return (
+            <span
+              key={s}
+              className="px-3 py-1.5 rounded-full text-[13px]"
+              style={color ? { background: `${color}18`, color, border: `1.5px solid ${color}` } : { background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}
+            >
+              {s}
+            </span>
+          );
+        })}
       </div>
     </div>
   );

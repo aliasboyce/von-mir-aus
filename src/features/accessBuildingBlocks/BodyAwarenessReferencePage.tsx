@@ -4,6 +4,7 @@ import { HelpButton } from '../../components/navigation/HelpButton';
 import { Card } from '../../components/ui/Card';
 import { useT } from '../../i18n';
 import { BODY_SENSATIONS_DE } from '../zugang/zugangContent';
+import { colorForSensation } from '../zugang/sensationZones';
 import { BodySilhouette } from './BodySilhouette';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
 
@@ -52,11 +53,18 @@ export function BodyAwarenessReferencePage() {
 
         <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.bodyAwarenessRef.listLabel}</p>
         <div className="flex flex-wrap gap-2">
-          {BODY_SENSATIONS_DE.map((s) => (
-            <span key={s} className="px-3 py-2 rounded-full text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
-              {s}
-            </span>
-          ))}
+          {BODY_SENSATIONS_DE.map((s) => {
+            const color = colorForSensation(s);
+            return (
+              <span
+                key={s}
+                className="px-3 py-2 rounded-full text-[13px]"
+                style={color ? { background: `${color}18`, color, border: `1.5px solid ${color}` } : { background: 'var(--color-surface-muted)', color: 'var(--color-text)' }}
+              >
+                {s}
+              </span>
+            );
+          })}
         </div>
 
         <p className="text-[12px] text-[var(--color-text-faint)] mt-6 leading-relaxed">{t.bodyAwarenessRef.footerNote}</p>

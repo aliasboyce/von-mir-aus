@@ -674,6 +674,15 @@ export interface UserSettings {
    * people never need to touch this. */
   arousalWindowStart?: number;
   arousalWindowEnd?: number;
+  /** "Zwei Modi im Zahnrad-Panel"-Auftrag — Grundmodus (false/undefined,
+   * the default) keeps the classic fixed rainbow and a fixed 0-55%
+   * reference box, exactly as every everyday user already knows it.
+   * Erweiterter Modus (true) is an opt-in ADDITION for people who want
+   * to invest more time: the slider bar itself dynamically recolors
+   * around their calibrated window instead. The underlying stored
+   * check-in values are never touched by either mode — always the
+   * real 0-100 biological reading. */
+  arousalExtendedMode?: boolean;
   /** future: reminders are opt-in and never guilt-based */
   remindersEnabled: boolean;
   /** "HH:MM" 24h format — when set + remindersEnabled, Home shows a gentle nudge after this time if no check-in happened yet today */

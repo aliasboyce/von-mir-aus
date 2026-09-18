@@ -1,9 +1,13 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Download } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
 import { APP_SOURCES } from '../../data/sourcesLibrary';
+import { triggerPrint } from '../../services/printSupport';
+import { SourceLibraryPrintView } from './SourceLibraryPrintView';
 
 /**
  * "Materialien"-Auftrag, Sections 17-21 — the global sources library.
@@ -16,6 +20,14 @@ import { APP_SOURCES } from '../../data/sourcesLibrary';
 export function SourceLibraryPage() {
   const t = useT();
   const navigate = useNavigate();
+  const { settings } = useSettings();
+  const [printing, setPrinting] = useState(false);
+
+  useEffect(() => {
+    const clear = () => setPrinting(false);
+    window.addEventListener('afterprint', clear);
+    return () => window.removeEventListener('afterprint', clear);
+  }, []);
 
   const grouped = APP_SOURCES.reduce<Record<string, typeof APP_SOURCES>>((acc, s) => {
     (acc[s.approach] ??= []).push(s);
@@ -28,9 +40,19 @@ export function SourceLibraryPage() {
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-1">{t.sourceLibrary.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1 leading-relaxed">{t.sourceLibrary.subtitle}</p>
-        <p className="text-[12px] text-[var(--color-text-faint)] mb-6">
+        <p className="text-[12px] text-[var(--color-text-faint)] mb-3">
           {t.sourceLibrary.totalCountLabel.replace('{count}', String(APP_SOURCES.length))}
         </p>
+        <button
+          onClick={() => {
+            setPrinting(true);
+            window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
+          }}
+          className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)] mb-6"
+        >
+          <Download size={14} />
+          {t.sourceLibrary.exportCta}
+        </button>
 
         {Object.entries(grouped).map(([approach, sources]) => (
           <div key={approach} className="mb-6">
@@ -57,6 +79,19 @@ export function SourceLibraryPage() {
 
         <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mt-4">{t.sourceLibrary.disclaimer}</p>
       </div>
+
+      {printing && (
+        <SourceLibraryPrintView
+          grouped={grouped}
+          labels={{
+            title: t.sourceLibrary.title,
+            subtitle: t.sourceLibrary.subtitle,
+            usedForLabel: t.sourceLibrary.usedForLabel,
+            exportedOn: t.network.exportedOn,
+          }}
+          formatDate={(iso) => new Date(iso).toLocaleDateString(settings.language === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+        />
+      )}
     </div>
   );
 }

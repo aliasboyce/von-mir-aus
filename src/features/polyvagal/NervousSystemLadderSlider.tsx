@@ -5,7 +5,7 @@ import { useT } from '../../i18n';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { useSettings } from '../../state/SettingsContext';
 import { triggerHaptic } from '../../services/haptics';
-import { AROUSAL_BANDS, AROUSAL_GRADIENT_STOPS, bandForValue } from './arousalBands';
+import { AROUSAL_BANDS, AROUSAL_GRADIENT_STOPS, bandForValue, dynamicGradientStops } from './arousalBands';
 import { BodyDetectiveModal } from './BodyDetectiveModal';
 import { windowProgressRepo } from './windowProgressRepo';
 import { createId } from '../../services/storage/repository';
@@ -206,6 +206,18 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
             </button>
           </div>
           <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.polyvagal.arousalCalibrationIntro}</p>
+          <label className="flex items-center justify-between py-2 mb-3 border-t border-b border-[var(--color-border)]">
+            <span className="text-[12.5px] text-[var(--color-text)] pr-3">{t.polyvagal.arousalExtendedModeLabel}</span>
+            <button
+              role="switch"
+              aria-checked={!!settings.arousalExtendedMode}
+              onClick={() => updateSettings({ arousalExtendedMode: !settings.arousalExtendedMode })}
+              className="w-10 h-6 rounded-full relative flex-shrink-0"
+              style={{ background: settings.arousalExtendedMode ? 'var(--color-primary)' : 'var(--color-border)' }}
+            >
+              <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all" style={{ left: settings.arousalExtendedMode ? 18 : 2 }} />
+            </button>
+          </label>
           <div className="flex gap-3 mb-3">
             <label className="flex-1">
               <span className="text-[11px] text-[var(--color-text-faint)] block mb-1">{t.polyvagal.arousalCalibrationStart}</span>
@@ -340,12 +352,22 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
         >
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full"
-            style={{ top: 12, bottom: 12, width: 14, background: `linear-gradient(to bottom, ${AROUSAL_GRADIENT_STOPS})` }}
+            style={{
+              top: 12,
+              bottom: 12,
+              width: 14,
+              background: `linear-gradient(to bottom, ${
+                settings.arousalExtendedMode && hasCalibration ? dynamicGradientStops(windowStart, windowEnd) : AROUSAL_GRADIENT_STOPS
+              })`,
+            }}
           />
           {/* "Fenster erst nach Loslassen einblenden, Aufblitz"-Auftrag
            * — always rendered now (the basic 0-55% window applies even
            * without custom calibration), but invisible until the first
-           * release, then a brief glow marks the moment it appears. */}
+           * release, then a brief glow marks the moment it appears.
+           * "Zwei Modi"-Auftrag — hidden entirely in Erweiterter Modus:
+           * the dynamic track color itself shows the window there, a
+           * dashed box on top of that would just be visual clutter. */}
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
             style={{
@@ -354,7 +376,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
               width: 22,
               border: '2px dashed rgba(255,255,255,0.85)',
               borderRadius: 11,
-              opacity: hasReleased ? 1 : 0,
+              opacity: hasReleased && !settings.arousalExtendedMode ? 1 : 0,
               boxShadow: justFlashed ? '0 0 12px 4px rgba(255,255,255,0.9)' : 'none',
               transition: 'opacity 0.4s ease, box-shadow 0.6s ease',
             }}

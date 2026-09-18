@@ -34,6 +34,9 @@ function yForCheckIn(c: PolyvagalCheckIn, padTop: number, height: number): numbe
 export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', onPointClick }: PolyvagalDayChartProps) {
   const t = useT();
   const { settings } = useSettings();
+  const isExtended = !!settings.arousalExtendedMode;
+  const extWindowStart = settings.arousalWindowStart ?? 0;
+  const extWindowEnd = settings.arousalWindowEnd ?? 55;
   const width = expanded ? 640 : 320;
   const height = expanded ? 320 : 180;
   const padX = expanded ? 118 : 66;
@@ -86,27 +89,54 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', 
       role="img"
       aria-label={t.polyvagal.title}
     >
-      {/* "Jede Zone mit Hintergrundfarbe"-Auftrag — all six bands get
-       * their own soft tinted background and label now, not just the
-       * zone 2 fokus-sweetspot, so the chart reads the same "six full-
-       * width colored bands" language as the ladder slider itself. */}
-      {AROUSAL_BANDS.map((b) => (
-        <rect key={b.id} x={padX} y={yAt(b.min)} width={width - padX - 8} height={Math.max(yAt(b.max) - yAt(b.min), 1)} fill={`${b.color}1a`} />
-      ))}
-      {AROUSAL_BANDS.map((b, i) => {
-        if (i === 0) return null;
-        const y = yAt(b.min);
-        return <line key={b.id} x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />;
-      })}
-      {expanded &&
-        AROUSAL_BANDS.map((b) => {
-          const zoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
-          return (
-            <text key={b.id} x={4} y={yAt((b.min + b.max) / 2) + 3} fontSize={9.5} fill={b.color} fontWeight={600}>
-              {zoneT.label}
+      {/* "Zwei Modi im Diagramm-Hintergrund"-Auftrag — Grundmodus keeps
+       * all six zone bands, exactly as before. Erweiterter Modus swaps
+       * that for a single comfort-tinted band over the person's own
+       * calibrated window plus a gray "currently unreachable calm"
+       * band toward the calmer side — matching the ladder slider's own
+       * dynamic coloring. The plotted line/points always use the real
+       * biological value either way; only this background changes. */}
+      {isExtended ? (
+        <>
+          {extWindowStart > 0 && (
+            <rect x={padX} y={yAt(0)} width={width - padX - 8} height={Math.max(yAt(extWindowStart) - yAt(0), 1)} fill="#9a9a9a1a" />
+          )}
+          <rect
+            x={padX}
+            y={yAt(extWindowStart)}
+            width={width - padX - 8}
+            height={Math.max(yAt(extWindowEnd) - yAt(extWindowStart), 1)}
+            fill="#6fae5a26"
+          />
+          <line x1={padX} y1={yAt(extWindowStart)} x2={width - 8} y2={yAt(extWindowStart)} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />
+          <line x1={padX} y1={yAt(extWindowEnd)} x2={width - 8} y2={yAt(extWindowEnd)} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />
+          {expanded && (
+            <text x={4} y={yAt((extWindowStart + extWindowEnd) / 2) + 3} fontSize={9.5} fill="#6fae5a" fontWeight={600}>
+              {t.polyvagal.arousalChronicleRangeLabel}
             </text>
-          );
-        })}
+          )}
+        </>
+      ) : (
+        <>
+          {AROUSAL_BANDS.map((b) => (
+            <rect key={b.id} x={padX} y={yAt(b.min)} width={width - padX - 8} height={Math.max(yAt(b.max) - yAt(b.min), 1)} fill={`${b.color}1a`} />
+          ))}
+          {AROUSAL_BANDS.map((b, i) => {
+            if (i === 0) return null;
+            const y = yAt(b.min);
+            return <line key={b.id} x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />;
+          })}
+          {expanded &&
+            AROUSAL_BANDS.map((b) => {
+              const zoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
+              return (
+                <text key={b.id} x={4} y={yAt((b.min + b.max) / 2) + 3} fontSize={9.5} fill={b.color} fontWeight={600}>
+                  {zoneT.label}
+                </text>
+              );
+            })}
+        </>
+      )}
 
       {pathD && <path d={pathD} fill="none" stroke="var(--color-text-faint)" strokeWidth={1.5} opacity={0.5} />}
 

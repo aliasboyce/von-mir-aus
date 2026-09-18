@@ -499,6 +499,17 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Vollständige Gesamtanalyse der App
 - Realistisches Praxistesten vorbereiten
 
+## Für später (neu ergänzt, diese Sitzung)
+- Bei Brücken: eigene Hindernisse ergänzen können (bei "Brücke bearbeiten"), die dann automatisch app-weit überall verfügbar sind, wo Hindernisse vorkommen
+- Bei Brücken: mehrere Kategorien gleichzeitig auswählbar machen
+- Wetter-Kreis: drehbar + neue Zustände (Schnee, Hagel, Brise, Wind, Sturm, Tornado, Hurrikan, Hitze/Dürre, Frost/Kälte)
+- Wesen-Fenster am Laptop wieder abgeschnitten/nicht sichtbar (Regression erneut aufgetreten)
+- Witze/Rätsel-Pool: Nutzer will nochmal durchgehen was bleibt/raus soll, plus eigene konkrete Beiträge ergänzen
+- Einfaches Spiel mit dem Wesen (z. B. Hüpfen)
+- Low-Capacity-Prinzip: Oberfläche passt sich interaktionsbasiert an geringere Kapazität an
+- Mehr vorgespeicherte Beispiel-Vorlagen fürs Tagebuch
+- "Das ist mir hier jetzt alles zu viel"-Option mit gezielter Führung durchs Wesen
+
 ## Grundsatzprinzipien (als Leitlinie bei jeder künftigen Entscheidung)
 - Resonanz statt Optimierung, Wahl statt Zwang, Zugang statt Leistung
 - "Das hilft gerade nicht" muss bei Übungen immer möglich sein

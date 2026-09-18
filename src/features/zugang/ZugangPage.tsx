@@ -14,6 +14,7 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { createId } from '../../services/storage/repository';
 import { SuggestionMultiSelect } from './SuggestionMultiSelect';
+import { BodySensationPicker } from './BodySensationPicker';
 import { zugangRepo, SURVIVAL_TO_POLYVAGAL_ZONE } from './zugangRepo';
 import { getCustomSuggestions, addCustomSuggestion, editCustomSuggestion, removeCustomSuggestion } from './zugangSuggestions';
 import {
@@ -390,7 +391,7 @@ export function ZugangPage() {
         {step === 1 && (
           <div>
             <ZugangStepHeader question={t.zugang.step1Question} hint={t.zugang.step1Hint} />
-            <SuggestionMultiSelect
+            <BodySensationPicker
               suggestions={BODY_SENSATIONS_DE}
               customSuggestions={getCustomSuggestions('body')}
               selected={body}

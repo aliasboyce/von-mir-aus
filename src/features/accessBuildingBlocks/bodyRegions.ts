@@ -13,10 +13,23 @@ export type BodyRegion = 'kopf' | 'brust' | 'bauch' | 'arme' | 'beine' | 'ganzer
 export const BODY_REGION_ORDER: BodyRegion[] = ['kopf', 'brust', 'bauch', 'arme', 'beine', 'ganzerKoerper'];
 
 export const BODY_REGION_SENSATIONS: Record<BodyRegion, string[]> = {
-  kopf: ['schwere Augen', 'benommen', 'Watte im Kopf', 'Schwindel', 'angespannter Kiefer', 'trockener Mund'],
-  brust: ['Kloß im Hals', 'Enge im Brustkorb', 'Herzklopfen', 'flache Atmung', 'ruhig atmend'],
-  bauch: ['Übelkeit', 'zusammengezogener Magen', 'innere Unruhe', 'leer'],
-  arme: ['Kribbeln', 'taube Hände/Füße', 'kalte Hände', 'Zittern'],
+  kopf: [
+    'schwere Augen', 'benommen', 'Watte im Kopf', 'Schwindel', 'angespannter Kiefer', 'trockener Mund',
+    'klarer Blick', 'entspannte Stirn', 'klarer Kopf', 'hektischer Blick', 'Kieferpresse', 'Druck im Kopf',
+    'glanzloser Blick', 'sprachlos', 'eingefrorene Mimik',
+  ],
+  brust: [
+    'Kloß im Hals', 'Enge im Brustkorb', 'Herzklopfen', 'flache Atmung', 'ruhig atmend',
+    'gleichmäßige Atmung', 'ruhiger Puls', 'Atmung im Brustkorb', 'Puls im Hals spürbar',
+    'zugeschnürte Kehle', 'rasender Puls', 'Atem anhalten', 'sehr flache Atmung',
+    'Blutdruck sackt ab', 'aufrechte Grundspannung', 'Schluckbeschwerden',
+  ],
+  bauch: ['Übelkeit', 'zusammengezogener Magen', 'innere Unruhe', 'leer', 'Magenknurren', 'Flauen im Magen', 'Stechen im Magen'],
+  arme: ['Kribbeln', 'taube Hände/Füße', 'kalte Hände', 'Zittern', 'feuchte Hände', 'kalter Schweiß', 'Fäuste ballen', 'wie eingemauert', 'schlaffe Muskeln'],
   beine: ['wackelige Beine', 'schwere Glieder', 'taube Hände/Füße'],
-  ganzerKoerper: ['angespannt', 'frieren', 'heiß', 'Druck', 'warm', 'ruhig', 'entspannt', 'leicht', 'angenehm wach', 'weich', 'gelöst', 'stabil', 'angenehm schwer', 'energiegeladen', 'wach'],
+  ganzerKoerper: [
+    'angespannt', 'frieren', 'heiß', 'Druck', 'warm', 'ruhig', 'entspannt', 'leicht', 'angenehm wach', 'weich',
+    'gelöst', 'stabil', 'angenehm schwer', 'energiegeladen', 'wach', 'Verspannung im Nacken', 'hochgezogene Schultern',
+    'Tunnelblick', 'wie durch Watte', 'aus dem Körper schweben',
+  ],
 };

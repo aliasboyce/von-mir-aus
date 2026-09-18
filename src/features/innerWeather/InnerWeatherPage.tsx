@@ -13,7 +13,6 @@ import { WEATHER_META, NEED_META, NEED_ORDER } from './weatherMeta';
 import { polyvagalRepo, todaysCheckIns } from '../polyvagal/polyvagalRepo';
 import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
 import { ArousalModelExplainer } from '../polyvagal/ArousalModelExplainer';
-import { WindowOfToleranceIllustration } from '../polyvagal/WindowOfToleranceIllustration';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { MiniCurve } from '../polyvagal/MiniCurve';
 import { WeatherWheel } from './WeatherWheel';
@@ -50,7 +49,6 @@ export function InnerWeatherPage() {
   const { settings, updateSettings } = useSettings();
   const [recentDraft] = useState(() => loadRecentInnerWeatherDraft());
   const [step, setStep] = useState<Step>(recentDraft?.step ?? 'select');
-  const [showZoneHelp, setShowZoneHelp] = useState(false);
   const [condition, setCondition] = useState<WeatherCondition | null>(recentDraft?.condition ?? null);
   const [need, setNeed] = useState<NeedDirection | null>(recentDraft?.need ?? null);
   const [checkInId, setCheckInId] = useState<string | null>(recentDraft?.checkInId ?? null);
@@ -263,16 +261,6 @@ export function InnerWeatherPage() {
               {t.home.zoneStepHint}
             </p>
           </div>
-          <button onClick={() => setShowZoneHelp((v) => !v)} className="text-[12px] text-[var(--color-primary)] block mx-auto mb-4">
-            {showZoneHelp ? t.polyvagal.hideZoneHelpCta : t.polyvagal.showZoneHelpCta}
-          </button>
-          {showZoneHelp && (
-            <Card className="mb-5 animate-in">
-              <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.polyvagal.zoneHelpIntro}</p>
-              <WindowOfToleranceIllustration />
-              <p className="text-[11px] text-[var(--color-text-faint)] leading-relaxed mt-3">{t.polyvagal.zoneHelpCaveat}</p>
-            </Card>
-          )}
 
           <ArousalModelExplainer />
           <NervousSystemLadderSlider

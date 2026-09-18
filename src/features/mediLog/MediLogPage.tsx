@@ -151,7 +151,7 @@ export function MediLogPage() {
   }
 
   function generateOverallPdf() {
-    setPrintingOverallPdf({ medications: overallMedications, fromDate: overallPdfFrom, toDate: overallPdfTo });
+    setPrintingOverallPdf({ medications: filteredOverallMedications, fromDate: overallPdfFrom, toDate: overallPdfTo });
     setOverallPdfOpen(false);
     setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
   }
@@ -395,9 +395,10 @@ export function MediLogPage() {
   // filter — undefined means "no explicit selection yet", which is
   // treated as "all", so a person who never touches the filter sees
   // the exact same all-medications view as before this feature existed.
-  // Deliberately kept separate from overallMedications itself, and never
-  // touches the PDF export (still always exports every medication) — the
-  // filter is purely a display concern, not tied to the export at all.
+  // "PDF-Export soll die Auswahl beachten"-Auftrag — the PDF export now
+  // uses this same filtered selection too (see generateOverallPdf
+  // above), instead of always exporting every medication regardless of
+  // what's shown on screen.
   const [selectedMedicationKeys, setSelectedMedicationKeys] = useState<string[] | null>(null);
   const filteredOverallMedications = useMemo(
     () => (selectedMedicationKeys === null ? overallMedications : overallMedications.filter((m) => selectedMedicationKeys.includes(m.key))),

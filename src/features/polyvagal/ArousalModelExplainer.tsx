@@ -66,7 +66,7 @@ export function ArousalModelExplainer() {
             <>
               {levelContent.title && <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{levelContent.title}</p>}
               {levelContent.paragraphs.map((para, i) => (
-                <p key={i} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">
+                <p key={i} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3" style={{ whiteSpace: 'pre-line' }}>
                   {renderBold(para, `p${i}`)}
                 </p>
               ))}
