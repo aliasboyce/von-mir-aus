@@ -12,6 +12,14 @@ export const WEATHER_META: Record<
   regnerisch: { emoji: '🌧️', label: (t) => t.weather.regnerisch.label, hint: (t) => t.weather.regnerisch.hint },
   gewitter: { emoji: '⛈️', label: (t) => t.weather.gewitter.label, hint: (t) => t.weather.gewitter.hint },
   nebel: { emoji: '🌫️', label: (t) => t.weather.nebel.label, hint: (t) => t.weather.nebel.hint },
+  brise: { emoji: '🍃', label: (t) => t.weather.brise.label, hint: (t) => t.weather.brise.hint },
+  sturm: { emoji: '🌪️', label: (t) => t.weather.sturm.label, hint: (t) => t.weather.sturm.hint },
+  schnee: { emoji: '❄️', label: (t) => t.weather.schnee.label, hint: (t) => t.weather.schnee.hint },
+  hagel: { emoji: '🧊', label: (t) => t.weather.hagel.label, hint: (t) => t.weather.hagel.hint },
+  tornado: { emoji: '🌀', label: (t) => t.weather.tornado.label, hint: (t) => t.weather.tornado.hint },
+  hurrikan: { emoji: '🌊', label: (t) => t.weather.hurrikan.label, hint: (t) => t.weather.hurrikan.hint },
+  hitze: { emoji: '🥵', label: (t) => t.weather.hitze.label, hint: (t) => t.weather.hitze.hint },
+  frost: { emoji: '🥶', label: (t) => t.weather.frost.label, hint: (t) => t.weather.frost.hint },
 };
 
 /**
@@ -29,16 +37,32 @@ export const WEATHER_TO_ZONE: Record<WeatherCondition, PolyvagalZone> = {
   gewitter: 'sympathetic',
   regnerisch: 'dorsal',
   nebel: 'dorsal',
+  brise: 'ventral',
+  sturm: 'sympathetic',
+  schnee: 'dorsal',
+  hagel: 'sympathetic',
+  tornado: 'sympathetic',
+  hurrikan: 'sympathetic',
+  hitze: 'dorsal',
+  frost: 'dorsal',
 };
 
 export const WEATHER_ORDER: WeatherCondition[] = [
   'klar',
   'sonnig',
   'bewoelkt',
+  'brise',
   'windig',
-  'regnerisch',
-  'gewitter',
   'nebel',
+  'regnerisch',
+  'schnee',
+  'hagel',
+  'gewitter',
+  'sturm',
+  'tornado',
+  'hurrikan',
+  'hitze',
+  'frost',
 ];
 
 export const NEED_META: Record<

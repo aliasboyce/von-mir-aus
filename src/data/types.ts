@@ -18,7 +18,20 @@ export type WeatherCondition =
   | 'windig'
   | 'regnerisch'
   | 'gewitter'
-  | 'nebel';
+  | 'nebel'
+  /** "Wetter-Kreis drehbar + neue Zustaende"-Auftrag — eight more
+   * conditions alongside the original seven, covering a wider range
+   * of intensity (a gentle breeze through to a hurricane) and two
+   * temperature-only states that don't fit the original set at all
+   * (heat/drought, frost/cold). */
+  | 'brise'
+  | 'sturm'
+  | 'schnee'
+  | 'hagel'
+  | 'tornado'
+  | 'hurrikan'
+  | 'hitze'
+  | 'frost';
 
 export interface WeatherCheckIn {
   id: string;

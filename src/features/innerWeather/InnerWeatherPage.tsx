@@ -38,6 +38,14 @@ function reflectionFor(t: ReturnType<typeof useT>, condition: WeatherCondition):
     regnerisch: t.weather.reflect.regnerisch,
     gewitter: t.weather.reflect.gewitter,
     nebel: t.weather.reflect.nebel,
+    brise: t.weather.reflect.brise,
+    sturm: t.weather.reflect.sturm,
+    schnee: t.weather.reflect.schnee,
+    hagel: t.weather.reflect.hagel,
+    tornado: t.weather.reflect.tornado,
+    hurrikan: t.weather.reflect.hurrikan,
+    hitze: t.weather.reflect.hitze,
+    frost: t.weather.reflect.frost,
   };
   return map[condition];
 }
