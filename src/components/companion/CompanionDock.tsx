@@ -79,6 +79,31 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     window.addEventListener('companion-scale-change', onScaleChange);
     return () => window.removeEventListener('companion-scale-change', onScaleChange);
   }, []);
+
+  // "Wesen-Fenster am Laptop wieder abgeschnitten (Regression)"-Auftrag
+  // — clampOffset itself was already correct (re-reads window/card width
+  // fresh on every drag), but nothing re-checked a position the person
+  // had ALREADY dragged to if the window was resized afterwards without
+  // dragging again (e.g. shrinking the browser after placing the
+  // companion near the old edge) — the stored offset could then sit
+  // outside the new, smaller bounds. Re-clamping on resize keeps it
+  // inside the visible card no matter when the resize happens.
+  useEffect(() => {
+    // Runs once on mount too — a stored position from a previous,
+    // differently-sized window (or a different device entirely) should
+    // never be trusted as still valid before the very first resize event.
+    function reclamp() {
+      setOffset((prev) => {
+        const clamped = clampOffset(prev);
+        setCompanionOffset(clamped);
+        return clamped;
+      });
+    }
+    reclamp();
+    window.addEventListener('resize', reclamp);
+    return () => window.removeEventListener('resize', reclamp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scale]);
   const [picked, setPicked] = useState(false);
   const [justReleased, setJustReleased] = useState(false);
   const [joyBurst, setJoyBurst] = useState<'hop' | 'spin' | 'wobble' | 'dance' | null>(null);
@@ -222,7 +247,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     // Slightly less than the full sizeAllowance*2 here specifically —
     // "nicht ganz nach links"-Auftrag: the previous margin left a small
     // but noticeable gap before reaching the true left edge.
-    const minX = -(effectiveWidth - sizeAllowance * 1.3);
+    const minX = -(effectiveWidth - sizeAllowance * 1.42);
     const maxY = 0;
     const minY = -(window.innerHeight - bottomOffset - 140 * scale);
     return {

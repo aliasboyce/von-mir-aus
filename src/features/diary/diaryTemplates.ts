@@ -12,11 +12,14 @@ export interface DiaryTemplate {
 }
 
 /**
- * Deliberately just one built-in template for now — per the brief,
- * more will be added later. The architecture (this array + the
- * repository below) needs no change to grow: new built-ins are just
- * new entries here, right alongside user-created ones in the same
- * picker.
+ * "Mehr vorgespeicherte Beispiel-Vorlagen fuers Tagebuch"-Auftrag —
+ * grown from the original single built-in to a handful covering
+ * different angles (evening review, NVC, nervous system, gentle
+ * small-steps, gratitude, body check-in, connection to life, and a
+ * single difficult emotion). The architecture (this array + the
+ * repository below) needs no change to grow further: new built-ins
+ * are just new entries here, right alongside user-created ones in
+ * the same picker.
  */
 export const BUILTIN_DIARY_TEMPLATES: DiaryTemplate[] = [
   {
@@ -87,6 +90,84 @@ export const BUILTIN_DIARY_TEMPLATES: DiaryTemplate[] = [
       'How did I treat myself today?',
       "What did I need that I couldn't give myself?",
       'One sentence for myself for tomorrow:',
+    ],
+    isBuiltin: true,
+  },
+  {
+    // Ein bewusst leichter, dankbarkeitsorientierter Gegenpol zu den
+    // eher verarbeitenden Vorlagen oben — muss nicht jeden Tag um ein
+    // Problem kreisen.
+    id: 'builtin-dankbarkeit',
+    name: 'Dankbarkeit',
+    nameEn: 'Gratitude',
+    questions: [
+      'Was hat mich heute zum Lächeln gebracht, auch wenn es klein war?',
+      'Wofür bin ich heute dankbar?',
+      'Wer oder was hat mir heute gutgetan?',
+    ],
+    questionsEn: [
+      'What made me smile today, even if it was small?',
+      'What am I grateful for today?',
+      'Who or what felt good today?',
+    ],
+    isBuiltin: true,
+  },
+  {
+    // Knuepft an die Koerperwahrnehmungs-Seite und das Zonen-Modell an,
+    // ohne Prozentzahlen oder Fachbegriffe zu verlangen — bewusst
+    // niedrigschwellig gehalten.
+    id: 'builtin-koerper-checkin',
+    name: 'Körper-Check-in',
+    nameEn: 'Body check-in',
+    questions: [
+      'Wo in meinem Körper spüre ich gerade etwas besonders deutlich?',
+      'Wie fühlt sich meine Atmung gerade an?',
+      'Was würde meinem Körper jetzt gerade gut tun?',
+    ],
+    questionsEn: [
+      'Where in my body do I notice something especially clearly right now?',
+      'How does my breathing feel right now?',
+      'What would feel good to my body right now?',
+    ],
+    isBuiltin: true,
+  },
+  {
+    // An Zugangs eigenen "Verbindung zum Leben"-Schritt angelehnt —
+    // dieselbe Grundfrage, aber als eigenstaendige Tagebuch-Vorlage
+    // fuer Momente ohne akute Belastung.
+    id: 'builtin-verbindung-zum-leben',
+    name: 'Verbindung zum Leben',
+    nameEn: 'Connection to life',
+    questions: [
+      'Womit oder mit wem habe ich mich heute verbunden gefühlt?',
+      'Was ist mir heute wichtig gewesen?',
+      'Wo möchte ich morgen mehr Verbindung spüren?',
+    ],
+    questionsEn: [
+      'What or who did I feel connected to today?',
+      'What mattered to me today?',
+      'Where would I like to feel more connection tomorrow?',
+    ],
+    isBuiltin: true,
+  },
+  {
+    // Eine tiefer gehende, aber weiterhin wertfreie Vorlage fuer eine
+    // einzelne, schwer greifbare Emotion — bewusst getrennt von der
+    // GFK-Reflexion oben, die eher auf eine konkrete Situation zielt.
+    id: 'builtin-schwierige-emotion',
+    name: 'Eine schwierige Emotion verstehen',
+    nameEn: 'Understanding a difficult emotion',
+    questions: [
+      'Welches Gefühl ist gerade am stärksten da?',
+      'Wo im Körper spüre ich es?',
+      'Kenne ich dieses Gefühl von früher — woher könnte es kommen?',
+      'Was würde diesem Gefühl gerade helfen, ohne es wegzudrücken?',
+    ],
+    questionsEn: [
+      "What feeling is strongest right now?",
+      'Where in my body do I feel it?',
+      'Do I know this feeling from before — where might it come from?',
+      'What would help this feeling right now, without pushing it away?',
     ],
     isBuiltin: true,
   },
