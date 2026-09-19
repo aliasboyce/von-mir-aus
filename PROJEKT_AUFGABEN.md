@@ -492,23 +492,16 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Update-Benachrichtigung für Nutzer: bei jedem neuen App-Update sollen bestehende Nutzer eine Nachricht sehen ("[Name] hat wieder was verbessert, bitte lade die App neu auf deinen Home-Bildschirm") — Mechanismus noch zu klären (z. B. Versionsnummer-Vergleich beim Start)
 - Low-Capacity-Prinzip: Oberfläche passt sich rein interaktionsbasiert an geringere Kapazität an (noch nicht umgesetzt — siehe Notiz unten)
 - Kostenpflichtige Zusatzfunktionen / Spendenmöglichkeit prüfen
-- Mehr vorgespeicherte Beispiel-Vorlagen fürs Tagebuch
-- "Das ist mir hier jetzt grad alles zu viel"-Option: das Wesen lenkt gezielt durch, weil die App sehr viele Funktionen hat
 - Zusatzfunktionen für Therapeutinnen/Institutionen, optionale Auswertungen
 - "Neuroaffektives Bilderbuch" als fachliche Inspirationsquelle prüfen
 - Vollständige Gesamtanalyse der App
 - Realistisches Praxistesten vorbereiten
 
-## Für später (neu ergänzt, diese Sitzung)
-- Bei Brücken: eigene Hindernisse ergänzen können (bei "Brücke bearbeiten"), die dann automatisch app-weit überall verfügbar sind, wo Hindernisse vorkommen
-- Bei Brücken: mehrere Kategorien gleichzeitig auswählbar machen
-- Wetter-Kreis: drehbar + neue Zustände (Schnee, Hagel, Brise, Wind, Sturm, Tornado, Hurrikan, Hitze/Dürre, Frost/Kälte)
-- Wesen-Fenster am Laptop wieder abgeschnitten/nicht sichtbar (Regression erneut aufgetreten)
+## Für später (bereinigt — erledigte Punkte entfernt)
+- Wesen-Fenster am Laptop wieder abgeschnitten/nicht sichtbar — behoben und mehrfach getestet, bei erneutem Auftreten bitte konkretes Fenstermaß/Gerät nennen
 - Witze/Rätsel-Pool: Nutzer will nochmal durchgehen was bleibt/raus soll, plus eigene konkrete Beiträge ergänzen
 - Einfaches Spiel mit dem Wesen (z. B. Hüpfen)
 - Low-Capacity-Prinzip: Oberfläche passt sich interaktionsbasiert an geringere Kapazität an
-- Mehr vorgespeicherte Beispiel-Vorlagen fürs Tagebuch
-- "Das ist mir hier jetzt alles zu viel"-Option mit gezielter Führung durchs Wesen
 
 ## Grundsatzprinzipien (als Leitlinie bei jeder künftigen Entscheidung)
 - Resonanz statt Optimierung, Wahl statt Zwang, Zugang statt Leistung

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, History } from 'lucide-react';
@@ -42,7 +42,7 @@ import { resourcesRepo } from '../resources/resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { useSettings } from '../../state/SettingsContext';
-import type { ZugangSurvivalState } from '../../data/types';
+import type { ZugangSurvivalState, Bridge } from '../../data/types';
 import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
@@ -84,6 +84,7 @@ export function ZugangPage() {
   const [feelings, setFeelings] = useState<string[]>(recentDraft?.feelings ?? []);
   const [recognitionAnswer, setRecognitionAnswer] = useState<'ja' | 'nein' | 'gerade_nicht' | null>(null);
   const [openFeelingGroup, setOpenFeelingGroup] = useState<string | null>(null);
+  const [openNeedGroup, setOpenNeedGroup] = useState<string | null>(null);
   const [protectionStrategy, setProtectionStrategy] = useState<string[]>(recentDraft?.protectionStrategy ?? []);
   const [gardenOfferShown, setGardenOfferShown] = useState(false);
   const [careWish, setCareWish] = useState<string[]>(recentDraft?.careWish ?? []);
@@ -112,6 +113,31 @@ export function ZugangPage() {
   const [harderFactors, setHarderFactors] = useState<string[]>([]);
   const [whatMightHaveHelped, setWhatMightHaveHelped] = useState('');
   const [saved, setSaved] = useState(false);
+  // "Wo bricht der Zugang ab, soll im Rueckblick stehen"-Auftrag — a
+  // ref mirror so the unmount cleanup below always calls the LATEST
+  // saveEntry (closing over the current render's state), not a stale
+  // one captured back when the effect first mounted.
+  const saveEntryRef = useRef(saveEntry);
+  saveEntryRef.current = saveEntry;
+  const savedRef = useRef(saved);
+  savedRef.current = saved;
+  const stepRef = useRef(step);
+  stepRef.current = step;
+  const showIntroRef = useRef(showIntro);
+  showIntroRef.current = showIntro;
+
+  useEffect(() => {
+    return () => {
+      // Only worth recording if the person actually started (past the
+      // intro) and hasn't already reached one of the three real
+      // endings — an empty glance at the intro screen isn't a
+      // meaningful "abandoned" pass.
+      if (!savedRef.current && !showIntroRef.current && stepRef.current > 0) {
+        saveEntryRef.current('abandoned');
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Priority 8 — additive sync to a persisted draft so opening a
   // connected page (Nervensystem, Schutzstrategien, Brücken, ...) and
@@ -201,7 +227,7 @@ export function ZugangPage() {
     navigate(`/bruecken/${bridgeId}?fromZugang=1`);
   }
 
-  function saveEntry(endedVia: 'complete' | 'bridge' | 'safetynet' = 'complete') {
+  function saveEntry(endedVia: 'complete' | 'bridge' | 'safetynet' | 'abandoned' = 'complete') {
     const now = new Date().toISOString();
     zugangRepo.save({
       id: createId('zugang'),
@@ -222,6 +248,7 @@ export function ZugangPage() {
       harderFactors: harderFactors.length > 0 ? harderFactors : undefined,
       whatMightHaveHelped: whatMightHaveHelped.trim() || undefined,
       endedVia,
+      stoppedAtStep: endedVia === 'abandoned' ? step : undefined,
     });
     // The pass has genuinely concluded through one of its three real
     // endings — nothing left to resume, so the draft is cleared here
@@ -693,26 +720,36 @@ export function ZugangPage() {
             <div className="flex flex-col gap-4">
               {NEED_CATEGORY_GROUPS.map((g) => {
                 const items = isEnLang(settings) ? g.itemsEn : g.items;
+                const groupSelectedCount = items.filter((s) => need.includes(s)).length;
+                const isOpen = openNeedGroup === g.id;
                 return (
-                  <div key={g.id}>
-                    <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">
-                      {g.emoji} {isEnLang(settings) ? g.labelEn : g.label}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {items.map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => toggle(need, setNeed, s)}
-                          className="px-3.5 py-2 rounded-full text-[14px]"
-                          style={{
-                            background: need.includes(s) ? 'var(--color-primary)' : 'var(--color-surface-muted)',
-                            color: need.includes(s) ? 'var(--color-surface)' : 'var(--color-text)',
-                          }}
-                        >
-                          {s}
-                        </button>
-                      ))}
-                    </div>
+                  <div key={g.id} className="rounded-[var(--radius-lg)] border overflow-hidden" style={{ borderColor: isOpen ? 'var(--color-primary)' : 'var(--color-border)' }}>
+                    <button
+                      onClick={() => setOpenNeedGroup(isOpen ? null : g.id)}
+                      className="w-full flex items-center justify-between px-4 py-3 text-left"
+                    >
+                      <span className="text-[14px] text-[var(--color-text)]">
+                        {g.emoji} {isEnLang(settings) ? g.labelEn : g.label}
+                      </span>
+                      {groupSelectedCount > 0 && <span className="text-[12px] text-[var(--color-primary)]">{groupSelectedCount}</span>}
+                    </button>
+                    {isOpen && (
+                      <div className="px-4 pb-3.5 pt-0.5 flex flex-wrap gap-2">
+                        {items.map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => toggle(need, setNeed, s)}
+                            className="px-3.5 py-2 rounded-full text-[14px]"
+                            style={{
+                              background: need.includes(s) ? 'var(--color-primary)' : 'var(--color-surface-muted)',
+                              color: need.includes(s) ? 'var(--color-surface)' : 'var(--color-text)',
+                            }}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -780,8 +817,22 @@ export function ZugangPage() {
             {allBridges.length === 0 ? (
               <p className="text-[13px] text-[var(--color-text-faint)] text-center">{t.zugang.noBridgesYet}</p>
             ) : (
-              <div className="flex flex-col gap-2.5 mb-4">
-                {allBridges.map((b) => (
+              (() => {
+                // "Brücken-Anzeige übersichtlicher, erst passende"-Auftrag
+                // — with many saved bridges, one long flat list is
+                // overwhelming. Bridges whose linkedNeeds/linkedObstacles
+                // overlap with what the person actually picked in the
+                // steps just before this one are shown first and
+                // expanded; everything else collapses into "weitere
+                // Brücken" below instead of competing for attention.
+                const picked = new Set([...need, ...obstacle]);
+                const scored = allBridges.map((b) => ({
+                  bridge: b,
+                  matches: [...(b.linkedNeeds ?? []), ...(b.linkedObstacles ?? [])].filter((x) => picked.has(x)).length,
+                }));
+                const matching = scored.filter((s) => s.matches > 0).sort((a, b) => b.matches - a.matches);
+                const rest = scored.filter((s) => s.matches === 0);
+                const renderBridgeRow = (b: Bridge) => (
                   <button
                     key={b.id}
                     onClick={() => setBridgeId(b.id)}
@@ -794,8 +845,29 @@ export function ZugangPage() {
                       <p className="text-[12px] text-[var(--color-text-muted)]">{BRIDGE_CATEGORY_META[b.category]?.label(t)}</p>
                     </div>
                   </button>
-                ))}
-              </div>
+                );
+                return (
+                  <div className="mb-4">
+                    {matching.length > 0 && (
+                      <>
+                        <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.zugang.matchingBridgesLabel}</p>
+                        <div className="flex flex-col gap-2.5 mb-4">{matching.map((s) => renderBridgeRow(s.bridge))}</div>
+                      </>
+                    )}
+                    {rest.length > 0 &&
+                      (matching.length === 0 ? (
+                        <div className="flex flex-col gap-2.5">{rest.map((s) => renderBridgeRow(s.bridge))}</div>
+                      ) : (
+                        <details>
+                          <summary className="text-[13px] text-[var(--color-primary)] cursor-pointer mb-2 list-none">
+                            {t.zugang.moreBridgesLabel.replace('{count}', String(rest.length))}
+                          </summary>
+                          <div className="flex flex-col gap-2.5">{rest.map((s) => renderBridgeRow(s.bridge))}</div>
+                        </details>
+                      ))}
+                  </div>
+                );
+              })()
             )}
             {bridgeId ? (
               <div className="flex gap-2 animate-in">

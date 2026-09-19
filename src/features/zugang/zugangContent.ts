@@ -214,6 +214,13 @@ export const PROTECTION_STRATEGIES_DE = [
   'abschalten', 'nichts mehr fühlen', 'Kontrolle zurückgewinnen', 'analysieren',
   'möglichst still werden', 'Rückzug', 'perfekt sein wollen', 'Handy/Serien als Ablenkung',
   'sich klein machen', 'alles kontrollieren', 'sich anpassen', 'gefallen wollen', 'dissoziieren',
+  // "Auch weiss ich nicht / gerade gar nicht / positive Optionen"-Auftrag
+  // — die bisherige Liste war komplett auf Krisensituationen
+  // ausgerichtet. Das Zugangsrad soll aber auch in angenehmen Momenten
+  // funktionieren, ohne dass man sich eine Schutzstrategie andichten
+  // muss, die gerade gar nicht da ist.
+  'weiß ich nicht', 'gerade keine besondere Strategie', 'einfach offen bleiben',
+  'mich zeigen, wie ich bin', 'Nähe zulassen',
 ];
 
 /** Loose keyword hints suggesting a strategy might be worth turning
@@ -348,6 +355,12 @@ export const OBSTACLES_DE = [
   'Stimme aus der Vergangenheit', 'Zeitmangel', '„Ich darf das nicht.“', 'Angst vor Kontrollverlust',
   'Scham, Hilfe zu brauchen', 'Angst, andere zu belasten', '„Ich muss das alleine schaffen.“',
   'zu viele Aufgaben gleichzeitig',
+  // "Mehr normales, nicht nur therapeutisches"-Auftrag — die bisherige
+  // Liste war komplett psychologisch/therapeutisch gerahmt. Oft ist
+  // das Hindernis aber ganz praktisch, oder es gibt gerade schlicht
+  // keins.
+  'gerade keine Zeit', 'erstmal den Ort wechseln müssen', 'zu laut/unruhig hier',
+  'andere Menschen sind da', 'kein passender Moment gerade', 'gar nichts — es geht gerade gut',
 ];
 
 // ---------------------------------------------------------------------

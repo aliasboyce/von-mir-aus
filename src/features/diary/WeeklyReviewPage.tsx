@@ -122,7 +122,8 @@ export function WeeklyReviewPage() {
     // Zugang and Garten were entirely missing from the review before,
     // even though they're often where the more meaningful moments of a
     // week live.
-    const zugangCount = zugangRepo.getAll().filter((z) => new Date(z.createdAt).getTime() >= cutoff).length;
+    const zugangEntriesThisWeek = zugangRepo.getAll().filter((z) => new Date(z.createdAt).getTime() >= cutoff);
+    const zugangCount = zugangEntriesThisWeek.length;
     const gardenActive = gardenRepo.getAll().filter((g) => g.status === 'active');
     const gardenThisWeek = gardenActive
       .map((g) => {
@@ -136,7 +137,7 @@ export function WeeklyReviewPage() {
 
     return {
       checkIns, zoneCounts, resourceUses, bridgeUses, resourceNames, bridgeNames, helpfulYes,
-      diaryEntries, achievements, momentOfWeek, mediLogWeekly, zugangCount, gardenThisWeek, totalActivity,
+      diaryEntries, achievements, momentOfWeek, mediLogWeekly, zugangCount, zugangEntriesThisWeek, gardenThisWeek, totalActivity,
     };
   }, [settings.dailyReviewShowMediLog, DAYS]);
 
@@ -243,10 +244,82 @@ export function WeeklyReviewPage() {
                 <p className="text-[13px] font-medium text-[var(--color-text)] mb-3">{t.weeklyReview.zugangGartenTitle}</p>
                 <div className="flex flex-col gap-2">
                   {stats.zugangCount > 0 && (
-                    <p className="text-[13px] text-[var(--color-text-muted)]">
+                    <p className="text-[13px] text-[var(--color-text-muted)] mb-1">
                       {t.weeklyReview.zugangCount.replace('{count}', String(stats.zugangCount))}
                     </p>
                   )}
+                  {/* "Wirklich ALLES soll im Rueckblick stehen"-Auftrag —
+                   * every Zugang pass this week, completed or not, with
+                   * its actual notes — not just a bare count. Collapsed
+                   * per entry by default so a busy week doesn't turn
+                   * into a wall of text. */}
+                  {stats.zugangEntriesThisWeek.map((z) => (
+                    <details key={z.id} className="rounded-[var(--radius-md)]" style={{ background: 'var(--color-surface-muted)' }}>
+                      <summary className="px-3 py-2 text-[12.5px] cursor-pointer list-none flex items-center justify-between gap-2">
+                        <span className="text-[var(--color-text-muted)]">
+                          {new Date(z.createdAt).toLocaleDateString(settings.language === 'en' ? 'en-US' : 'de-DE', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
+                          {z.ichJetzt ? ` — "${z.ichJetzt.slice(0, 40)}${z.ichJetzt.length > 40 ? '…' : ''}"` : ''}
+                        </span>
+                        <span
+                          className="text-[11px] px-2 py-0.5 rounded-full flex-shrink-0"
+                          style={{
+                            background: z.endedVia === 'abandoned' ? 'var(--color-danger-soft)' : 'var(--color-primary-soft)',
+                            color: z.endedVia === 'abandoned' ? 'var(--color-danger)' : 'var(--color-primary)',
+                          }}
+                        >
+                          {z.endedVia === 'abandoned'
+                            ? t.weeklyReview.zugangAbandonedAt.replace('{step}', String(z.stoppedAtStep ?? '?'))
+                            : z.endedVia === 'bridge'
+                              ? t.weeklyReview.zugangEndedBridge
+                              : z.endedVia === 'safetynet'
+                                ? t.weeklyReview.zugangEndedSafetynet
+                                : t.weeklyReview.zugangEndedComplete}
+                        </span>
+                      </summary>
+                      <div className="px-3 pb-3 flex flex-col gap-1.5 text-[12.5px] text-[var(--color-text)]">
+                        {z.ichJetzt && (
+                          <p>
+                            <span className="text-[var(--color-text-faint)]">{t.zugang.step0Question}</span> {z.ichJetzt}
+                          </p>
+                        )}
+                        {z.body.length > 0 && (
+                          <p>
+                            <span className="text-[var(--color-text-faint)]">{t.zugang.step1Question}</span> {z.body.join(', ')}
+                          </p>
+                        )}
+                        {z.feelings.length > 0 && (
+                          <p>
+                            <span className="text-[var(--color-text-faint)]">{t.zugang.step3Question}</span> {z.feelings.join(', ')}
+                          </p>
+                        )}
+                        {z.protectionStrategy.length > 0 && (
+                          <p>
+                            <span className="text-[var(--color-text-faint)]">{t.zugang.step4Question}</span> {z.protectionStrategy.join(', ')}
+                          </p>
+                        )}
+                        {z.need.length > 0 && (
+                          <p>
+                            <span className="text-[var(--color-text-faint)]">{t.zugang.step6Question}</span> {z.need.join(', ')}
+                          </p>
+                        )}
+                        {z.obstacle.length > 0 && (
+                          <p>
+                            <span className="text-[var(--color-text-faint)]">{t.zugang.step7Question}</span> {z.obstacle.join(', ')}
+                          </p>
+                        )}
+                        {z.reflection && (
+                          <p>
+                            <span className="text-[var(--color-text-faint)]">{t.zugang.step9Question}</span> {z.reflection}
+                          </p>
+                        )}
+                        {z.whatMightHaveHelped && (
+                          <p>
+                            <span className="text-[var(--color-text-faint)]">{t.zugang.helpedLabel}</span> {z.whatMightHaveHelped}
+                          </p>
+                        )}
+                      </div>
+                    </details>
+                  ))}
                   {stats.gardenThisWeek.map((g) => (
                     <p key={g.name} className="text-[13px] text-[var(--color-text-muted)]">
                       🌱 {g.name} — {t.weeklyReview.gardenDays.replace('{count}', String(g.daysThisWeek))}

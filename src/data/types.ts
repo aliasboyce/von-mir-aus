@@ -969,7 +969,14 @@ export interface ZugangEntry {
    * zu einer Brücke" as the legitimate branch it is, rather than
    * silently looking like an unfinished questionnaire. Defaults to
    * 'complete' for anything saved before this field existed. */
-  endedVia?: 'complete' | 'bridge' | 'safetynet';
+  /** "Wo bricht der Zugang ab, soll im Rueckblick stehen"-Auftrag —
+   * 'abandoned' is a genuinely new ending: the person left without
+   * reaching complete/bridge/safetynet. stoppedAtStep records which
+   * step that was, so patterns of where passes tend to break off
+   * become visible over time instead of vanishing the moment someone
+   * navigates away. */
+  endedVia?: 'complete' | 'bridge' | 'safetynet' | 'abandoned';
+  stoppedAtStep?: number;
   /** "Verbinden" brief, Section 14 — never framed as success/failure.
    * What made access harder this time, and what might have helped —
    * an optional, gentle reflection, not an evaluation of the person. */

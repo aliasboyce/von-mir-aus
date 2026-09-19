@@ -318,6 +318,35 @@ button {
   35% { opacity: 0.14; }
   100% { opacity: 0; transform: translateY(-6px); }
 }
+@keyframes weather-breeze-drift {
+  0% { opacity: 0; transform: translateX(-10px) translateY(0); }
+  30% { opacity: 0.2; }
+  100% { opacity: 0; transform: translateX(24px) translateY(-4px); }
+}
+@keyframes weather-snow-fall {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  15% { opacity: 0.35; }
+  100% { transform: translateY(140px) translateX(10px); opacity: 0; }
+}
+@keyframes weather-hail-fall {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 0.4; }
+  100% { transform: translateY(150px); opacity: 0; }
+}
+@keyframes weather-tornado-spin {
+  0% { opacity: 0; transform: rotate(0deg) scale(0.7); }
+  30% { opacity: 0.18; }
+  100% { opacity: 0; transform: rotate(160deg) scale(1); }
+}
+@keyframes weather-heat-shimmer {
+  0%, 100% { opacity: 0; transform: translateY(0); }
+  50% { opacity: 0.16; transform: translateY(-4px); }
+}
+@keyframes weather-frost-crystallize {
+  0% { opacity: 0; }
+  40% { opacity: 0.2; }
+  100% { opacity: 0.08; }
+}
 
 .animate-in {
   animation: soft-fade-in var(--duration-md) var(--ease-soft) both;
@@ -588,4 +617,17 @@ button {
 .ladder-curve-dot {
   animation: ladder-curve-pulse 2s ease-in-out infinite, ladder-curve-drift 9s ease-in-out infinite;
   transform-origin: center;
+}
+
+/* "Aufleuchten und groesser werden bei Maus drueber"-Auftrag — the
+ * weather wheel's own per-item hover growth, independent from the
+ * rotation-based "liveScale" already applied via inline transform
+ * (both stack naturally since this only adds an extra hover scale on
+ * top through a CSS transition on the same element). */
+.weather-wheel-item:hover .weather-wheel-orb {
+  transform: scale(1.18);
+  box-shadow: 0 0 16px 6px var(--color-accent-clay);
+}
+.weather-wheel-orb {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }

@@ -95,3 +95,13 @@ export function colorForSensation(term: string): string | undefined {
   const zone = SENSATION_ZONE[term];
   return zone ? AROUSAL_BANDS[zone - 1].color : undefined;
 }
+
+/** "Kurze Beschreibung + Emotionen/Beduerfnisse beim Anklicken"-Auftrag
+ * — the full band for a sensation (not just its color), reusing the
+ * SAME hint text and F-states the arousal ladder itself already
+ * carries, rather than writing a second, separate description for
+ * every sensation term. Undefined for anything not in the map. */
+export function bandForSensation(term: string) {
+  const zone = SENSATION_ZONE[term];
+  return zone ? AROUSAL_BANDS[zone - 1] : undefined;
+}

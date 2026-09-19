@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass } from 'lucide-react';
+import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather } from 'lucide-react';
 import { LichtCompanion } from './LichtCompanion';
 import { DistractionOverlay } from './DistractionOverlay';
 import { GroundingOverlay } from './GroundingOverlay';
+import { TooMuchModal } from './TooMuchModal';
 import { getAnyLichtwesen } from './customLichtwesen';
 import { useSettings } from '../../state/SettingsContext';
 import { useCompanionSpoken } from '../../state/CompanionSpeechContext';
@@ -127,6 +128,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
   }, [settings.reduceMotion, settings.brainEnabled, settings.brainState]);
   const [distractionOpen, setDistractionOpen] = useState(false);
   const [groundingOpen, setGroundingOpen] = useState(false);
+  const [tooMuchOpen, setTooMuchOpen] = useState(false);
   const dragStart = useRef<{ x: number; y: number; offsetX: number; offsetY: number; moved: boolean } | null>(null);
 
   const isSleeping = settings.brainState === 'sleeping';
@@ -368,6 +370,16 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
                 <span className="companion-menu__subtext">{t.companion.helpMeOrientSubtext}</span>
               </span>
             </button>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setTooMuchOpen(true);
+              }}
+              className="companion-menu__item"
+            >
+              <Feather size={15} />
+              {t.companion.tooMuchCta}
+            </button>
             <button onClick={toggleSleep} className="companion-menu__item">
               {isSleeping ? <Sun size={15} /> : <Moon size={15} />}
               {isSleeping ? t.companion.wake : t.companion.sleep}
@@ -389,6 +401,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         )}
         {distractionOpen && <DistractionOverlay onClose={() => setDistractionOpen(false)} />}
         {groundingOpen && <GroundingOverlay onClose={() => setGroundingOpen(false)} />}
+        {tooMuchOpen && <TooMuchModal onClose={() => setTooMuchOpen(false)} />}
       </div>
     );
   }
@@ -457,6 +470,16 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
               <span className="companion-menu__subtext">{t.companion.helpMeOrientSubtext}</span>
             </span>
           </button>
+          <button
+            onClick={() => {
+              setMenuOpen(false);
+              setTooMuchOpen(true);
+            }}
+            className="companion-menu__item"
+          >
+            <Feather size={15} />
+            {t.companion.tooMuchCta}
+          </button>
           <button onClick={toggleSleep} className="companion-menu__item">
             {isSleeping ? <Sun size={15} /> : <Moon size={15} />}
             {isSleeping ? t.companion.wake : t.companion.sleep}
@@ -490,6 +513,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
       </div>
       {distractionOpen && <DistractionOverlay onClose={() => setDistractionOpen(false)} />}
       {groundingOpen && <GroundingOverlay onClose={() => setGroundingOpen(false)} />}
+      {tooMuchOpen && <TooMuchModal onClose={() => setTooMuchOpen(false)} />}
     </div>
   );
 }

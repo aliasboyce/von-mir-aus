@@ -155,6 +155,15 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
           {WEATHER_ORDER.map((condition, i) => {
             const pos = pointFor(i, total);
             const active = selected === condition;
+            // "Lebendig, wenn das Rad sich dreht"-Auftrag — how close
+            // this item currently is to the top marker, used to scale
+            // and glow it as it swings past during rotation, not just
+            // once it's settled/selected.
+            const rawAngle = ((i * stepDeg + rotation) % 360 + 360) % 360;
+            const distFromTop = Math.min(rawAngle, 360 - rawAngle);
+            const proximity = Math.max(0, 1 - distFromTop / (stepDeg * 1.5));
+            const liveScale = 1 + proximity * 0.35;
+            const liveGlow = proximity * 0.5;
             return (
               <button
                 key={condition}
@@ -165,21 +174,24 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
                 }}
                 aria-label={WEATHER_META[condition].label(t)}
                 aria-pressed={active}
-                className="absolute flex flex-col items-center gap-0.5"
+                className="absolute flex flex-col items-center gap-0.5 weather-wheel-item"
                 style={{
                   left: pos.x,
                   top: pos.y,
                   width: 56,
                   // counter-rotate each item's own content so the emoji/label
                   // always reads upright, only the ring positions spin
-                  transform: `translate(-50%, -50%) rotate(${-rotation}deg)`,
+                  transform: `translate(-50%, -50%) rotate(${-rotation}deg) scale(${liveScale})`,
+                  transition: dragging ? 'none' : 'transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+                  zIndex: active || proximity > 0.3 ? 2 : 1,
                 }}
               >
                 <span
-                  className="w-11 h-11 rounded-full flex items-center justify-center text-[19px] shadow-[var(--shadow-sm)]"
+                  className="w-11 h-11 rounded-full flex items-center justify-center text-[19px] shadow-[var(--shadow-sm)] weather-wheel-orb"
                   style={{
                     background: active ? 'var(--color-primary)' : 'var(--color-surface)',
                     border: active ? 'none' : '1px solid var(--color-border)',
+                    boxShadow: liveGlow > 0 ? `0 0 ${8 + liveGlow * 14}px ${liveGlow * 10}px var(--color-accent-clay)` : 'var(--shadow-sm)',
                   }}
                 >
                   {WEATHER_META[condition].emoji}
