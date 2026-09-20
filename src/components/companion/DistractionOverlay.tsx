@@ -22,20 +22,20 @@ interface DistractionOverlayProps {
   onClose: () => void;
 }
 
-const CATEGORY_ORDER: DistractionCategory[] = ['raetsel', 'wortspiele', 'brueckenwoerter', 'rechnen', 'sudoku', 'nachdenken', 'fakten', 'allgemeinwissen', 'humor', 'vokabeln', 'alles'];
+const CATEGORY_ORDER: DistractionCategory[] = ['raetsel', 'brueckenwoerter', 'rechnen', 'sudoku', 'nachdenken', 'fakten', 'allgemeinwissen', 'vokabeln', 'alles'];
 const DIFFICULTY_ORDER: DistractionDifficulty[] = ['leicht', 'mittel', 'schwer', 'sehr_schwer'];
 /** Only these categories actually contain difficulty-tagged content —
- * showing the picker for e.g. "Humor" would be a setting with no
- * effect, exactly the kind of "looks like a feature but does nothing"
- * problem this whole rework is fixing elsewhere in the app. */
-const DIFFICULTY_AWARE_CATEGORIES: DistractionCategory[] = ['raetsel', 'wortspiele', 'brueckenwoerter', 'sudoku'];
+ * showing the picker for a category without it would be a setting with
+ * no effect, exactly the kind of "looks like a feature but does
+ * nothing" problem this whole rework is fixing elsewhere in the app. */
+const DIFFICULTY_AWARE_CATEGORIES: DistractionCategory[] = ['raetsel', 'brueckenwoerter', 'sudoku'];
 
 function pickFromPool(pool: DistractionItem[], categoryKey: DistractionCategory, exclude: DistractionItem | null): DistractionItem {
   return pickUnseenFirst(pool, categoryKey, exclude);
 }
 
 const BUILTIN_CATEGORIES_FOR_ALLES: Exclude<DistractionCategory, 'rechnen' | 'alles' | 'vokabeln' | 'sudoku'>[] = [
-  'raetsel', 'wortspiele', 'brueckenwoerter', 'nachdenken', 'fakten', 'allgemeinwissen', 'humor',
+  'raetsel', 'brueckenwoerter', 'nachdenken', 'fakten', 'allgemeinwissen',
 ];
 
 /** A person's own addition to a built-in category has no natural
@@ -452,7 +452,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
           </p>
 
           {(difficulty === 'schwer' || difficulty === 'sehr_schwer') &&
-          (current.kind === 'raetsel' || current.kind === 'brueckenwort' || current.kind === 'wortspiel') &&
+          (current.kind === 'raetsel' || current.kind === 'brueckenwort') &&
           (current.answer || current.answerEn) ? (
             <div className="w-full max-w-[300px] flex flex-col items-center gap-2 mb-4">
               {freeTextState !== 'correct' && !revealed ? (
@@ -529,7 +529,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
               )}
             </div>
           ) : (
-            (current.kind === 'raetsel' || current.kind === 'frage' || current.kind === 'wortspiel') &&
+            (current.kind === 'raetsel' || current.kind === 'frage') &&
             (current.answer || current.answerEn) && (
               <div className="mb-4 min-h-[24px] text-center">
                 {revealed ? (

@@ -451,7 +451,7 @@ export function CompanionContentPage() {
   );
 }
 
-const DISTRACTION_KIND_ORDER: DistractionKind[] = ['raetsel', 'wortspiel', 'brueckenwort', 'fakt', 'wissen', 'witz', 'frage', 'entweder_oder', 'beobachtung'];
+const DISTRACTION_KIND_ORDER: DistractionKind[] = ['raetsel', 'brueckenwort', 'fakt', 'wissen', 'frage', 'entweder_oder', 'beobachtung'];
 
 /** Manages DISTRACTION_ITEMS — same active/inactive idea as the lines
  * above, but keyed by text (see distractionManagement.ts) since these

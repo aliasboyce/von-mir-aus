@@ -304,6 +304,22 @@ export const COMPANION_LINES: CompanionLine[] = [
   { id: 'hum-16', text: 'Kleiner Funfact über mich: Ich bin sehr gut im Dasein.', textEn: 'Fun fact about me: I\'m very good at existing.', category: 'humorvoll', page: '*', trigger: 'leerlauf' },
   { id: 'hum-17', text: 'Ich hab mir überlegt, jetzt besonders weise zu wirken. Frag mich nicht, wie.', textEn: 'I decided to look extra wise right now. Don\'t ask me how.', category: 'humorvoll', page: '*', trigger: 'leerlauf' },
   { id: 'hum-18', text: 'Falls es dich beruhigt: Ich finde dich auch an schlechten Tagen okay.', textEn: 'If it helps: I think you\'re okay even on the bad days.', category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  // "Witze sollen keine eigene Kategorie mehr sein, sondern random wie
+  // die anderen Sprueche"-Auftrag — die zehn behaltenen Witze (Nummern
+  // 11, 14-18, 20, 22-24 aus der urspruenglichen Liste von 30) ziehen
+  // hierher um, ins selbe humorvoll/leerlauf-System wie hum-1 bis
+  // hum-18, statt als separates, waehlbares Ablenkungs-Format zu
+  // existieren.
+  { id: 'hum-19', text: 'Ich habe versucht, positiv zu denken. Jetzt denke ich positiv darüber nach, dass ich es später nochmal versuchen könnte.', textEn: "I tried to think positively today. Now I'm positively thinking about maybe trying again tomorrow.", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-20', text: 'Manchmal rede ich mit mir selbst, weil ich Expertenrat brauche.', textEn: 'Sometimes I talk to myself because I need expert advice.', category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-21', text: 'Ich habe eine Beziehung zu meiner Snooze-Taste. Es ist kompliziert.', textEn: "I have a relationship with my snooze button. It's complicated.", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-22', text: 'Ich habe heute schon zwei Dinge erledigt: aufgewacht und dran gezweifelt.', textEn: "I've already accomplished two things today: waking up, and doubting it.", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-23', text: 'Mein Zeitmanagement ist erstaunlich konsequent: alles auf den letzten Drücker.', textEn: 'My time management is remarkably consistent: everything at the last minute.', category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-24', text: 'Kaffee: weil Erwachsensein keine Selbstwahl war.', textEn: "Coffee: because adulting wasn't my idea.", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-25', text: 'Meine To-do-Liste und ich haben eine Art offene Beziehung.', textEn: 'My to-do list and I have kind of an open relationship.', category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-26', text: 'Mein Gehirn hat um 23 Uhr immer die besten Ideen — nie, wenn ich sie brauche.', textEn: 'My brain always has its best ideas at 11pm — never when I actually need them.', category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-27', text: 'Ich bin keine Langschläferin, ich bin nur in einer anderen Zeitzone unterwegs.', textEn: "I'm not a late sleeper, I'm just operating on a different time zone.", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-28', text: 'Erwachsen sein bedeutet hauptsächlich zu fragen: „Habe ich das schon bezahlt?"', textEn: 'Being an adult mostly means asking yourself, "Did I already pay that bill?"', category: 'humorvoll', page: '*', trigger: 'leerlauf' },
   { id: 'trans-1', text: 'Gut. Weiter geht\u2019s.', textEn: 'Good. Onward.', category: 'feedback', page: '*', trigger: 'speichern' },
   { id: 'trans-2', text: 'Alles gespeichert.', textEn: 'All saved.', category: 'feedback', page: '*', trigger: 'speichern' },
   { id: 'trans-3', text: 'Das ist notiert.', textEn: 'Noted.', category: 'feedback', page: '*', trigger: 'speichern' },

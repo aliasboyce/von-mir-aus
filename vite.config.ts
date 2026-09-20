@@ -6,7 +6,9 @@ import { writeFileSync } from 'fs'
 // generated once per build and written to both the JS bundle (via
 // `define`, so the running app knows what version IT is) and to
 // public/version.json (so the running app can periodically re-fetch
-// that file — which vercel.json already marks no-cache — and compare
+// that file — vercel.json marks it no-cache, closing a gap where that
+// rule was missing before and Vercel's CDN could briefly serve a
+// stale copy right after a deploy — and compare
 // against its own id to notice a newer deploy exists).
 const buildId = String(Date.now())
 

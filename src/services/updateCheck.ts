@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
  * "Update-Benachrichtigung fuer Nutzer"-Auftrag — this is a 100%
  * client-side app with no backend to push a real notification, so
  * this is the closest practical equivalent: periodically re-fetch
- * version.json (vercel.json already marks it no-cache, same as
- * index.html) and compare its buildId against this running instance's
+ * version.json (now correctly marked no-cache in vercel.json — it
+ * wasn't before, meaning Vercel's CDN could briefly keep serving a
+ * stale version.json right after a deploy, delaying detection on a
+ * first visit) and compare its buildId against this running instance's
  * own __BUILD_ID__ (baked in at build time — see vite.config.ts).
  * A mismatch means a newer version has been deployed since this tab
  * was opened.
