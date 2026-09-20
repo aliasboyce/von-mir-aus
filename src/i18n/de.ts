@@ -690,7 +690,8 @@ const de = {
     seeDevelopment: 'Meine Entwicklung über die Zeit ansehen',
     todaysCheckInsCount: '{n} Check-ins heute',
     firstCheckInOfDay: 'Dein erster Check-in heute — der Anfang deiner heutigen Kurve.',
-    wheelDragHint: 'Am Rad ziehen, um durch alle Zustände zu drehen — oder direkt antippen.',
+    wheelDragHint: 'Am Rad ziehen zum Durchblättern — erst ein Antippen wählt aus und geht weiter.',
+    wheelConfirmCta: 'antippen zum Auswählen',
     reflect: {
       klar: 'Das klingt nach einem ruhigen, verbundenen Zustand — dein Nervensystem hat gerade Kapazität für Nähe und Klarheit.',
       sonnig: 'Das klingt nach einem guten, offenen Moment — genieß ihn, ohne ihn festhalten zu müssen.',

@@ -196,7 +196,15 @@
 .companion-dock {
   position: fixed;
   right: 16px;
-  z-index: 45;
+  /* "Wesen wieder abgeschnitten am Desktop"-Auftrag — this was the
+   * actual cause this time, not a positioning bug: WhatsNewCard sits
+   * at z-[350] and is full-width near the same bottom-right area,
+   * so it was visually covering the companion whenever both showed
+   * at once. The companion is a persistent, interactive element and
+   * should never be hidden behind a temporary notification card —
+   * raised just above it, but still below genuine blocking modals
+   * (which use z-[400] and higher). */
+  z-index: 355;
   display: flex;
   flex-direction: column;
   align-items: flex-end;

@@ -687,7 +687,8 @@ const en: TranslationDictionary = {
     seeDevelopment: 'See my development over time',
     todaysCheckInsCount: '{n} check-ins today',
     firstCheckInOfDay: "Your first check-in today — the start of today's curve.",
-    wheelDragHint: 'Drag the wheel to spin through every condition — or tap one directly.',
+    wheelDragHint: 'Drag the wheel to browse — a tap is what actually selects and continues.',
+    wheelConfirmCta: 'tap to select',
     reflect: {
       klar: "That sounds like a calm, connected state — your nervous system has some capacity for closeness and clarity right now.",
       sonnig: 'That sounds like a good, open moment — enjoy it without needing to hold onto it.',
