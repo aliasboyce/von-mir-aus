@@ -679,6 +679,17 @@ const de = {
     dismissHint: 'Verstanden',
     noMoreTipsSession: 'Keine Tipps mehr (diese Sitzung)',
   },
+  needsGame: {
+    title: 'Gefühl & Bedürfnis',
+    roundLabel: 'Runde {n} von {total}',
+    prompt: 'Welches Bedürfnis steckt hier am ehesten dahinter?',
+    affirmMatch: 'Genau — dieses Bedürfnis wird oft damit in Verbindung gebracht.',
+    affirmOther: 'Auch eine stimmige Verbindung. Oft wird dieses Gefühl auch mit „{need}“ in Verbindung gebracht — beides kann zutreffen.',
+    nextCta: 'Weiter',
+    finishCta: 'Fertig',
+    restartCta: 'Nochmal',
+    closingLine: 'Es gibt hier kein Richtig oder Falsch — nur ein Gefühl dafür, was zusammenhängen könnte.',
+  },
   weather: {
     title: 'Wie ist dein inneres Wetter gerade?',
     titleReturning: 'Willkommen zurück',

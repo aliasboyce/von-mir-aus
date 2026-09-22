@@ -30,6 +30,7 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { getHomeContext, getBestEffortWeather } from './homeContext';
 import { pickHomeContextLine } from './homeCompanionLines';
 import { WeatherExplainerModal } from '../innerWeather/WeatherExplainerModal';
+import { SkyAmbiance } from '../../components/shared/SkyAmbiance';
 
 function hasCheckedInToday(): boolean {
   const today = new Date().toDateString();
@@ -176,7 +177,8 @@ export function HomePage() {
   const greeting = t.home.hourlyGreetings[hour] ?? t.home.subtitle;
 
   return (
-    <div className="px-5 pt-8 pb-6 animate-in">
+    <div className="px-5 pt-8 pb-6 animate-in relative">
+      <SkyAmbiance />
       <div className="flex items-start justify-between mb-2">
         <div>
           <p className="text-[15px] text-[var(--color-text-muted)]">{greeting}</p>

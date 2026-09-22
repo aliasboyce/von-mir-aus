@@ -676,6 +676,17 @@ const en: TranslationDictionary = {
     dismissHint: 'Got it',
     noMoreTipsSession: 'No more tips (this session)',
   },
+  needsGame: {
+    title: 'Feeling & Need',
+    roundLabel: 'Round {n} of {total}',
+    prompt: 'Which need is most likely underneath this?',
+    affirmMatch: "Exactly — that's a need often connected with this feeling.",
+    affirmOther: 'That fits too. This feeling is also often connected with "{need}" — both can be true.',
+    nextCta: 'Next',
+    finishCta: 'Done',
+    restartCta: 'Again',
+    closingLine: "There's no right or wrong here — just a sense of what might be connected.",
+  },
   weather: {
     title: "How is your inner weather right now?",
     titleReturning: 'Welcome back',

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather } from 'lucide-react';
+import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather, HeartHandshake } from 'lucide-react';
 import { LichtCompanion } from './LichtCompanion';
 import { DistractionOverlay } from './DistractionOverlay';
+import { NeedsGame } from './NeedsGame';
 import { GroundingOverlay } from './GroundingOverlay';
 import { TooMuchModal } from './TooMuchModal';
 import { getAnyLichtwesen } from './customLichtwesen';
@@ -127,6 +128,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     return () => clearInterval(interval);
   }, [settings.reduceMotion, settings.brainEnabled, settings.brainState]);
   const [distractionOpen, setDistractionOpen] = useState(false);
+  const [needsGameOpen, setNeedsGameOpen] = useState(false);
   const [groundingOpen, setGroundingOpen] = useState(false);
   const [tooMuchOpen, setTooMuchOpen] = useState(false);
   const dragStart = useRef<{ x: number; y: number; offsetX: number; offsetY: number; moved: boolean } | null>(null);
@@ -364,6 +366,16 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
             <button
               onClick={() => {
                 setMenuOpen(false);
+                setNeedsGameOpen(true);
+              }}
+              className="companion-menu__item"
+            >
+              <HeartHandshake size={15} />
+              {t.needsGame.title}
+            </button>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
                 setGroundingOpen(true);
               }}
               className="companion-menu__item"
@@ -404,6 +416,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
           </div>
         )}
         {distractionOpen && <DistractionOverlay onClose={() => setDistractionOpen(false)} />}
+        {needsGameOpen && <NeedsGame onClose={() => setNeedsGameOpen(false)} />}
         {groundingOpen && <GroundingOverlay onClose={() => setGroundingOpen(false)} />}
         {tooMuchOpen && <TooMuchModal onClose={() => setTooMuchOpen(false)} />}
       </div>
@@ -461,6 +474,16 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
             <Sparkles size={15} />
             {t.companion.distractMe}
           </button>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                setNeedsGameOpen(true);
+              }}
+              className="companion-menu__item"
+            >
+              <HeartHandshake size={15} />
+              {t.needsGame.title}
+            </button>
           <button
             onClick={() => {
               setMenuOpen(false);
@@ -516,6 +539,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         <LichtCompanion size="small" presence={!!showTip} joyBurst={joyBurst} />
       </div>
       {distractionOpen && <DistractionOverlay onClose={() => setDistractionOpen(false)} />}
+        {needsGameOpen && <NeedsGame onClose={() => setNeedsGameOpen(false)} />}
       {groundingOpen && <GroundingOverlay onClose={() => setGroundingOpen(false)} />}
       {tooMuchOpen && <TooMuchModal onClose={() => setTooMuchOpen(false)} />}
     </div>

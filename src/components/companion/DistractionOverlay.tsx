@@ -451,9 +451,14 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
             {isEn ? current.textEn : current.text}
           </p>
 
-          {(difficulty === 'schwer' || difficulty === 'sehr_schwer') &&
-          (current.kind === 'raetsel' || current.kind === 'brueckenwort') &&
-          (current.answer || current.answerEn) ? (
+          {/* "Brueckenwoerter wirklich selbst erraten und eingeben, nicht aus
+           * Optionen waehlen"-Auftrag — brueckenwort always gets the
+           * free-text path now, regardless of difficulty (raetsel keeps
+           * its existing schwer/sehr_schwer-gated behavior unchanged). */}
+          {((current.kind === 'brueckenwort' && (current.answer || current.answerEn)) ||
+            ((difficulty === 'schwer' || difficulty === 'sehr_schwer') &&
+              current.kind === 'raetsel' &&
+              (current.answer || current.answerEn))) ? (
             <div className="w-full max-w-[300px] flex flex-col items-center gap-2 mb-4">
               {freeTextState !== 'correct' && !revealed ? (
                 <>
