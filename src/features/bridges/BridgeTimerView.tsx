@@ -10,6 +10,7 @@ import { triggerHaptic } from '../../services/haptics';
 import { playSound } from '../../services/sounds';
 import { CustomDurationInput } from '../timer/CustomDurationInput';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
+import { BreathingPulse, breathingPatternFor } from './BreathingPulse';
 
 interface BridgeTimerViewProps {
   contextLabel: string;
@@ -54,6 +55,7 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
   const t = useT();
   const { settings } = useSettings();
   useRegisterModalOpen(true);
+  const breathingPattern = breathingPatternFor(contextLabel);
   const [durationMin, setDurationMin] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [done, setDone] = useState(false);
@@ -282,7 +284,10 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
               ) : (
                 startLine && <p className="text-[14px] text-[var(--color-text-muted)] mb-3 max-w-[260px]">{startLine}</p>
               )}
-              <p className="text-[56px] font-light tabular-nums text-[var(--color-text)]">{formatTime(remaining)}</p>
+              <p className="text-[56px] font-light tabular-nums text-[var(--color-text)] relative">
+                {breathingPattern && <BreathingPulse pattern={breathingPattern} />}
+                <span className="relative">{formatTime(remaining)}</span>
+              </p>
               {durationMin === STOPWATCH_SENTINEL && (
                 <button
                   onClick={completeStopwatch}

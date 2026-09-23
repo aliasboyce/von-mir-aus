@@ -11,6 +11,7 @@ import { windowProgressRepo } from './windowProgressRepo';
 import { createId } from '../../services/storage/repository';
 import { triggerPrint } from '../../services/printSupport';
 import { WindowProgressPrintView } from './WindowProgressPrintView';
+import { NervousSystemWave } from './NervousSystemWave';
 import type { PolyvagalZone, ZugangSurvivalState } from '../../data/types';
 
 /**
@@ -427,6 +428,12 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
           })}
         </div>
       </div>
+
+      {/* "Nervensystem als Wasser-Bild"-Auftrag — placed right under
+       * the slider itself so the wave's stillness/turbulence reads as
+       * a direct extension of the value just chosen, not a separate,
+       * disconnected decoration elsewhere on the page. */}
+      <NervousSystemWave value={value} />
 
       {/* single unified status readout */}
       <div className="flex items-center justify-between px-1">

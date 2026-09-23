@@ -659,3 +659,28 @@ button {
   0%, 100% { transform: translateY(0) translateX(0); opacity: 0.15; }
   50% { transform: translateY(-14px) translateX(8px); opacity: 0.35; }
 }
+
+/* ---- BreathingPulse: rhythmic visual during breathing-bridge timers ---- */
+@keyframes breathe-478 {
+  0% { transform: scale(1); }
+  21% { transform: scale(1.32); }
+  58% { transform: scale(1.32); }
+  100% { transform: scale(1); }
+}
+@keyframes breathe-box {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.3); }
+  50% { transform: scale(1.3); }
+  75% { transform: scale(1); }
+  100% { transform: scale(1); }
+}
+@keyframes breathe-simple {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+/* ---- NervousSystemWave: water metaphor for arousal level ---- */
+@keyframes wave-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100px); }
+}

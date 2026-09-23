@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import type { WeatherCondition } from '../../data/types';
 
 interface WeatherAnimationProps {
@@ -6,27 +5,26 @@ interface WeatherAnimationProps {
 }
 
 /**
- * A brief (2.5s), calm animation that makes the just-picked weather
- * condition felt, not just read as a word - deliberately restrained:
- * no bright flashes, no fast movement, no full-bleed takeover.
+ * A calm, restrained ambient effect for the just-picked weather
+ * condition — no bright flashes, no fast movement, no full-bleed
+ * takeover.
  *
  * "Fuer jedes Wetter die passende Animation"-Auftrag — extended from
  * the original five conditions to cover all fifteen. Related
  * conditions share a visual family (brise/bewoelkt/windig all drift,
  * schnee/hagel/regnerisch all fall) rather than each getting a wholly
  * separate effect, so the set reads as one coherent system.
+ *
+ * "Als leiser Hintergrund bestehen bleiben, nicht nur kurz
+ * aufblitzen"-Auftrag — this used to force itself invisible after a
+ * fixed 2.5s via its own internal timer, regardless of how long the
+ * person actually stayed on the reflect step reading their result.
+ * Now it simply renders for as long as the caller keeps it mounted;
+ * every effect below loops gently (weather-*-fall effects already
+ * did, the ambient glow/drift ones are now infinite too) instead of
+ * playing once and freezing on its final, invisible frame.
  */
 export function WeatherAnimation({ condition }: WeatherAnimationProps) {
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    setVisible(true);
-    const timeout = setTimeout(() => setVisible(false), 2500);
-    return () => clearTimeout(timeout);
-  }, [condition]);
-
-  if (!visible) return null;
-
   const isSun = condition === 'klar' || condition === 'sonnig';
   const isClouds = condition === 'bewoelkt' || condition === 'windig';
   const isBreeze = condition === 'brise';
@@ -51,7 +49,7 @@ export function WeatherAnimation({ condition }: WeatherAnimationProps) {
           style={{
             background: 'radial-gradient(circle at 50% 20%, var(--color-accent-clay) 0%, transparent 65%)',
             opacity: 0.22,
-            animation: 'weather-sun-glow 2.5s ease-out both',
+            animation: 'weather-sun-glow 6s ease-in-out infinite',
           }}
         />
       )}
@@ -67,7 +65,7 @@ export function WeatherAnimation({ condition }: WeatherAnimationProps) {
               height: 22 - i * 3,
               background: 'var(--color-text-faint)',
               opacity: 0.16,
-              animation: `weather-cloud-drift 2.5s ease-in-out ${i * 0.2}s both`,
+              animation: `weather-cloud-drift 7s ease-in-out ${i * 0.6}s infinite`,
             }}
           />
         ))}
@@ -84,7 +82,7 @@ export function WeatherAnimation({ condition }: WeatherAnimationProps) {
               height: 3,
               background: 'var(--color-primary)',
               opacity: 0.18,
-              animation: `weather-breeze-drift 2.2s ease-in-out ${i * 0.25}s both`,
+              animation: `weather-breeze-drift 5s ease-in-out ${i * 0.5}s infinite`,
             }}
           />
         ))}
@@ -144,7 +142,7 @@ export function WeatherAnimation({ condition }: WeatherAnimationProps) {
       {isStorm && (
         <div
           className="absolute inset-0"
-          style={{ background: 'var(--color-text)', opacity: 0.05, animation: 'weather-storm-flash 2.5s ease-in-out both' }}
+          style={{ background: 'var(--color-text)', opacity: 0.05, animation: 'weather-storm-flash 6s ease-in-out infinite' }}
         />
       )}
 
@@ -154,7 +152,7 @@ export function WeatherAnimation({ condition }: WeatherAnimationProps) {
           style={{
             background: 'linear-gradient(180deg, transparent 0%, var(--color-text-faint) 50%, transparent 100%)',
             opacity: 0.14,
-            animation: 'weather-mist-drift 2.5s ease-in-out both',
+            animation: 'weather-mist-drift 7s ease-in-out infinite',
           }}
         />
       )}
@@ -172,7 +170,7 @@ export function WeatherAnimation({ condition }: WeatherAnimationProps) {
             border: '3px solid var(--color-text-faint)',
             borderRadius: '50% 50% 45% 45%',
             opacity: 0.18,
-            animation: 'weather-tornado-spin 2.5s ease-in-out both',
+            animation: 'weather-tornado-spin 6s ease-in-out infinite',
           }}
         />
       )}
@@ -183,7 +181,7 @@ export function WeatherAnimation({ condition }: WeatherAnimationProps) {
           style={{
             background: 'radial-gradient(circle at 50% 60%, var(--color-accent-clay) 0%, transparent 70%)',
             opacity: 0.16,
-            animation: 'weather-heat-shimmer 2.5s ease-in-out both',
+            animation: 'weather-heat-shimmer 5s ease-in-out infinite',
           }}
         />
       )}
@@ -194,7 +192,7 @@ export function WeatherAnimation({ condition }: WeatherAnimationProps) {
           style={{
             background: 'linear-gradient(160deg, var(--color-primary) 0%, transparent 60%)',
             opacity: 0.1,
-            animation: 'weather-frost-crystallize 2.5s ease-out both',
+            animation: 'weather-frost-crystallize 6s ease-in-out infinite',
           }}
         />
       )}

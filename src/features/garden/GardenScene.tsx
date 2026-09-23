@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import type { GardenEntry, GardenPlantStyle } from '../../data/types';
 import { progressFor, stageForProgress } from './gardenGrowth';
+import { currentPhaseAndSeason, pick, type SkyPhase, type Season } from '../../services/skyTime';
 
 interface PlantProps {
   x: number;
@@ -639,6 +641,113 @@ function LushnessLayer({ totalProgress, groundY }: { totalProgress: number; grou
   );
 }
 
+const SKY_GRADIENT_STOPS: Record<SkyPhase, [string, string]> = {
+  sunrise: ['#fde4c8', '#fbd3a8'],
+  day: ['#cfe6f5', '#e6f1f7'],
+  sunset: ['#f3c6a1', '#e8a898'],
+  night: ['#2b3350', '#3c4568'],
+};
+
+/** "Lebendiger machen — auch der Garten"-Auftrag — the same
+ * time-of-day/season rhythm SkyAmbiance brought to the home screen,
+ * adapted to SVG so the garden the person is literally growing also
+ * visibly lives through a day and a season, not just a generic static
+ * sky. Computed once per mount (garden entries changing shouldn't
+ * reroll the sky), sun/moon variant randomized the same way as the
+ * home screen for visual variety. */
+function GardenSky({ groundY }: { groundY: number }) {
+  const { phase, season, arch, moonVariant } = useMemo(() => {
+    const { phase, season, arch } = currentPhaseAndSeason();
+    return { phase, season, arch, moonVariant: pick(['crescent', 'craters', 'starry'] as const) };
+  }, []);
+
+  const isNight = phase === 'night';
+  const cx = 30 + arch * 250;
+  const cy = groundY - 20 - arch * 110;
+  const [c1, c2] = SKY_GRADIENT_STOPS[phase];
+
+  return (
+    <>
+      <defs>
+        <linearGradient id="garden-sky-time" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={c1} />
+          <stop offset="100%" stopColor={c2} />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="320" height={groundY} fill="url(#garden-sky-time)" opacity={isNight ? 0.4 : 0.45} />
+
+      {isNight && moonVariant === 'starry' &&
+        [
+          { x: 40, y: 20 }, { x: 260, y: 35 }, { x: 30, y: 70 }, { x: 180, y: 15 }, { x: 280, y: 90 },
+        ].map((s, i) => <circle key={i} cx={s.x} cy={s.y} r={1.3} fill="#fff" opacity={0.75} />)}
+
+      {isNight ? (
+        moonVariant === 'crescent' ? (
+          <g>
+            <circle cx={cx} cy={cy} r={11} fill="#c9d3e8" opacity={0.9} />
+            <circle cx={cx + 4} cy={cy - 2} r={11} fill={c2} />
+          </g>
+        ) : moonVariant === 'craters' ? (
+          <g>
+            <circle cx={cx} cy={cy} r={11} fill="#d9d6c9" opacity={0.9} />
+            <circle cx={cx - 3} cy={cy - 3} r={1.8} fill="rgba(160,155,140,0.4)" />
+            <circle cx={cx + 3} cy={cy + 2} r={2.2} fill="rgba(160,155,140,0.35)" />
+          </g>
+        ) : (
+          <circle cx={cx} cy={cy} r={11} fill="#c9d3e8" opacity={0.9} />
+        )
+      ) : (
+        <g>
+          <circle cx={cx} cy={cy} r={13} fill="#ffc23d" opacity={0.85} />
+          <circle cx={cx - 2} cy={cy - 2} r={13} fill="#fff2b8" opacity={0.5} />
+        </g>
+      )}
+
+      <GardenSeasonParticles season={season} groundY={groundY} />
+    </>
+  );
+}
+
+function GardenSeasonParticles({ season, groundY }: { season: Season; groundY: number }) {
+  const positions = [40, 90, 140, 190, 240, 280];
+  if (season === 'herbst') {
+    const colors = ['#c97a3d', '#d4a24a', '#a8542f', '#c7883a'];
+    return (
+      <>
+        {positions.map((x, i) => (
+          <ellipse key={i} cx={x} cy={20 + (i % 3) * 30} rx={3} ry={2} fill={colors[i % colors.length]} opacity={0.6} transform={`rotate(${i * 25} ${x} ${20 + (i % 3) * 30})`} />
+        ))}
+      </>
+    );
+  }
+  if (season === 'winter') {
+    return (
+      <>
+        {positions.map((x, i) => (
+          <circle key={i} cx={x} cy={15 + (i % 3) * 35} r={1.6} fill="#fff" opacity={0.75} />
+        ))}
+      </>
+    );
+  }
+  if (season === 'fruehling') {
+    return (
+      <>
+        {positions.map((x, i) => (
+          <circle key={i} cx={x} cy={18 + (i % 3) * 28} r={2.2} fill={i % 2 === 0 ? '#f6c9d6' : '#fdeef2'} opacity={0.65} />
+        ))}
+      </>
+    );
+  }
+  // sommer — a few warm drifting light points near the ground
+  return (
+    <>
+      {positions.slice(0, 4).map((x, i) => (
+        <circle key={i} cx={x} cy={groundY - 20 - (i % 2) * 15} r={1.8} fill="#fff4c2" opacity={0.6} />
+      ))}
+    </>
+  );
+}
+
 export function GardenScene({ entries, width = 320, height = 190, previewMode = false, justGrewIds, wateringId }: GardenSceneProps) {
   const groundY = 160;
   const visible = entries.filter((e) => e.status !== 'ended');
@@ -662,6 +771,7 @@ export function GardenScene({ entries, width = 320, height = 190, previewMode = 
         </linearGradient>
       </defs>
       <rect x="0" y="0" width="320" height={groundY} fill="url(#garden-sky)" opacity="0.5" />
+      {!previewMode && <GardenSky groundY={groundY} />}
       <path d={`M0,${groundY} Q160,${groundY - 8} 320,${groundY}`} fill="none" stroke="var(--color-border)" strokeWidth="1.5" />
       <path d={`M0,${groundY + 2} Q160,${groundY - 6} 320,${groundY + 2} L320,190 L0,190 Z`} fill="var(--color-primary-soft)" opacity="0.18" />
       <LushnessLayer totalProgress={totalProgress} groundY={groundY} />
