@@ -7,6 +7,7 @@ import { useSettings } from '../../state/SettingsContext';
 import { connectionCurvesStore, pairKey } from './connectionCurves';
 import type { CenterNodeConfig } from './networkCategories';
 import type { NetworkCategoryConfig, NetworkEntry } from '../../data/types';
+import { networkBackgroundStore, cssForNetworkBackground, type NetworkBackground } from './networkBackground';
 
 interface NetworkGraphProps {
   entries: NetworkEntry[];
@@ -25,6 +26,12 @@ interface NetworkGraphProps {
   onCancelConnecting?: () => void;
   /** tap-to-remove for an existing free connection line */
   onRemoveConnection?: (fromId: string, toId: string) => void;
+  /** "Sicherheitsnetz-Hintergrund einstellbar"-Auftrag — optional so
+   * callers that don't care (or haven't been updated) fall back to
+   * reading the store once on mount; SafetyNetPage passes this
+   * explicitly so a change from its background picker reflects live
+   * without needing this component to poll or subscribe to storage. */
+  background?: NetworkBackground;
 }
 
 function autoPosition(entry: NetworkEntry, index: number, total: number): { x: number; y: number } {
@@ -54,9 +61,12 @@ export function NetworkGraph({
   onCompleteConnection,
   onCancelConnecting,
   onRemoveConnection,
+  background,
 }: NetworkGraphProps) {
   const t = useT();
   const { settings } = useSettings();
+  const [ownBackground] = useState<NetworkBackground>(() => networkBackgroundStore.get());
+  const effectiveBackground = background ?? ownBackground;
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
@@ -302,8 +312,8 @@ export function NetworkGraph({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full select-none touch-none ${expanded ? 'h-full' : 'aspect-square'}`}
-      style={expanded ? undefined : { maxHeight: 340 }}
+      className={`relative w-full select-none touch-none rounded-[var(--radius-lg)] ${expanded ? 'h-full' : 'aspect-square'}`}
+      style={{ ...(expanded ? undefined : { maxHeight: 340 }), ...cssForNetworkBackground(effectiveBackground) }}
       onPointerDown={handleBgPointerDown}
       onPointerMove={handleBgPointerMove}
       onPointerUp={handleBgPointerUp}

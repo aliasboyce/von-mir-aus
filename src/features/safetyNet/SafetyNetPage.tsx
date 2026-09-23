@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Phone, Mail, Plus, Maximize2, Palette, FileDown } from 'lucide-react';
+import { Phone, Mail, Plus, Maximize2, Palette, FileDown, Image } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
@@ -18,6 +18,8 @@ import { resourcesRepo } from '../resources/resourcesRepo';
 import { syncAllFavoriteResourcesToNetwork } from './networkResourceSync';
 import { getIcon } from '../../components/icons/networkIcons';
 import { NetworkGraph } from './NetworkGraph';
+import { NetworkBackgroundPicker } from './NetworkBackgroundPicker';
+import { networkBackgroundStore, type NetworkBackground } from './networkBackground';
 import { NetworkGraphFullscreen } from './NetworkGraphFullscreen';
 import { NetworkLegend } from './NetworkLegend';
 import { NetworkDetailModal } from './NetworkDetailModal';
@@ -88,6 +90,8 @@ export function SafetyNetPage() {
   }, []);
   const [fullscreen, setFullscreen] = useState(false);
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
+  const [backgroundPickerOpen, setBackgroundPickerOpen] = useState(false);
+  const [networkBackground, setNetworkBackground] = useState<NetworkBackground>(() => networkBackgroundStore.get());
   const [centerNode, setCenterNode] = useState<CenterNodeConfig>(() => centerNodeStore.get() ?? DEFAULT_CENTER_NODE);
   const [centerEditorOpen, setCenterEditorOpen] = useState(false);
 
@@ -219,6 +223,13 @@ export function SafetyNetPage() {
             >
               <Palette size={18} />
             </button>
+            <button
+              onClick={() => setBackgroundPickerOpen(true)}
+              aria-label={t.network.backgroundPickerTitle}
+              className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+            >
+              <Image size={18} />
+            </button>
           </div>
         }
       />
@@ -260,6 +271,7 @@ export function SafetyNetPage() {
               onCompleteConnection={completeConnection}
               onCancelConnecting={() => setConnectingFromId(null)}
               onRemoveConnection={removeConnection}
+              background={networkBackground}
             />
             <button
               onClick={() => setFullscreen(true)}
@@ -354,6 +366,12 @@ export function SafetyNetPage() {
         onClose={() => setCategoryEditorOpen(false)}
         categories={categories}
         onChangeCategories={persistCategories}
+      />
+
+      <NetworkBackgroundPicker
+        open={backgroundPickerOpen}
+        onClose={() => setBackgroundPickerOpen(false)}
+        onChange={setNetworkBackground}
       />
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t.network.modalTitle} subtitle={t.network.modalSubtitle}>

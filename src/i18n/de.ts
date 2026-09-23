@@ -1125,6 +1125,11 @@ const de = {
     exportTitle: 'Mein Sicherheitsnetz',
     exportSubtitle: 'Menschen, Orte und Dinge, die dich stützen',
     exportedOn: 'Exportiert am',
+    backgroundPickerTitle: 'Hintergrund für dein Netzwerk',
+    backgroundDefault: 'Standard (ohne besonderen Hintergrund)',
+    backgroundColorLabel: 'Farbe',
+    backgroundGradientLabel: 'Verlauf',
+    backgroundImageLabel: 'Eigenes Bild',
   },
   safetyPlan: {
     title: 'Dein Sicherheitsplan',

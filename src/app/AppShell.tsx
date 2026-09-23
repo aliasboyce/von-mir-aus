@@ -87,7 +87,7 @@ export function AppShell() {
       document.removeEventListener('click', onClick, true);
     };
   }, []);
-  const { anyModalOpen } = useModalStack();
+  const { anyModalOpen, externalModalOpen } = useModalStack();
   const { heroMounted } = useHeroCompanion();
   const resolvedTheme = useResolvedTheme();
   const [showPrintFallback, setShowPrintFallback] = useState(false);
@@ -140,7 +140,15 @@ export function AppShell() {
   // time risked exactly the "doppeltes Wesen" (duplicate companion)
   // problem this app has been specifically fixed for elsewhere, and the
   // two bottom-fixed elements competed for the same screen space.
-  const hideCompanionDock = heroMounted || settings.tourActive;
+  // "Wesen doppelt beim Timer"-Auftrag — externalModalOpen covers the
+  // same problem for BridgeTimerView (its own companion already does
+  // something contextual — meditating pose, tap-to-interact — during
+  // the exercise, so the generic floating one peeking through in the
+  // corner was pure redundancy). Deliberately NOT anyModalOpen here —
+  // see ModalStackContext's doc comment for why that would unmount
+  // CompanionDock's own child overlays (DistractionOverlay etc.) the
+  // instant they open.
+  const hideCompanionDock = heroMounted || settings.tourActive || externalModalOpen;
 
   // First launch, step 1: no choice yet — always "Verlässlich", just ask the
   // person's name. Changing to a different companion is still possible any

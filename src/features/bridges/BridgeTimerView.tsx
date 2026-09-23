@@ -9,8 +9,9 @@ import { useSettings } from '../../state/SettingsContext';
 import { triggerHaptic } from '../../services/haptics';
 import { playSound } from '../../services/sounds';
 import { CustomDurationInput } from '../timer/CustomDurationInput';
-import { useRegisterModalOpen } from '../../state/ModalStackContext';
+import { useRegisterExternalModalOpen } from '../../state/ModalStackContext';
 import { BreathingPulse, breathingPatternFor } from './BreathingPulse';
+import { VisualCountdown } from './VisualCountdown';
 
 interface BridgeTimerViewProps {
   contextLabel: string;
@@ -54,7 +55,7 @@ function formatDurationLabel(min: number, t: ReturnType<typeof useT>): string {
 export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: BridgeTimerViewProps) {
   const t = useT();
   const { settings } = useSettings();
-  useRegisterModalOpen(true);
+  useRegisterExternalModalOpen(true);
   const breathingPattern = breathingPatternFor(contextLabel);
   const [durationMin, setDurationMin] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
@@ -283,6 +284,11 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
                 <p className="text-[14px] text-[var(--color-primary)] mb-3 max-w-[260px] animate-in">{tapLine}</p>
               ) : (
                 startLine && <p className="text-[14px] text-[var(--color-text-muted)] mb-3 max-w-[260px]">{startLine}</p>
+              )}
+              {durationMin != null && durationMin !== STOPWATCH_SENTINEL && (
+                <div className="mb-4">
+                  <VisualCountdown elapsedFraction={1 - remaining / (durationMin * 60)} />
+                </div>
               )}
               <p className="text-[56px] font-light tabular-nums text-[var(--color-text)] relative">
                 {breathingPattern && <BreathingPulse pattern={breathingPattern} />}

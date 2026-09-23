@@ -1122,6 +1122,11 @@ const en: TranslationDictionary = {
     exportTitle: 'My Safety Network',
     exportSubtitle: 'People, places and things that support you',
     exportedOn: 'Exported on',
+    backgroundPickerTitle: 'Background for your network',
+    backgroundDefault: 'Default (no special background)',
+    backgroundColorLabel: 'Color',
+    backgroundGradientLabel: 'Gradient',
+    backgroundImageLabel: 'Your own image',
   },
   safetyPlan: {
     title: 'Your safety plan',
