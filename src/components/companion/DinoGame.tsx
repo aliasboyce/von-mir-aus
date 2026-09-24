@@ -5,8 +5,9 @@ import { useSettings } from '../../state/SettingsContext';
 import { playSound } from '../../services/sounds';
 import { triggerHaptic } from '../../services/haptics';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
-import { useRegisterExternalModalOpen } from '../../state/ModalStackContext';
+import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { UsageCheckInPrompt } from './UsageCheckInPrompt';
+import { LichtCompanion } from './LichtCompanion';
 
 /**
  * "Spiel wie das Chrome-Dino-Spiel, mit dem Wesen"-Auftrag — replaces
@@ -25,6 +26,9 @@ const highScoreStore = createKeyValueStore<number>('dino-game-highscore', 0);
 const GROUND_Y = 118;
 const COMPANION_X = 46;
 const COMPANION_SIZE = 34;
+// LichtCompanion's own "small" size is a fixed 76px — scaled down to
+// match this game's proportions rather than redrawing it smaller.
+const COMPANION_DISPLAY_SCALE = COMPANION_SIZE / 76;
 const GRAVITY = 0.0022;
 const JUMP_VELOCITY = -0.62;
 const BASE_SPEED = 0.16; // px/ms
@@ -53,7 +57,17 @@ interface DinoGameProps {
 export function DinoGame({ onClose }: DinoGameProps) {
   const t = useT();
   const { settings } = useSettings();
-  useRegisterExternalModalOpen(true);
+  // "Lauf mit dem Wesen funktioniert nicht ausserhalb der Startseite"-
+  // Fund — this game is reached from CompanionDock's own menu on BOTH
+  // variants (hero and floating), making it a CHILD of CompanionDock
+  // whenever launched from the floating dock. useRegisterExternalModalOpen
+  // would hide CompanionDock itself the instant this mounts (see its own
+  // doc comment on why that's unsafe for such children) — unmounting
+  // this game before it could ever render. The plain hook still hides
+  // the bottom nav; no separate dock-hiding is needed anyway since this
+  // is already a full-screen z-400 overlay that visually covers the
+  // dock underneath, exactly like DistractionOverlay/GroundingOverlay.
+  useRegisterModalOpen(true);
   const [checkInOpen, setCheckInOpen] = useState(false);
 
   // "Nach 5 Min Spiel eine Erinnerung"-Auftrag — counts from when the
@@ -81,6 +95,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
   }, [checkInOpen]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const companionElRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
   const stateRef = useRef({
     running: false,
@@ -173,73 +188,6 @@ export function DinoGame({ onClose }: DinoGameProps) {
     if (!ctx) return;
     const width = canvas.width;
     const height = canvas.height;
-
-    function drawCompanion(x: number, y: number, squashed: boolean) {
-      if (!ctx) return;
-      const size = COMPANION_SIZE;
-      const cy = GROUND_Y - size / 2 + y;
-      ctx.save();
-      ctx.translate(x + size / 2, cy);
-      if (squashed) ctx.scale(1.15, 0.85);
-
-      // "Sieht zu unsuess aus, soll mehr Details wie das echte Wesen
-      // haben"-Auftrag — antenna + leaf, warm radial-gradient body
-      // (not a flat fill), two eyes with tiny highlights, rosy
-      // cheeks, a small smile: the same recognisable features the
-      // real LichtCompanion has, simplified for a 34px canvas sprite.
-      ctx.beginPath();
-      ctx.moveTo(0, -size / 2 + 2);
-      ctx.lineTo(0, -size / 2 - 7);
-      ctx.strokeStyle = '#8a5a2f';
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.ellipse(3, -size / 2 - 9, 4, 3, -0.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#5a9c5a';
-      ctx.fill();
-
-      const bodyGrad = ctx.createRadialGradient(-4, -4, 2, 0, 0, size / 2);
-      bodyGrad.addColorStop(0, '#fff2b8');
-      bodyGrad.addColorStop(1, '#f0b429');
-      ctx.beginPath();
-      ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
-      ctx.fillStyle = bodyGrad;
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(0, 3, size / 2 - 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#fff6d8';
-      ctx.fill();
-
-      // rosy cheeks
-      ctx.beginPath();
-      ctx.ellipse(-7, 5, 2.6, 1.8, 0, 0, Math.PI * 2);
-      ctx.ellipse(7, 5, 2.6, 1.8, 0, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(230,140,120,0.35)';
-      ctx.fill();
-
-      // two eyes
-      ctx.beginPath();
-      ctx.arc(-4, 0, 2.2, 0, Math.PI * 2);
-      ctx.arc(4, 0, 2.2, 0, Math.PI * 2);
-      ctx.fillStyle = '#3a2e20';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(-3.3, -0.8, 0.7, 0, Math.PI * 2);
-      ctx.arc(4.7, -0.8, 0.7, 0, Math.PI * 2);
-      ctx.fillStyle = '#fff';
-      ctx.fill();
-
-      // small smile
-      ctx.beginPath();
-      ctx.arc(0, 3, 3.5, 0.15 * Math.PI, 0.85 * Math.PI);
-      ctx.strokeStyle = '#8a6a3a';
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-
-      ctx.restore();
-    }
-
     function drawObstacle(o: Obstacle) {
       if (!ctx) return;
       const baseY = GROUND_Y - o.height;
@@ -410,7 +358,21 @@ export function DinoGame({ onClose }: DinoGameProps) {
 
       for (const o of s.obstacles) drawObstacle(o);
       for (const sp of s.sparks) drawSpark(sp);
-      drawCompanion(COMPANION_X, s.companionY, !s.onGround);
+      // "Wesen soll GENAU SO aussehen wie auf der Startseite"-Auftrag —
+      // the actual LichtCompanion component is rendered as a real HTML
+      // element on top of the canvas (see the JSX below) instead of an
+      // approximation drawn with canvas primitives; its position is
+      // updated directly via this ref each frame so it stays in sync
+      // with the physics without forcing a React re-render 60x/second.
+      if (companionElRef.current) {
+        const baseY = GROUND_Y - 76; // LichtCompanion's own 76px height, feet at the ground line
+        // "Soll GENAU SO aussehen wie auf der Startseite"-Auftrag — no
+        // squash/stretch distortion while jumping; a uniform scale
+        // keeps it undistorted and identical to how it looks anywhere
+        // else in the app, at every point of the jump arc.
+        companionElRef.current.style.transform =
+          `translate(${COMPANION_X}px, ${baseY + s.companionY}px) scale(${COMPANION_DISPLAY_SCALE})`;
+      }
 
       rafRef.current = requestAnimationFrame(tick);
     }
@@ -454,6 +416,13 @@ export function DinoGame({ onClose }: DinoGameProps) {
 
       <div className="relative">
         <canvas ref={canvasRef} width={320} height={150} className="rounded-[var(--radius-lg)]" style={{ background: 'var(--color-surface-muted)' }} />
+        <div
+          ref={companionElRef}
+          className="absolute top-0 left-0 pointer-events-none"
+          style={{ width: 76, height: 76, transformOrigin: 'top left', transform: `translate(${COMPANION_X}px, ${GROUND_Y - 76}px) scale(${COMPANION_DISPLAY_SCALE})` }}
+        >
+          <LichtCompanion size="small" sleepStateOverride={s.onGround ? 'awake' : undefined} />
+        </div>
         {s.started && !gameOverUi && (
           <div
             className="absolute top-2 right-2.5 text-[12px] tabular-nums px-2 py-0.5 rounded-full"

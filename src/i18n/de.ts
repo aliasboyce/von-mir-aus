@@ -688,7 +688,7 @@ const de = {
     noMedicationsYet: 'Noch kein Medikament im Tagebuch angelegt',
     openedAtLabel: 'Angebrochen am',
     totalTabletsLabel: 'Wie viele Tabletten enthält die Packung?',
-    tabletsPerDoseLabel: 'Wie viele Tabletten pro Einnahme?',
+    tabletsPerDoseLabel: 'Standardmenge pro Einnahme (nur als Ausweichwert, falls du bei einem Eintrag keine eigene Menge angibst — z. B. bei Bedarfsmedikation kannst du pro Eintrag 1 oder 2 eintragen)',
     addPhotoCta: 'Foto der Packung hinzufügen',
     remainingLabel: 'Noch {remaining} von {total} Tabletten',
     usedSoFarLabel: '{used} bereits verbraucht',

@@ -3,16 +3,19 @@ import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Card } from '../../components/ui/Card';
 import { useT } from '../../i18n';
-import { BODY_SENSATIONS_DE } from '../zugang/zugangContent';
-import { colorForSensation } from '../zugang/sensationZones';
 import { BodySilhouette } from './BodySilhouette';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
 
 /**
  * Priority 3 + Priority 15 of the "Verbinden, glätten" brief — Zugang's
  * body-sensation step, browsable on its own, extended into a fuller
- * explainer page. Still uses the exact same list (BODY_SENSATIONS_DE)
- * rather than a second, separately maintained one.
+ * explainer page.
+ *
+ * "Empfindungen doppelt"-Fund — this page used to also render its own
+ * flat list of every sensation word as colour-coded chips below the
+ * silhouette, duplicating exactly what the silhouette's own region
+ * browsing already offers. Removed; the silhouette is the one place
+ * to browse sensations here now.
  */
 export function BodyAwarenessReferencePage() {
   const t = useT();
@@ -50,22 +53,6 @@ export function BodyAwarenessReferencePage() {
           <p className="text-[12px] text-[var(--color-text-faint)] mb-4 text-center">{t.bodyAwarenessRef.silhouetteHint}</p>
           <BodySilhouette />
         </Card>
-
-        <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.bodyAwarenessRef.listLabel}</p>
-        <div className="flex flex-wrap gap-2">
-          {BODY_SENSATIONS_DE.map((s) => {
-            const color = colorForSensation(s);
-            return (
-              <span
-                key={s}
-                className="px-3 py-2 rounded-full text-[13px]"
-                style={color ? { background: `${color}18`, color, border: `1.5px solid ${color}` } : { background: 'var(--color-surface-muted)', color: 'var(--color-text)' }}
-              >
-                {s}
-              </span>
-            );
-          })}
-        </div>
 
         <p className="text-[12px] text-[var(--color-text-faint)] mt-6 leading-relaxed">{t.bodyAwarenessRef.footerNote}</p>
         <SourceNoteCard text={t.bodyAwarenessRef.sourceNote} />

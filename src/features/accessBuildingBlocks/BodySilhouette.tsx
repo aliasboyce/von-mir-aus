@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
 import { BODY_REGION_ORDER, BODY_REGION_SENSATIONS, type BodyRegion } from './bodyRegions';
 import { colorForSensation, bandForSensation } from '../zugang/sensationZones';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
+import { SENSATION_DESCRIPTIONS_DE, SENSATION_DESCRIPTIONS_EN } from '../zugang/sensationDescriptions';
 
 /**
  * Priority 6 — a simple, warm silhouette (not a literal anatomical
@@ -13,6 +15,7 @@ import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
  */
 export function BodySilhouette() {
   const t = useT();
+  const { settings } = useSettings();
   const [region, setRegion] = useState<BodyRegion>('ganzerKoerper');
   const [selectedSensation, setSelectedSensation] = useState<string | null>(null);
 
@@ -108,22 +111,23 @@ export function BodySilhouette() {
         })}
       </div>
 
-      {/* "Kurze Beschreibung + Emotionen beim Anklicken"-Auftrag —
-       * reuses the SAME zone hint and F-state explainers the arousal
-       * ladder itself already carries, rather than writing a second,
-       * separate description for every one of the ~90 sensation
-       * terms. */}
+      {/* "Jede Empfindung mit eigener 'kann'-Erklaerung statt der
+       * geteilten Zonen-Beschreibung"-Auftrag — SENSATION_DESCRIPTIONS
+       * has one bespoke text per term; the shared zone hint is now
+       * only a fallback for anything not in that list (e.g. a
+       * person's own custom addition to a region). */}
       {selectedSensation &&
         (() => {
           const band = bandForSensation(selectedSensation);
           if (!band) return null;
           const zoneT = t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones];
+          const bespoke = (settings.language === 'en' ? SENSATION_DESCRIPTIONS_EN : SENSATION_DESCRIPTIONS_DE)[selectedSensation];
           return (
             <div className="rounded-[var(--radius-lg)] p-3.5 mb-3 animate-in" style={{ background: `${band.color}14` }}>
               <p className="text-[13px] font-medium mb-1" style={{ color: band.color }}>
                 {selectedSensation} · {zoneT.label}
               </p>
-              <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{zoneT.hint}</p>
+              <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{bespoke ?? zoneT.hint}</p>
               <p className="text-[11.5px] text-[var(--color-text-faint)] mb-1.5">{t.bodyAwarenessRef.mayRelateToLabel}</p>
               <div className="flex flex-wrap gap-1.5">
                 {band.states.map((st) => {

@@ -685,7 +685,7 @@ const en: TranslationDictionary = {
     noMedicationsYet: 'No medication added to the log yet',
     openedAtLabel: 'Opened on',
     totalTabletsLabel: 'How many tablets does the package contain?',
-    tabletsPerDoseLabel: 'How many tablets per dose?',
+    tabletsPerDoseLabel: "Default amount per dose (only a fallback if you don't enter your own amount on an entry — e.g. for as-needed medication you can log 1 or 2 per entry)",
     addPhotoCta: 'Add a photo of the package',
     remainingLabel: '{remaining} of {total} tablets left',
     usedSoFarLabel: '{used} used so far',

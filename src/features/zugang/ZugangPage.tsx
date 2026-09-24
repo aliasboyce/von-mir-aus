@@ -37,7 +37,7 @@ import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
-import { BRIDGE_CATEGORY_META } from '../bridges/bridgeMeta';
+import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from '../bridges/bridgeMeta';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
@@ -854,17 +854,40 @@ export function ZugangPage() {
                         <div className="flex flex-col gap-2.5 mb-4">{matching.map((s) => renderBridgeRow(s.bridge))}</div>
                       </>
                     )}
-                    {rest.length > 0 &&
-                      (matching.length === 0 ? (
-                        <div className="flex flex-col gap-2.5">{rest.map((s) => renderBridgeRow(s.bridge))}</div>
-                      ) : (
-                        <details>
-                          <summary className="text-[13px] text-[var(--color-primary)] cursor-pointer mb-2 list-none">
+                    {rest.length > 0 && (
+                      <>
+                        {matching.length > 0 && (
+                          <p className="text-[12px] text-[var(--color-text-faint)] mb-2">
                             {t.zugang.moreBridgesLabel.replace('{count}', String(rest.length))}
-                          </summary>
-                          <div className="flex flex-col gap-2.5">{rest.map((s) => renderBridgeRow(s.bridge))}</div>
-                        </details>
-                      ))}
+                          </p>
+                        )}
+                        {/* "Nach Kategorien sortiert, zum Ausklappen"-Auftrag —
+                         * one flat list (whether it's everything, because
+                         * nothing matched the person's picks, or just the
+                         * leftover "rest" once a matching set is shown above)
+                         * was still too much. Grouping by the same eleven
+                         * categories bridges already use everywhere else,
+                         * each independently collapsible, lets a person open
+                         * just the one or two groups they actually want. */}
+                        <div className="flex flex-col gap-2">
+                          {BRIDGE_CATEGORY_ORDER.map((cat) => {
+                            const inCat = rest.filter((s) => s.bridge.category === cat);
+                            if (inCat.length === 0) return null;
+                            const meta = BRIDGE_CATEGORY_META[cat];
+                            return (
+                              <details key={cat} className="rounded-[var(--radius-lg)] border border-[var(--color-border)] px-3 py-2">
+                                <summary className="text-[13px] text-[var(--color-text)] cursor-pointer list-none flex items-center gap-2">
+                                  <meta.icon size={14} className="text-[var(--color-text-faint)]" />
+                                  {meta.label(t)}
+                                  <span className="text-[var(--color-text-faint)]">({inCat.length})</span>
+                                </summary>
+                                <div className="flex flex-col gap-2.5 mt-2.5">{inCat.map((s) => renderBridgeRow(s.bridge))}</div>
+                              </details>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
                   </div>
                 );
               })()

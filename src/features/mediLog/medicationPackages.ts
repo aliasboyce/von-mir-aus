@@ -1,47 +1,48 @@
 import type { MedicationPackage, MediLogEntry } from '../../data/types';
 
-/** Tablets used so far = count of matching, actually-taken log entries
- * (medicationId match, status !== 'skipped', at/after the package's
- * openedAt) times tabletsPerDose. Computed live from the log rather
- * than stored as a running counter, so editing or deleting a past
- * entry automatically keeps the package's numbers correct too. */
-export function tabletsUsed(pkg: MedicationPackage, entries: MediLogEntry[]): number {
+function matchingEntries(pkg: MedicationPackage, entries: MediLogEntry[]): MediLogEntry[] {
   const openedTime = new Date(pkg.openedAt).getTime();
-  const matching = entries.filter(
+  return entries.filter(
     (e) => e.medicationId === pkg.medicationId && e.status !== 'skipped' && new Date(e.takenAt).getTime() >= openedTime,
   );
-  return matching.length * pkg.tabletsPerDose;
+}
+
+/** "Bedarfsmedikation, mal 1 mal 2 Tabletten"-Auftrag — each matching
+ * entry's own doseValue (when the person logged one) is used as the
+ * tablet count for that specific dose, so someone who sometimes takes
+ * 1 and sometimes 2 gets an accurate running total. The package's
+ * tabletsPerDose is only a fallback for entries that don't have a
+ * doseValue at all — never a fixed multiplier applied to every entry
+ * regardless of what was actually logged. Computed live from the log
+ * rather than stored as a running counter, so editing or deleting a
+ * past entry automatically keeps the numbers correct too. */
+export function tabletsUsed(pkg: MedicationPackage, entries: MediLogEntry[]): number {
+  return matchingEntries(pkg, entries).reduce((sum, e) => sum + (e.doseValue ?? pkg.tabletsPerDose), 0);
 }
 
 export function tabletsRemaining(pkg: MedicationPackage, entries: MediLogEntry[]): number {
   return Math.max(0, pkg.totalTablets - tabletsUsed(pkg, entries));
 }
 
-/** Doses remaining (not tablets) — what "1 week before empty" should
- * actually count against, since a person takes doses on a rhythm, not
- * tablets one at a time throughout the day. */
-function dosesRemaining(pkg: MedicationPackage, entries: MediLogEntry[]): number {
-  return Math.floor(tabletsRemaining(pkg, entries) / pkg.tabletsPerDose);
-}
-
-/** Average doses-per-day for this package's medication, from the
- * entries logged since it was opened — the basis for turning "doses
+/** Average tablets-per-day for this package's medication, from the
+ * entries logged since it was opened — the basis for turning "tablets
  * remaining" into a day estimate for the 1-week/3-day thresholds.
- * Falls back to 1/day (a reasonable default for most scheduled
+ * Works directly in tablets (not "doses") so it stays accurate
+ * whether every dose used the same amount or not. Falls back to
+ * tabletsPerDose/day (a reasonable default for most scheduled
  * medications) if there's not yet enough history to compute a rate. */
-function dosesPerDay(pkg: MedicationPackage, entries: MediLogEntry[]): number {
+function tabletsPerDay(pkg: MedicationPackage, entries: MediLogEntry[]): number {
+  const matching = matchingEntries(pkg, entries);
+  if (matching.length < 2) return pkg.tabletsPerDose;
   const openedTime = new Date(pkg.openedAt).getTime();
-  const matching = entries.filter(
-    (e) => e.medicationId === pkg.medicationId && e.status !== 'skipped' && new Date(e.takenAt).getTime() >= openedTime,
-  );
-  if (matching.length < 2) return 1;
   const days = Math.max(1, (Date.now() - openedTime) / 86400000);
-  return matching.length / days;
+  return tabletsUsed(pkg, entries) / days;
 }
 
 export function daysUntilEmpty(pkg: MedicationPackage, entries: MediLogEntry[]): number {
-  const rate = dosesPerDay(pkg, entries);
-  return dosesRemaining(pkg, entries) / rate;
+  const rate = tabletsPerDay(pkg, entries);
+  if (rate <= 0) return Infinity;
+  return tabletsRemaining(pkg, entries) / rate;
 }
 
 export type PackageLowStockLevel = 'none' | 'oneWeek' | 'threeDays';

@@ -16,6 +16,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-lebendige-app-dino-medipackungen',
+    date: '2026',
+    items: [
+      'Neu: Die Startseite und der Garten spiegeln jetzt Tageszeit und Jahreszeit wider — mit Sternenhimmel, Sonnenaufgang/-untergang und jahreszeitlichen Details.',
+      'Neu: Ein kleines Lauf-Spiel mit dem Wesen (erreichbar über das Wesen-Menü) — mit Zeit-Bonus fürs Funken-Sammeln.',
+      'Neu: Medikamenten-Packungen — trage an, wie viele Tabletten eine Packung hat, die App zählt den Verbrauch automatisch mit und warnt, wenn es knapp wird.',
+      'Der Timer bei Übungen zeigt jetzt einen ruhigen, dünnen Fortschrittsring statt einer groben Anzeige.',
+      'Die Nervensystem-Beschreibungen sind jetzt offener formuliert ("das kann bedeuten...") statt sehr bestimmt.',
+      'Mehrere kleinere Fehler behoben, u. a. beim "Eigenes erstellen" in den Ablenkungs-Kategorien und beim Wesen-Menü auf dem Laptop.',
+    ],
+    itemsEn: [
+      'New: The home screen and garden now reflect time of day and season — with a starry sky, sunrise/sunset, and seasonal details.',
+      "New: A small running game with your companion (reachable from the companion menu) — collect sparks for a time bonus.",
+      'New: Medication packages — enter how many tablets a package has, the app automatically tracks usage and warns when it\'s running low.',
+      'The exercise timer now shows a calm, thin progress ring instead of a bulkier display.',
+      'Nervous-system descriptions are now phrased more openly ("this can mean...") instead of very definite.',
+      'Several smaller fixes, including "create your own" in the distraction categories and the companion menu on laptop screens.',
+    ],
+  },
+  {
     id: '2026-koerper-detektiv-uebungen',
     date: '2026',
     items: [
