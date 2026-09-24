@@ -18,6 +18,7 @@ import { UpdateAvailableBanner } from '../components/shared/UpdateAvailableBanne
 import { WhatsNewCard } from '../components/shared/WhatsNewCard';
 import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
 import { playSound, warmUpAudio } from '../services/sounds';
+import { UsageCheckInPrompt } from '../components/companion/UsageCheckInPrompt';
 import { triggerHaptic } from '../services/haptics';
 
 /** Top-level section key used for per-page palette overrides — everything
@@ -92,6 +93,15 @@ export function AppShell() {
   const resolvedTheme = useResolvedTheme();
   const [showPrintFallback, setShowPrintFallback] = useState(false);
   useEffect(() => registerIOSPrintFallbackListener(() => setShowPrintFallback(true)), []);
+
+  // "Nach 15 Min in der App dieselbe Erinnerung"-Auftrag — counts once
+  // from when the app shell first mounts this session (not reset by
+  // navigating between pages within the app).
+  const [appCheckInOpen, setAppCheckInOpen] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setAppCheckInOpen(true), 15 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // "Nur jetzt"-Modus overhaul — the nav itself only offering a reduced
   // set of destinations (see BottomNav) is the primary UX signal, but a
@@ -238,6 +248,17 @@ export function AppShell() {
       <UpdateAvailableBanner />
       <WhatsNewCard />
       {showPrintFallback && <IOSPrintFallbackModal onClose={() => setShowPrintFallback(false)} />}
+
+      {appCheckInOpen && (
+        <UsageCheckInPrompt
+          context="app"
+          onContinue={() => setAppCheckInOpen(false)}
+          onExit={() => {
+            setAppCheckInOpen(false);
+            navigate('/');
+          }}
+        />
+      )}
     </div>
   );
 }

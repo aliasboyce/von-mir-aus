@@ -563,6 +563,34 @@ export interface SavedMedication {
   createdAt: string;
 }
 
+/**
+ * "Medi-Packungen eintragen"-Auftrag — a package of a saved
+ * medication: how many tablets it started with, how many have gone
+ * so far (auto-counted from matching MediLogEntry rows, not entered
+ * by hand), and an optional photo of the box. Deliberately its own
+ * record rather than a field on SavedMedication — a person can open
+ * a new package of the same medication before the old one is fully
+ * empty (overlap while switching), so "the current package" has to
+ * be a history, not a single value.
+ */
+export interface MedicationPackage {
+  id: string;
+  medicationId: string;
+  openedAt: string; // ISO date the package was entered/started
+  totalTablets: number;
+  /** how many tablets one logged dose uses up — lets the same package
+   * work whether a person takes 1 or 2 tablets per dose. Defaults to
+   * 1 for anyone who doesn't change it. */
+  tabletsPerDose: number;
+  photoDataUrl?: string;
+  createdAt: string;
+  /** which low-stock notices have already been shown for this
+   * package, so the same threshold doesn't re-announce itself every
+   * time the person opens the page. */
+  notified1Week?: boolean;
+  notified3Days?: boolean;
+}
+
 export type RecurringMedicationDay = 'mo' | 'tu' | 'we' | 'th' | 'fr' | 'sa' | 'su';
 
 /**

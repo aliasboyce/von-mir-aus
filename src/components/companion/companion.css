@@ -286,6 +286,16 @@
   box-shadow: var(--shadow-md);
   overflow: hidden;
   min-width: 168px;
+  /* "Wesen-Menue-Fenster am Laptop immer noch zu gross und
+   * abgeschnitten"-Auftrag — the menu is scaled by 1/companion-scale
+   * to stay readable regardless of companion size (see the inline
+   * style where this class is used), but at the smallest companion
+   * setting (75%) that inverse scale is ~1.33x — combined with the
+   * menu's naturally wide long-text items (like the orientation
+   * item's full hint sentence), this could grow past the viewport
+   * width with nothing capping it. A hard, viewport-aware max-width
+   * keeps it on-screen at any companion size or window width. */
+  max-width: min(300px, calc(100vw - 32px));
 }
 
 .companion-menu__hint {
@@ -334,6 +344,15 @@
   border: none;
   text-align: left;
   cursor: pointer;
+}
+
+/* Flex children default to min-width:auto, which resists shrinking —
+ * without this, a long single line (like the orientation item's full
+ * hint text) can force the whole menu wider than its own max-width
+ * instead of wrapping inside it. */
+.companion-menu__item > span {
+  flex: 1;
+  min-width: 0;
 }
 
 .companion-menu__item:not(:last-child) {

@@ -43,6 +43,7 @@ import { NetworkImportPage } from './features/safetyNet/NetworkImportPage';
 import { SimpleTimerPage } from './features/timer/SimpleTimerPage';
 import { GardenPage } from './features/garden/GardenPage';
 import { MediLogPage } from './features/mediLog/MediLogPage';
+import { MedicationPackagesPage } from './features/mediLog/MedicationPackagesPage';
 import { PolyvagalPage } from './features/polyvagal/PolyvagalPage';
 import { MeineEntwicklungPage } from './features/polyvagal/MeineEntwicklungPage';
 import { SafetyNetPage } from './features/safetyNet/SafetyNetPage';
@@ -100,6 +101,7 @@ function App() {
                 <Route path="/entdecken/timer" element={<SimpleTimerPage />} />
                 <Route path="/entdecken/garten" element={<GardenPage />} />
                 <Route path="/entdecken/medi-log" element={<MediLogPage />} />
+                <Route path="/entdecken/medi-log/packungen" element={<MedicationPackagesPage />} />
 
                 <Route path="/bruecken" element={<BridgesPage />} />
                 <Route path="/bruecken/:id" element={<BridgeDetailPage />} />

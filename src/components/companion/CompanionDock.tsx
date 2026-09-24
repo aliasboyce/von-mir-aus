@@ -342,7 +342,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
           </div>
         )}
         {menuOpen && (
-          <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right' }}>
+          <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right', maxWidth: `calc(${scale} * min(300px, 100vw - 32px))` }}>
             <div className="flex items-start justify-between gap-2">
               <p className="companion-menu__hint">{t.companion.moveHint}</p>
               <button onClick={() => setMenuOpen(false)} aria-label={t.common.close} className="companion-menu__close">
@@ -453,7 +453,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
       )}
 
       {menuOpen && (
-        <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right' }}>
+        <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right', maxWidth: `calc(${scale} * min(300px, 100vw - 32px))` }}>
             <div className="flex items-start justify-between gap-2">
               <p className="companion-menu__hint">{t.companion.moveHint}</p>
               <button onClick={() => setMenuOpen(false)} aria-label={t.common.close} className="companion-menu__close">

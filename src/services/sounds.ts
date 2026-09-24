@@ -12,7 +12,7 @@ import type { UserSettings } from '../data/types';
  * pass, saving a bridge) keep a very soft sine underneath for a touch
  * of warmth, but quieter and slower than a notification chime.
  */
-type SoundKind = 'click' | 'select' | 'settle' | 'menu' | 'close' | 'complete' | 'cancelFlow';
+type SoundKind = 'click' | 'select' | 'settle' | 'menu' | 'close' | 'complete' | 'cancelFlow' | 'sparkle';
 
 let ctx: AudioContext | null = null;
 function getContext(): AudioContext | null {
@@ -144,6 +144,29 @@ function scheduleComplete(audioCtx: AudioContext) {
     gain.connect(audioCtx.destination);
     osc.start(t);
     osc.stop(t + 0.55);
+  });
+}
+
+/** "Beim Funken sammeln ein ganz leises, sanftes Funkeln-Geraeusch"-
+ * Auftrag (Dino-Spiel) — two very quick, very quiet high sine tones,
+ * deliberately much quieter (0.02 vs 0.045) and shorter than
+ * scheduleComplete above, so it reads as a light shimmer in passing
+ * rather than a reward chime demanding attention. */
+function scheduleSparkle(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  [1400, 1900].forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    const t = now + i * 0.045;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.02, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + 0.16);
   });
 }
 
@@ -303,6 +326,7 @@ export function playSound(kind: SoundKind, settings: Pick<UserSettings, 'soundsE
       else if (kind === 'close') scheduleClose(audioCtx);
       else if (kind === 'complete') scheduleComplete(audioCtx);
       else if (kind === 'cancelFlow') scheduleCancelFlow(audioCtx);
+      else if (kind === 'sparkle') scheduleSparkle(audioCtx);
       else scheduleComplete(audioCtx); // 'settle' — same as 'complete', see below
     } catch {
       // Sound is a pure nice-to-have — never let it break the actual

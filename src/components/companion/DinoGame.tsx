@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
-import { playSound, playCompanionSound } from '../../services/sounds';
+import { playSound } from '../../services/sounds';
 import { triggerHaptic } from '../../services/haptics';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { useRegisterExternalModalOpen } from '../../state/ModalStackContext';
+import { UsageCheckInPrompt } from './UsageCheckInPrompt';
 
 /**
  * "Spiel wie das Chrome-Dino-Spiel, mit dem Wesen"-Auftrag — replaces
@@ -28,6 +29,8 @@ const GRAVITY = 0.0022;
 const JUMP_VELOCITY = -0.62;
 const BASE_SPEED = 0.16; // px/ms
 const SPEED_GROWTH = 0.000006; // added per ms survived
+const START_TIME_MS = 20000; // "es soll oben rechts eine Zeit ablaufen"-Auftrag
+const SPARK_TIME_BONUS_MS = 4000;
 
 type ObstacleKind = 'stein' | 'wurzel';
 interface Obstacle {
@@ -51,6 +54,31 @@ export function DinoGame({ onClose }: DinoGameProps) {
   const t = useT();
   const { settings } = useSettings();
   useRegisterExternalModalOpen(true);
+  const [checkInOpen, setCheckInOpen] = useState(false);
+
+  // "Nach 5 Min Spiel eine Erinnerung"-Auftrag — counts from when the
+  // game screen opens (matches "du spielst jetzt schon 5 Minuten" —
+  // time with the game open, not strictly active-play time), fires
+  // once per opening of the game.
+  useEffect(() => {
+    const timer = setTimeout(() => setCheckInOpen(true), 5 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // "Soll alles stoppen und sich oben drauf legen"-Auftrag — freeze
+  // the run itself (not just visually overlay) while the prompt is up.
+  const wasRunningBeforeCheckIn = useRef(false);
+  useEffect(() => {
+    const s = stateRef.current;
+    if (checkInOpen) {
+      wasRunningBeforeCheckIn.current = s.running;
+      s.running = false;
+    } else if (wasRunningBeforeCheckIn.current) {
+      s.lastTs = 0; // avoid a large dt jump on resume
+      s.running = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkInOpen]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
@@ -70,9 +98,11 @@ export function DinoGame({ onClose }: DinoGameProps) {
     nextSparkAt: 1600,
     score: 0,
     sparkCount: 0,
+    timeLeftMs: START_TIME_MS,
   });
 
   const [, forceRender] = useState(0);
+  const [displayTimeMs, setDisplayTimeMs] = useState(START_TIME_MS);
   const [displayScore, setDisplayScore] = useState(0);
   const lastScoreSyncRef = useRef(0);
   const [highScore, setHighScore] = useState(() => highScoreStore.get());
@@ -89,8 +119,8 @@ export function DinoGame({ onClose }: DinoGameProps) {
     if (!s.onGround) return;
     s.velocityY = JUMP_VELOCITY;
     s.onGround = false;
-    // "Beide Geraeusche gleichzeitig beim Springen"-Auftrag
-    playCompanionSound('wake', settings);
+    // "Nur der Klick-Ton beim Springen, der Aufwach-Ton ist nervig"-
+    // Auftrag — playCompanionSound('wake', ...) removed.
     playSound('click', settings);
     triggerHaptic('select', settings);
   }
@@ -112,16 +142,21 @@ export function DinoGame({ onClose }: DinoGameProps) {
     s.nextSparkAt = 1600;
     s.score = 0;
     s.sparkCount = 0;
+    s.timeLeftMs = START_TIME_MS;
     setDisplayScore(0);
+    setDisplayTimeMs(START_TIME_MS);
     lastScoreSyncRef.current = 0;
     setGameOverUi(false);
     forceRender((n) => n + 1);
   }
 
-  function endRun() {
+  const [gameOverReason, setGameOverReason] = useState<'collision' | 'timeout'>('collision');
+
+  function endRun(reason: 'collision' | 'timeout' = 'collision') {
     const s = stateRef.current;
     s.running = false;
     s.gameOver = true;
+    setGameOverReason(reason);
     const finalScoreVal = Math.floor(s.score);
     setFinalScore(finalScoreVal);
     if (finalScoreVal > highScoreStore.get()) {
@@ -146,38 +181,114 @@ export function DinoGame({ onClose }: DinoGameProps) {
       ctx.save();
       ctx.translate(x + size / 2, cy);
       if (squashed) ctx.scale(1.15, 0.85);
+
+      // "Sieht zu unsuess aus, soll mehr Details wie das echte Wesen
+      // haben"-Auftrag — antenna + leaf, warm radial-gradient body
+      // (not a flat fill), two eyes with tiny highlights, rosy
+      // cheeks, a small smile: the same recognisable features the
+      // real LichtCompanion has, simplified for a 34px canvas sprite.
+      ctx.beginPath();
+      ctx.moveTo(0, -size / 2 + 2);
+      ctx.lineTo(0, -size / 2 - 7);
+      ctx.strokeStyle = '#8a5a2f';
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(3, -size / 2 - 9, 4, 3, -0.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#5a9c5a';
+      ctx.fill();
+
+      const bodyGrad = ctx.createRadialGradient(-4, -4, 2, 0, 0, size / 2);
+      bodyGrad.addColorStop(0, '#fff2b8');
+      bodyGrad.addColorStop(1, '#f0b429');
       ctx.beginPath();
       ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
-      ctx.fillStyle = '#f0b429';
+      ctx.fillStyle = bodyGrad;
       ctx.fill();
+
       ctx.beginPath();
-      ctx.arc(0, 2, size / 2 - 7, 0, Math.PI * 2);
+      ctx.arc(0, 3, size / 2 - 6, 0, Math.PI * 2);
       ctx.fillStyle = '#fff6d8';
       ctx.fill();
+
+      // rosy cheeks
       ctx.beginPath();
-      ctx.arc(-2, 1, 3, 0, Math.PI * 2);
+      ctx.ellipse(-7, 5, 2.6, 1.8, 0, 0, Math.PI * 2);
+      ctx.ellipse(7, 5, 2.6, 1.8, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(230,140,120,0.35)';
+      ctx.fill();
+
+      // two eyes
+      ctx.beginPath();
+      ctx.arc(-4, 0, 2.2, 0, Math.PI * 2);
+      ctx.arc(4, 0, 2.2, 0, Math.PI * 2);
       ctx.fillStyle = '#3a2e20';
       ctx.fill();
+      ctx.beginPath();
+      ctx.arc(-3.3, -0.8, 0.7, 0, Math.PI * 2);
+      ctx.arc(4.7, -0.8, 0.7, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+
+      // small smile
+      ctx.beginPath();
+      ctx.arc(0, 3, 3.5, 0.15 * Math.PI, 0.85 * Math.PI);
+      ctx.strokeStyle = '#8a6a3a';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
       ctx.restore();
     }
 
     function drawObstacle(o: Obstacle) {
       if (!ctx) return;
       const baseY = GROUND_Y - o.height;
+      // "Steine und Wurzeln sollen mehr Details haben und cooler
+      // aussehen"-Auftrag — a shaded gradient, a cluster of smaller
+      // rocks instead of one flat ellipse, and a gnarled multi-branch
+      // root shape with a highlight instead of a plain triangle.
       if (o.kind === 'stein') {
+        const cx = o.x + o.width / 2;
+        const cy = baseY + o.height / 2;
+        const rockGrad = ctx.createRadialGradient(cx - o.width * 0.15, cy - o.height * 0.2, 1, cx, cy, o.width / 2);
+        rockGrad.addColorStop(0, '#b3ada0');
+        rockGrad.addColorStop(1, '#7a7468');
         ctx.beginPath();
-        ctx.ellipse(o.x + o.width / 2, baseY + o.height / 2, o.width / 2, o.height / 2, 0, 0, Math.PI * 2);
-        ctx.fillStyle = '#9a9488';
+        ctx.ellipse(cx, cy, o.width / 2, o.height / 2, 0, 0, Math.PI * 2);
+        ctx.fillStyle = rockGrad;
         ctx.fill();
+        // a smaller companion rock beside it
+        ctx.beginPath();
+        ctx.ellipse(o.x + o.width * 0.18, baseY + o.height * 0.75, o.width * 0.16, o.height * 0.22, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#8a8478';
+        ctx.fill();
+        // crack line for texture
+        ctx.beginPath();
+        ctx.moveTo(cx - o.width * 0.1, cy - o.height * 0.25);
+        ctx.lineTo(cx + o.width * 0.05, cy + o.height * 0.1);
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
       } else {
+        const grad = ctx.createLinearGradient(o.x, baseY, o.x, GROUND_Y);
+        grad.addColorStop(0, '#a3703f');
+        grad.addColorStop(1, '#6b4423');
         ctx.beginPath();
         ctx.moveTo(o.x, GROUND_Y);
-        ctx.lineTo(o.x + o.width * 0.3, baseY);
-        ctx.lineTo(o.x + o.width * 0.6, GROUND_Y - o.height * 0.6);
-        ctx.lineTo(o.x + o.width, GROUND_Y);
+        ctx.quadraticCurveTo(o.x + o.width * 0.1, baseY + o.height * 0.4, o.x + o.width * 0.28, baseY);
+        ctx.quadraticCurveTo(o.x + o.width * 0.42, baseY + o.height * 0.35, o.x + o.width * 0.55, baseY + o.height * 0.15);
+        ctx.quadraticCurveTo(o.x + o.width * 0.68, baseY + o.height * 0.5, o.x + o.width * 0.8, GROUND_Y - o.height * 0.45);
+        ctx.quadraticCurveTo(o.x + o.width * 0.92, baseY + o.height * 0.6, o.x + o.width, GROUND_Y);
         ctx.closePath();
-        ctx.fillStyle = '#8a5a2f';
+        ctx.fillStyle = grad;
         ctx.fill();
+        // highlight along one edge
+        ctx.beginPath();
+        ctx.moveTo(o.x + o.width * 0.28, baseY + 2);
+        ctx.lineTo(o.x + o.width * 0.2, GROUND_Y - o.height * 0.3);
+        ctx.strokeStyle = 'rgba(255,220,180,0.35)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
       }
     }
 
@@ -217,6 +328,13 @@ export function DinoGame({ onClose }: DinoGameProps) {
         s.elapsedMs += dt;
         s.speed = BASE_SPEED + s.elapsedMs * SPEED_GROWTH;
         s.score += dt * 0.01;
+
+        // "Zeit lauft oben rechts ab, bei 0 verloren"-Auftrag
+        s.timeLeftMs -= dt;
+        if (s.timeLeftMs <= 0) {
+          s.timeLeftMs = 0;
+          endRun('timeout');
+        }
 
         // physics
         s.velocityY += GRAVITY * dt;
@@ -272,6 +390,9 @@ export function DinoGame({ onClose }: DinoGameProps) {
             sp.collected = true;
             s.sparkCount += 1;
             s.score += 15;
+            s.timeLeftMs += SPARK_TIME_BONUS_MS;
+            // "Ganz leises, sanftes Funkeln-Geraeusch beim Sammeln"-Auftrag
+            playSound('sparkle', settings);
           }
         }
         s.sparks = s.sparks.filter((sp) => !sp.collected);
@@ -283,6 +404,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
         if (ts - lastScoreSyncRef.current > 150) {
           lastScoreSyncRef.current = ts;
           setDisplayScore(Math.floor(s.score));
+          setDisplayTimeMs(Math.max(0, s.timeLeftMs));
         }
       }
 
@@ -332,6 +454,17 @@ export function DinoGame({ onClose }: DinoGameProps) {
 
       <div className="relative">
         <canvas ref={canvasRef} width={320} height={150} className="rounded-[var(--radius-lg)]" style={{ background: 'var(--color-surface-muted)' }} />
+        {s.started && !gameOverUi && (
+          <div
+            className="absolute top-2 right-2.5 text-[12px] tabular-nums px-2 py-0.5 rounded-full"
+            style={{
+              background: 'var(--color-surface)',
+              color: displayTimeMs < 5000 ? '#c1495c' : 'var(--color-text-muted)',
+            }}
+          >
+            {(displayTimeMs / 1000).toFixed(1)}s
+          </div>
+        )}
         {!s.started && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <p className="text-[14px] text-[var(--color-text-muted)] bg-[var(--color-surface)] px-3 py-1.5 rounded-full">{t.dinoGame.tapToStart}</p>
@@ -339,7 +472,9 @@ export function DinoGame({ onClose }: DinoGameProps) {
         )}
         {gameOverUi && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[var(--color-surface)]/90 rounded-[var(--radius-lg)]">
-            <p className="text-[15px] text-[var(--color-text)]">{t.dinoGame.gameOver}</p>
+            <p className="text-[15px] text-[var(--color-text)]">
+              {gameOverReason === 'timeout' ? t.dinoGame.timeUp : t.dinoGame.gameOver}
+            </p>
             <p className="text-[13px] text-[var(--color-text-muted)]">{t.dinoGame.scoreLabel.replace('{score}', String(finalScore))}</p>
             <button
               onClick={(e) => {
@@ -359,6 +494,17 @@ export function DinoGame({ onClose }: DinoGameProps) {
         <span>{t.dinoGame.highScoreLabel.replace('{score}', String(highScore))}</span>
       </div>
       <p className="mt-4 text-[12px] text-[var(--color-text-faint)] max-w-[260px] text-center">{t.dinoGame.instructions}</p>
+
+      {checkInOpen && (
+        <UsageCheckInPrompt
+          context="game"
+          onContinue={() => setCheckInOpen(false)}
+          onExit={() => {
+            setCheckInOpen(false);
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 }

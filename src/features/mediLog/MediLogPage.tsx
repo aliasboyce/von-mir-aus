@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { createPortal } from 'react-dom';
-import { Plus, Pencil, Trash2, Pill, ChevronRight, ChevronLeft, NotebookPen, Settings2, Maximize2, X, FileDown, CalendarRange, Repeat } from 'lucide-react';
+import { Plus, Pencil, Trash2, Pill, ChevronRight, ChevronLeft, NotebookPen, Settings2, Maximize2, X, FileDown, CalendarRange, Repeat, Package } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { Chip } from '../../components/ui/Chip';
@@ -44,6 +45,7 @@ function todayKey(): string {
 
 export function MediLogPage() {
   const t = useT();
+  const navigate = useNavigate();
   const say = useCompanionSay();
   const { settings, updateSettings } = useSettings();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
@@ -434,6 +436,13 @@ export function MediLogPage() {
           >
             <Settings2 size={14} />
             {t.mediLog.manageMedications}
+          </button>
+          <button
+            onClick={() => navigate('/entdecken/medi-log/packungen')}
+            className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
+          >
+            <Package size={14} />
+            {t.medPackages.title}
           </button>
           <button
             onClick={() => setRangeEntryOpen(true)}
