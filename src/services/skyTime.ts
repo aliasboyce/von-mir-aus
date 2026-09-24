@@ -1,17 +1,24 @@
-export type SkyPhase = 'sunrise' | 'day' | 'sunset' | 'night';
+export type SkyPhase = 'night' | 'sunriseGlow' | 'sunriseGolden' | 'day' | 'sunsetGolden' | 'sunsetGlow';
 export type Season = 'fruehling' | 'sommer' | 'herbst' | 'winter';
 
 /**
- * "Lebendiger machen"-Auftrag — shared time-of-day/season logic,
- * originally built for SkyAmbiance.tsx (home screen) and now reused
- * wherever else the same rhythm applies (the garden). Kept as plain
- * functions rather than a hook since some callers need it inside SVG
- * render logic where hooks don't fit as cleanly.
+ * "Keine Sonnen/Mond-Koerper mehr, nur Licht/Himmel, mit genauem
+ * Stundenplan fuer Sonnenaufgang/-untergang"-Auftrag — six phases
+ * instead of the original four, each mapping to its own atmosphere-
+ * only look (no circular sun/moon shape anywhere):
+ *   21:00-06:00  night          — stars, no moon disc
+ *   06:00-08:00  sunriseGlow    — warm glow low on the horizon
+ *   08:00-11:00  sunriseGolden  — whole sky tinted golden
+ *   11:00-17:00  day            — the chosen subtle "D" look, no shape
+ *   17:00-19:00  sunsetGolden   — whole sky in evening colour
+ *   19:00-21:00  sunsetGlow     — warm glow low on the horizon, deeper/redder
  */
 export function phaseFor(hour: number): SkyPhase {
-  if (hour >= 5 && hour < 8) return 'sunrise';
-  if (hour >= 8 && hour < 18) return 'day';
-  if (hour >= 18 && hour < 21) return 'sunset';
+  if (hour >= 6 && hour < 8) return 'sunriseGlow';
+  if (hour >= 8 && hour < 11) return 'sunriseGolden';
+  if (hour >= 11 && hour < 17) return 'day';
+  if (hour >= 17 && hour < 19) return 'sunsetGolden';
+  if (hour >= 19 && hour < 21) return 'sunsetGlow';
   return 'night';
 }
 
@@ -23,24 +30,12 @@ export function seasonFor(month: number): Season {
   return 'winter';
 }
 
-/** 0 (just risen, low on the horizon) to 1 (highest point) to 0 (about to
- * set) — a simple arc, not literal astronomy, just enough to feel like
- * the sun/moon is genuinely somewhere in its day. */
-export function archProgress(hour: number, phase: SkyPhase): number {
-  if (phase === 'sunrise') return Math.min(1, (hour - 5) / 3) * 0.4;
-  if (phase === 'day') return 0.4 + Math.sin(((hour - 8) / 10) * Math.PI) * 0.6;
-  if (phase === 'sunset') return Math.max(0, 1 - (hour - 18) / 3) * 0.4;
-  const nightHour = hour >= 21 ? hour - 21 : hour + 3; // 0..8 across 21:00-05:00
-  return Math.max(0.08, Math.sin((nightHour / 8) * Math.PI) * 0.55);
-}
-
-export function currentPhaseAndSeason(): { phase: SkyPhase; season: Season; arch: number } {
+export function currentPhaseAndSeason(): { phase: SkyPhase; season: Season } {
   const now = new Date();
   const hour = now.getHours() + now.getMinutes() / 60;
-  const ph = phaseFor(hour);
-  return { phase: ph, season: seasonFor(now.getMonth()), arch: archProgress(hour, ph) };
+  return { phase: phaseFor(hour), season: seasonFor(now.getMonth()) };
 }
 
-export function pick<T>(arr: T[]): T {
+export function pick<T>(arr: readonly T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }

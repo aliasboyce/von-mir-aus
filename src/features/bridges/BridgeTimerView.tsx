@@ -237,17 +237,31 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
         </div>
       ) : (
         <>
-          <InlineCompanionNote
-            joyBurst={done ? 'hop' : null}
-            // "Timer-Wesen"-Auftrag — the companion now does something
-            // calm for the whole active duration, not just on long
-            // timers: 'meditating' (slow breathing, eyes open) is the
-            // default while running, with the existing occasional
-            // 'sleeping' override on longer timers taking priority when
-            // it triggers, exactly as before.
-            sleepStateOverride={sleeping ? 'sleeping' : durationMin != null && !done && !confirmingCancel ? 'meditating' : undefined}
-            onTap={durationMin != null && !confirmingCancel ? handleCompanionTap : undefined}
-          />
+          {/* "Ring hinter dem Wesen, nicht ueber der Zeit"-Auftrag —
+           * relative wrapper so the thin countdown ring can sit
+           * absolutely positioned behind the companion (lower
+           * z-index), centered on it, rather than floating above the
+           * digital time as before. */}
+          <div className="relative inline-flex items-center justify-center">
+            {durationMin != null && durationMin !== STOPWATCH_SENTINEL && !done && (
+              <div style={{ zIndex: 0 }}>
+                <VisualCountdown elapsedFraction={1 - remaining / (durationMin * 60)} />
+              </div>
+            )}
+            <div style={{ zIndex: 1 }}>
+              <InlineCompanionNote
+                joyBurst={done ? 'hop' : null}
+                // "Timer-Wesen"-Auftrag — the companion now does something
+                // calm for the whole active duration, not just on long
+                // timers: 'meditating' (slow breathing, eyes open) is the
+                // default while running, with the existing occasional
+                // 'sleeping' override on longer timers taking priority when
+                // it triggers, exactly as before.
+                sleepStateOverride={sleeping ? 'sleeping' : durationMin != null && !done && !confirmingCancel ? 'meditating' : undefined}
+                onTap={durationMin != null && !confirmingCancel ? handleCompanionTap : undefined}
+              />
+            </div>
+          </div>
 
           {durationMin == null ? (
             <div className="mt-6 text-center max-w-[300px]">
@@ -284,11 +298,6 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
                 <p className="text-[14px] text-[var(--color-primary)] mb-3 max-w-[260px] animate-in">{tapLine}</p>
               ) : (
                 startLine && <p className="text-[14px] text-[var(--color-text-muted)] mb-3 max-w-[260px]">{startLine}</p>
-              )}
-              {durationMin != null && durationMin !== STOPWATCH_SENTINEL && (
-                <div className="mb-4">
-                  <VisualCountdown elapsedFraction={1 - remaining / (durationMin * 60)} />
-                </div>
               )}
               <p className="text-[56px] font-light tabular-nums text-[var(--color-text)] relative">
                 {breathingPattern && <BreathingPulse pattern={breathingPattern} />}

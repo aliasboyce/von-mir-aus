@@ -1,46 +1,47 @@
 /**
- * "Visueller Timer wie das verlinkte Produkt, regenbogenfarben"-Auftrag
- * — the classic "Time Timer" mechanism: a colored disk where the
- * remaining time is a wedge that visibly shrinks clockwise as the
- * clock runs, rather than only a digital countdown. Built with two
- * stacked conic-gradients instead of SVG arcs — much simpler to keep
- * in sync with a live "elapsed" fraction, and CSS conic-gradient
- * already starts at 12 o'clock and runs clockwise, exactly like a
- * clock face: a rainbow wheel underneath, and a second conic-gradient
- * on top that's background-colored for the elapsed portion and
- * transparent for the remaining portion — so what's left of the
- * rainbow IS the remaining time, visually.
+ * "Regenbogenkreis zu dick, passt nicht ins Design — stattdessen eine
+ * duenne, weisse, schimmernde Linie, minimalistisch zentriert um das
+ * Wesen herum, das Wesen liegt davor"-Auftrag — a full redesign of the
+ * original thick rainbow pie. Now a thin stroked ring (not a filled
+ * wedge), soft white with a gentle glow instead of a rainbow, and
+ * positioned to sit directly behind the companion rather than above
+ * the digital time. The remaining-time fraction still reads directly
+ * off how much of the ring is drawn — just far more understated.
  */
-const RAINBOW_STOPS = [
-  '#e0524a', // red
-  '#e08a3b', // orange
-  '#e0c93b', // yellow
-  '#6fb85c', // green
-  '#4a8fe0', // blue
-  '#8a5cc9', // violet
-  '#e0524a', // back to red, closing the wheel
-];
-
-export function VisualCountdown({ elapsedFraction, size = 96 }: { elapsedFraction: number; size?: number }) {
+export function VisualCountdown({ elapsedFraction, size = 108 }: { elapsedFraction: number; size?: number }) {
   const clamped = Math.max(0, Math.min(1, elapsedFraction));
-  const elapsedDeg = clamped * 360;
-  const rainbowGradient = `conic-gradient(${RAINBOW_STOPS.map((c, i) => `${c} ${(i / (RAINBOW_STOPS.length - 1)) * 360}deg`).join(', ')})`;
-  const coverGradient = `conic-gradient(var(--color-surface) 0deg, var(--color-surface) ${elapsedDeg}deg, transparent ${elapsedDeg}deg, transparent 360deg)`;
+  const strokeWidth = 2;
+  const radius = size / 2 - strokeWidth;
+  const circumference = 2 * Math.PI * radius;
+  // starts as a full ring (remaining = 100%) and draws down as time
+  // elapses, same reveal direction as before, just as a thin stroke.
+  const remainingLength = (1 - clamped) * circumference;
 
   return (
-    <div
-      className="relative rounded-full"
-      style={{ width: size, height: size, background: rainbowGradient }}
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="absolute"
+      style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-90deg)' }}
       role="img"
       aria-hidden="true"
     >
-      <div className="absolute inset-0 rounded-full" style={{ background: coverGradient, transition: 'background 0.9s linear' }} />
-      {/* small center disk so the wedge reads as a ring-ish shape close
-       * to the reference product rather than a full pie the whole time */}
-      <div
-        className="absolute rounded-full"
-        style={{ inset: size * 0.22, background: 'var(--color-surface)' }}
+      {/* faint full track so the ring's total shape is always visible,
+       * not just the lit portion */}
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={strokeWidth} />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="rgba(255,255,255,0.75)"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={circumference - remainingLength}
+        style={{ filter: 'drop-shadow(0 0 3px rgba(255,255,255,0.55))', transition: 'stroke-dashoffset 0.9s linear' }}
       />
-    </div>
+    </svg>
   );
 }

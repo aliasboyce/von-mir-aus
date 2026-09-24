@@ -641,66 +641,64 @@ function LushnessLayer({ totalProgress, groundY }: { totalProgress: number; grou
   );
 }
 
-const SKY_GRADIENT_STOPS: Record<SkyPhase, [string, string]> = {
-  sunrise: ['#fde4c8', '#fbd3a8'],
-  day: ['#cfe6f5', '#e6f1f7'],
-  sunset: ['#f3c6a1', '#e8a898'],
-  night: ['#2b3350', '#3c4568'],
+/** "Kugeln komplett weg"-Auftrag — SVG counterpart to SkyAmbiance.tsx,
+ * same six-phase, no-body approach: sky colour/glow only, night gets
+ * scattered stars (one of the same four variants), never a sun/moon
+ * disc. */
+const SKY_BACKGROUND_STOPS: Record<Exclude<SkyPhase, 'night'>, [string, string, string]> = {
+  sunriseGlow: ['#d8e6f0', '#f5d5c8', '#ffe4c2'],
+  sunriseGolden: ['#fef3e2', '#fbe8d3', '#fbe8d3'],
+  day: ['#ffe4a8', '#cfe6f5', '#cfe6f5'],
+  sunsetGolden: ['#c9a8c4', '#e0a898', '#e0a898'],
+  sunsetGlow: ['#b8a8c4', '#d9a7ab', '#e8926e'],
 };
+const NIGHT_STOPS: [string, string] = ['#2b3350', '#3c4568'];
+const GARDEN_NIGHT_VARIANTS = ['glow', 'dense', 'veil', 'twinkle'] as const;
+const GARDEN_STAR_POS = [
+  { x: 40, y: 20 }, { x: 260, y: 35 }, { x: 30, y: 70 }, { x: 180, y: 15 }, { x: 280, y: 90 }, { x: 100, y: 10 },
+];
 
-/** "Lebendiger machen — auch der Garten"-Auftrag — the same
- * time-of-day/season rhythm SkyAmbiance brought to the home screen,
- * adapted to SVG so the garden the person is literally growing also
- * visibly lives through a day and a season, not just a generic static
- * sky. Computed once per mount (garden entries changing shouldn't
- * reroll the sky), sun/moon variant randomized the same way as the
- * home screen for visual variety. */
 function GardenSky({ groundY }: { groundY: number }) {
-  const { phase, season, arch, moonVariant } = useMemo(() => {
-    const { phase, season, arch } = currentPhaseAndSeason();
-    return { phase, season, arch, moonVariant: pick(['crescent', 'craters', 'starry'] as const) };
+  const { phase, season, nightVariant } = useMemo(() => {
+    const { phase, season } = currentPhaseAndSeason();
+    return { phase, season, nightVariant: pick(GARDEN_NIGHT_VARIANTS) };
   }, []);
 
   const isNight = phase === 'night';
-  const cx = 30 + arch * 250;
-  const cy = groundY - 20 - arch * 110;
-  const [c1, c2] = SKY_GRADIENT_STOPS[phase];
+  const [c1, c2, c3] = isNight ? [...NIGHT_STOPS, NIGHT_STOPS[1]] : SKY_BACKGROUND_STOPS[phase];
 
   return (
     <>
       <defs>
         <linearGradient id="garden-sky-time" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={c1} />
-          <stop offset="100%" stopColor={c2} />
+          <stop offset="50%" stopColor={c2} />
+          <stop offset="100%" stopColor={c3} />
         </linearGradient>
       </defs>
       <rect x="0" y="0" width="320" height={groundY} fill="url(#garden-sky-time)" opacity={isNight ? 0.4 : 0.45} />
 
-      {isNight && moonVariant === 'starry' &&
-        [
-          { x: 40, y: 20 }, { x: 260, y: 35 }, { x: 30, y: 70 }, { x: 180, y: 15 }, { x: 280, y: 90 },
-        ].map((s, i) => <circle key={i} cx={s.x} cy={s.y} r={1.3} fill="#fff" opacity={0.75} />)}
-
-      {isNight ? (
-        moonVariant === 'crescent' ? (
-          <g>
-            <circle cx={cx} cy={cy} r={11} fill="#c9d3e8" opacity={0.9} />
-            <circle cx={cx + 4} cy={cy - 2} r={11} fill={c2} />
-          </g>
-        ) : moonVariant === 'craters' ? (
-          <g>
-            <circle cx={cx} cy={cy} r={11} fill="#d9d6c9" opacity={0.9} />
-            <circle cx={cx - 3} cy={cy - 3} r={1.8} fill="rgba(160,155,140,0.4)" />
-            <circle cx={cx + 3} cy={cy + 2} r={2.2} fill="rgba(160,155,140,0.35)" />
-          </g>
-        ) : (
-          <circle cx={cx} cy={cy} r={11} fill="#c9d3e8" opacity={0.9} />
-        )
-      ) : (
-        <g>
-          <circle cx={cx} cy={cy} r={13} fill="#ffc23d" opacity={0.85} />
-          <circle cx={cx - 2} cy={cy - 2} r={13} fill="#fff2b8" opacity={0.5} />
-        </g>
+      {isNight && (
+        <>
+          {nightVariant === 'glow' && <circle cx={160} cy={30} r={60} fill="url(#garden-night-glow)" opacity={0.5} />}
+          {nightVariant === 'veil' && <rect x="0" y="0" width="320" height={50} fill="rgba(200,210,240,0.16)" />}
+          <defs>
+            <radialGradient id="garden-night-glow">
+              <stop offset="0%" stopColor="rgba(220,225,250,0.35)" />
+              <stop offset="100%" stopColor="rgba(220,225,250,0)" />
+            </radialGradient>
+          </defs>
+          {GARDEN_STAR_POS.map((s, i) => (
+            <circle
+              key={i}
+              cx={s.x}
+              cy={s.y}
+              r={nightVariant === 'dense' && i % 3 === 0 ? 1.8 : nightVariant === 'twinkle' ? (i % 2 === 0 ? 1.6 : 0.9) : 1.3}
+              fill="#fff"
+              opacity={nightVariant === 'twinkle' ? 0.4 + (i % 4) * 0.15 : 0.8}
+            />
+          ))}
+        </>
       )}
 
       <GardenSeasonParticles season={season} groundY={groundY} />
