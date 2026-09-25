@@ -1011,3 +1011,21 @@ export interface ZugangEntry {
   harderFactors?: string[];
   whatMightHaveHelped?: string;
 }
+
+/**
+ * "Zugang-Abbruch-Fragen: wie diese beantwortet wurden soll auch im
+ * Rueckblick gespeichert werden"-Auftrag — a standalone record for
+ * AccessGapModal's six-question pass (Wo bricht der Zugang gerade
+ * ab?), since that modal is reusable from more than one place (a
+ * Zugang pass's own reflection, or looking at a bridge that hasn't
+ * been working) and isn't only ever tied to one ZugangEntry.
+ */
+export interface AccessGapEntry {
+  id: string;
+  createdAt: string;
+  /** what the person was looking at when they opened this — e.g. a
+   * bridge's title, or left blank when opened from Zugang's own flow
+   * without one specific thing in mind. */
+  subject?: string;
+  answers: Partial<Record<'wollen' | 'wissen' | 'energie' | 'sicherheit' | 'konkret' | 'erreichbar', 'ja' | 'teilweise' | 'nein'>>;
+}

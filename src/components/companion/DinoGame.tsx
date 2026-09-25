@@ -33,6 +33,18 @@ const GRAVITY = 0.0022;
 const JUMP_VELOCITY = -0.62;
 const BASE_SPEED = 0.16; // px/ms
 const SPEED_GROWTH = 0.000006; // added per ms survived
+// "Wiese, dann Wald, dann Meer, je schneller es wird"-Auftrag —
+// landscape changes with the current speed rather than a fixed timer,
+// so it stays tied to "how fast is this run right now" the same way
+// the obstacles/sparks already do.
+const FOREST_AT_SPEED = 0.26;
+const OCEAN_AT_SPEED = 0.38;
+type Landscape = 'wiese' | 'wald' | 'meer';
+function landscapeFor(speed: number): Landscape {
+  if (speed >= OCEAN_AT_SPEED) return 'meer';
+  if (speed >= FOREST_AT_SPEED) return 'wald';
+  return 'wiese';
+}
 const START_TIME_MS = 20000; // "es soll oben rechts eine Zeit ablaufen"-Auftrag
 const SPARK_TIME_BONUS_MS = 4000;
 
@@ -114,6 +126,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
     score: 0,
     sparkCount: 0,
     timeLeftMs: START_TIME_MS,
+    landscapeOffset: 0,
   });
 
   const [, forceRender] = useState(0);
@@ -158,6 +171,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
     s.score = 0;
     s.sparkCount = 0;
     s.timeLeftMs = START_TIME_MS;
+    s.landscapeOffset = 0;
     setDisplayScore(0);
     setDisplayTimeMs(START_TIME_MS);
     lastScoreSyncRef.current = 0;
@@ -240,6 +254,64 @@ export function DinoGame({ onClose }: DinoGameProps) {
       }
     }
 
+    // "Wiese, dann Wald, dann Meer, je schneller es wird"-Auftrag —
+    // sky gradient plus scrolling scenery, both keyed off the current
+    // landscape tier. `offset` scrolls the decorations left over time
+    // (mirroring how obstacles move) so the landscape feels like it's
+    // actually passing by, not just a static backdrop.
+    function drawLandscape(landscape: Landscape, offset: number) {
+      if (!ctx) return;
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+      if (landscape === 'wiese') {
+        skyGrad.addColorStop(0, '#eaf3e0');
+        skyGrad.addColorStop(1, '#f5f7e8');
+      } else if (landscape === 'wald') {
+        skyGrad.addColorStop(0, '#d7e8d2');
+        skyGrad.addColorStop(1, '#e8f0dd');
+      } else {
+        skyGrad.addColorStop(0, '#cfe6f0');
+        skyGrad.addColorStop(1, '#e3f2f7');
+      }
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, width, GROUND_Y);
+
+      const spacing = 60;
+      const shift = offset % spacing;
+      for (let x = -shift; x < width + spacing; x += spacing) {
+        if (landscape === 'wiese') {
+          // small grass tufts
+          ctx.strokeStyle = '#6fae4f';
+          ctx.lineWidth = 2;
+          for (const dx of [-6, 0, 6]) {
+            ctx.beginPath();
+            ctx.moveTo(x + dx, GROUND_Y);
+            ctx.quadraticCurveTo(x + dx + (dx > 0 ? 3 : -3), GROUND_Y - 9, x + dx, GROUND_Y - 14);
+            ctx.stroke();
+          }
+        } else if (landscape === 'wald') {
+          // simple pine-tree silhouettes, taller than grass
+          ctx.fillStyle = '#3f7a4a';
+          ctx.beginPath();
+          ctx.moveTo(x, GROUND_Y);
+          ctx.lineTo(x - 12, GROUND_Y);
+          ctx.lineTo(x, GROUND_Y - 34);
+          ctx.lineTo(x + 12, GROUND_Y);
+          ctx.closePath();
+          ctx.fill();
+          ctx.fillStyle = '#6b4423';
+          ctx.fillRect(x - 2, GROUND_Y - 4, 4, 4);
+        } else {
+          // gentle wave crests near the waterline
+          ctx.strokeStyle = 'rgba(70,140,170,0.4)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x - 14, GROUND_Y - 3);
+          ctx.quadraticCurveTo(x, GROUND_Y - 10, x + 14, GROUND_Y - 3);
+          ctx.stroke();
+        }
+      }
+    }
+
     function drawSpark(sp: Spark) {
       if (!ctx) return;
       ctx.save();
@@ -265,8 +337,10 @@ export function DinoGame({ onClose }: DinoGameProps) {
       s.lastTs = ts;
 
       ctx.clearRect(0, 0, width, height);
+      const currentLandscape = landscapeFor(s.speed);
+      drawLandscape(currentLandscape, s.landscapeOffset);
       // ground
-      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+      ctx.strokeStyle = currentLandscape === 'meer' ? 'rgba(40,100,130,0.35)' : 'rgba(0,0,0,0.15)';
       ctx.beginPath();
       ctx.moveTo(0, GROUND_Y);
       ctx.lineTo(width, GROUND_Y);
@@ -276,6 +350,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
         s.elapsedMs += dt;
         s.speed = BASE_SPEED + s.elapsedMs * SPEED_GROWTH;
         s.score += dt * 0.01;
+        s.landscapeOffset += s.speed * dt;
 
         // "Zeit lauft oben rechts ab, bei 0 verloren"-Auftrag
         s.timeLeftMs -= dt;
@@ -365,7 +440,13 @@ export function DinoGame({ onClose }: DinoGameProps) {
       // updated directly via this ref each frame so it stays in sync
       // with the physics without forcing a React re-render 60x/second.
       if (companionElRef.current) {
-        const baseY = GROUND_Y - 76; // LichtCompanion's own 76px height, feet at the ground line
+        // "Wesen im Spiel zu hoch oben"-Fund — this used the
+        // PRE-scale 76px height for positioning, but CSS applies
+        // scale() before translate() around a top-left origin, so
+        // the rendered box is only COMPANION_SIZE (34px) tall by the
+        // time translate places it — using 76 here left a ~42px gap
+        // between the companion's feet and the actual ground line.
+        const baseY = GROUND_Y - COMPANION_SIZE;
         // "Soll GENAU SO aussehen wie auf der Startseite"-Auftrag — no
         // squash/stretch distortion while jumping; a uniform scale
         // keeps it undistorted and identical to how it looks anywhere
@@ -419,7 +500,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
         <div
           ref={companionElRef}
           className="absolute top-0 left-0 pointer-events-none"
-          style={{ width: 76, height: 76, transformOrigin: 'top left', transform: `translate(${COMPANION_X}px, ${GROUND_Y - 76}px) scale(${COMPANION_DISPLAY_SCALE})` }}
+          style={{ width: 76, height: 76, transformOrigin: 'top left', transform: `translate(${COMPANION_X}px, ${GROUND_Y - COMPANION_SIZE}px) scale(${COMPANION_DISPLAY_SCALE})` }}
         >
           <LichtCompanion size="small" sleepStateOverride={s.onGround ? 'awake' : undefined} />
         </div>

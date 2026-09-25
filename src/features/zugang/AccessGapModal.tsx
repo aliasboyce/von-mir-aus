@@ -5,6 +5,8 @@ import { useT } from '../../i18n';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
+import { accessGapRepo } from './accessGapRepo';
+import { createId } from '../../services/storage/repository';
 
 type Answer = 'ja' | 'teilweise' | 'nein' | null;
 
@@ -49,6 +51,21 @@ export function AccessGapModal({ subject, onClose }: { subject?: string; onClose
     setAnswers((prev) => ({ ...prev, [id]: a }));
   }
 
+  // "Wie diese beantwortet wurden soll auch im Rueckblick gespeichert
+  // werden"-Auftrag — saved once, right when the person actually
+  // chooses to look at the result (not on every single tap while
+  // they're still deciding answers, and not if they close without
+  // ever reaching a result).
+  function saveAndShowResult() {
+    accessGapRepo.save({
+      id: createId(),
+      createdAt: new Date().toISOString(),
+      subject,
+      answers: Object.fromEntries(Object.entries(answers).filter(([, v]) => v != null)) as Record<string, 'ja' | 'teilweise' | 'nein'>,
+    });
+    setShowResult(true);
+  }
+
   return createPortal(
     <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
@@ -90,7 +107,7 @@ export function AccessGapModal({ subject, onClose }: { subject?: string; onClose
                 </div>
               ))}
             </div>
-            <Button fullWidth onClick={() => setShowResult(true)} disabled={answeredCount === 0}>
+            <Button fullWidth onClick={saveAndShowResult} disabled={answeredCount === 0}>
               {t.accessGap.showResultCta}
             </Button>
           </>

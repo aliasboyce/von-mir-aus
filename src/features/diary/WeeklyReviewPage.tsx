@@ -21,6 +21,7 @@ import { MediLogOverallChart } from '../mediLog/MediLogOverallChart';
 import { WeeklyReviewPrintView } from './WeeklyReviewPrintView';
 import { weeklyNarrative } from './weeklyReviewNarrative';
 import { zugangRepo } from '../zugang/zugangRepo';
+import { accessGapRepo } from '../zugang/accessGapRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { distinctCheckInDays } from '../garden/gardenGrowth';
 import type { PolyvagalZone } from '../../data/types';
@@ -124,6 +125,9 @@ export function WeeklyReviewPage() {
     // week live.
     const zugangEntriesThisWeek = zugangRepo.getAll().filter((z) => new Date(z.createdAt).getTime() >= cutoff);
     const zugangCount = zugangEntriesThisWeek.length;
+    // "Zugang-Abbruch-Fragen: Antworten sollen im Rueckblick gespeichert
+    // werden"-Auftrag
+    const accessGapEntriesThisWeek = accessGapRepo.getAll().filter((a) => new Date(a.createdAt).getTime() >= cutoff);
     const gardenActive = gardenRepo.getAll().filter((g) => g.status === 'active');
     const gardenThisWeek = gardenActive
       .map((g) => {
@@ -133,11 +137,11 @@ export function WeeklyReviewPage() {
       .filter((g) => g.daysThisWeek > 0)
       .sort((a, b) => b.daysThisWeek - a.daysThisWeek);
 
-    const totalActivity = checkIns.length + resourceUses + bridgeUses + diaryEntries.length + mediLogEntries.length + zugangCount + gardenThisWeek.length;
+    const totalActivity = checkIns.length + resourceUses + bridgeUses + diaryEntries.length + mediLogEntries.length + zugangCount + accessGapEntriesThisWeek.length + gardenThisWeek.length;
 
     return {
       checkIns, zoneCounts, resourceUses, bridgeUses, resourceNames, bridgeNames, helpfulYes,
-      diaryEntries, achievements, momentOfWeek, mediLogWeekly, zugangCount, zugangEntriesThisWeek, gardenThisWeek, totalActivity,
+      diaryEntries, achievements, momentOfWeek, mediLogWeekly, zugangCount, zugangEntriesThisWeek, accessGapEntriesThisWeek, gardenThisWeek, totalActivity,
     };
   }, [settings.dailyReviewShowMediLog, DAYS]);
 
@@ -368,6 +372,33 @@ export function WeeklyReviewPage() {
               <p className="text-[12px] text-[var(--color-text-faint)]">
                 {t.weeklyReview.helpfulNote.replace('{count}', String(stats.helpfulYes))}
               </p>
+            )}
+
+            {/* "Zugang-Abbruch-Fragen im Rueckblick"-Auftrag — every
+             * AccessGapModal pass this week (from Zugang's own flow or
+             * from a bridge), showing exactly which answers were given,
+             * not just that it happened. */}
+            {stats.accessGapEntriesThisWeek.length > 0 && (
+              <Card>
+                <p className="text-[13px] font-medium text-[var(--color-text)] mb-3">{t.weeklyReview.accessGapTitle}</p>
+                <div className="flex flex-col gap-2">
+                  {stats.accessGapEntriesThisWeek.map((a) => (
+                    <details key={a.id} className="rounded-[var(--radius-md)]" style={{ background: 'var(--color-surface-muted)' }}>
+                      <summary className="px-3 py-2 text-[12.5px] cursor-pointer list-none text-[var(--color-text-muted)]">
+                        {new Date(a.createdAt).toLocaleDateString(settings.language === 'en' ? 'en-US' : 'de-DE', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
+                        {a.subject ? ` — ${a.subject}` : ''}
+                      </summary>
+                      <div className="px-3 pb-3 flex flex-col gap-1 text-[12.5px] text-[var(--color-text)]">
+                        {(Object.entries(a.answers) as [keyof typeof t.accessGap.questions, 'ja' | 'teilweise' | 'nein'][]).map(([q, ans]) => (
+                          <p key={q}>
+                            <span className="text-[var(--color-text-faint)]">{t.accessGap.questions[q]}</span> {t.accessGap.answerLabels[ans]}
+                          </p>
+                        ))}
+                      </div>
+                    </details>
+                  ))}
+                </div>
+              </Card>
             )}
 
             {/* 5 — sanfter, freiwilliger Ausblick statt einfach aufzuhören */}

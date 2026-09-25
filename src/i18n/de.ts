@@ -1817,6 +1817,7 @@ const de = {
     momentOfWeek: 'Ein Moment der Woche',
     whatYouUsed: 'Worauf du zurückgegriffen hast',
     zugangGartenTitle: 'Zugang & Garten',
+    accessGapTitle: 'Wo hakte es? — Durchgänge diese Woche',
     zugangCount: '{count}× Zugang durchlaufen',
     zugangAbandonedAt: 'abgebrochen bei Schritt {step}',
     zugangEndedBridge: 'zur Brücke gewechselt',

@@ -1814,6 +1814,7 @@ const en: TranslationDictionary = {
     momentOfWeek: 'A moment from this week',
     whatYouUsed: 'What you drew on',
     zugangGartenTitle: 'Access & Garden',
+    accessGapTitle: 'Where did it get stuck? — Passes this week',
     zugangCount: '{count}× went through Access',
     zugangAbandonedAt: 'stopped at step {step}',
     zugangEndedBridge: 'switched to a bridge',
