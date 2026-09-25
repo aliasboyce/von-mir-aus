@@ -13,6 +13,14 @@ interface ModalProps {
   /** "Umdrehen wie eine Karte"-Auftrag — Ressourcen-Detailansicht nutzt
    * die 3D-Flip-Animation statt des ueblichen sanften Aufklappens. */
   flipAnimation?: boolean;
+  /** "Eigenes hinzufuegen tut einfach gar nichts"-Fund — this modal is
+   * a portal too, but always at a fixed z-[230]. Opened from inside
+   * something that's ALSO a portal at a higher z-index (like
+   * DistractionOverlay's z-[240]), it mounts correctly but renders
+   * fully hidden behind that caller — indistinguishable from doing
+   * nothing at all. Lets a caller opening from a higher stacking
+   * context ask for a higher one here too; default unchanged. */
+  zIndex?: number;
 }
 
 /**
@@ -33,7 +41,7 @@ interface ModalProps {
  * navigation hides itself while this is open — that, not z-index tuning,
  * is what guarantees the Save button is never covered by the nav bar.
  */
-export function Modal({ open, onClose, title, subtitle, children, flipAnimation }: ModalProps) {
+export function Modal({ open, onClose, title, subtitle, children, flipAnimation, zIndex = 230 }: ModalProps) {
   const t = useT();
   useRegisterModalOpen(open);
 
@@ -55,7 +63,8 @@ export function Modal({ open, onClose, title, subtitle, children, flipAnimation 
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[230] flex items-end sm:items-center justify-center bg-[rgba(44,42,34,0.35)] animate-in no-print"
+      className="fixed inset-0 flex items-end sm:items-center justify-center bg-[rgba(44,42,34,0.35)] animate-in no-print"
+      style={{ zIndex }}
       role="dialog"
       aria-modal="true"
       aria-label={title}

@@ -39,11 +39,23 @@ const SPEED_GROWTH = 0.000006; // added per ms survived
 // the obstacles/sparks already do.
 const FOREST_AT_SPEED = 0.26;
 const OCEAN_AT_SPEED = 0.38;
-type Landscape = 'wiese' | 'wald' | 'meer';
-function landscapeFor(speed: number): Landscape {
-  if (speed >= OCEAN_AT_SPEED) return 'meer';
-  if (speed >= FOREST_AT_SPEED) return 'wald';
-  return 'wiese';
+/** "Uebergang fliessend"-Auftrag — a continuous 0..2 position instead
+ * of the three discrete landscape states: 0 = fully meadow, 1 = fully
+ * forest, 2 = fully ocean, with the fractional part driving a smooth
+ * cross-fade between neighbours rather than a hard cut. */
+function landscapePosition(speed: number): number {
+  if (speed <= BASE_SPEED) return 0;
+  if (speed >= OCEAN_AT_SPEED) return 2;
+  if (speed < FOREST_AT_SPEED) {
+    return (speed - BASE_SPEED) / (FOREST_AT_SPEED - BASE_SPEED);
+  }
+  return 1 + (speed - FOREST_AT_SPEED) / (OCEAN_AT_SPEED - FOREST_AT_SPEED);
+}
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+function lerpColor(c1: [number, number, number], c2: [number, number, number], t: number): string {
+  return `rgb(${Math.round(lerp(c1[0], c2[0], t))},${Math.round(lerp(c1[1], c2[1], t))},${Math.round(lerp(c1[2], c2[2], t))})`;
 }
 const START_TIME_MS = 20000; // "es soll oben rechts eine Zeit ablaufen"-Auftrag
 const SPARK_TIME_BONUS_MS = 4000;
@@ -259,56 +271,86 @@ export function DinoGame({ onClose }: DinoGameProps) {
     // landscape tier. `offset` scrolls the decorations left over time
     // (mirroring how obstacles move) so the landscape feels like it's
     // actually passing by, not just a static backdrop.
-    function drawLandscape(landscape: Landscape, offset: number) {
-      if (!ctx) return;
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
-      if (landscape === 'wiese') {
-        skyGrad.addColorStop(0, '#eaf3e0');
-        skyGrad.addColorStop(1, '#f5f7e8');
-      } else if (landscape === 'wald') {
-        skyGrad.addColorStop(0, '#d7e8d2');
-        skyGrad.addColorStop(1, '#e8f0dd');
-      } else {
-        skyGrad.addColorStop(0, '#cfe6f0');
-        skyGrad.addColorStop(1, '#e3f2f7');
+    // "Uebergang fliessend, und dunkler damit die Funken sichtbar
+    // bleiben"-Auftrag — richer, darker tones than the original pale
+    // pastel version (which made the pale-yellow sparks nearly
+    // invisible against it), and continuous color interpolation via
+    // landscapePosition() instead of an instant cut between the three
+    // states. Decorations cross-fade the same way: both neighbouring
+    // landscapes' scenery draws at once during a transition, one
+    // fading out as the other fades in.
+    const MEADOW_TOP: [number, number, number] = [163, 205, 128];
+    const MEADOW_BOTTOM: [number, number, number] = [196, 222, 158];
+    const FOREST_TOP: [number, number, number] = [82, 138, 96];
+    const FOREST_BOTTOM: [number, number, number] = [124, 172, 122];
+    const OCEAN_TOP: [number, number, number] = [88, 163, 196];
+    const OCEAN_BOTTOM: [number, number, number] = [140, 202, 218];
+
+    function drawMeadowDecor(x: number, opacity: number) {
+      if (!ctx || opacity <= 0.02) return;
+      ctx.globalAlpha = opacity;
+      ctx.strokeStyle = '#4c8a3a';
+      ctx.lineWidth = 2;
+      for (const dx of [-6, 0, 6]) {
+        ctx.beginPath();
+        ctx.moveTo(x + dx, GROUND_Y);
+        ctx.quadraticCurveTo(x + dx + (dx > 0 ? 3 : -3), GROUND_Y - 9, x + dx, GROUND_Y - 14);
+        ctx.stroke();
       }
+      ctx.globalAlpha = 1;
+    }
+    function drawForestDecor(x: number, opacity: number) {
+      if (!ctx || opacity <= 0.02) return;
+      ctx.globalAlpha = opacity;
+      ctx.fillStyle = '#2e6339';
+      ctx.beginPath();
+      ctx.moveTo(x, GROUND_Y);
+      ctx.lineTo(x - 12, GROUND_Y);
+      ctx.lineTo(x, GROUND_Y - 34);
+      ctx.lineTo(x + 12, GROUND_Y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#5a3a1f';
+      ctx.fillRect(x - 2, GROUND_Y - 4, 4, 4);
+      ctx.globalAlpha = 1;
+    }
+    function drawOceanDecor(x: number, opacity: number) {
+      if (!ctx || opacity <= 0.02) return;
+      ctx.globalAlpha = opacity;
+      ctx.strokeStyle = 'rgba(30,90,120,0.55)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 14, GROUND_Y - 3);
+      ctx.quadraticCurveTo(x, GROUND_Y - 10, x + 14, GROUND_Y - 3);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    function drawLandscape(position: number, offset: number) {
+      if (!ctx) return;
+      const inFirstHalf = position <= 1;
+      const t = inFirstHalf ? position : position - 1;
+      const [topC, bottomC] = inFirstHalf
+        ? [lerpColor(MEADOW_TOP, FOREST_TOP, t), lerpColor(MEADOW_BOTTOM, FOREST_BOTTOM, t)]
+        : [lerpColor(FOREST_TOP, OCEAN_TOP, t), lerpColor(FOREST_BOTTOM, OCEAN_BOTTOM, t)];
+
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+      skyGrad.addColorStop(0, topC);
+      skyGrad.addColorStop(1, bottomC);
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, width, GROUND_Y);
+
+      // cross-fade weights for each of the three decoration sets
+      const meadowW = Math.max(0, 1 - position);
+      const forestW = position <= 1 ? position : Math.max(0, 2 - position);
+      const oceanW = Math.max(0, position - 1);
 
       const spacing = 60;
       const shift = offset % spacing;
       for (let x = -shift; x < width + spacing; x += spacing) {
-        if (landscape === 'wiese') {
-          // small grass tufts
-          ctx.strokeStyle = '#6fae4f';
-          ctx.lineWidth = 2;
-          for (const dx of [-6, 0, 6]) {
-            ctx.beginPath();
-            ctx.moveTo(x + dx, GROUND_Y);
-            ctx.quadraticCurveTo(x + dx + (dx > 0 ? 3 : -3), GROUND_Y - 9, x + dx, GROUND_Y - 14);
-            ctx.stroke();
-          }
-        } else if (landscape === 'wald') {
-          // simple pine-tree silhouettes, taller than grass
-          ctx.fillStyle = '#3f7a4a';
-          ctx.beginPath();
-          ctx.moveTo(x, GROUND_Y);
-          ctx.lineTo(x - 12, GROUND_Y);
-          ctx.lineTo(x, GROUND_Y - 34);
-          ctx.lineTo(x + 12, GROUND_Y);
-          ctx.closePath();
-          ctx.fill();
-          ctx.fillStyle = '#6b4423';
-          ctx.fillRect(x - 2, GROUND_Y - 4, 4, 4);
-        } else {
-          // gentle wave crests near the waterline
-          ctx.strokeStyle = 'rgba(70,140,170,0.4)';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(x - 14, GROUND_Y - 3);
-          ctx.quadraticCurveTo(x, GROUND_Y - 10, x + 14, GROUND_Y - 3);
-          ctx.stroke();
-        }
+        drawMeadowDecor(x, meadowW);
+        drawForestDecor(x, forestW);
+        drawOceanDecor(x, oceanW);
       }
     }
 
@@ -337,10 +379,10 @@ export function DinoGame({ onClose }: DinoGameProps) {
       s.lastTs = ts;
 
       ctx.clearRect(0, 0, width, height);
-      const currentLandscape = landscapeFor(s.speed);
-      drawLandscape(currentLandscape, s.landscapeOffset);
+      const landscapePos = landscapePosition(s.speed);
+      drawLandscape(landscapePos, s.landscapeOffset);
       // ground
-      ctx.strokeStyle = currentLandscape === 'meer' ? 'rgba(40,100,130,0.35)' : 'rgba(0,0,0,0.15)';
+      ctx.strokeStyle = landscapePos > 1.3 ? 'rgba(20,70,95,0.4)' : 'rgba(0,0,0,0.18)';
       ctx.beginPath();
       ctx.moveTo(0, GROUND_Y);
       ctx.lineTo(width, GROUND_Y);

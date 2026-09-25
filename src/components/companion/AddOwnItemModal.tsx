@@ -49,7 +49,7 @@ export function AddOwnItemModal({ open, onClose, categoryId, categoryLabel, onSa
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t.customDistraction.addOwnToCategory.replace('{category}', categoryLabel)}>
+    <Modal open={open} onClose={onClose} title={t.customDistraction.addOwnToCategory.replace('{category}', categoryLabel)} zIndex={250}>
       <div className="flex flex-col gap-4">
         <p className="text-[12px] text-[var(--color-text-faint)]">{t.customDistraction.contentGuidance}</p>
         <label className="flex flex-col gap-1.5">
