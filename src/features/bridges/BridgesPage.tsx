@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, Plus, Tag, Compass, FileDown, ChevronLeft } from 'lucide-react';
+import { Heart, Plus, Tag, Compass, FileDown, ChevronLeft, Info } from 'lucide-react';
 import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
@@ -13,6 +13,8 @@ import { pickLine } from '../../components/companion/companionRegistry';
 import { bridgesRepo, seedBridgesIfEmpty, patchKnownDemoContentIssues, migrateBridgeCategoriesIfNeeded, addMissingDemoBridges } from './bridgesRepo';
 import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from './bridgeMeta';
 import { BridgeFormModal } from './BridgeFormModal';
+import { AboutVonMirAusModal } from '../../components/shared/AboutVonMirAusModal';
+import { BRIDGES_INFO_TEXT } from '../../content/aboutContent';
 import { BridgeBuiltAnimation } from './BridgeBuiltAnimation';
 import { BridgePrintView } from './BridgePrintView';
 import { DiscoverBridgesModal } from './DiscoverBridgesModal';
@@ -56,6 +58,7 @@ export function BridgesPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [category, setCategory] = useState<BridgeCategory>('koerper_intra');
+  const [infoOpen, setInfoOpen] = useState(false);
   const [bridges, setBridges] = useState<Bridge[]>(() => bridgesRepo.getAll());
   const [printingAllBridges, setPrintingAllBridges] = useState(false);
 
@@ -125,6 +128,9 @@ export function BridgesPage() {
           <h1 className="text-[24px]">{t.bridges.title}</h1>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={() => setInfoOpen(true)} aria-label={t.bridges.infoAbout} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)]">
+            <Info size={18} className="text-[var(--color-text-muted)]" />
+          </button>
           <HelpButton helpKey="bruecken" />
           {bridges.length > 0 && (
             <button
@@ -247,6 +253,8 @@ export function BridgesPage() {
       </Modal>
 
       <BridgeFormModal open={!!creating} bridge={creating} onClose={() => setCreating(null)} onSave={saveNew} title={t.bridges.newBridge} />
+
+      {infoOpen && <AboutVonMirAusModal text={BRIDGES_INFO_TEXT} onClose={() => setInfoOpen(false)} />}
       {justBuilt && <BridgeBuiltAnimation title={justBuilt} onDone={() => setJustBuilt(null)} />}
 
       <DiscoverBridgesModal

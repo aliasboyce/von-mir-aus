@@ -5,6 +5,17 @@ import { BottomNav } from '../components/navigation/BottomNav';
 import { CompanionDock } from '../components/companion/CompanionDock';
 import { FirstNameStep } from '../components/companion/FirstNameStep';
 import { IntroFlow } from '../components/companion/IntroFlow';
+import { AboutVonMirAusModal } from '../components/shared/AboutVonMirAusModal';
+import { ABOUT_VON_MIR_AUS_TEXT } from '../content/aboutContent';
+import { createKeyValueStore } from '../services/storage/keyValueStore';
+
+/** "Die Idee hinter 'Von mir aus' einmalig nach der Wesen-Vorstellung
+ * zeigen"-Auftrag — a small store of its own rather than reusing
+ * settings.introSeen directly, since that flag flips the instant
+ * IntroFlow's last step completes (also starting the guided tour) —
+ * this needs to fire exactly once, right after that transition, not
+ * be tangled into the same flag the tour itself watches. */
+const aboutSeenStore = createKeyValueStore<boolean>('about-vmA-seen', false);
 import { AppTourOverlay } from '../components/companion/AppTourOverlay';
 import { useSettings } from '../state/SettingsContext';
 import { useResolvedTheme } from '../state/ThemeEffect';
@@ -102,6 +113,15 @@ export function AppShell() {
     const timer = setTimeout(() => setAppCheckInOpen(true), 15 * 60 * 1000);
     return () => clearTimeout(timer);
   }, []);
+
+  const [aboutOpen, setAboutOpen] = useState(false);
+  useEffect(() => {
+    if (settings.introSeen && !aboutSeenStore.get()) {
+      aboutSeenStore.set(true);
+      setAboutOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.introSeen]);
 
   // "Nur jetzt"-Modus overhaul — the nav itself only offering a reduced
   // set of destinations (see BottomNav) is the primary UX signal, but a
@@ -259,6 +279,8 @@ export function AppShell() {
           }}
         />
       )}
+
+      {aboutOpen && <AboutVonMirAusModal text={ABOUT_VON_MIR_AUS_TEXT} onClose={() => setAboutOpen(false)} />}
     </div>
   );
 }

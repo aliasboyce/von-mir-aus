@@ -10,6 +10,8 @@ import { dueUnopenedLetters, markLetterOpened } from '../briefAnMich/lettersRepo
 import type { LetterToSelf } from '../briefAnMich/lettersRepo';
 import { LetterEnvelope } from '../briefAnMich/LetterEnvelope';
 import { CompanionDock } from '../../components/companion/CompanionDock';
+import { AboutVonMirAusModal } from '../../components/shared/AboutVonMirAusModal';
+import { ABOUT_VON_MIR_AUS_TEXT } from '../../content/aboutContent';
 import { ContinueSection } from './ContinueSection';
 import { AchievementSection } from './AchievementSection';
 import { Card } from '../../components/ui/Card';
@@ -68,6 +70,7 @@ export function HomePage() {
   const say = useCompanionSay();
   const { settings, updateSettings } = useSettings();
   const [reminderDismissed, setReminderDismissed] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [showWeatherExplainer, setShowWeatherExplainer] = useState(false);
   const [showNurJetztExplainer, setShowNurJetztExplainer] = useState(false);
   useRegisterModalOpen(showNurJetztExplainer);
@@ -182,7 +185,9 @@ export function HomePage() {
       <div className="flex items-start justify-between mb-2">
         <div>
           <p className="text-[15px] text-[var(--color-text-muted)]">{greeting}</p>
-          <h1 className="text-[26px] mt-1 text-[var(--color-text)]">{t.common.appName}</h1>
+          <h1 className="text-[26px] mt-1 text-[var(--color-text)]" onClick={() => setAboutOpen(true)} role="button" tabIndex={0}>
+            {t.common.appName}
+          </h1>
         </div>
         <div className="flex items-center gap-1">
           <HelpButton helpKey="home" />
@@ -441,6 +446,8 @@ export function HomePage() {
           </Card>
         </Link>
       )}
+
+      {aboutOpen && <AboutVonMirAusModal text={ABOUT_VON_MIR_AUS_TEXT} onClose={() => setAboutOpen(false)} />}
     </div>
   );
 }

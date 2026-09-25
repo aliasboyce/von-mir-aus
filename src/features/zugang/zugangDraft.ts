@@ -72,7 +72,7 @@ export function clearZugangDraft(): void {
  * stay in sync, but doesn't require ZugangPage to be mounted at all.
  */
 export function finalizeZugangDraft(
-  endedVia: 'complete' | 'bridge' | 'safetynet',
+  endedVia: 'complete' | 'bridge' | 'safetynet' | 'abandoned',
   bridgeExtras?: { bridgeLevels?: number[]; bridgeTimerUsed?: boolean }
 ): boolean {
   const draft = loadZugangDraft();
@@ -97,6 +97,7 @@ export function finalizeZugangDraft(
     action: draft.action,
     reflection: draft.reflection.trim() || undefined,
     endedVia,
+    stoppedAtStep: endedVia === 'abandoned' ? draft.step : undefined,
   });
   clearZugangDraft();
   return true;

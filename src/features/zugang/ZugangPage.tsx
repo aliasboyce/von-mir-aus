@@ -5,7 +5,7 @@ import { ChevronLeft, History } from 'lucide-react';
 import { ZugangStepHeader } from './ZugangStepHeader';
 import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
 import { ArousalModelExplainer } from '../polyvagal/ArousalModelExplainer';
-import { saveZugangDraft, loadZugangDraft, clearZugangDraft, isDraftRecent } from './zugangDraft';
+import { saveZugangDraft, loadZugangDraft, clearZugangDraft, isDraftRecent, finalizeZugangDraft } from './zugangDraft';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
@@ -46,7 +46,7 @@ import type { ZugangSurvivalState, Bridge } from '../../data/types';
 import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
-const STEP_COUNT = 12; // 0..11, see render switch below
+const STEP_COUNT = 11; // 0..10, see render switch below
 
 /**
  * The whole point of this page: not one more disconnected mini-tool,
@@ -72,7 +72,14 @@ export function ZugangPage() {
   // pass without asking would be confusing more often than helpful.
   const [recentDraft] = useState(() => {
     const d = loadZugangDraft();
-    return d && isDraftRecent(d) ? d : null;
+    if (!d) return null;
+    if (isDraftRecent(d)) return d;
+    // Stale draft (older than the resume window) — this is where
+    // genuine abandonment is now detected, retroactively, using the
+    // draft's own saved data rather than live component state (which
+    // doesn't exist yet at this point in a fresh mount).
+    finalizeZugangDraft('abandoned');
+    return null;
   });
 
   const [step, setStep] = useState(recentDraft?.step ?? 0);
@@ -126,18 +133,17 @@ export function ZugangPage() {
   const showIntroRef = useRef(showIntro);
   showIntroRef.current = showIntro;
 
-  useEffect(() => {
-    return () => {
-      // Only worth recording if the person actually started (past the
-      // intro) and hasn't already reached one of the three real
-      // endings — an empty glance at the intro screen isn't a
-      // meaningful "abandoned" pass.
-      if (!savedRef.current && !showIntroRef.current && stepRef.current > 0) {
-        saveEntryRef.current('abandoned');
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // "Navigation-Persistenz: Verlinkungen sollen den Fortschritt nie
+  // verlieren"-Fund — this used to save the pass as 'abandoned' (and,
+  // via saveEntry, immediately clear the draft) on EVERY unmount past
+  // step 0. That fired just as much for "briefly checked the linked
+  // Gefühle/Nervensystem/Wertekompass page and is coming right back"
+  // as for genuinely leaving — undermining the draft-resume mechanism
+  // built specifically for that first case. Abandonment is now
+  // detected lazily instead, on the NEXT mount: see the recentDraft
+  // block below, which retroactively logs a stale (non-recent) draft
+  // as abandoned only once it's clear the person didn't come back in
+  // time, rather than assuming abandonment the instant this unmounts.
 
   // Priority 8 — additive sync to a persisted draft so opening a
   // connected page (Nervensystem, Schutzstrategien, Brücken, ...) and
@@ -265,7 +271,7 @@ export function ZugangPage() {
   const stepLabels = [
     t.zugang.step0Title, t.zugang.step1Title, t.zugang.step2Title, t.zugang.step3Title,
     t.zugang.step4Title, t.zugang.step5Title, t.zugang.step6Title, t.zugang.step7Title,
-    t.zugang.step8Title, t.zugang.step9Title, t.zugang.step10Title, t.zugang.step11Title,
+    t.zugang.step9Title, t.zugang.step10Title, t.zugang.step11Title,
   ];
 
   if (showIntro) {
@@ -813,104 +819,6 @@ export function ZugangPage() {
 
         {step === 8 && (
           <div>
-            <ZugangStepHeader question={t.zugang.step8Question} hint={t.zugang.step8Hint} />
-            {allBridges.length === 0 ? (
-              <p className="text-[13px] text-[var(--color-text-faint)] text-center">{t.zugang.noBridgesYet}</p>
-            ) : (
-              (() => {
-                // "Brücken-Anzeige übersichtlicher, erst passende"-Auftrag
-                // — with many saved bridges, one long flat list is
-                // overwhelming. Bridges whose linkedNeeds/linkedObstacles
-                // overlap with what the person actually picked in the
-                // steps just before this one are shown first and
-                // expanded; everything else collapses into "weitere
-                // Brücken" below instead of competing for attention.
-                const picked = new Set([...need, ...obstacle]);
-                const scored = allBridges.map((b) => ({
-                  bridge: b,
-                  matches: [...(b.linkedNeeds ?? []), ...(b.linkedObstacles ?? [])].filter((x) => picked.has(x)).length,
-                }));
-                const matching = scored.filter((s) => s.matches > 0).sort((a, b) => b.matches - a.matches);
-                const rest = scored.filter((s) => s.matches === 0);
-                const renderBridgeRow = (b: Bridge) => (
-                  <button
-                    key={b.id}
-                    onClick={() => setBridgeId(b.id)}
-                    className="flex items-center gap-3 rounded-[var(--radius-lg)] border p-3 text-left"
-                    style={{ borderColor: bridgeId === b.id ? 'var(--color-primary)' : 'var(--color-border)', borderWidth: bridgeId === b.id ? 1.5 : 1 }}
-                  >
-                    <PhotoBackground src={b.image} className="w-11 h-11 rounded-[var(--radius-md)] bg-cover bg-center flex-shrink-0" />
-                    <div className="min-w-0">
-                      <p className="text-[14px] text-[var(--color-text)] truncate">{b.title}</p>
-                      <p className="text-[12px] text-[var(--color-text-muted)]">{BRIDGE_CATEGORY_META[b.category]?.label(t)}</p>
-                    </div>
-                  </button>
-                );
-                return (
-                  <div className="mb-4">
-                    {matching.length > 0 && (
-                      <>
-                        <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.zugang.matchingBridgesLabel}</p>
-                        <div className="flex flex-col gap-2.5 mb-4">{matching.map((s) => renderBridgeRow(s.bridge))}</div>
-                      </>
-                    )}
-                    {rest.length > 0 && (
-                      <>
-                        {matching.length > 0 && (
-                          <p className="text-[12px] text-[var(--color-text-faint)] mb-2">
-                            {t.zugang.moreBridgesLabel.replace('{count}', String(rest.length))}
-                          </p>
-                        )}
-                        {/* "Nach Kategorien sortiert, zum Ausklappen"-Auftrag —
-                         * one flat list (whether it's everything, because
-                         * nothing matched the person's picks, or just the
-                         * leftover "rest" once a matching set is shown above)
-                         * was still too much. Grouping by the same eleven
-                         * categories bridges already use everywhere else,
-                         * each independently collapsible, lets a person open
-                         * just the one or two groups they actually want. */}
-                        <div className="flex flex-col gap-2">
-                          {BRIDGE_CATEGORY_ORDER.map((cat) => {
-                            const inCat = rest.filter((s) => s.bridge.category === cat);
-                            if (inCat.length === 0) return null;
-                            const meta = BRIDGE_CATEGORY_META[cat];
-                            return (
-                              <details key={cat} className="rounded-[var(--radius-lg)] border border-[var(--color-border)] px-3 py-2">
-                                <summary className="text-[13px] text-[var(--color-text)] cursor-pointer list-none flex items-center gap-2">
-                                  <meta.icon size={14} className="text-[var(--color-text-faint)]" />
-                                  {meta.label(t)}
-                                  <span className="text-[var(--color-text-faint)]">({inCat.length})</span>
-                                </summary>
-                                <div className="flex flex-col gap-2.5 mt-2.5">{inCat.map((s) => renderBridgeRow(s.bridge))}</div>
-                              </details>
-                            );
-                          })}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })()
-            )}
-            {bridgeId ? (
-              <div className="flex gap-2 animate-in">
-                <Button fullWidth onClick={goToBridge}>
-                  {t.zugang.goToBridgeCta}
-                </Button>
-                <Button fullWidth variant="secondary" onClick={goNext}>
-                  {t.zugang.stayInZugangCta}
-                </Button>
-              </div>
-            ) : (
-              <Button fullWidth variant="secondary" onClick={goNext}>
-                {t.companion.pickerContinue}
-              </Button>
-            )}
-          </div>
-        )}
-
-        {step === 9 && (
-          <div>
             <ZugangStepHeader question={t.zugang.step9Question} hint={t.zugang.step9Hint} />
             <SuggestionMultiSelect
               suggestions={CONNECTION_ITEMS_DE}
@@ -936,9 +844,92 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 10 && (
+        {step === 9 && (
           <div>
             <ZugangStepHeader question={t.zugang.step10Question} hint={t.zugang.step10Hint} />
+
+            {/* "Brücke faellt als eigener Schritt weg, wandert in
+             * Handlung"-Auftrag — same matching/category-grouped
+             * bridge picker that used to be its own step, now the
+             * first thing offered here: picking a bridge is itself
+             * one concrete way to answer "was fuehlt sich jetzt
+             * stimmig an", not a separate detour. Selecting one just
+             * sets bridgeId (shown via the summary card below) —
+             * doesn't force navigation away, the person can still
+             * pick a resource/contact/own action underneath instead
+             * or as well. */}
+            <div className="mb-5">
+              <p className="text-[14px] text-[var(--color-text)] mb-1">{t.zugang.handlungBridgeQuestion}</p>
+              {allBridges.length === 0 ? (
+                <p className="text-[13px] text-[var(--color-text-faint)]">{t.zugang.noBridgesYet}</p>
+              ) : (
+                (() => {
+                  const picked = new Set([...need, ...obstacle]);
+                  const scored = allBridges.map((b) => ({
+                    bridge: b,
+                    matches: [...(b.linkedNeeds ?? []), ...(b.linkedObstacles ?? [])].filter((x) => picked.has(x)).length,
+                  }));
+                  const matching = scored.filter((s) => s.matches > 0).sort((a, b) => b.matches - a.matches);
+                  const rest = scored.filter((s) => s.matches === 0);
+                  const renderBridgeRow = (b: Bridge) => (
+                    <button
+                      key={b.id}
+                      onClick={() => setBridgeId(bridgeId === b.id ? null : b.id)}
+                      className="flex items-center gap-3 rounded-[var(--radius-lg)] border p-3 text-left"
+                      style={{ borderColor: bridgeId === b.id ? 'var(--color-primary)' : 'var(--color-border)', borderWidth: bridgeId === b.id ? 1.5 : 1 }}
+                    >
+                      <PhotoBackground src={b.image} className="w-11 h-11 rounded-[var(--radius-md)] bg-cover bg-center flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[14px] text-[var(--color-text)] truncate">{b.title}</p>
+                        <p className="text-[12px] text-[var(--color-text-muted)]">{BRIDGE_CATEGORY_META[b.category]?.label(t)}</p>
+                      </div>
+                    </button>
+                  );
+                  return (
+                    <div className="mt-2">
+                      <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.zugang.handlungSavedBridgesLabel}</p>
+                      {matching.length > 0 && (
+                        <>
+                          <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.zugang.matchingBridgesLabel}</p>
+                          <div className="flex flex-col gap-2.5 mb-4">{matching.map((s) => renderBridgeRow(s.bridge))}</div>
+                        </>
+                      )}
+                      {rest.length > 0 && (
+                        <>
+                          {matching.length > 0 && (
+                            <p className="text-[12px] text-[var(--color-text-faint)] mb-2">
+                              {t.zugang.moreBridgesLabel.replace('{count}', String(rest.length))}
+                            </p>
+                          )}
+                          <div className="flex flex-col gap-2">
+                            {BRIDGE_CATEGORY_ORDER.map((cat) => {
+                              const inCat = rest.filter((s) => s.bridge.category === cat);
+                              if (inCat.length === 0) return null;
+                              const meta = BRIDGE_CATEGORY_META[cat];
+                              return (
+                                <details key={cat} className="rounded-[var(--radius-lg)] border border-[var(--color-border)] px-3 py-2">
+                                  <summary className="text-[13px] text-[var(--color-text)] cursor-pointer list-none flex items-center gap-2">
+                                    <meta.icon size={14} className="text-[var(--color-text-faint)]" />
+                                    {meta.label(t)}
+                                    <span className="text-[var(--color-text-faint)]">({inCat.length})</span>
+                                  </summary>
+                                  <div className="flex flex-col gap-2.5 mt-2.5">{inCat.map((s) => renderBridgeRow(s.bridge))}</div>
+                                </details>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                      {bridgeId && (
+                        <button onClick={goToBridge} className="text-[13px] text-[var(--color-primary)] mt-3">
+                          {t.zugang.goToBridgeCta} →
+                        </button>
+                      )}
+                    </div>
+                  );
+                })()
+              )}
+            </div>
 
             {selectedBridge && (
               <Card className="mb-4" style={{ background: 'var(--color-primary-soft)' }}>
@@ -963,7 +954,7 @@ export function ZugangPage() {
             )}
             {activityContacts.length > 0 && (
               <div className="mb-4">
-                <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.network.title}</p>
+                <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.zugang.myContactsLabel}</p>
                 <div className="flex flex-wrap gap-2">
                   {activityContacts.map((c) => (
                     <button key={c.id} onClick={() => setAction(c.name)} className="px-3.5 py-2 rounded-full text-[14px]" style={{ background: action === c.name ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: action === c.name ? 'var(--color-surface)' : 'var(--color-text)' }}>
@@ -992,7 +983,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 11 && !saved && (
+        {step === 10 && !saved && (
           <div>
             <h1 className="text-[20px] text-center mb-5">{t.zugang.step11Title2}</h1>
             <div className="flex flex-col gap-2 mb-6 text-[13px] text-[var(--color-text-muted)]">
@@ -1054,7 +1045,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 11 && saved && (
+        {step === 10 && saved && (
           <div className="flex flex-col items-center justify-center text-center gap-5 py-6 animate-in">
             <span className="text-[48px]">🌱</span>
             <div>
@@ -1075,7 +1066,7 @@ export function ZugangPage() {
         )}
       </div>
 
-      {!saved && step !== 8 && step !== 11 && !(step === 5 && selfSufficient === 'nein') && (
+      {!saved && step !== 10 && !(step === 5 && selfSufficient === 'nein') && (
         <Button fullWidth onClick={goNext} className="mt-6">
           {t.companion.pickerContinue}
         </Button>

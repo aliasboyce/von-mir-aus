@@ -15,6 +15,17 @@ interface SuggestionMultiSelectProps {
    * (Schutzstrategie, Bedürfnis, Hindernis, Verbindung), which keep
    * their plain neutral styling exactly as before. */
   getColor?: (value: string) => string | undefined;
+  /** "Eigenes ergaenzen bei Koerperempfindungen speichert nicht"-Fund
+   * — BodySensationPicker renders one of these PER zone group, each
+   * wired with a no-op onAddCustom (the real add lives in one shared
+   * section below all the groups). Every one of those six still
+   * rendered its own working-looking "+ Eigenes" button, though: a
+   * person typing there and hitting enter watched their own input
+   * vanish (the form closes on submit either way) while nothing was
+   * ever actually saved — indistinguishable from the feature being
+   * broken. This hides that dead "+" entirely for per-group instances
+   * that were never meant to have one. */
+  hideAddCustom?: boolean;
 }
 
 /**
@@ -34,6 +45,7 @@ export function SuggestionMultiSelect({
   onEditCustom,
   onDeleteCustom,
   getColor,
+  hideAddCustom = false,
 }: SuggestionMultiSelectProps) {
   const t = useT();
   const [adding, setAdding] = useState(false);
@@ -123,27 +135,28 @@ export function SuggestionMultiSelect({
         ),
       )}
 
-      {adding ? (
-        <div className="flex items-center gap-1">
-          <input
-            autoFocus
-            className="input"
-            style={{ width: 140, padding: '6px 10px', fontSize: 14 }}
-            placeholder={t.zugang.ownSuggestionPlaceholder}
-            value={newText}
-            onChange={(e) => setNewText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && submitNew()}
-            onBlur={submitNew}
-          />
-        </div>
-      ) : (
-        <button
-          onClick={() => setAdding(true)}
-          className="flex items-center gap-1 px-3.5 py-2 rounded-full text-[14px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]"
-        >
-          <Plus size={13} /> {t.zugang.ownSuggestionCta}
-        </button>
-      )}
+      {!hideAddCustom &&
+        (adding ? (
+          <div className="flex items-center gap-1">
+            <input
+              autoFocus
+              className="input"
+              style={{ width: 140, padding: '6px 10px', fontSize: 14 }}
+              placeholder={t.zugang.ownSuggestionPlaceholder}
+              value={newText}
+              onChange={(e) => setNewText(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && submitNew()}
+              onBlur={submitNew}
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => setAdding(true)}
+            className="flex items-center gap-1 px-3.5 py-2 rounded-full text-[14px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]"
+          >
+            <Plus size={13} /> {t.zugang.ownSuggestionCta}
+          </button>
+        ))}
     </div>
   );
 }

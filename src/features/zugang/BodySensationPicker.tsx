@@ -68,6 +68,7 @@ export function BodySensationPicker({ suggestions, customSuggestions, selected, 
                   onEditCustom={() => {}}
                   onDeleteCustom={() => {}}
                   getColor={colorForSensation}
+                  hideAddCustom
                 />
               </div>
             )}
