@@ -14,7 +14,7 @@ import { CONNECTION_ITEMS_DE, NEED_CATEGORY_GROUPS, OBSTACLES_DE } from '../zuga
 import { getCustomSuggestions, addCustomSuggestion } from '../zugang/zugangSuggestions';
 
 const ALL_NEEDS_DE = NEED_CATEGORY_GROUPS.flatMap((g) => g.items);
-import { SensoryModalityPicker } from '../../components/shared/SensoryModalityPicker';
+import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { ConditionsPicker } from './ConditionsPicker';
 import type { Bridge, BridgeCategory } from '../../data/types';
 
@@ -228,9 +228,9 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
           </div>
         </label>
 
-        <SensoryModalityPicker
-          selected={draft.sensoryModalities ?? []}
-          onChange={(ids) => setDraft({ ...draft, sensoryModalities: ids })}
+        <AccessChannelPicker
+          selected={draft.accessChannels ?? []}
+          onChange={(ids) => setDraft({ ...draft, accessChannels: ids })}
         />
 
         <label className="flex flex-col gap-1.5">

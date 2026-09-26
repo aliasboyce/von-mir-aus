@@ -10,7 +10,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { bridgesRepo, seedBridgesIfEmpty, patchKnownDemoContentIssues, migrateBridgeCategoriesIfNeeded, addMissingDemoBridges } from './bridgesRepo';
+import { bridgesRepo, seedBridgesIfEmpty, patchKnownDemoContentIssues, migrateBridgeCategoriesIfNeeded, migrateBridgeAccessChannelsIfNeeded, addMissingDemoBridges } from './bridgesRepo';
 import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from './bridgeMeta';
 import { BridgeFormModal } from './BridgeFormModal';
 import { AboutVonMirAusModal } from '../../components/shared/AboutVonMirAusModal';
@@ -32,6 +32,7 @@ seedBridgesIfEmpty();
 addMissingDemoBridges();
 patchKnownDemoContentIssues();
 migrateBridgeCategoriesIfNeeded();
+migrateBridgeAccessChannelsIfNeeded();
 
 const customCategoryStore = createCustomCategoryStore('bridge-custom-categories');
 

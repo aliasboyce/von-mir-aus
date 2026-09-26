@@ -12,7 +12,7 @@ import { HelpfulnessPrompt } from '../../components/shared/HelpfulnessPrompt';
 import { ResourceTimerView } from './ResourceTimerView';
 import { createId } from '../../services/storage/repository';
 import type { Resource, ResourceCategory } from '../../data/types';
-import { SENSORY_MODALITIES } from '../../data/sensoryModalities';
+import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
 interface ResourceDetailModalProps {
@@ -96,14 +96,14 @@ export function ResourceDetailModal({
           <p className="text-[14px] text-[var(--color-text)] leading-relaxed">{resource.description}</p>
         )}
 
-        {resource.sensoryModalities && resource.sensoryModalities.length > 0 && (
+        {resource.accessChannels && resource.accessChannels.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
-            {resource.sensoryModalities.map((id) => {
-              const m = SENSORY_MODALITIES.find((s) => s.id === id);
-              if (!m) return null;
+            {resource.accessChannels.map((id) => {
+              const meta = ACCESS_CHANNEL_META[id];
+              if (!meta) return null;
               return (
-                <span key={id} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
-                  {m.emoji} {m.label}
+                <span key={id} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text)] flex items-center gap-1">
+                  <meta.icon size={12} /> {meta.label(t)}
                 </span>
               );
             })}

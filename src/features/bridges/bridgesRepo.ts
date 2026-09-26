@@ -2,6 +2,7 @@ import { createRepository } from '../../services/storage/repository';
 import type { Bridge } from '../../data/types';
 import { DEMO_BRIDGES } from '../../data/seed/bridges.seed';
 import { LEGACY_CATEGORY_MIGRATION } from './bridgeMeta';
+import { migrateAccessChannelValues } from '../zugangskanaele/accessChannels';
 
 export const bridgesRepo = createRepository<Bridge>('bridges');
 
@@ -48,6 +49,28 @@ export function migrateBridgeCategoriesIfNeeded() {
     const migrated = LEGACY_CATEGORY_MIGRATION[bridge.category];
     if (migrated) {
       bridgesRepo.save({ ...bridge, category: migrated });
+    }
+  });
+}
+
+/**
+ * "Zugangskanäle & Zugänglichkeit, Schritt 2"-Fund — the type-level
+ * rename from sensoryModalities to accessChannels leaves any
+ * ALREADY-STORED bridge with its old data sitting under a field name
+ * the app no longer reads — not lost, just invisible, which looks
+ * exactly like data loss to the person who tagged it. Runs once per
+ * bridge; reads the raw stored value (untyped, since the field no
+ * longer exists on Bridge) rather than assuming every stored record
+ * matches the current type shape.
+ */
+export function migrateBridgeAccessChannelsIfNeeded() {
+  const all = bridgesRepo.getAll();
+  all.forEach((bridge) => {
+    const raw = bridge as unknown as { sensoryModalities?: string[] };
+    if (raw.sensoryModalities && raw.sensoryModalities.length > 0 && (!bridge.accessChannels || bridge.accessChannels.length === 0)) {
+      const { sensoryModalities: _old, ...rest } = raw as { sensoryModalities?: string[] } & Bridge;
+      void _old;
+      bridgesRepo.save({ ...rest, accessChannels: migrateAccessChannelValues(raw.sensoryModalities) });
     }
   });
 }

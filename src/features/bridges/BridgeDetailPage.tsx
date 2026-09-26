@@ -6,7 +6,7 @@ import { ArrowLeft, Heart, Lightbulb, Pencil, NotebookPen, Check, Trash2, Timer 
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { bridgesRepo, migrateBridgeCategoriesIfNeeded, addMissingDemoBridges } from './bridgesRepo';
+import { bridgesRepo, migrateBridgeCategoriesIfNeeded, migrateBridgeAccessChannelsIfNeeded, addMissingDemoBridges } from './bridgesRepo';
 import { zugangRepo } from '../zugang/zugangRepo';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from './bridgeMeta';
@@ -26,10 +26,11 @@ import { PhotoBackground } from '../../components/shared/PhotoBackground';
 import { diaryRepo } from '../diary/diaryRepo';
 import { createId } from '../../services/storage/repository';
 import type { Bridge } from '../../data/types';
-import { SENSORY_MODALITIES } from '../../data/sensoryModalities';
+import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
 import { CONDITIONS } from './conditions';
 
 migrateBridgeCategoriesIfNeeded();
+migrateBridgeAccessChannelsIfNeeded();
 
 export function BridgeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -69,6 +70,43 @@ export function BridgeDetailPage() {
   const [timerOpen, setTimerOpen] = useState(false);
   const [timerWasUsed, setTimerWasUsed] = useState(false);
   const [lastActivityId, setLastActivityId] = useState<string | null>(null);
+  const [printingBridge, setPrintingBridge] = useState(false);
+  const [diaryDraft, setDiaryDraft] = useState<string | null>(null);
+
+  // "Vier Hooks werden bedingt aufgerufen"-Fund (oxlint react-hooks/
+  // rules-of-hooks) — these two effects used to sit AFTER the `if
+  // (!bridge) return (...)` below, so on any render where the bridge
+  // hadn't been found yet they were skipped entirely, then called on
+  // a later render once it was — a genuine hook-count mismatch
+  // between renders, not just a lint nitpick. Doubly bad here: the
+  // seeding effect is specifically the one meant to FIND a missing
+  // bridge, so skipping it exactly when the bridge is missing was
+  // self-defeating. Both moved above the early return so they always
+  // run, unconditionally, on every render.
+  useEffect(() => {
+    const clear = () => setPrintingBridge(false);
+    window.addEventListener('afterprint', clear);
+    return () => window.removeEventListener('afterprint', clear);
+  }, []);
+
+  // "Bruecken-Weiterleitung geht immer noch nicht"-Auftrag — the actual
+  // fix: this page's own bridge lookup ran once, synchronously, before
+  // any seeding could happen (seeding previously only ran when the
+  // separate bridges LIST page was visited) — someone navigating here
+  // directly (e.g. from the ladder slider's exercise suggestion,
+  // without ever visiting the list first) got "not found" even though
+  // the bridge is a real demo entry. Seeding runs here now too, and if
+  // the initial lookup came back empty, it's retried once seeding is done.
+  useEffect(() => {
+    migrateBridgeCategoriesIfNeeded();
+    migrateBridgeAccessChannelsIfNeeded();
+    addMissingDemoBridges();
+    if (!bridge && id) {
+      const found = bridgesRepo.getById(id);
+      if (found) setBridge(found);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!bridge) {
     return (
@@ -111,32 +149,6 @@ export function BridgeDetailPage() {
     say(pickLine({ page: '/bruecken', trigger: 'eintrag_bearbeiten' }));
   }
 
-  const [printingBridge, setPrintingBridge] = useState(false);
-
-  useEffect(() => {
-    const clear = () => setPrintingBridge(false);
-    window.addEventListener('afterprint', clear);
-    return () => window.removeEventListener('afterprint', clear);
-  }, []);
-
-  // "Bruecken-Weiterleitung geht immer noch nicht"-Auftrag — the actual
-  // fix: this page's own bridge lookup ran once, synchronously, before
-  // any seeding could happen (seeding previously only ran when the
-  // separate bridges LIST page was visited) — someone navigating here
-  // directly (e.g. from the ladder slider's exercise suggestion,
-  // without ever visiting the list first) got "not found" even though
-  // the bridge is a real demo entry. Seeding runs here now too, and if
-  // the initial lookup came back empty, it's retried once seeding is done.
-  useEffect(() => {
-    migrateBridgeCategoriesIfNeeded();
-    addMissingDemoBridges();
-    if (!bridge && id) {
-      const found = bridgesRepo.getById(id);
-      if (found) setBridge(found);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   async function shareBridgeLink() {
     if (!bridge) return;
     const payload = {
@@ -167,8 +179,6 @@ export function BridgeDetailPage() {
     setPrintingBridge(true);
     setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
   }
-
-  const [diaryDraft, setDiaryDraft] = useState<string | null>(null);
 
   function openDiaryDraftFromTimer(durationMin: number, note?: string) {
     if (!bridge || !activeLevel) return;
@@ -290,14 +300,14 @@ export function BridgeDetailPage() {
           </div>
         )}
 
-        {bridge.sensoryModalities && bridge.sensoryModalities.length > 0 && (
+        {bridge.accessChannels && bridge.accessChannels.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {bridge.sensoryModalities.map((id) => {
-              const m = SENSORY_MODALITIES.find((s) => s.id === id);
-              if (!m) return null;
+            {bridge.accessChannels.map((id) => {
+              const meta = ACCESS_CHANNEL_META[id];
+              if (!meta) return null;
               return (
-                <span key={id} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
-                  {m.emoji} {m.label}
+                <span key={id} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text)] flex items-center gap-1">
+                  <meta.icon size={12} /> {meta.label(t)}
                 </span>
               );
             })}

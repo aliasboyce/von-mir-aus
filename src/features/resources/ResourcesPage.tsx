@@ -11,7 +11,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { ImageSuggestionCarousel } from '../../components/shared/ImageSuggestionCarousel';
-import { SensoryModalityPicker } from '../../components/shared/SensoryModalityPicker';
+import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { TopBar } from '../../components/navigation/TopBar';
 import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
 import { DiscoverResourcesModal } from './DiscoverResourcesModal';
@@ -21,7 +21,7 @@ import { resizeImageFile } from '../../services/imageResize';
 import { ImageCropModal } from '../../components/shared/ImageCropModal';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { resourcesRepo, seedResourcesIfEmpty } from './resourcesRepo';
+import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded } from './resourcesRepo';
 import { syncFavoriteResourceToNetwork, syncResourceEditToNetwork } from '../safetyNet/networkResourceSync';
 import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel } from './resourceMeta';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
@@ -34,6 +34,7 @@ import type { Resource, ResourceCategory } from '../../data/types';
 import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
 
 seedResourcesIfEmpty();
+migrateResourceAccessChannelsIfNeeded();
 
 const customCategoryStore = createCustomCategoryStore('resource-custom-categories');
 
@@ -534,9 +535,9 @@ export function ResourcesPage() {
               />
             </Field>
 
-            <SensoryModalityPicker
-              selected={editing.sensoryModalities ?? []}
-              onChange={(ids) => setEditing({ ...editing, sensoryModalities: ids })}
+            <AccessChannelPicker
+              selected={editing.accessChannels ?? []}
+              onChange={(ids) => setEditing({ ...editing, accessChannels: ids })}
             />
 
             <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed">{t.resources.favoriteToNetworkHint}</p>

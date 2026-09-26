@@ -50,14 +50,14 @@ export function MarkdownLite({ text }: { text: string }) {
           );
         }
         const lines = trimmed.split('\n');
-        const isList = lines.every((l) => /^[•\-]\s/.test(l.trim()));
+        const isList = lines.every((l) => /^[•-]\s/.test(l.trim()));
         if (isList) {
           return (
             <ul key={i} className="flex flex-col gap-1 pl-1">
               {lines.map((l, j) => (
                 <li key={j} className="text-[14px] text-[var(--color-text)] leading-relaxed flex gap-2">
                   <span className="text-[var(--color-text-faint)]">•</span>
-                  <span>{renderInline(l.trim().replace(/^[•\-]\s/, ''))}</span>
+                  <span>{renderInline(l.trim().replace(/^[•-]\s/, ''))}</span>
                 </li>
               ))}
             </ul>

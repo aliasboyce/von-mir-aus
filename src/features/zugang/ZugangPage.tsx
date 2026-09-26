@@ -38,11 +38,12 @@ import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from '../bridges/bridgeMeta';
+import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { useSettings } from '../../state/SettingsContext';
-import type { ZugangSurvivalState, Bridge } from '../../data/types';
+import type { ZugangSurvivalState, Bridge, AccessChannel } from '../../data/types';
 import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
@@ -103,6 +104,14 @@ export function ZugangPage() {
   const similarPastEntry = findSimilarPastEntry(survivalState, feelings);
   const [obstacle, setObstacle] = useState<string[]>(recentDraft?.obstacle ?? []);
   const [bridgeId, setBridgeId] = useState<string | null>(recentDraft?.bridgeId ?? null);
+  // "Starre Zone-Zuordnung ist doof — die Person soll selbst sagen, was
+  // gerade offen ist"-Fund — deliberately session-only state, not part
+  // of the persisted draft or the final saved entry. This is a
+  // transient preference for "right now, while picking", not a
+  // long-term record like feelings or needs are — keeping it out of
+  // storage keeps the whole feature simple and easy to remove later
+  // if it doesn't earn its place.
+  const [openChannels, setOpenChannels] = useState<AccessChannel[]>([]);
   const [connection, setConnection] = useState<string[]>(recentDraft?.connection ?? []);
   const [action, setAction] = useState(recentDraft?.action ?? '');
   const [reflection, setReflection] = useState(recentDraft?.reflection ?? '');
@@ -163,9 +172,22 @@ export function ZugangPage() {
 
   const allBridges = useMemo(() => bridgesRepo.getAll(), []);
   const selectedBridge = useMemo(() => allBridges.find((b) => b.id === bridgeId), [allBridges, bridgeId]);
-  const favoriteResources = useMemo(() => resourcesRepo.getAll().filter((r) => r.favorite).slice(0, 4), []);
+  // "Persönliche Antwort entscheidet, nie eine Zone"-Fund — resources
+  // whose own accessChannels tags overlap with what the person just
+  // said feels open right now sort first. Never a filter — everything
+  // stays visible either way, this only reorders.
+  const favoriteResources = useMemo(() => {
+    const all = resourcesRepo.getAll().filter((r) => r.favorite);
+    const withScore = all.map((r) => ({
+      resource: r,
+      matches: openChannels.length === 0 ? 0 : (r.accessChannels ?? []).filter((c) => openChannels.includes(c)).length,
+    }));
+    withScore.sort((a, b) => b.matches - a.matches);
+    return withScore.slice(0, 4).map((s) => s.resource);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openChannels]);
   const [energyFilter, setEnergyFilter] = useState<1 | 2 | 3 | null>(null);
-  const activityContacts = useMemo(() => networkRepo.getAll().filter((e) => e.category === 'aktivitaet').slice(0, 4), []);
+  const activityContacts = useMemo(() => networkRepo.getAll().filter((e) => e.category === 'person').slice(0, 4), []);
 
   function toggle(list: string[], setList: (v: string[]) => void, value: string) {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
@@ -848,6 +870,18 @@ export function ZugangPage() {
           <div>
             <ZugangStepHeader question={t.zugang.step10Question} hint={t.zugang.step10Hint} />
 
+            {/* "Starre Zone-Zuordnung ist doof — die Person soll selbst
+             * sagen, was gerade offen ist"-Fund — this replaces any
+             * idea of the app inferring "open channels" from the
+             * selected zone/state. The person answers directly, or
+             * skips it entirely; either way nothing below is ever
+             * hidden, only reordered. */}
+            <div className="mb-5">
+              <p className="text-[14px] text-[var(--color-text)] mb-1">{t.zugang.openChannelsQuestion}</p>
+              <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.zugang.openChannelsHint}</p>
+              <AccessChannelPicker selected={openChannels} onChange={setOpenChannels} hideLabel />
+            </div>
+
             {/* "Brücke faellt als eigener Schritt weg, wandert in
              * Handlung"-Auftrag — same matching/category-grouped
              * bridge picker that used to be its own step, now the
@@ -867,7 +901,9 @@ export function ZugangPage() {
                   const picked = new Set([...need, ...obstacle]);
                   const scored = allBridges.map((b) => ({
                     bridge: b,
-                    matches: [...(b.linkedNeeds ?? []), ...(b.linkedObstacles ?? [])].filter((x) => picked.has(x)).length,
+                    matches:
+                      [...(b.linkedNeeds ?? []), ...(b.linkedObstacles ?? [])].filter((x) => picked.has(x)).length +
+                      (openChannels.length === 0 ? 0 : (b.accessChannels ?? []).filter((c) => openChannels.includes(c)).length),
                   }));
                   const matching = scored.filter((s) => s.matches > 0).sort((a, b) => b.matches - a.matches);
                   const rest = scored.filter((s) => s.matches === 0);

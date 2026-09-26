@@ -198,6 +198,25 @@ export const ACCESS_WHEEL_DOMAIN_ORDER: AccessWheelDomain[] = [
 
 export type BridgeCategory = 'zu_mir' | 'zum_koerper' | 'zu_anderen' | 'nach_aussen' | string;
 
+/** "Zugangskanaele & Zugaenglichkeit, Schritt 1"-Auftrag — the type
+ * lives here with every other domain type; its metadata (labels,
+ * icons, order, crisis-readiness) lives in
+ * features/zugangskanaele/accessChannels.ts, exactly mirroring how
+ * BridgeCategory (here) vs. BRIDGE_CATEGORY_META (bridgeMeta.ts) are
+ * already split. See FACHLICHE_GRUNDLAGEN.md §1 for the full
+ * professional grounding behind these ten channels. */
+export type AccessChannel =
+  | 'denken'
+  | 'erinnerung'
+  | 'fuehlen'
+  | 'koerper_innen'
+  | 'sinne'
+  | 'aufmerksamkeit'
+  | 'bewegung'
+  | 'ausfuehren'
+  | 'beziehung'
+  | 'ort_zeit';
+
 export interface BridgeLevel {
   level: number;
   title: string;
@@ -251,9 +270,15 @@ export interface Bridge {
    * in the morning, with tea, without time pressure — capturing that
    * is far more useful than a flat yes/no on the activity itself. */
   conditions?: string[];
-  /** Same sensory-modality tagging as Resource — a bridge often engages
-   * a sense directly (e.g. "cold water on wrists" is tactile). */
-  sensoryModalities?: string[];
+  /** "Zugangskanaele & Zugaenglichkeit, Schritt 2"-Auftrag — this used
+   * to be the narrower sensoryModalities (7 senses only). Same field,
+   * same wiring, now typed against the full ten-channel AccessChannel
+   * taxonomy (see features/zugangskanaele/accessChannels.ts) instead
+   * of a loose string list — a genuine widening of an idea already
+   * proven useful here, not a second, competing system next to it.
+   * Old stored values are migrated once via migrateAccessChannels()
+   * in accessChannels.ts, never silently dropped. */
+  accessChannels?: AccessChannel[];
 }
 
 // ---------------------------------------------------------------------------
@@ -298,11 +323,13 @@ export interface Resource {
   note?: string;
   link?: string;
   tags: string[];
-  /** Ergotherapie-Perspektive, Perspektiven-Audit — which sense(s) this
-   * resource primarily works through, independent of its category.
-   * Lets someone find "what regulates through movement" rather than
-   * only browsing by topic. See sensoryModalities.ts for the full list. */
-  sensoryModalities?: string[];
+  /** "Zugangskanaele & Zugaenglichkeit, Schritt 2"-Auftrag — same
+   * evolution as Bridge.accessChannels: this used to be the narrower
+   * sensoryModalities. Now typed against the full ten-channel
+   * AccessChannel taxonomy. Independent of category — a resource can
+   * be both "Natur" (category) and tagged "Bewegung" + "Sinne"
+   * (channel) at once. */
+  accessChannels?: AccessChannel[];
   favorite: boolean;
   createdAt: string;
   updatedAt: string;

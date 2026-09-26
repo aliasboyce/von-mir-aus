@@ -19,7 +19,7 @@ import { NEED_CATEGORY_GROUPS } from '../zugang/zugangContent';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { useNetworkCategories } from '../safetyNet/useNetworkCategories';
 import { getIcon } from '../../components/icons/networkIcons';
-import { bridgesRepo, migrateBridgeCategoriesIfNeeded } from '../bridges/bridgesRepo';
+import { bridgesRepo, migrateBridgeCategoriesIfNeeded, migrateBridgeAccessChannelsIfNeeded } from '../bridges/bridgesRepo';
 import { BRIDGE_CATEGORY_META } from '../bridges/bridgeMeta';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import type { NeedDirection, HelpsWith, BridgeCategory } from '../../data/types';
@@ -68,6 +68,7 @@ const NEED_TO_BRIDGE_CATEGORY: Record<NeedDirection, BridgeCategory> = {
 };
 
 migrateBridgeCategoriesIfNeeded();
+migrateBridgeAccessChannelsIfNeeded();
 
 export function NeedsCompassPage() {
   const t = useT();
