@@ -1057,6 +1057,14 @@ const en: TranslationDictionary = {
       menschen: 'People',
       sonstiges: 'Other',
     },
+    categoryGroups: {
+      faehigkeiten: 'Abilities — what I can do',
+      hilfsmittel: 'Tools & Anchors — what helps me',
+      orte_gruppe: 'Places — where helps me',
+      aktivitaeten: 'Activities — what I can do',
+    },
+    newCategoryGroupLabel: 'Which fits best?',
+    newCategoryGroupSkip: 'Sort later',
   },
   updateBanner: {
     text: 'A new version of the app is available. Reload once to get everything up to date.',

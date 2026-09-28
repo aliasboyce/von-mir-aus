@@ -297,6 +297,25 @@ export type ResourceCategory =
   | 'sonstiges'
   | string;
 
+/**
+ * "Ressourcen in Unterkategorien aufteilen"-Auftrag — a group layer
+ * ABOVE the existing (and custom, user-added) categories, not a
+ * replacement for them. Mirrors exactly how bridges already group
+ * eleven categories into four groups (see bridgeMeta.ts
+ * BRIDGE_CATEGORY_GROUPS_ORDER) — same pattern, new domain. See
+ * resourceMeta.ts for which built-in category belongs to which group.
+ * 'sonstiges' and any not-yet-assigned custom category stay outside
+ * every group, shown in their own section — nothing is ever forced
+ * into a group it doesn't fit.
+ *
+ * Deliberately no "Beziehungen" group — people who help already have
+ * their own dedicated home (das Netzwerk/Sicherheitsnetz). A second,
+ * parallel place to track "who helps me" inside Resources would
+ * duplicate that, not connect to it. The built-in 'menschen' resource
+ * category stays ungrouped for the same reason.
+ */
+export type ResourceCategoryGroup = 'faehigkeiten' | 'hilfsmittel' | 'orte_gruppe' | 'aktivitaeten';
+
 export interface Resource {
   id: string;
   title: string;

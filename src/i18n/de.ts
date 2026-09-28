@@ -1060,6 +1060,14 @@ const de = {
       menschen: 'Menschen',
       sonstiges: 'Sonstiges',
     },
+    categoryGroups: {
+      faehigkeiten: 'Fähigkeiten — was ich kann',
+      hilfsmittel: 'Hilfsmittel & Anker — was mir hilft',
+      orte_gruppe: 'Orte — wo es mir hilft',
+      aktivitaeten: 'Aktivitäten — was ich tun kann',
+    },
+    newCategoryGroupLabel: 'Wozu passt das am ehesten?',
+    newCategoryGroupSkip: 'Später einsortieren',
   },
   updateBanner: {
     text: 'Es gibt eine neue Version der App. Bitte lade sie einmal neu, um alles Aktuelle zu bekommen.',

@@ -23,14 +23,14 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded } from './resourcesRepo';
 import { syncFavoriteResourceToNetwork, syncResourceEditToNetwork } from '../safetyNet/networkResourceSync';
-import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel } from './resourceMeta';
+import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel, RESOURCE_CATEGORY_GROUP_META, RESOURCE_CATEGORY_GROUP_ORDER, RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { ResourcePrintView } from './ResourcePrintView';
 import { RecentlyUsedRow } from '../../components/shared/RecentlyUsedRow';
 import { createCustomCategoryStore } from '../../services/customCategories';
 import { createId } from '../../services/storage/repository';
-import type { Resource, ResourceCategory } from '../../data/types';
+import type { Resource, ResourceCategory, ResourceCategoryGroup } from '../../data/types';
 import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
 
 seedResourcesIfEmpty();
@@ -73,10 +73,10 @@ export function ResourcesPage() {
     return customCategories.find((c) => c.id === cat)?.label ?? cat;
   }
 
-  function addCategory() {
+  function addCategory(group?: ResourceCategoryGroup) {
     const name = newCategoryName.trim();
     if (!name) return;
-    const created = customCategoryStore.add(name);
+    const created = customCategoryStore.add(name, group);
     setCustomCategories(customCategoryStore.getAll());
     setFilter(created.id);
     setNewCategoryName('');
@@ -264,40 +264,92 @@ export function ResourcesPage() {
 
         <RecentlyUsedRow type="resource" hrefFor={(id) => `/entdecken/ressourcen?open=${id}`} />
 
-        <div className="chip-row no-scrollbar mb-5 -mx-5 px-5">
-          <Chip selected={filter === 'all'} onClick={() => setFilter('all')}>
-            {t.common.all}
-          </Chip>
-          {RESOURCE_CATEGORY_ORDER.map((c) => (
-            <Chip key={c} selected={filter === c} onClick={() => setFilter(c)}>
-              {resourceCategoryLabel(t, c)}
+        {/* "Ressourcen in Unterkategorien aufteilen"-Auftrag — from one
+         * long horizontal-scroll chip row to short, labelled rows per
+         * group, so the grouping is actually visible while browsing,
+         * not just a filter value with no explanation. 'sonstiges' and
+         * ungrouped custom categories (including 'menschen' — people
+         * stay in das Netzwerk, not a second place here) get their own
+         * final, unlabelled-as-a-group row instead of a "Sonstiges"
+         * heading that would just repeat the chip's own label. */}
+        <div className="mb-5">
+          <div className="flex flex-wrap gap-2 mb-3">
+            <Chip selected={filter === 'all'} onClick={() => setFilter('all')}>
+              {t.common.all}
             </Chip>
-          ))}
-          {customCategories.map((c) => (
-            <Chip key={c.id} selected={filter === c.id} onClick={() => setFilter(c.id)} icon={<Tag size={13} />}>
-              {c.label}
-            </Chip>
-          ))}
-          {!addingCategory ? (
-            <Chip onClick={() => setAddingCategory(true)} icon={<Plus size={14} />}>
-              {t.bridges.newCategory}
-            </Chip>
-          ) : (
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              <input
-                autoFocus
-                className="input"
-                style={{ width: 140 }}
-                placeholder={t.bridges.newCategoryPlaceholder}
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addCategory()}
-              />
-              <button onClick={addCategory} className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0">
-                <Plus size={15} />
-              </button>
-            </div>
-          )}
+          </div>
+          {RESOURCE_CATEGORY_GROUP_ORDER.map((group) => {
+            const meta = RESOURCE_CATEGORY_GROUP_META[group];
+            const builtIns = RESOURCE_CATEGORY_ORDER.filter((c) => RESOURCE_CATEGORY_TO_GROUP[c] === group);
+            const customs = customCategories.filter((c) => c.group === group);
+            if (builtIns.length === 0 && customs.length === 0) return null;
+            return (
+              <div key={group} className="mb-3">
+                <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5 flex items-center gap-1.5">
+                  <meta.icon size={12} />
+                  {meta.label(t)}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {builtIns.map((c) => (
+                    <Chip key={c} selected={filter === c} onClick={() => setFilter(c)}>
+                      {resourceCategoryLabel(t, c)}
+                    </Chip>
+                  ))}
+                  {customs.map((c) => (
+                    <Chip key={c.id} selected={filter === c.id} onClick={() => setFilter(c.id)} icon={<Tag size={13} />}>
+                      {c.label}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+          <div className="flex flex-wrap gap-2 items-center">
+            {RESOURCE_CATEGORY_ORDER.filter((c) => !RESOURCE_CATEGORY_TO_GROUP[c]).map((c) => (
+              <Chip key={c} selected={filter === c} onClick={() => setFilter(c)}>
+                {resourceCategoryLabel(t, c)}
+              </Chip>
+            ))}
+            {customCategories.filter((c) => !c.group).map((c) => (
+              <Chip key={c.id} selected={filter === c.id} onClick={() => setFilter(c.id)} icon={<Tag size={13} />}>
+                {c.label}
+              </Chip>
+            ))}
+            {!addingCategory ? (
+              <Chip onClick={() => setAddingCategory(true)} icon={<Plus size={14} />}>
+                {t.bridges.newCategory}
+              </Chip>
+            ) : (
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex items-center gap-1.5">
+                  <input
+                    autoFocus
+                    className="input"
+                    style={{ width: 160 }}
+                    placeholder={t.bridges.newCategoryPlaceholder}
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                  />
+                </div>
+                {newCategoryName.trim() && (
+                  <div className="flex flex-col gap-1.5 animate-in">
+                    <p className="text-[12px] text-[var(--color-text-faint)]">{t.resources.newCategoryGroupLabel}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {RESOURCE_CATEGORY_GROUP_ORDER.map((group) => {
+                        const meta = RESOURCE_CATEGORY_GROUP_META[group];
+                        return (
+                          <Chip key={group} onClick={() => addCategory(group)} icon={<meta.icon size={13} />}>
+                            {meta.label(t)}
+                          </Chip>
+                        );
+                      })}
+                      <Chip onClick={() => addCategory(undefined)}>{t.resources.newCategoryGroupSkip}</Chip>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <EnergyLevelFilter value={energyFilter} onChange={setEnergyFilter} />
