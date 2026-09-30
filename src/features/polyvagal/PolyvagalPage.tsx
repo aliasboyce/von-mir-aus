@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Maximize2, X, LineChart, ChevronDown, NotebookPen, Check } from 'lucide-react';
+import { Maximize2, X, LineChart, ChevronDown, NotebookPen, Check, Printer } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { ReminderControl } from '../../components/shared/ReminderControl';
 import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
+import { triggerPrint } from '../../services/printSupport';
+import { ChartPrintView } from './ChartPrintView';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { polyvagalRepo, todaysCheckIns, checkInsInLastDays } from './polyvagalRepo';
@@ -97,6 +100,7 @@ const EXPLAINER_BODY_KEY: Record<ExplainerSection, ExplainerBodyKey> = {
 
 export function PolyvagalPage() {
   const t = useT();
+  const { settings } = useSettings();
   const say = useCompanionSay();
   const [searchParams, setSearchParams] = useSearchParams();
   const expandedZoneParam = (searchParams.get('zone') as PolyvagalZone | null) ?? null;
@@ -274,7 +278,13 @@ export function PolyvagalPage() {
               <p className="text-[14px] text-[var(--color-text-muted)]">
                 {chartPeriod === 'week' ? t.polyvagal.weekChart : chartPeriod === 'month' ? t.polyvagal.monthChart : t.polyvagal.todayChart}
               </p>
-              <div style={{ width: 40 }} />
+              <button
+                onClick={() => window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50)}
+                aria-label={t.polyvagal.printChartCta}
+                className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+              >
+                <Printer size={18} />
+              </button>
             </div>
             <div className="flex-1 flex items-center justify-center px-4">
               <PolyvagalDayChart checkIns={chartCheckIns} expanded period={chartPeriod} onPointClick={(c) => setReflectingOn(c)} />
@@ -282,6 +292,13 @@ export function PolyvagalPage() {
           </div>,
           document.body,
         )}
+
+      <ChartPrintView
+        checkIns={chartCheckIns}
+        boundaries={settings.arousalZoneBoundaries}
+        periodLabel={chartPeriod === 'week' ? t.polyvagal.weekChart : chartPeriod === 'month' ? t.polyvagal.monthChart : t.polyvagal.todayChart}
+        formatDateTime={(iso) => new Date(iso).toLocaleString(settings.language === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+      />
 
         {/* ================= Deeper explanation, accordion style — moved
          * to the end of the page per "Anspannung + Zustand gehoert

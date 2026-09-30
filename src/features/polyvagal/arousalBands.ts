@@ -40,11 +40,35 @@ export interface ArousalBand {
   exercises: { bridgeId: string; exerciseName: string }[];
 }
 
+/**
+ * "Die klassische DBT-Anspannungskurve auf den Kopf gestellt und auf
+ * die polyvagale Leiter gepackt"-Auftrag — complete rebuild of the
+ * band percentages/names per the person's detailed DBT+Polyvagal
+ * brief. Two things changed from the version above; nothing else:
+ *
+ * 1) The scale direction flipped. It used to run 0% (top, calmest) to
+ *    100% (bottom, most shutdown) as one continuous climb. Now it
+ *    climbs 15% (top, Erholungsphase) down to 100% (Hyperarousal,
+ *    second-to-last zone) — then wraps: the very bottom zone
+ *    (Hypoarousal) uses 0–15%, sitting BELOW the 100% mark rather
+ *    than continuing past it. This mirrors the person's own framing:
+ *    the deepest shutdown is the RESULT of a prior stress explosion,
+ *    so it visually sits underneath it, not further up the same climb.
+ * 2) zone6 (Hypoarousal) only spans 15 percentage points but must
+ *    still look "breit" (wide) on the ladder — its narrow % range
+ *    doesn't reflect how little space it should get. See
+ *    visualPositionForValue() below for how this wrapping + the
+ *    deliberately generous bottom share are actually drawn.
+ *
+ * IDs, colors, polyvagalZone, states and exercises are all UNCHANGED
+ * per zone slot — only labelKey text and min/max move, so every
+ * feature keyed off zone id/color/exercises keeps working untouched.
+ */
 export const AROUSAL_BANDS: ArousalBand[] = [
   {
     id: 'zone1',
-    min: 0,
-    max: 15,
+    min: 15,
+    max: 29,
     color: '#3d8b52',
     labelKey: 'zone1',
     polyvagalZone: 'ventral',
@@ -58,8 +82,8 @@ export const AROUSAL_BANDS: ArousalBand[] = [
   },
   {
     id: 'zone2',
-    min: 16,
-    max: 35,
+    min: 30,
+    max: 39,
     color: '#8fae3d',
     labelKey: 'zone2',
     polyvagalZone: 'ventral',
@@ -73,8 +97,8 @@ export const AROUSAL_BANDS: ArousalBand[] = [
   },
   {
     id: 'zone3',
-    min: 36,
-    max: 55,
+    min: 40,
+    max: 59,
     color: '#e0a83b',
     labelKey: 'zone3',
     polyvagalZone: 'ventral',
@@ -88,10 +112,25 @@ export const AROUSAL_BANDS: ArousalBand[] = [
   },
   {
     id: 'zone4',
-    min: 56,
-    max: 75,
+    min: 60,
+    max: 69,
     color: '#c9522f',
     labelKey: 'zone4',
+    polyvagalZone: 'ventral',
+    states: ['flood', 'unruhe'],
+    inWindow: true,
+    exercises: [
+      { bridgeId: 'bridge_voo_atem', exerciseName: 'Orientierung & Voo-Atem' },
+      { bridgeId: 'bridge_gewichtswahrnehmung', exerciseName: 'Gewichtswahrnehmung' },
+      { bridgeId: 'bridge_auditives_verankern', exerciseName: 'Auditives Verankern' },
+    ],
+  },
+  {
+    id: 'zone5',
+    min: 70,
+    max: 100,
+    color: '#7d5a95',
+    labelKey: 'zone5',
     polyvagalZone: 'sympathetic',
     states: ['flucht', 'kampf', 'angepasst'],
     inWindow: false,
@@ -102,24 +141,9 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     ],
   },
   {
-    id: 'zone5',
-    min: 76,
-    max: 85,
-    color: '#7d5a95',
-    labelKey: 'zone5',
-    polyvagalZone: 'dorsal',
-    states: ['erstarren', 'blockiert'],
-    inWindow: false,
-    exercises: [
-      { bridgeId: 'bridge_salamander_blick', exerciseName: 'Der Salamander-Blick' },
-      { bridgeId: 'bridge_schulterkreisen', exerciseName: 'Schulterkreisen (Fixierter Blick)' },
-      { bridgeId: 'bridge_isometrischer_zug', exerciseName: 'Isometrischer Hand-Zug' },
-    ],
-  },
-  {
     id: 'zone6',
-    min: 86,
-    max: 100,
+    min: 0,
+    max: 14,
     color: '#4a6fa5',
     labelKey: 'zone6',
     polyvagalZone: 'dorsal',
@@ -132,6 +156,66 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     ],
   },
 ];
+
+/**
+ * "Auch breit sein, auch wenn man da nicht mehr Prozent hat"-Auftrag
+ * — the bottom Hypoarousal zone (0–14%, only 15 points wide) gets a
+ * fixed, generous share of the ladder's visual height regardless of
+ * its narrow percentage span — set here once so every place that
+ * draws the ladder (slider, chart Y-axis, gradient) agrees.
+ */
+export const HYPOAROUSAL_VISUAL_SHARE = 0.22;
+
+/**
+ * Converts a raw 0–100 tension value into a 0–100 VISUAL position on
+ * the ladder (0 = very top of the track, 100 = very bottom) — needed
+ * because the percentage scale itself is no longer a simple straight
+ * line top-to-bottom. Values 15–100 climb through the top
+ * (1-HYPOAROUSAL_VISUAL_SHARE) share of the track; values 0–14 (the
+ * wrap-around Hypoarousal zone) occupy the remaining bottom share,
+ * deliberately wider than their 15-point range would normally earn.
+ * wrapAt is the value where the wrap happens (14 by default, i.e. the
+ * top edge of Hypoarousal) — kept as a parameter so a future
+ * calibrated Hypoarousal range can reuse this without duplicating the
+ * math.
+ */
+export function visualPositionForValue(value: number, wrapAt: number = AROUSAL_BANDS[5].max): number {
+  const v = Math.max(0, Math.min(100, value));
+  const mainShare = (1 - HYPOAROUSAL_VISUAL_SHARE) * 100;
+  if (v > wrapAt) {
+    return ((v - (wrapAt + 1)) / (100 - (wrapAt + 1))) * mainShare;
+  }
+  return mainShare + ((wrapAt - v) / wrapAt) * (HYPOAROUSAL_VISUAL_SHARE * 100);
+}
+
+/**
+ * Inverse of visualPositionForValue — given a visual track position
+ * (0 = top, 100 = bottom), returns the raw 0–100 tension value there.
+ * Needed for turning a drag/click position on the ladder back into a
+ * value; must stay the exact mathematical inverse of
+ * visualPositionForValue or dragging and display would disagree.
+ */
+export function valueForVisualPosition(pos: number, wrapAt: number = AROUSAL_BANDS[5].max): number {
+  const p = Math.max(0, Math.min(100, pos));
+  const mainShare = (1 - HYPOAROUSAL_VISUAL_SHARE) * 100;
+  if (p <= mainShare) {
+    return (wrapAt + 1) + (p / mainShare) * (100 - (wrapAt + 1));
+  }
+  return wrapAt - ((p - mainShare) / (HYPOAROUSAL_VISUAL_SHARE * 100)) * wrapAt;
+}
+
+/** Visual top/height (both 0–100, track-relative) for one band's
+ * min–max, via visualPositionForValue — for drawing its background
+ * stripe or label at the right place and size. Works the same way
+ * for every band including the wrap-around zone6: visualPositionForValue
+ * already returns a smaller number for band.max and a larger one for
+ * band.min there (since deeper shutdown/lower value sits further
+ * down), so min(a,b)/abs(a-b) is all that's needed either way. */
+export function visualExtentForBand(band: ArousalBand, wrapAt?: number): { top: number; height: number } {
+  const a = visualPositionForValue(band.max, wrapAt);
+  const b = visualPositionForValue(band.min, wrapAt);
+  return { top: Math.min(a, b), height: Math.abs(b - a) };
+}
 
 export function bandForValue(v: number): ArousalBand {
   return AROUSAL_BANDS.find((b) => v >= b.min && v <= b.max) ?? AROUSAL_BANDS[0];
@@ -174,8 +258,49 @@ export function bandForValueCalibrated(v: number, boundaries?: [number, number, 
  * color) — six distinct colors stay visible either way, calibrated or
  * not, only their widths/positions move.
  */
+/**
+ * "Der coole Verlauf soll nicht weggehen"-Fund — the very first version
+ * of gradientStopsForBands placed two stops per band at its exact
+ * min/max, which is a hard, flat-edged block with no blend at all —
+ * "starr" is exactly right. This restores the soft, blended rainbow
+ * look (each color melting into the next, like AROUSAL_GRADIENT_STOPS
+ * always had) while still letting a wider calibrated zone actually
+ * look wider: each band gets its own two stops set slightly inside its
+ * min/max (a margin proportional to the band's own width, capped so a
+ * narrow calibrated zone never gets a margin bigger than itself) —
+ * the vivid, solid part of a band still scales with its calibrated
+ * width, but the boundary between neighbours is a smooth blend again,
+ * not a cut.
+ */
+/**
+ * Same soft-blend approach as gradientStopsForBands below, but stops
+ * are placed using each band's VISUAL position (visualExtentForBand)
+ * rather than its raw min/max percentage — needed now that the scale
+ * wraps (Hypoarousal's 0–14% sits at the visual bottom, not where a
+ * plain 0–14% would put it). Use this one for anything drawn on the
+ * new wrapping ladder; gradientStopsForBands stays for print/legacy
+ * contexts that still think in plain percentages.
+ */
+export function gradientStopsForBandsVisual(bands: ArousalBand[], wrapAt?: number): string {
+  const stops: string[] = [];
+  bands.forEach((b) => {
+    const { top, height } = visualExtentForBand(b, wrapAt);
+    const margin = Math.min(3, height * 0.2);
+    stops.push(`${b.color} ${top + margin}%`, `${b.color} ${top + height - margin}%`);
+  });
+  return stops.join(', ');
+}
+
 export function gradientStopsForBands(bands: ArousalBand[]): string {
-  return bands.map((b) => [`${b.color} ${b.min}%`, `${b.color} ${b.max}%`]).flat().join(', ');
+  const stops: string[] = [];
+  bands.forEach((b, i) => {
+    const width = b.max - b.min;
+    const margin = Math.min(3, width * 0.2);
+    const innerMin = i === 0 ? b.min : b.min + margin;
+    const innerMax = i === bands.length - 1 ? b.max : b.max - margin;
+    stops.push(`${b.color} ${innerMin}%`, `${b.color} ${Math.max(innerMin, innerMax)}%`);
+  });
+  return stops.join(', ');
 }
 
 // Smooth 6-stop rainbow, green(top/0%) through blue(bottom/100%) —

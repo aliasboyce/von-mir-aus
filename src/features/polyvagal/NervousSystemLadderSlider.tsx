@@ -1,11 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Info, X, AlertTriangle, Search } from 'lucide-react';
+import { Info, X, AlertTriangle, Search } from 'lucide-react';
 import { useT } from '../../i18n';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { useSettings } from '../../state/SettingsContext';
 import { triggerHaptic } from '../../services/haptics';
-import { AROUSAL_BANDS, bandsForBoundaries, gradientStopsForBands, DEFAULT_ZONE_BOUNDARIES, COMFORT_ZONE_COLOR } from './arousalBands';
+import {
+  AROUSAL_BANDS,
+  bandsForBoundaries,
+  gradientStopsForBands,
+  gradientStopsForBandsVisual,
+  visualPositionForValue,
+  valueForVisualPosition,
+  visualExtentForBand,
+  DEFAULT_ZONE_BOUNDARIES,
+  COMFORT_ZONE_COLOR,
+} from './arousalBands';
 import { BodyDetectiveModal } from './BodyDetectiveModal';
 import { windowProgressRepo } from './windowProgressRepo';
 import { createId } from '../../services/storage/repository';
@@ -41,14 +51,13 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   // zones/colors/labels/exercises with personal min/max. Everything
   // below (active band, gradient, label widths, dysregulation) reads
   // from this one array rather than branching on "which mode".
-  const calibratedBands = useMemo(
-    () => (settings.arousalZoneBoundaries ? bandsForBoundaries(settings.arousalZoneBoundaries) : AROUSAL_BANDS),
-    [settings.arousalZoneBoundaries]
-  );
-  const band = useMemo(
-    () => calibratedBands.find((b) => value >= b.min && value <= b.max) ?? calibratedBands[0],
-    [value, calibratedBands]
-  );
+  // "Alte 5-Grenzen-Kalibrierung archivieren"-Auftrag — the old
+  // calibration produced boundaries meant for the previous, single-
+  // direction 0→100 scale; they're meaningless against the new
+  // wrapping one, so calibratedBands is simply AROUSAL_BANDS now.
+  // Variable name kept as-is since it's used all through this file.
+  const calibratedBands = AROUSAL_BANDS;
+  const band = useMemo(() => calibratedBands.find((b) => value >= b.min && value <= b.max) ?? calibratedBands[0], [value]);
   const [lastBandId, setLastBandId] = useState(band.id);
   const zoneT = t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones];
 
@@ -102,7 +111,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
     const usableTop = rect.top + 12;
     const usableHeight = rect.height - 24;
     const ratio = (clientY - usableTop) / usableHeight;
-    return Math.round(ratio * 100);
+    return Math.round(valueForVisualPosition(ratio * 100));
   }
 
   useEffect(() => {
@@ -164,16 +173,14 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
 
   return (
     <div className="flex flex-col gap-4">
+      {/* "Position auf der Nervensystem-Leiter selbst kalibrieren
+       * archivieren"-Auftrag — the gear button that opened the old
+       * 5-boundary calibration panel is removed here (too confusing
+       * alongside the new wrapping scale); calibrationOpen and the
+       * whole panel below stay in the file, dormant, in case this
+       * gets rebuilt later — nothing about them was deleted. */}
       <div className="flex items-center justify-between">
         <p className="text-[12px] text-[var(--color-text-faint)]">{t.polyvagal.ladderSliderLabel}</p>
-        <button
-          onClick={() => setCalibrationOpen((v) => !v)}
-          aria-label={t.polyvagal.arousalCalibrationTitle}
-          className="p-1.5 rounded-full"
-          style={{ background: hasCalibration ? 'var(--color-primary-soft)' : 'transparent', color: hasCalibration ? 'var(--color-primary)' : 'var(--color-text-faint)' }}
-        >
-          <Settings size={16} />
-        </button>
       </div>
 
       {/* "Koerper-Detektiv"-Auftrag — placed right next to the main
@@ -358,13 +365,13 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
               top: 12,
               bottom: 12,
               width: 14,
-              background: `linear-gradient(to bottom, ${gradientStopsForBands(calibratedBands)})`,
+              background: `linear-gradient(to bottom, ${gradientStopsForBandsVisual(calibratedBands)})`,
             }}
           />
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 pointer-events-none"
             style={{
-              top: `calc(12px + ${value}% * (100% - 24px - 30px) / 100%)`,
+              top: `calc(12px + ${visualPositionForValue(value)}% * (100% - 24px - 30px) / 100%)`,
               width: 28,
               height: 28,
               background: '#1a1a1a',
@@ -384,7 +391,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
                 key={b.id}
                 className="relative flex-1 flex items-center px-2.5"
                 style={{
-                  flexGrow: b.max - b.min,
+                  flexGrow: visualExtentForBand(b).height,
                   background: isActive ? `${b.color}22` : 'transparent',
                   borderTop: i > 0 ? `1px dashed ${calibratedBands[i - 1].color}55` : undefined,
                   transition: 'background 0.25s ease',
