@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { bandForValue } from './arousalBands';
 
 /**
  * "Lebendiger machen — Nervensystem-Seite als Wasser-Bild"-Auftrag —
@@ -9,9 +8,13 @@ import { bandForValue } from './arousalBands';
  * its color already do that) — just makes the felt quality of "ruhig"
  * vs. "aufgewühlt" something you see move, not just a static color
  * band. Purely decorative, positioned behind/below the slider.
+ *
+ * "Zonen selbst kalibrieren"-Fund — color is now passed in by the
+ * caller (which already computed the calibration-aware band) rather
+ * than recomputed here via the fixed bandForValue, so a calibrated
+ * person's wave matches their own slider instead of the default zones.
  */
-export function NervousSystemWave({ value }: { value: number }) {
-  const band = bandForValue(value);
+export function NervousSystemWave({ value, color }: { value: number; color: string }) {
   // amplitude and speed both scale with how far into the range we are —
   // 0 = a near-flat, slow line; 100 = a tall, fast, choppy one.
   const t = Math.max(0, Math.min(1, value / 100));
@@ -34,9 +37,9 @@ export function NervousSystemWave({ value }: { value: number }) {
   }, [amplitude, waveCount]);
 
   return (
-    <div className="w-full h-10 overflow-hidden rounded-[var(--radius-md)]" aria-hidden="true" style={{ background: `${band.color}0f` }}>
+    <div className="w-full h-10 overflow-hidden rounded-[var(--radius-md)]" aria-hidden="true" style={{ background: `${color}0f` }}>
       <svg viewBox="0 0 200 40" width="200%" height="100%" preserveAspectRatio="none" style={{ animation: `wave-drift ${duration}s linear infinite` }}>
-        <path d={path} fill="none" stroke={band.color} strokeWidth="2" opacity="0.55" strokeLinecap="round" />
+        <path d={path} fill="none" stroke={color} strokeWidth="2" opacity="0.55" strokeLinecap="round" />
       </svg>
     </div>
   );

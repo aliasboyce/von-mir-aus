@@ -5,7 +5,7 @@ import { useT } from '../../i18n';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { useSettings } from '../../state/SettingsContext';
 import { triggerHaptic } from '../../services/haptics';
-import { AROUSAL_BANDS, AROUSAL_GRADIENT_STOPS, bandForValue, dynamicGradientStops } from './arousalBands';
+import { AROUSAL_BANDS, bandsForBoundaries, gradientStopsForBands, DEFAULT_ZONE_BOUNDARIES, COMFORT_ZONE_COLOR } from './arousalBands';
 import { BodyDetectiveModal } from './BodyDetectiveModal';
 import { windowProgressRepo } from './windowProgressRepo';
 import { createId } from '../../services/storage/repository';
@@ -35,7 +35,20 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   const { settings, updateSettings } = useSettings();
   const [internalValue, setInternalValue] = useState(20);
   const value = controlledValue ?? internalValue;
-  const band = useMemo(() => bandForValue(value), [value]);
+  // "Zonen selbst kalibrieren"-Fund — calibratedBands is the single
+  // source of truth for this render: default AROUSAL_BANDS when
+  // nobody has set arousalZoneBoundaries, otherwise the same six
+  // zones/colors/labels/exercises with personal min/max. Everything
+  // below (active band, gradient, label widths, dysregulation) reads
+  // from this one array rather than branching on "which mode".
+  const calibratedBands = useMemo(
+    () => (settings.arousalZoneBoundaries ? bandsForBoundaries(settings.arousalZoneBoundaries) : AROUSAL_BANDS),
+    [settings.arousalZoneBoundaries]
+  );
+  const band = useMemo(
+    () => calibratedBands.find((b) => value >= b.min && value <= b.max) ?? calibratedBands[0],
+    [value, calibratedBands]
+  );
   const [lastBandId, setLastBandId] = useState(band.id);
   const zoneT = t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones];
 
@@ -46,14 +59,12 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   const [chronicleOpen, setChronicleOpen] = useState(false);
   const [printingChronicle, setPrintingChronicle] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
-  const hasCalibration = settings.arousalWindowStart != null && settings.arousalWindowEnd != null;
-  const windowStart = settings.arousalWindowStart ?? 0;
-  const windowEnd = settings.arousalWindowEnd ?? 55;
-  // "Basic-Fenster 0-55%"-Auftrag — the dysregulation check now always
-  // applies, using the clinical default window (0-55%) when nobody has
-  // calibrated their own — it's no longer an opt-in feature that does
-  // nothing until someone visits the gear icon first.
-  const isDysregulated = value < windowStart || value > windowEnd;
+  const hasCalibration = settings.arousalZoneBoundaries != null;
+  // "Meldung fuer Dysregulation aendert sich dementsprechend"-Fund —
+  // no separate threshold math anymore; a zone's own inWindow flag
+  // (unchanged by calibration, only its min/max move) IS the
+  // dysregulation signal now, exactly matching what's actually shown.
+  const isDysregulated = !band.inWindow;
   // "Fenster erst nach Loslassen einblenden, Aufblitz-Effekt"-Auftrag —
   // both the window overlay on the slider bar and the dysregulation
   // warning stay completely invisible until the person has released
@@ -63,8 +74,9 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   const [hasReleased, setHasReleased] = useState(false);
   const [justFlashed, setJustFlashed] = useState(false);
 
-  const [draftStart, setDraftStart] = useState(String(windowStart));
-  const [draftEnd, setDraftEnd] = useState(String(windowEnd));
+  const [draftBoundaries, setDraftBoundaries] = useState<string[]>(
+    (settings.arousalZoneBoundaries ?? DEFAULT_ZONE_BOUNDARIES).map(String)
+  );
 
   function handleChange(v: number) {
     const clamped = Math.max(0, Math.min(100, Math.round(v)));
@@ -133,21 +145,19 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   }
 
   function saveCalibration() {
-    const s = Math.max(0, Math.min(100, Number(draftStart) || 0));
-    const e = Math.max(0, Math.min(100, Number(draftEnd) || 100));
-    updateSettings({ arousalWindowStart: Math.min(s, e), arousalWindowEnd: Math.max(s, e) });
+    const parsed = draftBoundaries.map((d) => Math.max(0, Math.min(100, Number(d) || 0)));
+    updateSettings({ arousalZoneBoundaries: parsed as [number, number, number, number, number] });
     setCalibrationOpen(false);
   }
 
   function resetCalibration() {
-    updateSettings({ arousalWindowStart: undefined, arousalWindowEnd: undefined });
-    setDraftStart('0');
-    setDraftEnd('55');
+    updateSettings({ arousalZoneBoundaries: undefined });
+    setDraftBoundaries(DEFAULT_ZONE_BOUNDARIES.map(String));
     setCalibrationOpen(false);
   }
 
   function saveWindowProgress() {
-    windowProgressRepo.save({ id: createId('winprog'), createdAt: new Date().toISOString(), windowStart, windowEnd });
+    windowProgressRepo.save({ id: createId('winprog'), createdAt: new Date().toISOString(), boundaries: settings.arousalZoneBoundaries ?? DEFAULT_ZONE_BOUNDARIES });
     setProgressSaved(true);
     window.setTimeout(() => setProgressSaved(false), 2200);
   }
@@ -207,43 +217,23 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
             </button>
           </div>
           <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.polyvagal.arousalCalibrationIntro}</p>
-          <label className="flex items-center justify-between py-2 mb-3 border-t border-b border-[var(--color-border)]">
-            <span className="text-[12.5px] text-[var(--color-text)] pr-3">{t.polyvagal.arousalExtendedModeLabel}</span>
-            <button
-              role="switch"
-              aria-checked={!!settings.arousalExtendedMode}
-              onClick={() => updateSettings({ arousalExtendedMode: !settings.arousalExtendedMode })}
-              className="w-10 h-6 rounded-full relative flex-shrink-0"
-              style={{ background: settings.arousalExtendedMode ? 'var(--color-primary)' : 'var(--color-border)' }}
-            >
-              <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all" style={{ left: settings.arousalExtendedMode ? 18 : 2 }} />
-            </button>
-          </label>
-          <div className="flex gap-3 mb-3">
-            <label className="flex-1">
-              <span className="text-[11px] text-[var(--color-text-faint)] block mb-1">{t.polyvagal.arousalCalibrationStart}</span>
-              <input
-                type="number"
-                min={0}
-                max={100}
-                value={draftStart}
-                onChange={(e) => setDraftStart(e.target.value)}
-                className="w-full px-2.5 py-2 rounded-[var(--radius-md)] text-[14px]"
-                style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }}
-              />
-            </label>
-            <label className="flex-1">
-              <span className="text-[11px] text-[var(--color-text-faint)] block mb-1">{t.polyvagal.arousalCalibrationEnd}</span>
-              <input
-                type="number"
-                min={0}
-                max={100}
-                value={draftEnd}
-                onChange={(e) => setDraftEnd(e.target.value)}
-                className="w-full px-2.5 py-2 rounded-[var(--radius-md)] text-[14px]"
-                style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }}
-              />
-            </label>
+          <div className="flex flex-col gap-2.5 mb-3">
+            {(['zone2', 'zone3', 'zone4', 'zone5', 'zone6'] as const).map((zoneKey, i) => (
+              <label key={zoneKey} className="flex items-center justify-between gap-3">
+                <span className="text-[12.5px] text-[var(--color-text)]">
+                  {t.polyvagal.arousalZones[zoneKey].label} {t.polyvagal.arousalCalibrationBeginsAt}
+                </span>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={draftBoundaries[i]}
+                  onChange={(e) => setDraftBoundaries(draftBoundaries.map((d, j) => (j === i ? e.target.value : d)))}
+                  className="w-20 px-2.5 py-1.5 rounded-[var(--radius-md)] text-[14px] text-right flex-shrink-0"
+                  style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }}
+                />
+              </label>
+            ))}
           </div>
           <div className="flex gap-2">
             <button onClick={saveCalibration} className="flex-1 py-2 rounded-full text-[13px]" style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}>
@@ -268,12 +258,23 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
                 .getAll()
                 .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
                 .map((entry) => (
-                  <div key={entry.id} className="flex items-center justify-between text-[12.5px] px-3 py-2 rounded-[var(--radius-md)]" style={{ background: 'var(--color-surface)' }}>
-                    <span className="text-[var(--color-text-faint)]">
+                  <div key={entry.id} className="flex items-center gap-3 text-[12.5px] px-3 py-2 rounded-[var(--radius-md)]" style={{ background: 'var(--color-surface)' }}>
+                    <span className="text-[var(--color-text-faint)] flex-shrink-0">
                       {new Date(entry.createdAt).toLocaleDateString(settings.language === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                     </span>
-                    <span className="text-[var(--color-text)] font-medium">
-                      {entry.windowStart}% – {entry.windowEnd}%
+                    {/* "Fortschritt auf einen Blick statt fuenf Zahlen
+                     * lesen muessen"-Fund — a tiny horizontal version
+                     * of the same six-zone gradient, so a shrinking
+                     * green/olive stretch or a growing blue one is
+                     * visible at a glance across months, not something
+                     * that has to be mentally parsed from numbers. */}
+                    {entry.boundaries ? (
+                      <div className="flex-1 h-2.5 rounded-full" style={{ background: `linear-gradient(to right, ${gradientStopsForBands(bandsForBoundaries(entry.boundaries))})` }} />
+                    ) : (
+                      <div className="flex-1 h-2.5 rounded-full" style={{ background: `linear-gradient(to right, var(--color-border) 0%, var(--color-border) ${entry.windowStart}%, ${COMFORT_ZONE_COLOR} ${entry.windowStart}%, ${COMFORT_ZONE_COLOR} ${entry.windowEnd}%, var(--color-border) ${entry.windowEnd}%, var(--color-border) 100%)` }} />
+                    )}
+                    <span className="text-[var(--color-text)] font-medium flex-shrink-0 text-[11px]">
+                      {entry.boundaries ? entry.boundaries.join('·') + '%' : `${entry.windowStart}–${entry.windowEnd}%`}
                     </span>
                   </div>
                 ))}
@@ -357,29 +358,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
               top: 12,
               bottom: 12,
               width: 14,
-              background: `linear-gradient(to bottom, ${
-                settings.arousalExtendedMode && hasCalibration ? dynamicGradientStops(windowStart, windowEnd) : AROUSAL_GRADIENT_STOPS
-              })`,
-            }}
-          />
-          {/* "Fenster erst nach Loslassen einblenden, Aufblitz"-Auftrag
-           * — always rendered now (the basic 0-55% window applies even
-           * without custom calibration), but invisible until the first
-           * release, then a brief glow marks the moment it appears.
-           * "Zwei Modi"-Auftrag — hidden entirely in Erweiterter Modus:
-           * the dynamic track color itself shows the window there, a
-           * dashed box on top of that would just be visual clutter. */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
-            style={{
-              top: `calc(12px + ${windowStart}% * (100% - 24px) / 100%)`,
-              height: `calc(${windowEnd - windowStart}% * (100% - 24px) / 100%)`,
-              width: 22,
-              border: '2px dashed rgba(255,255,255,0.85)',
-              borderRadius: 11,
-              opacity: hasReleased && !settings.arousalExtendedMode ? 1 : 0,
-              boxShadow: justFlashed ? '0 0 12px 4px rgba(255,255,255,0.9)' : 'none',
-              transition: 'opacity 0.4s ease, box-shadow 0.6s ease',
+              background: `linear-gradient(to bottom, ${gradientStopsForBands(calibratedBands)})`,
             }}
           />
           <div
@@ -397,7 +376,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
 
         {/* six full-width zone bands */}
         <div className="relative flex-1 flex flex-col">
-          {AROUSAL_BANDS.map((b, i) => {
+          {calibratedBands.map((b, i) => {
             const bZoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
             const isActive = b.id === band.id;
             return (
@@ -407,7 +386,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
                 style={{
                   flexGrow: b.max - b.min,
                   background: isActive ? `${b.color}22` : 'transparent',
-                  borderTop: i > 0 ? `1px dashed ${AROUSAL_BANDS[i - 1].color}55` : undefined,
+                  borderTop: i > 0 ? `1px dashed ${calibratedBands[i - 1].color}55` : undefined,
                   transition: 'background 0.25s ease',
                 }}
               >
@@ -433,7 +412,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
        * the slider itself so the wave's stillness/turbulence reads as
        * a direct extension of the value just chosen, not a separate,
        * disconnected decoration elsewhere on the page. */}
-      <NervousSystemWave value={value} />
+      <NervousSystemWave value={value} color={band.color} />
 
       {/* single unified status readout */}
       <div className="flex items-center justify-between px-1">

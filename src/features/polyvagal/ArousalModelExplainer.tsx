@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
-import { AROUSAL_BANDS } from './arousalBands';
+import { AROUSAL_BANDS, bandsForBoundaries } from './arousalBands';
 
 /**
  * "Uebersichtlicher strukturieren, nicht doppelt"-Auftrag — renders
@@ -33,6 +34,14 @@ function renderBold(text: string, keyPrefix: string) {
 
 export function ArousalModelExplainer() {
   const t = useT();
+  const { settings } = useSettings();
+  // "Einheitlich auf allen verbundenen Seiten"-Fund — this explainer
+  // showed the fixed default ranges (e.g. "56–75%" for Hyperarousal)
+  // even for someone who calibrated their own, genuinely different
+  // range — confusing rather than explaining. Same calibratedBands
+  // pattern as everywhere else; label/description/color per zone stay
+  // identical either way, only the shown min–max moves.
+  const calibratedBands = settings.arousalZoneBoundaries ? bandsForBoundaries(settings.arousalZoneBoundaries) : AROUSAL_BANDS;
   const [open, setOpen] = useState(false);
   const [level, setLevel] = useState<'simple' | 'standard' | 'clinical'>('standard');
 
@@ -83,7 +92,7 @@ export function ArousalModelExplainer() {
                 {t.polyvagal.arousalExplainerWindowTitle}
               </p>
               <div className="flex flex-col gap-2 mb-4">
-                {AROUSAL_BANDS.filter((b) => b.inWindow).map((b) => {
+                {calibratedBands.filter((b) => b.inWindow).map((b) => {
                   const zoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
                   return (
                     <div key={b.id} className="flex gap-3 p-2.5 rounded-[var(--radius-md)]" style={{ background: `${b.color}14` }}>
@@ -103,7 +112,7 @@ export function ArousalModelExplainer() {
                 {t.polyvagal.arousalExplainerDysregTitle}
               </p>
               <div className="flex flex-col gap-2">
-                {AROUSAL_BANDS.filter((b) => !b.inWindow).map((b) => {
+                {calibratedBands.filter((b) => !b.inWindow).map((b) => {
                   const zoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
                   return (
                     <div key={b.id} className="flex gap-3 p-2.5 rounded-[var(--radius-md)]" style={{ background: `${b.color}14` }}>

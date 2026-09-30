@@ -100,7 +100,7 @@ export function CustomDistractionManageModal({ open, onClose, startCreating }: C
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={openCategory ? openCategory.name : t.customDistraction.manageTitle}>
+    <Modal open={open} onClose={onClose} title={openCategory ? openCategory.name : t.customDistraction.manageTitle} zIndex={250}>
       {!openCategory ? (
         <div className="flex flex-col gap-4">
           <p className="text-[12px] text-[var(--color-text-faint)]">{t.customDistraction.contentGuidance}</p>

@@ -72,7 +72,7 @@ export function VocabManageModal({ open, onClose }: VocabManageModalProps) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={openCollection ? openCollection.name : t.vocab.manageTitle}>
+    <Modal open={open} onClose={onClose} title={openCollection ? openCollection.name : t.vocab.manageTitle} zIndex={250}>
       {!openCollection ? (
         <div className="flex flex-col gap-4">
           {addingCollection ? (
@@ -152,11 +152,11 @@ export function VocabManageModal({ open, onClose }: VocabManageModalProps) {
         <div className="mt-4 pt-4 border-t border-[var(--color-border)] flex flex-col gap-3">
           <label className="flex flex-col gap-1.5">
             <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.vocab.frontLabel}</span>
-            <input autoFocus className="input" value={editingCard.front} onChange={(e) => setEditingCard({ ...editingCard, front: e.target.value })} />
+            <textarea autoFocus className="input" rows={2} value={editingCard.front} onChange={(e) => setEditingCard({ ...editingCard, front: e.target.value })} />
           </label>
           <label className="flex flex-col gap-1.5">
             <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.vocab.backLabel}</span>
-            <input className="input" value={editingCard.back} onChange={(e) => setEditingCard({ ...editingCard, back: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && saveCard()} />
+            <textarea className="input" rows={2} value={editingCard.back} onChange={(e) => setEditingCard({ ...editingCard, back: e.target.value })} />
           </label>
           <div className="flex gap-2">
             <Button fullWidth onClick={saveCard} disabled={!editingCard.front.trim() || !editingCard.back.trim()}>

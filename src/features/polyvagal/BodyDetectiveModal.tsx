@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { X, Search } from 'lucide-react';
 import { useT } from '../../i18n';
-import { bandForValue } from './arousalBands';
+import { useSettings } from '../../state/SettingsContext';
+import { bandForValueCalibrated } from './arousalBands';
 
 /**
  * "Koerper-Detektiv"-Auftrag — for people whose interoception is
@@ -39,6 +40,7 @@ function useQuestions(): { id: string; question: string; options: Option[] }[] {
 
 export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProps) {
   const t = useT();
+  const { settings } = useSettings();
   const questions = useQuestions();
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [showResult, setShowResult] = useState<number | null>(null);
@@ -60,7 +62,7 @@ export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProp
     onClose();
   }
 
-  const band = showResult != null ? bandForValue(showResult) : null;
+  const band = showResult != null ? bandForValueCalibrated(showResult, settings.arousalZoneBoundaries) : null;
 
   return (
     <div className="fixed inset-0 z-[420] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>

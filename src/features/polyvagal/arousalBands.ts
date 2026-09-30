@@ -137,6 +137,47 @@ export function bandForValue(v: number): ArousalBand {
   return AROUSAL_BANDS.find((b) => v >= b.min && v <= b.max) ?? AROUSAL_BANDS[0];
 }
 
+/** The original, fixed boundaries — also the fallback whenever no
+ * personal calibration is set. */
+export const DEFAULT_ZONE_BOUNDARIES: [number, number, number, number, number] = [15, 35, 55, 75, 85];
+
+/**
+ * "Zonen selbst kalibrieren"-Auftrag — builds a full six-band set from
+ * five personal boundaries, keeping every color/label/state/exercise
+ * exactly as in AROUSAL_BANDS and only recomputing min/max. Boundaries
+ * are clamped and sorted so a person can't accidentally create an
+ * invalid (zero-width or reversed) zone by entering them out of order.
+ */
+export function bandsForBoundaries(boundaries: [number, number, number, number, number]): ArousalBand[] {
+  const sorted = [...boundaries].map((b) => Math.max(0, Math.min(100, Math.round(b)))).sort((a, b) => a - b);
+  const edges = [0, sorted[0], sorted[1], sorted[2], sorted[3], sorted[4], 100];
+  return AROUSAL_BANDS.map((band, i) => ({
+    ...band,
+    min: i === 0 ? 0 : edges[i] + 1,
+    max: edges[i + 1],
+  }));
+}
+
+/** Like bandForValue, but honours a personal calibration when given. */
+export function bandForValueCalibrated(v: number, boundaries?: [number, number, number, number, number]): ArousalBand {
+  const bands = boundaries ? bandsForBoundaries(boundaries) : AROUSAL_BANDS;
+  return bands.find((b) => v >= b.min && v <= b.max) ?? bands[0];
+}
+
+/**
+ * "Die zugeordneten Farben bleiben genau gleich, aber der Bereich
+ * wird breiter oder fängt früher an"-Auftrag — gradient stops for a
+ * given set of bands (default or calibrated), each zone keeping its
+ * own fixed color, just at its own (possibly personal) position. This
+ * is the direct replacement for the old two-value dynamicGradientStops
+ * (which collapsed all six colors into a single uniform "comfort"
+ * color) — six distinct colors stay visible either way, calibrated or
+ * not, only their widths/positions move.
+ */
+export function gradientStopsForBands(bands: ArousalBand[]): string {
+  return bands.map((b) => [`${b.color} ${b.min}%`, `${b.color} ${b.max}%`]).flat().join(', ');
+}
+
 // Smooth 6-stop rainbow, green(top/0%) through blue(bottom/100%) —
 // matches each band's own representative color above for a coherent
 // gradient-to-band relationship rather than an arbitrary separate palette.
@@ -165,7 +206,7 @@ function mixHex(a: string, b: string, t: number): string {
   return `#${mixed.map((v) => v.toString(16).padStart(2, '0')).join('')}`;
 }
 
-const COMFORT_ZONE_COLOR = '#6fae5a';
+export const COMFORT_ZONE_COLOR = '#6fae5a';
 
 /**
  * Builds the gradient-bar CSS stops for Erweiterter Modus: a uniform

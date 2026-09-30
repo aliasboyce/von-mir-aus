@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { polyvagalRepo } from './polyvagalRepo';
-import { bandForValue } from './arousalBands';
+import { bandForValueCalibrated } from './arousalBands';
 import type { PolyvagalCheckIn } from '../../data/types';
 
 /**
@@ -25,7 +25,7 @@ export function ReflectionModal({ checkIn, onClose, onSaved }: ReflectionModalPr
   const [trigger, setTrigger] = useState(checkIn.reflectionTrigger ?? '');
   const [whatHelped, setWhatHelped] = useState(checkIn.reflectionWhatHelped ?? '');
   const raw = checkIn.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[checkIn.zone];
-  const band = bandForValue(raw);
+  const band = bandForValueCalibrated(raw, settings.arousalZoneBoundaries);
   const zoneT = t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones];
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
   const timeLabel = new Date(checkIn.createdAt).toLocaleString(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });

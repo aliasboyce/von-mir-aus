@@ -271,7 +271,9 @@ export function PolyvagalPage() {
               >
                 <X size={20} />
               </button>
-              <p className="text-[14px] text-[var(--color-text-muted)]">{t.polyvagal.todayChart}</p>
+              <p className="text-[14px] text-[var(--color-text-muted)]">
+                {chartPeriod === 'week' ? t.polyvagal.weekChart : chartPeriod === 'month' ? t.polyvagal.monthChart : t.polyvagal.todayChart}
+              </p>
               <div style={{ width: 40 }} />
             </div>
             <div className="flex-1 flex items-center justify-center px-4">

@@ -39,6 +39,22 @@ function fontSizeFor(text: string): number {
   return 22;
 }
 
+/**
+ * "Wenn der Text lange ist, wird er beim Abrufen der Karten nicht
+ * ganz angezeigt"-Fund — the card used a FIXED 140px height with
+ * overflow:hidden, silently clipping anything longer than that,
+ * regardless of font size. Now grows with the longer of front/back
+ * (capped, since the card still needs to feel like a card, not the
+ * whole screen), and overflow:hidden below is replaced with a
+ * scrollable safety net — nothing is ever permanently clipped, even
+ * for a card longer than this still allows for.
+ */
+function cardHeightFor(text: string): number {
+  if (text.length > 120) return 260;
+  if (text.length > 60) return 200;
+  return 140;
+}
+
 export function VocabLearnFlow({ onManage }: VocabLearnFlowProps) {
   const t = useT();
   const { settings } = useSettings();
@@ -140,7 +156,7 @@ export function VocabLearnFlow({ onManage }: VocabLearnFlowProps) {
         <div
           className="relative rounded-[var(--radius-lg)] w-full"
           style={{
-            height: 140,
+            height: Math.max(cardHeightFor(current.front), cardHeightFor(current.back)),
             transformStyle: 'preserve-3d',
             transform: flipped && !settings.reduceMotion ? 'rotateY(180deg)' : 'none',
             transition: settings.reduceMotion ? 'none' : 'transform 0.5s ease',
@@ -150,7 +166,7 @@ export function VocabLearnFlow({ onManage }: VocabLearnFlowProps) {
             className="absolute inset-0 rounded-[var(--radius-lg)] flex items-center justify-center px-4"
             style={{ background: 'var(--color-surface-muted)', backfaceVisibility: 'hidden' }}
           >
-            <p className="text-center" style={{ fontSize: fontSizeFor(current.front), color: 'var(--color-text)', overflowWrap: 'break-word', maxHeight: '100%', overflow: 'hidden' }}>
+            <p className="text-center" style={{ fontSize: fontSizeFor(current.front), color: 'var(--color-text)', overflowWrap: 'break-word', maxHeight: '100%', overflowY: 'auto' }}>
               {current.front}
             </p>
           </div>
@@ -162,7 +178,7 @@ export function VocabLearnFlow({ onManage }: VocabLearnFlowProps) {
               transform: 'rotateY(180deg)',
             }}
           >
-            <p className="text-center" style={{ fontSize: fontSizeFor(current.back), color: 'var(--color-text)', overflowWrap: 'break-word', maxHeight: '75%', overflow: 'hidden' }}>
+            <p className="text-center" style={{ fontSize: fontSizeFor(current.back), color: 'var(--color-text)', overflowWrap: 'break-word', maxHeight: '75%', overflowY: 'auto' }}>
               {current.back}
             </p>
             <p className="text-[13px]" style={{ color: result === 'correct' ? 'var(--color-primary)' : 'var(--color-text-muted)' }}>

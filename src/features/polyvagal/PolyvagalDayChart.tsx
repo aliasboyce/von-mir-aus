@@ -1,6 +1,6 @@
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
-import { AROUSAL_BANDS, bandForValue } from './arousalBands';
+import { bandsForBoundaries, bandForValueCalibrated, DEFAULT_ZONE_BOUNDARIES } from './arousalBands';
 import type { PolyvagalCheckIn } from '../../data/types';
 
 interface PolyvagalDayChartProps {
@@ -34,9 +34,12 @@ function yForCheckIn(c: PolyvagalCheckIn, padTop: number, height: number): numbe
 export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', onPointClick }: PolyvagalDayChartProps) {
   const t = useT();
   const { settings } = useSettings();
-  const isExtended = !!settings.arousalExtendedMode;
-  const extWindowStart = settings.arousalWindowStart ?? 0;
-  const extWindowEnd = settings.arousalWindowEnd ?? 55;
+  // "Einheitlich auf allen verbundenen Seiten"-Fund — this chart drew
+  // its zone backgrounds/lines/labels from the fixed AROUSAL_BANDS
+  // regardless of any personal calibration, so a calibrated person's
+  // chart didn't match what their own ladder/slider actually shows.
+  // Same calibratedBands pattern as NervousSystemLadderSlider.tsx.
+  const calibratedBands = settings.arousalZoneBoundaries ? bandsForBoundaries(settings.arousalZoneBoundaries) : bandsForBoundaries(DEFAULT_ZONE_BOUNDARIES);
   const width = expanded ? 640 : 320;
   const height = expanded ? 320 : 180;
   const padX = expanded ? 118 : 66;
@@ -64,7 +67,7 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', 
     return {
       x: xFor(new Date(c.createdAt)),
       y: yForCheckIn(c, padTop, height),
-      color: bandForValue(raw).color,
+      color: bandForValueCalibrated(raw, settings.arousalZoneBoundaries).color,
       pct: raw,
       time:
         period === 'day'
@@ -76,6 +79,22 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', 
   });
 
   const pathD = points.length > 1 ? `M ${points.map((p) => `${p.x},${p.y}`).join(' L ')}` : '';
+
+  // "Monat total zusammengequetscht"-Fund — with 30+ days of several
+  // check-ins each, a text label on every single point was reliably
+  // unreadable, overlapping into an illegible smear regardless of
+  // screen size. Every dot still renders (no data point disappears) —
+  // only the text labels are thinned, greedily keeping one whenever
+  // there's enough horizontal room since the last labelled point not
+  // to collide with it. minGap is generous enough for a "12.09 · 68%"
+  // two-line label in the expanded view, tighter for the compact one.
+  const minLabelGap = expanded ? 46 : 26;
+  let lastLabelX = -Infinity;
+  const labelled = points.map((p) => {
+    const show = p.x - lastLabelX >= minLabelGap;
+    if (show) lastLabelX = p.x;
+    return show;
+  });
 
   function yAt(pct: number) {
     return padTop + (pct / 100) * (height - padTop - PAD_BOTTOM);
@@ -96,47 +115,25 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', 
        * band toward the calmer side — matching the ladder slider's own
        * dynamic coloring. The plotted line/points always use the real
        * biological value either way; only this background changes. */}
-      {isExtended ? (
-        <>
-          {extWindowStart > 0 && (
-            <rect x={padX} y={yAt(0)} width={width - padX - 8} height={Math.max(yAt(extWindowStart) - yAt(0), 1)} fill="#9a9a9a1a" />
-          )}
-          <rect
-            x={padX}
-            y={yAt(extWindowStart)}
-            width={width - padX - 8}
-            height={Math.max(yAt(extWindowEnd) - yAt(extWindowStart), 1)}
-            fill="#6fae5a26"
-          />
-          <line x1={padX} y1={yAt(extWindowStart)} x2={width - 8} y2={yAt(extWindowStart)} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />
-          <line x1={padX} y1={yAt(extWindowEnd)} x2={width - 8} y2={yAt(extWindowEnd)} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />
-          {expanded && (
-            <text x={4} y={yAt((extWindowStart + extWindowEnd) / 2) + 3} fontSize={9.5} fill="#6fae5a" fontWeight={600}>
-              {t.polyvagal.arousalChronicleRangeLabel}
-            </text>
-          )}
-        </>
-      ) : (
-        <>
-          {AROUSAL_BANDS.map((b) => (
-            <rect key={b.id} x={padX} y={yAt(b.min)} width={width - padX - 8} height={Math.max(yAt(b.max) - yAt(b.min), 1)} fill={`${b.color}1a`} />
-          ))}
-          {AROUSAL_BANDS.map((b, i) => {
-            if (i === 0) return null;
-            const y = yAt(b.min);
-            return <line key={b.id} x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />;
+      <>
+        {calibratedBands.map((b) => (
+          <rect key={b.id} x={padX} y={yAt(b.min)} width={width - padX - 8} height={Math.max(yAt(b.max) - yAt(b.min), 1)} fill={`${b.color}1a`} />
+        ))}
+        {calibratedBands.map((b, i) => {
+          if (i === 0) return null;
+          const y = yAt(b.min);
+          return <line key={b.id} x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />;
+        })}
+        {expanded &&
+          calibratedBands.map((b) => {
+            const zoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
+            return (
+              <text key={b.id} x={4} y={yAt((b.min + b.max) / 2) + 3} fontSize={9.5} fill={b.color} fontWeight={600}>
+                {zoneT.label}
+              </text>
+            );
           })}
-          {expanded &&
-            AROUSAL_BANDS.map((b) => {
-              const zoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
-              return (
-                <text key={b.id} x={4} y={yAt((b.min + b.max) / 2) + 3} fontSize={9.5} fill={b.color} fontWeight={600}>
-                  {zoneT.label}
-                </text>
-              );
-            })}
-        </>
-      )}
+      </>
 
       {pathD && <path d={pathD} fill="none" stroke="var(--color-text-faint)" strokeWidth={1.5} opacity={0.5} />}
 
@@ -149,20 +146,21 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', 
           {(p.checkIn.reflectionTrigger || p.checkIn.reflectionWhatHelped) && (
             <circle cx={p.x} cy={p.y} r={expanded ? 9 : 7} fill="none" stroke={p.color} strokeWidth={1.5} pointerEvents="none" />
           )}
-          {expanded ? (
-            <>
-              <text x={p.x} y={p.y - 12} fontSize={9} textAnchor="middle" fill="var(--color-text-faint)">
-                {p.time}
-              </text>
-              <text x={p.x} y={p.y + 18} fontSize={10} fontWeight={600} textAnchor="middle" fill={p.color}>
+          {labelled[i] &&
+            (expanded ? (
+              <>
+                <text x={p.x} y={p.y - 12} fontSize={9} textAnchor="middle" fill="var(--color-text-faint)">
+                  {p.time}
+                </text>
+                <text x={p.x} y={p.y + 18} fontSize={10} fontWeight={600} textAnchor="middle" fill={p.color}>
+                  {p.pct}%
+                </text>
+              </>
+            ) : (
+              <text x={p.x} y={p.y - 9} fontSize={7.5} fontWeight={600} textAnchor="middle" fill={p.color}>
                 {p.pct}%
               </text>
-            </>
-          ) : (
-            <text x={p.x} y={p.y - 9} fontSize={7.5} fontWeight={600} textAnchor="middle" fill={p.color}>
-              {p.pct}%
-            </text>
-          )}
+            ))}
         </g>
       ))}
 

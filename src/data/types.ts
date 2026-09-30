@@ -780,6 +780,17 @@ export interface UserSettings {
    * check-in values are never touched by either mode — always the
    * real 0-100 biological reading. */
   arousalExtendedMode?: boolean;
+  /** "Zonen selbst kalibrieren, alle sechs Farben bleiben, nur ihre
+   * Grenzen verschieben sich"-Fund — supersedes the two-value
+   * arousalWindowStart/arousalWindowEnd + arousalExtendedMode above
+   * (kept in the type for anyone who already set them, but no longer
+   * driven by new UI). Five boundaries between the six always-visible
+   * zones: [zone1|2, zone2|3, zone3|4, zone4|5, zone5|6], each 0-100.
+   * undefined means uncalibrated — the app falls back to the original
+   * fixed boundaries (15, 35, 55, 75, 85) everywhere. Optional and
+   * off by default, same spirit as the mode it replaces: most people
+   * never touch this. */
+  arousalZoneBoundaries?: [number, number, number, number, number];
   /** future: reminders are opt-in and never guilt-based */
   remindersEnabled: boolean;
   /** "HH:MM" 24h format — when set + remindersEnabled, Home shows a gentle nudge after this time if no check-in happened yet today */

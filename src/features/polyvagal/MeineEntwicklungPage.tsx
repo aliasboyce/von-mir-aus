@@ -10,17 +10,38 @@ import { POLYVAGAL_ZONE_META, POLYVAGAL_ZONE_ORDER } from './polyvagalMeta';
 import { getDailyNote, saveDailyNote } from './dailyNotesRepo';
 import { describeDay } from './describeDay';
 import { MiniCurve } from './MiniCurve';
-import type { PolyvagalCheckIn, PolyvagalZone } from '../../data/types';
+import { bandForValueCalibrated } from './arousalBands';
+import type { PolyvagalCheckIn } from '../../data/types';
 
 import { groupByDay } from '../../services/groupByDay';
 
-function mostFrequentZone(entries: PolyvagalCheckIn[]): PolyvagalZone | null {
-  if (entries.length === 0) return null;
-  const counts: Record<string, number> = {};
-  entries.forEach((e) => {
-    counts[e.zone] = (counts[e.zone] ?? 0) + 1;
-  });
-  return (Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as PolyvagalZone) ?? null;
+/**
+ * "Nicht wie oft man in einer Zone war, sondern wie oft man zurueck-
+ * geschwungen ist"-Auftrag — replaces mostFrequentZone(). Dwelling in
+ * any one zone more than another was never the meaningful number here
+ * (a zone isn't good or bad); the skill that actually grows over time
+ * is finding the way back. Counts every transition from a dysregulated
+ * reading (outside the person's own calibrated window) to a regulated
+ * one, chronologically across the given entries — not a tally of
+ * which zone occurred most.
+ */
+function countRegulationReturns(entries: PolyvagalCheckIn[], boundaries?: [number, number, number, number, number]) {
+  const sorted = [...entries].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  let returns = 0;
+  let sawDysregulated = false;
+  let everDysregulated = false;
+  for (const e of sorted) {
+    const raw = e.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[e.zone];
+    const inWindow = bandForValueCalibrated(raw, boundaries).inWindow;
+    if (!inWindow) {
+      sawDysregulated = true;
+      everDysregulated = true;
+    } else if (sawDysregulated) {
+      returns += 1;
+      sawDysregulated = false;
+    }
+  }
+  return { returns, everDysregulated };
 }
 
 export function MeineEntwicklungPage() {
@@ -34,7 +55,10 @@ export function MeineEntwicklungPage() {
   const sortedDays = useMemo(() => [...grouped.keys()].sort().reverse(), [grouped]);
 
   const last7Days = sortedDays.slice(0, 7).flatMap((d) => grouped.get(d) ?? []);
-  const patternZone = mostFrequentZone(last7Days);
+  const { returns: regulationReturns, everDysregulated } = useMemo(
+    () => countRegulationReturns(last7Days, settings.arousalZoneBoundaries),
+    [last7Days, settings.arousalZoneBoundaries]
+  );
 
   function updateNote(dateKey: string, value: string) {
     saveDailyNote(dateKey, value);
@@ -48,14 +72,15 @@ export function MeineEntwicklungPage() {
         <h1 className="text-[24px] mb-1">{t.polyvagal.developmentTitle}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.polyvagal.developmentSubtitle}</p>
 
-        {patternZone && (
+        {last7Days.length > 0 && (
           <Card className="mb-6 flex items-center gap-3">
-            <span
-              className="w-3 h-3 rounded-full flex-shrink-0"
-              style={{ background: POLYVAGAL_ZONE_META[patternZone].color }}
-            />
+            <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: everDysregulated ? (regulationReturns > 0 ? '#4a8f6e' : '#c98a3f') : '#4a8f6e' }} />
             <p className="text-[13px] text-[var(--color-text)]">
-              {t.polyvagal.patternPrefix} <strong>{POLYVAGAL_ZONE_META[patternZone].label(t)}</strong>.
+              {!everDysregulated
+                ? t.polyvagal.patternSteady
+                : regulationReturns > 0
+                  ? t.polyvagal.patternReturns.replace('{n}', String(regulationReturns))
+                  : t.polyvagal.patternNoReturnsYet}
             </p>
           </Card>
         )}
