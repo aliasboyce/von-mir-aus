@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { polyvagalRepo } from './polyvagalRepo';
-import { bandForValueCalibrated } from './arousalBands';
+import { bandForValueCalibrated, FALLBACK_TENSION_BY_ZONE } from './arousalBands';
 import type { PolyvagalCheckIn } from '../../data/types';
 
 /**
@@ -24,7 +24,7 @@ export function ReflectionModal({ checkIn, onClose, onSaved }: ReflectionModalPr
   const { settings } = useSettings();
   const [trigger, setTrigger] = useState(checkIn.reflectionTrigger ?? '');
   const [whatHelped, setWhatHelped] = useState(checkIn.reflectionWhatHelped ?? '');
-  const raw = checkIn.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[checkIn.zone];
+  const raw = checkIn.tensionValue ?? FALLBACK_TENSION_BY_ZONE[checkIn.zone];
   const band = bandForValueCalibrated(raw, settings.arousalZoneBoundaries);
   const zoneT = t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones];
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';

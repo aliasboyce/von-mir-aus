@@ -1,6 +1,6 @@
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
-import { bandsForBoundaries, bandForValueCalibrated, DEFAULT_ZONE_BOUNDARIES } from './arousalBands';
+import { AROUSAL_BANDS, bandForValueCalibrated, visualPositionForValue, visualExtentForBand, FALLBACK_TENSION_BY_ZONE } from './arousalBands';
 import type { PolyvagalCheckIn } from '../../data/types';
 
 interface PolyvagalDayChartProps {
@@ -26,20 +26,26 @@ const PAD_BOTTOM = 16;
  * slider itself uses (not the older three-zone palette), across day,
  * week, or month.
  */
+/**
+ * "Die Kurve braucht dieselbe neue Positions-Rechnung"-Auftrag — was
+ * a plain raw/100 linear mapping; now goes through
+ * visualPositionForValue so a check-in's dot lands at the same
+ * visual height on the chart as the same value would on the ladder
+ * slider (15% near the top, 0% at the very bottom of the wrapped
+ * Hypoarousal band, not where a plain 0% used to sit).
+ */
 function yForCheckIn(c: PolyvagalCheckIn, padTop: number, height: number): number {
-  const raw = c.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[c.zone];
-  return padTop + (raw / 100) * (height - padTop - PAD_BOTTOM);
+  const raw = c.tensionValue ?? FALLBACK_TENSION_BY_ZONE[c.zone];
+  return padTop + (visualPositionForValue(raw) / 100) * (height - padTop - PAD_BOTTOM);
 }
 
 export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', onPointClick }: PolyvagalDayChartProps) {
   const t = useT();
   const { settings } = useSettings();
-  // "Einheitlich auf allen verbundenen Seiten"-Fund — this chart drew
-  // its zone backgrounds/lines/labels from the fixed AROUSAL_BANDS
-  // regardless of any personal calibration, so a calibrated person's
-  // chart didn't match what their own ladder/slider actually shows.
-  // Same calibratedBands pattern as NervousSystemLadderSlider.tsx.
-  const calibratedBands = settings.arousalZoneBoundaries ? bandsForBoundaries(settings.arousalZoneBoundaries) : bandsForBoundaries(DEFAULT_ZONE_BOUNDARIES);
+  // "Alte 5-Grenzen-Kalibrierung archivieren"-Fund — same as the
+  // ladder slider: always AROUSAL_BANDS now, the old calibration
+  // boundaries would be meaningless against the new wrapping scale.
+  const calibratedBands = AROUSAL_BANDS;
   const width = expanded ? 640 : 320;
   const height = expanded ? 320 : 180;
   const padX = expanded ? 118 : 66;
@@ -63,7 +69,7 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', 
   }
 
   const points = sorted.map((c) => {
-    const raw = c.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[c.zone];
+    const raw = c.tensionValue ?? FALLBACK_TENSION_BY_ZONE[c.zone];
     return {
       x: xFor(new Date(c.createdAt)),
       y: yForCheckIn(c, padTop, height),
@@ -116,19 +122,22 @@ export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', 
        * dynamic coloring. The plotted line/points always use the real
        * biological value either way; only this background changes. */}
       <>
-        {calibratedBands.map((b) => (
-          <rect key={b.id} x={padX} y={yAt(b.min)} width={width - padX - 8} height={Math.max(yAt(b.max) - yAt(b.min), 1)} fill={`${b.color}1a`} />
-        ))}
-        {calibratedBands.map((b, i) => {
-          if (i === 0) return null;
-          const y = yAt(b.min);
+        {calibratedBands.map((b) => {
+          const { top, height: h } = visualExtentForBand(b);
+          return <rect key={b.id} x={padX} y={yAt(top)} width={width - padX - 8} height={Math.max(yAt(top + h) - yAt(top), 1)} fill={`${b.color}1a`} />;
+        })}
+        {calibratedBands.map((b) => {
+          const { top } = visualExtentForBand(b);
+          if (top <= 0.01) return null;
+          const y = yAt(top);
           return <line key={b.id} x1={padX} y1={y} x2={width - 8} y2={y} stroke="var(--color-border)" strokeWidth={1} strokeDasharray="2 4" />;
         })}
         {expanded &&
           calibratedBands.map((b) => {
             const zoneT = t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones];
+            const { top, height: h } = visualExtentForBand(b);
             return (
-              <text key={b.id} x={4} y={yAt((b.min + b.max) / 2) + 3} fontSize={9.5} fill={b.color} fontWeight={600}>
+              <text key={b.id} x={4} y={yAt(top + h / 2) + 3} fontSize={9.5} fill={b.color} fontWeight={600}>
                 {zoneT.label}
               </text>
             );

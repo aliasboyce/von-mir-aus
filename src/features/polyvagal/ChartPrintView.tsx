@@ -1,5 +1,5 @@
 import type { PolyvagalCheckIn } from '../../data/types';
-import { bandForValueCalibrated } from './arousalBands';
+import { bandForValueCalibrated, FALLBACK_TENSION_BY_ZONE } from './arousalBands';
 import { useT } from '../../i18n';
 
 interface ChartPrintViewProps {
@@ -41,7 +41,7 @@ export function ChartPrintView({ checkIns, boundaries, periodLabel, formatDateTi
         </thead>
         <tbody>
           {sorted.map((c, i) => {
-            const raw = c.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[c.zone];
+            const raw = c.tensionValue ?? FALLBACK_TENSION_BY_ZONE[c.zone];
             const band = bandForValueCalibrated(raw, boundaries);
             const zoneT = t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones];
             return (

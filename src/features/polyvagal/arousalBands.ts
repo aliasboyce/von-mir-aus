@@ -99,7 +99,7 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     id: 'zone3',
     min: 40,
     max: 59,
-    color: '#e0a83b',
+    color: '#6fbf73',
     labelKey: 'zone3',
     polyvagalZone: 'ventral',
     states: ['flood', 'unruhe'],
@@ -114,7 +114,7 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     id: 'zone4',
     min: 60,
     max: 69,
-    color: '#c9522f',
+    color: '#e8a83d',
     labelKey: 'zone4',
     polyvagalZone: 'ventral',
     states: ['flood', 'unruhe'],
@@ -129,7 +129,7 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     id: 'zone5',
     min: 70,
     max: 100,
-    color: '#7d5a95',
+    color: '#c9522f',
     labelKey: 'zone5',
     polyvagalZone: 'sympathetic',
     states: ['flucht', 'kampf', 'angepasst'],
@@ -217,6 +217,23 @@ export function visualExtentForBand(band: ArousalBand, wrapAt?: number): { top: 
   return { top: Math.min(a, b), height: Math.abs(b - a) };
 }
 
+/**
+ * "Einheitlichkeit pruefen"-Fund — a check-in stores tensionValue
+ * (the precise 0–100 reading) only when the person answered the
+ * precise slider; check-ins that only have the coarse 'zone'
+ * (ventral/sympathetic/dorsal) fall back to a representative value
+ * from here. These five occurrences across ChartPrintView,
+ * MeineEntwicklungPage, PolyvagalDayChart (twice) and ReflectionModal
+ * all duplicated the SAME literal {ventral:83, sympathetic:50,
+ * dorsal:17} — values from the old, since-reversed scale direction,
+ * so a dorsal (shutdown) check-in was falling back into what the new
+ * scale calls Fokus & Flow, and a calm ventral one into Hyperarousal.
+ * Centralised here and corrected to the new scale: ventral→25
+ * (Erholungsphase/Konzentration & Alltag), sympathetic→80
+ * (solidly Hyperarousal), dorsal→8 (solidly Hypoarousal).
+ */
+export const FALLBACK_TENSION_BY_ZONE: Record<PolyvagalZone, number> = { ventral: 25, sympathetic: 80, dorsal: 8 };
+
 export function bandForValue(v: number): ArousalBand {
   return AROUSAL_BANDS.find((b) => v >= b.min && v <= b.max) ?? AROUSAL_BANDS[0];
 }
@@ -281,12 +298,35 @@ export function bandForValueCalibrated(v: number, boundaries?: [number, number, 
  * new wrapping ladder; gradientStopsForBands stays for print/legacy
  * contexts that still think in plain percentages.
  */
+/** Dark red/purple used only as a transitional stop between the red
+ * Hyperarousal zone and the blue Hypoarousal one — see
+ * gradientStopsForBandsVisual's zone5 special case below. Not a band
+ * color of its own; nothing else references this. */
+const HYPERAROUSAL_TO_HYPOAROUSAL_TRANSITION_COLOR = '#6b3a4a';
+
+/**
+ * "Der Uebergang von Hyperarousal ins Hypo, die letzten 85-100%, soll
+ * dunkelrot/lila dann blau werden, fliessend, wie wir das vorher
+ * hatten"-Fund — zone5 (Hyperarousal, red) no longer stays one flat
+ * color for its whole 70–100% span. Its second half fades from red
+ * toward a dark red/purple right before the wrap into zone6's blue,
+ * exactly where the person specifically asked for it — every other
+ * transition (green→olive→amber→orange→red) keeps the same small,
+ * ordinary blend margin as before.
+ */
 export function gradientStopsForBandsVisual(bands: ArousalBand[], wrapAt?: number): string {
   const stops: string[] = [];
   bands.forEach((b) => {
     const { top, height } = visualExtentForBand(b, wrapAt);
     const margin = Math.min(3, height * 0.2);
-    stops.push(`${b.color} ${top + margin}%`, `${b.color} ${top + height - margin}%`);
+    if (b.id === 'zone5') {
+      // Value 85 is the described midpoint of this fade — its own
+      // visual position marks where the darkening begins.
+      const fadeStartVisual = visualPositionForValue(85, wrapAt);
+      stops.push(`${b.color} ${top + margin}%`, `${b.color} ${fadeStartVisual}%`, `${HYPERAROUSAL_TO_HYPOAROUSAL_TRANSITION_COLOR} ${top + height}%`);
+    } else {
+      stops.push(`${b.color} ${top + margin}%`, `${b.color} ${top + height - margin}%`);
+    }
   });
   return stops.join(', ');
 }

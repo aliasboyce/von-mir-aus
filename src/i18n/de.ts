@@ -1394,7 +1394,7 @@ const de = {
             'Ruhig, gleichmäßig und entspannt.',
             'Es pocht schnell, die Atmung ist hektisch oder flach im Brustkorb.',
           ],
-          weights: [90, 20, 65],
+          weights: [8, 22, 80],
         },
         {
           question: 'Wenn du versuchst, deine Muskeln zu bewegen...',
@@ -1403,7 +1403,7 @@ const de = {
             '...sind sie beweglich, locker und normal einsatzbereit.',
             '...sind sie total angespannt, zappelig oder wie starr eingefroren.',
           ],
-          weights: [92, 20, 68],
+          weights: [6, 22, 82],
         },
         {
           question: 'Wie nimmst du deine Umgebung gerade wahr?',
@@ -1412,7 +1412,7 @@ const de = {
             'Alles ist zu laut, zu hell, zu viel. Ich bin total ablenkbar oder gereizt.',
             'Wie durch Watte, weit weg, neblig oder wie im Film.',
           ],
-          weights: [20, 65, 85],
+          weights: [22, 65, 8],
         },
       ],
       evaluateCta: 'Auswerten',

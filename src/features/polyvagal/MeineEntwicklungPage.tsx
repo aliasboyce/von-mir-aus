@@ -16,7 +16,7 @@ import { MiniCurve } from './MiniCurve';
 import { PolyvagalDayChart } from './PolyvagalDayChart';
 import { ChartPrintView } from './ChartPrintView';
 import { DailyReviewsPrintView } from './DailyReviewsPrintView';
-import { bandForValueCalibrated } from './arousalBands';
+import { bandForValueCalibrated, FALLBACK_TENSION_BY_ZONE } from './arousalBands';
 import type { PolyvagalCheckIn } from '../../data/types';
 
 import { groupByDay } from '../../services/groupByDay';
@@ -37,7 +37,7 @@ function countRegulationReturns(entries: PolyvagalCheckIn[], boundaries?: [numbe
   let sawDysregulated = false;
   let everDysregulated = false;
   for (const e of sorted) {
-    const raw = e.tensionValue ?? { ventral: 83, sympathetic: 50, dorsal: 17 }[e.zone];
+    const raw = e.tensionValue ?? FALLBACK_TENSION_BY_ZONE[e.zone];
     const inWindow = bandForValueCalibrated(raw, boundaries).inWindow;
     if (!inWindow) {
       sawDysregulated = true;

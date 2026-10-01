@@ -1391,7 +1391,7 @@ const en: TranslationDictionary = {
             'Calm, steady, and relaxed.',
             "Pounding fast, breathing is hectic or shallow in the chest.",
           ],
-          weights: [90, 20, 65],
+          weights: [8, 22, 80],
         },
         {
           question: 'When you try to move your muscles...',
@@ -1400,7 +1400,7 @@ const en: TranslationDictionary = {
             '...they are mobile, loose, and normally ready to go.',
             '...they are totally tense, jittery, or frozen stiff.',
           ],
-          weights: [92, 20, 68],
+          weights: [6, 22, 82],
         },
         {
           question: 'How do you perceive your surroundings right now?',
@@ -1409,7 +1409,7 @@ const en: TranslationDictionary = {
             "Everything is too loud, too bright, too much. I'm very distractible or irritable.",
             'As if through cotton wool, far away, foggy, or like watching a film.',
           ],
-          weights: [20, 65, 85],
+          weights: [22, 65, 8],
         },
       ],
       evaluateCta: 'Evaluate',
