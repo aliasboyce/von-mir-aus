@@ -498,6 +498,7 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Realistisches Praxistesten vorbereiten
 
 ## Für später (bereinigt — erledigte Punkte entfernt)
+- Ressourcen/Skills nach aktuellem Zustandsbereich vorschlagen: genau die Ressourcen bzw. Skills/Skillketten aus dem Bereich, der zur gerade aktuellen Anspannung/Zone passt, sollen dann vorgeschlagen werden (z. B. bei Hyperarousal automatisch die rot markierten Stresstoleranz-Skills) — Farbzuordnung Skill-Unterkategorie↔Zone existiert bereits (SKILL_CATEGORY_ZONE_COLOR in resourceMeta.ts), die eigentliche Vorschlags-Logik noch zu bauen
 - Wesen-Fenster am Laptop wieder abgeschnitten/nicht sichtbar — behoben und mehrfach getestet, bei erneutem Auftreten bitte konkretes Fenstermaß/Gerät nennen
 - Witze/Rätsel-Pool: Nutzer will nochmal durchgehen was bleibt/raus soll, plus eigene konkrete Beiträge ergänzen
 - Einfaches Spiel mit dem Wesen (z. B. Hüpfen)

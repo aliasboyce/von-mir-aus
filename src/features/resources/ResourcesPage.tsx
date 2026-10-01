@@ -23,7 +23,7 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded, addMissingDbtSkills } from './resourcesRepo';
 import { syncFavoriteResourceToNetwork, syncResourceEditToNetwork } from '../safetyNet/networkResourceSync';
-import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel, RESOURCE_CATEGORY_GROUP_META, RESOURCE_CATEGORY_GROUP_ORDER, RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
+import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel, RESOURCE_CATEGORY_GROUP_META, RESOURCE_CATEGORY_GROUP_ORDER, RESOURCE_CATEGORY_TO_GROUP, SKILL_CATEGORY_ZONE_COLOR } from './resourceMeta';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { ResourcePrintView } from './ResourcePrintView';
@@ -328,11 +328,25 @@ export function ResourcesPage() {
                   {meta.label(t)}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {builtIns.map((c) => (
-                    <Chip key={c} selected={filter === c} onClick={() => setFilter(c)}>
-                      {resourceCategoryLabel(t, c)}
-                    </Chip>
-                  ))}
+                  {builtIns.map((c) => {
+                    const zoneColor = SKILL_CATEGORY_ZONE_COLOR[c];
+                    return (
+                      <Chip
+                        key={c}
+                        selected={filter === c}
+                        onClick={() => setFilter(c)}
+                        style={
+                          zoneColor
+                            ? filter === c
+                              ? { background: zoneColor, borderColor: zoneColor, color: '#fff' }
+                              : { borderColor: zoneColor, color: zoneColor }
+                            : undefined
+                        }
+                      >
+                        {resourceCategoryLabel(t, c)}
+                      </Chip>
+                    );
+                  })}
                   {customs.map((c) => (
                     <Chip key={c.id} selected={filter === c.id} onClick={() => setFilter(c.id)} icon={<Tag size={13} />}>
                       {c.label}
@@ -425,7 +439,10 @@ export function ResourcesPage() {
                   <div className="h-24 bg-[var(--color-surface-muted)]" />
                 )}
                 <div className="p-3 flex-1 flex flex-col">
-                  <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">
+                  <p
+                    className="text-[11px] uppercase tracking-wide mb-1"
+                    style={{ color: SKILL_CATEGORY_ZONE_COLOR[resource.category] ?? 'var(--color-text-faint)' }}
+                  >
                     {categoryLabel(resource.category)}
                   </p>
                   <p className="text-[14px] text-[var(--color-text)] mb-1">{resource.title}</p>

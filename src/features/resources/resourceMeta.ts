@@ -1,6 +1,7 @@
 import type { ResourceCategory, ResourceCategoryGroup } from '../../data/types';
 import type { TranslationDictionary } from '../../i18n/de';
 import { Sparkles, Wrench, MapPin, Activity } from 'lucide-react';
+import { AROUSAL_BANDS } from '../polyvagal/arousalBands';
 
 /**
  * "Die 4 klassischen Basis-Module"-Auftrag — 'uebungen' (a generic,
@@ -58,6 +59,30 @@ export const RESOURCE_CATEGORY_GROUP_ORDER: ResourceCategoryGroup[] = ['faehigke
 /** Built-in category → group. Categories not listed here ('sonstiges'
  * and 'menschen' — see doc comment above) have no group and stay in
  * their own section. */
+/**
+ * "Jede Unterkategorie in der Farbe aus dem Zustandsbereich, wo diese
+ * Skills angewendet werden"-Auftrag — each of the four DBT modules
+ * tinted with the arousal-zone color where it's actually used, per
+ * the person's own text: Stresstoleranz explicitly for the
+ * "Hochstressbereich" (Hyperarousal, red); Emotionsregulation for
+ * catching things "bevor die Anspannung in den kritischen
+ * Krisenbereich rutscht" (Frühwarnbereich, yellow/orange, the exact
+ * zone already described that way in the big explainer text);
+ * Zwischenmenschliche Fertigkeiten from its own DEAR MAN example,
+ * placed in the "Niedriger Bereich/Alltag" (Konzentration & Alltag,
+ * olive — functioning/engaged, not deep rest); Innere Achtsamkeit as
+ * "die Basis" maps to Fokus & Flow (light green), the optimal-presence
+ * zone mindfulness itself aims to cultivate. Reads AROUSAL_BANDS
+ * directly rather than hardcoding hex values a second time, so this
+ * stays in sync if the zone colors ever change again.
+ */
+export const SKILL_CATEGORY_ZONE_COLOR: Partial<Record<ResourceCategory, string>> = {
+  achtsamkeit: AROUSAL_BANDS[2].color,
+  zwischenmenschlich: AROUSAL_BANDS[1].color,
+  emotionsregulation: AROUSAL_BANDS[3].color,
+  stresstoleranz: AROUSAL_BANDS[4].color,
+};
+
 export const RESOURCE_CATEGORY_TO_GROUP: Partial<Record<ResourceCategory, ResourceCategoryGroup>> = {
   achtsamkeit: 'faehigkeiten',
   stresstoleranz: 'faehigkeiten',
