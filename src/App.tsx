@@ -25,6 +25,7 @@ import { InnerWeatherPage } from './features/innerWeather/InnerWeatherPage';
 import { BridgesPage } from './features/bridges/BridgesPage';
 import { BridgeDetailPage } from './features/bridges/BridgeDetailPage';
 import { ResourcesPage } from './features/resources/ResourcesPage';
+import { ResourcesHubPage } from './features/resources/ResourcesHubPage';
 // AccessWheelPage retired — see App.tsx route comment
 import { ZugangPage } from './features/zugang/ZugangPage';
 import { ZugangReviewPage } from './features/zugang/ZugangReviewPage';
@@ -79,7 +80,8 @@ function App() {
                 <Route path="/inneres-wetter" element={<InnerWeatherPage />} />
 
                 <Route path="/entdecken" element={<ExplorePage />} />
-                <Route path="/entdecken/ressourcen" element={<ResourcesPage />} />
+                <Route path="/entdecken/ressourcen" element={<ResourcesHubPage />} />
+                <Route path="/entdecken/ressourcen/:type" element={<ResourcesPage />} />
                 {/* Zugangsrad retired per explicit audit decision — its
                  * sliders now live inside Wertekompass (AccessDomainsSection). */}
                 <Route path="/zugang" element={<ZugangPage />} />

@@ -1,4 +1,4 @@
-import { Compass, Activity, Bookmark, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy } from 'lucide-react';
+import { Compass, Activity, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { ReorderableTiles } from '../../components/navigation/ReorderableTiles';
@@ -68,10 +68,11 @@ export function ExplorePage() {
     { key: 'timer', to: '/entdecken/timer', icon: Timer, title: t.simpleTimer.title, subtitle: t.simpleTimer.subtitle, color: 'var(--color-accent-sun)' },
     { key: 'medilog', to: '/entdecken/medi-log', icon: Pill, title: t.mediLog.title, subtitle: t.mediLog.subtitle, color: 'var(--color-accent-sun)' },
   ];
-  const writingTiles: Tile[] = [
-    { key: 'briefAnMich', to: '/entdecken/brief-an-mich', icon: Mail, title: t.briefAnMich.title, subtitle: t.briefAnMich.subtitle, color: 'var(--color-accent-sky)' },
-    { key: 'lesezeichen', to: '/entdecken/lesezeichen', icon: Bookmark, title: t.bookmarks.title, subtitle: t.bookmarks.subtitle, color: 'var(--color-accent-sky)' },
-  ];
+  // "Gespeicherte Quellen soll auch hierher verschoben sein"-Auftrag
+  // — the lesezeichen tile that used to live here moved to the new
+  // Ressourcen hub (/entdecken/ressourcen) instead of staying
+  // duplicated in two places.
+  const writingTiles: Tile[] = [{ key: 'briefAnMich', to: '/entdecken/brief-an-mich', icon: Mail, title: t.briefAnMich.title, subtitle: t.briefAnMich.subtitle, color: 'var(--color-accent-sky)' }];
   const supportTiles: Tile[] = [
     { key: 'favoriten', to: '/favoriten', icon: Star, title: t.favorites.title, subtitle: t.favorites.subtitle, color: 'var(--color-accent-clay)' },
     { key: 'helfermodusLink', to: '/helfermodus', icon: LifeBuoy, title: t.helperMode.homeCta, subtitle: t.explore.helferSubtitle, color: 'var(--color-accent-clay)' },

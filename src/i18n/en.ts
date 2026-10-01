@@ -988,6 +988,14 @@ const en: TranslationDictionary = {
   resources: {
     title: 'My resources',
     subtitle: 'Whatever helps or soothes you right now.',
+    hubTitle: 'Resources',
+    hubSubtitle: 'The sources of strength available to you.',
+    hilfsmittelTitle: 'Tools',
+    hilfsmittelSubtitle: 'Concrete tools, digital or analog — apps, books and more.',
+    skillsTitle: 'Skills',
+    skillsSubtitle: 'Learned sequences for regulating tension on purpose.',
+    skillsIntro:
+      '"Skill" means an ability or competence. In Dialectical Behavior Therapy (DBT), skills are deliberate, learned behaviors or techniques for handling difficult situations, stress, or strong emotions — in short: what you actively do or can do to solve a problem.\n\nThere are four base modules: Inner Mindfulness (the foundation — noticing without immediately judging), Distress Tolerance (for emergencies — surviving a crisis without making it worse), Emotion Regulation (understanding and steering feelings over time), and Interpersonal Effectiveness (asserting needs, keeping relationships stable).',
     showDefinitionCta: 'What exactly are resources? →',
     hideDefinitionCta: 'Hide',
     definitionText: "Resources are all the means, reserves, and tools available to reach a particular goal or to handle tasks and problems.",
@@ -1055,6 +1063,10 @@ const en: TranslationDictionary = {
       orte: 'Places',
       uebungen: 'Exercises',
       menschen: 'People',
+      achtsamkeit: 'Inner Mindfulness',
+      stresstoleranz: 'Distress Tolerance',
+      emotionsregulation: 'Emotion Regulation',
+      zwischenmenschlich: 'Interpersonal Effectiveness',
       sonstiges: 'Other',
     },
     categoryGroups: {

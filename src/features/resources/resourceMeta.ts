@@ -2,6 +2,16 @@ import type { ResourceCategory, ResourceCategoryGroup } from '../../data/types';
 import type { TranslationDictionary } from '../../i18n/de';
 import { Sparkles, Wrench, MapPin, Activity } from 'lucide-react';
 
+/**
+ * "Die 4 klassischen Basis-Module"-Auftrag — 'uebungen' (a generic,
+ * unused placeholder — no demo resource ever used it) replaced by the
+ * four actual DBT modules as the Skills sub-categories: Innere
+ * Achtsamkeit, Stresstoleranz, Emotionsregulation, Zwischenmenschliche
+ * Fertigkeiten. All four map to the same 'faehigkeiten' group below,
+ * so they appear exactly where 'uebungen' used to on the existing
+ * category-chip UI — no new UI concept needed, just richer content
+ * under the one that was already there.
+ */
 export const RESOURCE_CATEGORY_ORDER: ResourceCategory[] = [
   'musik',
   'natur',
@@ -11,7 +21,10 @@ export const RESOURCE_CATEGORY_ORDER: ResourceCategory[] = [
   'apps',
   'buecher',
   'orte',
-  'uebungen',
+  'achtsamkeit',
+  'stresstoleranz',
+  'emotionsregulation',
+  'zwischenmenschlich',
   'menschen',
   'sonstiges',
 ];
@@ -46,7 +59,10 @@ export const RESOURCE_CATEGORY_GROUP_ORDER: ResourceCategoryGroup[] = ['faehigke
  * and 'menschen' — see doc comment above) have no group and stay in
  * their own section. */
 export const RESOURCE_CATEGORY_TO_GROUP: Partial<Record<ResourceCategory, ResourceCategoryGroup>> = {
-  uebungen: 'faehigkeiten',
+  achtsamkeit: 'faehigkeiten',
+  stresstoleranz: 'faehigkeiten',
+  emotionsregulation: 'faehigkeiten',
+  zwischenmenschlich: 'faehigkeiten',
   musik: 'hilfsmittel',
   videos: 'hilfsmittel',
   texte: 'hilfsmittel',

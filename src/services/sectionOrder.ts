@@ -4,6 +4,7 @@ export type OrderableSection =
   | 'entdecken'
   | 'sicherheit'
   | 'grounding'
+  | 'ressourcen-hub'
   | 'entdecken-zugang'
   | 'entdecken-verbindung'
   | 'entdecken-aufbau'
@@ -27,6 +28,7 @@ const stores: Record<OrderableSection, ReturnType<typeof createKeyValueStore<str
   entdecken: createKeyValueStore<string[]>('section-order-entdecken', []),
   sicherheit: createKeyValueStore<string[]>('section-order-sicherheit', []),
   grounding: createKeyValueStore<string[]>('section-order-grounding', []),
+  'ressourcen-hub': createKeyValueStore<string[]>('section-order-ressourcen-hub', []),
   'entdecken-zugang': createKeyValueStore<string[]>('section-order-entdecken-zugang', []),
   'entdecken-verbindung': createKeyValueStore<string[]>('section-order-entdecken-verbindung', []),
   'entdecken-aufbau': createKeyValueStore<string[]>('section-order-entdecken-aufbau', []),

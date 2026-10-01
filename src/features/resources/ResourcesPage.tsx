@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { Heart, Plus, Link as LinkIcon, Pencil, Trash2, Share2, Upload, Tag, RefreshCw, Compass } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
@@ -21,7 +21,7 @@ import { resizeImageFile } from '../../services/imageResize';
 import { ImageCropModal } from '../../components/shared/ImageCropModal';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded } from './resourcesRepo';
+import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded, addMissingDbtSkills } from './resourcesRepo';
 import { syncFavoriteResourceToNetwork, syncResourceEditToNetwork } from '../safetyNet/networkResourceSync';
 import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel, RESOURCE_CATEGORY_GROUP_META, RESOURCE_CATEGORY_GROUP_ORDER, RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
@@ -35,14 +35,31 @@ import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/Ene
 
 seedResourcesIfEmpty();
 migrateResourceAccessChannelsIfNeeded();
+addMissingDbtSkills();
 
 const customCategoryStore = createCustomCategoryStore('resource-custom-categories');
 
 type FilterValue = 'all' | ResourceCategory;
 
+/**
+ * "Ressourcen-Unterteilung nochmal neu"-Auftrag — /entdecken/ressourcen
+ * is now a hub (ResourcesHubPage) with three doorways: Hilfsmittel,
+ * Skills, and Gespeicherte Quellen (moved here from its own top-level
+ * spot). This same ResourcesPage component now serves BOTH sub-pages
+ * — reusing every existing function (add/edit/tag/share/print)
+ * unchanged — distinguished only by the :type route param. Skills
+ * means the 'faehigkeiten' category group specifically (the one
+ * genuinely practiced-technique group from the earlier category
+ * work); Hilfsmittel is deliberately everything else (Hilfsmittel &
+ * Anker, Orte, Aktivitäten, Menschen, Sonstiges, ungrouped customs) —
+ * a broad catch-all so no existing resource ever becomes unreachable
+ * while more subcategories are still to come, as agreed.
+ */
 export function ResourcesPage() {
   const t = useT();
   const say = useCompanionSay();
+  const { type: typeParam } = useParams<{ type?: string }>();
+  const typeScope: 'hilfsmittel' | 'skills' | null = typeParam === 'skills' ? 'skills' : typeParam === 'hilfsmittel' ? 'hilfsmittel' : null;
   const [searchParams, setSearchParams] = useSearchParams();
   const [filter, setFilter] = useState<FilterValue>('all');
   const [energyFilter, setEnergyFilter] = useState<1 | 2 | 3 | null>(null);
@@ -93,9 +110,19 @@ export function ResourcesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const inTypeScope = useMemo(() => {
+    if (!typeScope) return items;
+    const customGroupById = new Map(customCategories.map((c) => [c.id, c.group]));
+    return items.filter((r) => {
+      const group = RESOURCE_CATEGORY_TO_GROUP[r.category] ?? customGroupById.get(r.category);
+      const isSkill = group === 'faehigkeiten';
+      return typeScope === 'skills' ? isSkill : !isSkill;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, typeScope, customCategories]);
   const filtered = useMemo(
-    () => energyExactMatch(filter === 'all' ? items : items.filter((r) => r.category === filter), energyFilter),
-    [items, filter, energyFilter],
+    () => energyExactMatch(filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter), energyFilter),
+    [inTypeScope, filter, energyFilter],
   );
 
   function refresh() {
@@ -206,9 +233,20 @@ export function ResourcesPage() {
         <TopBar action={<HelpButton helpKey="ressourcen" />} />
         <div className="px-5 pb-6">
           <div className="flex items-start justify-between mb-1">
-            <h1 className="text-[24px]">{t.resources.title}</h1>
+            <h1 className="text-[24px]">{typeScope === 'skills' ? t.resources.skillsTitle : typeScope === 'hilfsmittel' ? t.resources.hilfsmittelTitle : t.resources.title}</h1>
           </div>
-          <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.resources.subtitle}</p>
+          <p className="text-[14px] text-[var(--color-text-muted)] mb-1">
+            {typeScope === 'skills' ? t.resources.skillsSubtitle : typeScope === 'hilfsmittel' ? t.resources.hilfsmittelSubtitle : t.resources.subtitle}
+          </p>
+          {typeScope === 'skills' && (
+            <div className="rounded-[var(--radius-lg)] p-4 mb-4 mt-2" style={{ background: 'var(--color-surface-muted)' }}>
+              {t.resources.skillsIntro.split('\n\n').map((para, i) => (
+                <p key={i} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2 last:mb-0">
+                  {para}
+                </p>
+              ))}
+            </div>
+          )}
           <button
             onClick={() => setShowInfo(true)}
             className="text-[12px] text-[var(--color-primary)] underline underline-offset-2 block mb-2"
@@ -278,7 +316,7 @@ export function ResourcesPage() {
               {t.common.all}
             </Chip>
           </div>
-          {RESOURCE_CATEGORY_GROUP_ORDER.map((group) => {
+          {RESOURCE_CATEGORY_GROUP_ORDER.filter((g) => !typeScope || (typeScope === 'skills') === (g === 'faehigkeiten')).map((group) => {
             const meta = RESOURCE_CATEGORY_GROUP_META[group];
             const builtIns = RESOURCE_CATEGORY_ORDER.filter((c) => RESOURCE_CATEGORY_TO_GROUP[c] === group);
             const customs = customCategories.filter((c) => c.group === group);
@@ -305,16 +343,20 @@ export function ResourcesPage() {
             );
           })}
           <div className="flex flex-wrap gap-2 items-center">
-            {RESOURCE_CATEGORY_ORDER.filter((c) => !RESOURCE_CATEGORY_TO_GROUP[c]).map((c) => (
-              <Chip key={c} selected={filter === c} onClick={() => setFilter(c)}>
-                {resourceCategoryLabel(t, c)}
-              </Chip>
-            ))}
-            {customCategories.filter((c) => !c.group).map((c) => (
-              <Chip key={c.id} selected={filter === c.id} onClick={() => setFilter(c.id)} icon={<Tag size={13} />}>
-                {c.label}
-              </Chip>
-            ))}
+            {typeScope !== 'skills' && (
+              <>
+                {RESOURCE_CATEGORY_ORDER.filter((c) => !RESOURCE_CATEGORY_TO_GROUP[c]).map((c) => (
+                  <Chip key={c} selected={filter === c} onClick={() => setFilter(c)}>
+                    {resourceCategoryLabel(t, c)}
+                  </Chip>
+                ))}
+                {customCategories.filter((c) => !c.group).map((c) => (
+                  <Chip key={c.id} selected={filter === c.id} onClick={() => setFilter(c.id)} icon={<Tag size={13} />}>
+                    {c.label}
+                  </Chip>
+                ))}
+              </>
+            )}
             {!addingCategory ? (
               <Chip onClick={() => setAddingCategory(true)} icon={<Plus size={14} />}>
                 {t.bridges.newCategory}
@@ -335,7 +377,7 @@ export function ResourcesPage() {
                   <div className="flex flex-col gap-1.5 animate-in">
                     <p className="text-[12px] text-[var(--color-text-faint)]">{t.resources.newCategoryGroupLabel}</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {RESOURCE_CATEGORY_GROUP_ORDER.map((group) => {
+                      {RESOURCE_CATEGORY_GROUP_ORDER.filter((g) => !typeScope || (typeScope === 'skills') === (g === 'faehigkeiten')).map((group) => {
                         const meta = RESOURCE_CATEGORY_GROUP_META[group];
                         return (
                           <Chip key={group} onClick={() => addCategory(group)} icon={<meta.icon size={13} />}>
