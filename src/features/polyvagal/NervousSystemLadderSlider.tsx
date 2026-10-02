@@ -473,7 +473,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
          * file needing to know about the other's domain. */}
         {ZONE_TO_SKILL_CATEGORY[band.id] && (
           <Link
-            to={`/entdecken/ressourcen/skills?category=${ZONE_TO_SKILL_CATEGORY[band.id]}`}
+            to={`/entdecken/ressourcen/skills?category=${ZONE_TO_SKILL_CATEGORY[band.id]}&zone=${band.id}`}
             className="text-[12.5px] font-medium flex items-center gap-1 mt-1.5"
             style={{ color: band.color }}
           >

@@ -26,6 +26,9 @@ import { BridgesPage } from './features/bridges/BridgesPage';
 import { BridgeDetailPage } from './features/bridges/BridgeDetailPage';
 import { ResourcesPage } from './features/resources/ResourcesPage';
 import { ResourcesHubPage } from './features/resources/ResourcesHubPage';
+import { SkillkettenListPage } from './features/resources/SkillkettenListPage';
+import { SkillketteFormPage } from './features/resources/SkillketteFormPage';
+import { SkillketteDetailPage } from './features/resources/SkillketteDetailPage';
 // AccessWheelPage retired — see App.tsx route comment
 import { ZugangPage } from './features/zugang/ZugangPage';
 import { ZugangReviewPage } from './features/zugang/ZugangReviewPage';
@@ -81,6 +84,10 @@ function App() {
 
                 <Route path="/entdecken" element={<ExplorePage />} />
                 <Route path="/entdecken/ressourcen" element={<ResourcesHubPage />} />
+                <Route path="/entdecken/ressourcen/skillketten" element={<SkillkettenListPage />} />
+                <Route path="/entdecken/ressourcen/skillketten/neu" element={<SkillketteFormPage />} />
+                <Route path="/entdecken/ressourcen/skillketten/:id/bearbeiten" element={<SkillketteFormPage />} />
+                <Route path="/entdecken/ressourcen/skillketten/:id" element={<SkillketteDetailPage />} />
                 <Route path="/entdecken/ressourcen/:type" element={<ResourcesPage />} />
                 {/* Zugangsrad retired per explicit audit decision — its
                  * sliders now live inside Wertekompass (AccessDomainsSection). */}

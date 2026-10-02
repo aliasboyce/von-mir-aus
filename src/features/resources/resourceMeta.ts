@@ -13,7 +13,24 @@ import { AROUSAL_BANDS } from '../polyvagal/arousalBands';
  * category-chip UI — no new UI concept needed, just richer content
  * under the one that was already there.
  */
+/**
+ * "Diese Kategorien haben wir fuer die Hilfsmittel/Werkzeuge"-Auftrag
+ * — nine new categories (five sensory + four functional) added
+ * alongside the existing, lightly-used ones (musik/natur/texte each
+ * appear once in the demo data; videos/apps/buecher/wissen appear in
+ * none) rather than replacing them, so nothing existing breaks. All
+ * nine map to the same 'hilfsmittel' group below.
+ */
 export const RESOURCE_CATEGORY_ORDER: ResourceCategory[] = [
+  'visuell',
+  'auditiv',
+  'olfaktorisch',
+  'gustatorisch',
+  'haptisch',
+  'kognitiv',
+  'motorisch',
+  'komfort',
+  'strukturell',
   'musik',
   'natur',
   'wissen',
@@ -96,6 +113,15 @@ export const RESOURCE_CATEGORY_TO_GROUP: Partial<Record<ResourceCategory, Resour
   emotionsregulation: 'faehigkeiten',
   zwischenmenschlich: 'faehigkeiten',
   mittelweg: 'faehigkeiten',
+  visuell: 'hilfsmittel',
+  auditiv: 'hilfsmittel',
+  olfaktorisch: 'hilfsmittel',
+  gustatorisch: 'hilfsmittel',
+  haptisch: 'hilfsmittel',
+  kognitiv: 'hilfsmittel',
+  motorisch: 'hilfsmittel',
+  komfort: 'hilfsmittel',
+  strukturell: 'hilfsmittel',
   musik: 'hilfsmittel',
   videos: 'hilfsmittel',
   texte: 'hilfsmittel',

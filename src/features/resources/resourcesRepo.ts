@@ -43,6 +43,39 @@ export function patchKnownSkillCategoryIssues() {
 }
 
 /**
+ * "Soll auch genau bei denen fuer diesen Bereich landen"-Auftrag —
+ * the zone link (NervousSystemLadderSlider.tsx) now filters by
+ * skillDetails.zoneIds, but every skill saved before this feature
+ * existed (all 40 from the seed data) has no zoneIds at all. The
+ * filter itself is inclusive toward untagged items (see ResourcesPage
+ * .tsx's inTypeScope), so nothing becomes invisible — but without this
+ * migration the filter would do nothing for existing content. Assigns
+ * a sensible default zone per category, the same mapping already used
+ * for SKILL_CATEGORY_ZONE_COLOR in resourceMeta.ts (Stresstoleranz ->
+ * Hyperarousal, Emotionsregulation -> Fruehwarnbereich, etc.) so a
+ * skill's default zone tag always matches its own chip color. Only
+ * touches skills with NO zoneIds yet — anything the person already
+ * tagged themselves, including by explicitly clearing it, is left
+ * alone.
+ */
+const DEFAULT_ZONE_BY_SKILL_CATEGORY: Record<string, string> = {
+  achtsamkeit: 'zone3',
+  zwischenmenschlich: 'zone2',
+  emotionsregulation: 'zone4',
+  stresstoleranz: 'zone5',
+  mittelweg: 'zone1',
+};
+
+export function assignDefaultZoneIdsToSkills() {
+  resourcesRepo.getAll().forEach((r) => {
+    if (r.skillDetails?.zoneIds) return;
+    const defaultZone = DEFAULT_ZONE_BY_SKILL_CATEGORY[r.category];
+    if (!defaultZone) return;
+    resourcesRepo.save({ ...r, skillDetails: { ...r.skillDetails, zoneIds: [defaultZone] } });
+  });
+}
+
+/**
  * "Zugangskanäle & Zugänglichkeit, Schritt 2"-Fund — same gap as
  * migrateBridgeAccessChannelsIfNeeded in bridgesRepo.ts: a resource
  * tagged under the old, narrower sensoryModalities field would have

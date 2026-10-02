@@ -352,6 +352,110 @@ export interface Resource {
   favorite: boolean;
   createdAt: string;
   updatedAt: string;
+  /** "Skills erstellen, strukturiertes Formular, nur bei Skills"-
+   * Auftrag — optional because it only applies to resources in the
+   * Skills sub-type (Hilfsmittel and everything else keep using the
+   * plain title/description form unchanged). Deliberately flat
+   * strings, not nested sub-objects, matching exactly the fields the
+   * person asked for (Anspannungsbereich, Ausloeser,
+   * Fruehwarnzeichen, etc.) — schritte is the only array, since the
+   * step-by-step instructions are inherently a numbered list, not one
+   * paragraph. When present, ResourceDetailModal renders these
+   * sections instead of the plain description; a resource without
+   * skillDetails (all existing skills, and anything from Hilfsmittel)
+   * falls back to the plain description exactly as before. */
+  skillDetails?: SkillDetails;
+  /** "Hilfsmittel/Werkzeug erstellen, strukturiertes Formular"-Auftrag
+   * — same pattern as skillDetails: optional, only used by the
+   * Hilfsmittel sub-type's own structured form; a resource without it
+   * (everything from Skills, and any existing Hilfsmittel) falls back
+   * to the plain description. */
+  hilfsmittelDetails?: HilfsmittelDetails;
+}
+
+export interface SkillDetails {
+  subtitle?: string;
+  /** "Verbinde so, dass man angibt, in welchem Anspannungsbereich es
+   * hilft... wenn man dann Check-in oder Zugang macht und auf Skills
+   * verwiesen wird, soll man genau bei denen fuer diesen Bereich
+   * landen"-Auftrag — structured zone ids (AROUSAL_BANDS' 'zone1'
+   * through 'zone6'), picked via ZonePicker. This is what the
+   * zone-to-skill link now filters by (see ZONE_TO_SKILL_CATEGORY in
+   * NervousSystemLadderSlider.tsx and the ?zone= param ResourcesPage
+   * reads) — anspannungsbereich below stays as free-text for nuance
+   * ("z. B. 60-80%") but isn't machine-filterable. */
+  zoneIds?: string[];
+  /** "Bei den Skills soll man ein Hilfsmittel hinzufuegen koennen, das
+   * man fuer diesen Skill braucht"-Auftrag — ids of existing
+   * Hilfsmittel resources this skill relies on, shown together on the
+   * Skillkette view. */
+  relatedHilfsmittelIds?: string[];
+  anspannungsbereich?: string;
+  ausloeser?: string;
+  fruehwarnzeichen?: string;
+  wirkung?: string;
+  wirkungsdauer?: string;
+  schritte?: string[];
+  gegenanzeigen?: string;
+  unterwegsAlternative?: string;
+}
+
+/**
+ * "Fuer die Skillketten folgendes bauen... die einzelnen Schritte von
+ * welchem Zustand in welchen Zustand sollen visuell gezeigt werden...
+ * man sucht sich Skills aus, die man dort platzieren moechte"-Auftrag
+ * — a Skillkette is NOT a Bridge: a Bridge is a flexible, open-ended
+ * sequence of self-written levels, while a Skillkette is this one
+ * fixed, specific template (always exactly three tension-range
+ * stages, each with two SKILL REFERENCES, not free text) — different
+ * enough in shape to deserve its own type and repository rather than
+ * forcing it into Bridge's structure. Each stage's two "Aktion" slots
+ * hold ids of existing Skill resources (Resource.id, filtered to the
+ * 'faehigkeiten' group) — never free text — so the chain's visual
+ * view can show the Skill's own card, color and any Hilfsmittel it
+ * references (Resource.skillDetails.relatedHilfsmittelIds).
+ */
+export interface SkillketteStage {
+  ziel?: string;
+  aktion1SkillId?: string;
+  aktion2SkillId?: string;
+  dauer?: string;
+}
+
+export interface Skillkette {
+  id: string;
+  title: string;
+  subtitle?: string;
+  notfallTrigger?: string;
+  koerperlicheWarnsignale?: string;
+  startProzent?: string;
+  stufeHoch: SkillketteStage;
+  stufeMittel: SkillketteStage;
+  stufeNiedrig: SkillketteStage;
+  logistikZuhause?: string;
+  logistikUnterstuetzung?: string;
+  stopCheckRegel?: string;
+  planB?: string;
+  favorite: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HilfsmittelDetails {
+  subtitle?: string;
+  /** Same structured zone tagging as SkillDetails.zoneIds above. */
+  zoneIds?: string[];
+  beruhigungTrost?: string;
+  fokusAblenkung?: string;
+  ventilAnspannung?: string;
+  anspannungsbereich?: string;
+  alarmSituation?: string;
+  dauer?: string;
+  methode?: string;
+  ausschlusskriterium?: string;
+  platzZuhause?: string;
+  platzUnterwegs?: string;
+  bereitschaft?: string;
 }
 
 // ---------------------------------------------------------------------------

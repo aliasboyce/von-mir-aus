@@ -21,11 +21,13 @@ import { resizeImageFile } from '../../services/imageResize';
 import { ImageCropModal } from '../../components/shared/ImageCropModal';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded, addMissingDbtSkills, patchKnownSkillCategoryIssues } from './resourcesRepo';
+import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded, addMissingDbtSkills, patchKnownSkillCategoryIssues, assignDefaultZoneIdsToSkills } from './resourcesRepo';
 import { syncFavoriteResourceToNetwork, syncResourceEditToNetwork } from '../safetyNet/networkResourceSync';
 import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel, RESOURCE_CATEGORY_GROUP_META, RESOURCE_CATEGORY_GROUP_ORDER, RESOURCE_CATEGORY_TO_GROUP, SKILL_CATEGORY_ZONE_COLOR } from './resourceMeta';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { ResourceDetailModal } from './ResourceDetailModal';
+import { SkillFormModal } from './SkillFormModal';
+import { HilfsmittelFormModal } from './HilfsmittelFormModal';
 import { ResourcePrintView } from './ResourcePrintView';
 import { RecentlyUsedRow } from '../../components/shared/RecentlyUsedRow';
 import { createCustomCategoryStore } from '../../services/customCategories';
@@ -37,6 +39,7 @@ seedResourcesIfEmpty();
 migrateResourceAccessChannelsIfNeeded();
 addMissingDbtSkills();
 patchKnownSkillCategoryIssues();
+assignDefaultZoneIdsToSkills();
 
 const customCategoryStore = createCustomCategoryStore('resource-custom-categories');
 
@@ -69,9 +72,25 @@ export function ResourcesPage() {
   // point straight at the right module instead of just the general
   // Skills page.
   const [filter, setFilter] = useState<FilterValue>(() => new URLSearchParams(window.location.search).get('category') ?? 'all');
+  // "Soll auch genau bei denen fuer diesen Bereich landen"-Auftrag —
+  // a precise zone filter (e.g. ?zone=zone4) on top of the category
+  // one. Inclusive, not exclusive: an item with no zoneIds set at all
+  // still shows (most existing content before this feature), so nothing
+  // existing silently disappears — only items explicitly tagged for a
+  // DIFFERENT zone get filtered out.
+  const [zoneFilter] = useState<string | null>(() => new URLSearchParams(window.location.search).get('zone'));
   const [energyFilter, setEnergyFilter] = useState<1 | 2 | 3 | null>(null);
   const [items, setItems] = useState<Resource[]>(() => resourcesRepo.getAll());
   const [editing, setEditing] = useState<Resource | null>(null);
+  // "Das Hinzufuegen-Feld soll nur bei Skills immer so aufgebaut
+  // werden"-Auftrag — a separate modal flag so the structured
+  // SkillFormModal and the existing plain form never fight over the
+  // same `editing`/`modalOpen` state; which one opens is decided once,
+  // in openNew()/openEdit() below, based on typeScope.
+  const [skillModalOpen, setSkillModalOpen] = useState(false);
+  // Same reasoning as skillModalOpen above — a separate flag for the
+  // Hilfsmittel structured form.
+  const [hilfsmittelModalOpen, setHilfsmittelModalOpen] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [imageSuggestions, setImageSuggestions] = useState<string[]>([]);
   const [discoverOpen, setDiscoverOpen] = useState(false);
@@ -118,15 +137,24 @@ export function ResourcesPage() {
   }, []);
 
   const inTypeScope = useMemo(() => {
-    if (!typeScope) return items;
-    const customGroupById = new Map(customCategories.map((c) => [c.id, c.group]));
-    return items.filter((r) => {
-      const group = RESOURCE_CATEGORY_TO_GROUP[r.category] ?? customGroupById.get(r.category);
-      const isSkill = group === 'faehigkeiten';
-      return typeScope === 'skills' ? isSkill : !isSkill;
-    });
+    let base = items;
+    if (typeScope) {
+      const customGroupById = new Map(customCategories.map((c) => [c.id, c.group]));
+      base = base.filter((r) => {
+        const group = RESOURCE_CATEGORY_TO_GROUP[r.category] ?? customGroupById.get(r.category);
+        const isSkill = group === 'faehigkeiten';
+        return typeScope === 'skills' ? isSkill : !isSkill;
+      });
+    }
+    if (zoneFilter) {
+      base = base.filter((r) => {
+        const zoneIds = r.skillDetails?.zoneIds ?? r.hilfsmittelDetails?.zoneIds;
+        return !zoneIds || zoneIds.length === 0 || zoneIds.includes(zoneFilter);
+      });
+    }
+    return base;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, typeScope, customCategories]);
+  }, [items, typeScope, customCategories, zoneFilter]);
   const filtered = useMemo(
     () => energyExactMatch(filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter), energyFilter),
     [inTypeScope, filter, energyFilter],
@@ -137,6 +165,16 @@ export function ResourcesPage() {
   }
 
   function openNew() {
+    if (typeScope === 'skills') {
+      setEditing(null);
+      setSkillModalOpen(true);
+      return;
+    }
+    if (typeScope === 'hilfsmittel') {
+      setEditing(null);
+      setHilfsmittelModalOpen(true);
+      return;
+    }
     setEditing({
       id: createId('res'),
       title: '',
@@ -166,6 +204,16 @@ export function ResourcesPage() {
 
   function openEdit(resource: Resource) {
     setViewing(null);
+    if (typeScope === 'skills') {
+      setEditing(resource);
+      setSkillModalOpen(true);
+      return;
+    }
+    if (typeScope === 'hilfsmittel') {
+      setEditing(resource);
+      setHilfsmittelModalOpen(true);
+      return;
+    }
     setEditing(resource);
     setImageSuggestions(suggestedImageOptions(resource.title, resource.category));
     setModalOpen(true);
@@ -179,6 +227,28 @@ export function ResourcesPage() {
     syncFavoriteResourceToNetwork(saved);
     syncResourceEditToNetwork(saved);
     setModalOpen(false);
+    setEditing(null);
+    refresh();
+    say(pickLine({ page: '/entdecken/ressourcen', trigger: isNew ? 'speichern' : 'eintrag_bearbeiten' }), { joy: isNew });
+  }
+
+  function saveSkill(resource: Resource) {
+    const isNew = !resourcesRepo.getById(resource.id);
+    resourcesRepo.save(resource);
+    syncFavoriteResourceToNetwork(resource);
+    syncResourceEditToNetwork(resource);
+    setSkillModalOpen(false);
+    setEditing(null);
+    refresh();
+    say(pickLine({ page: '/entdecken/ressourcen', trigger: isNew ? 'speichern' : 'eintrag_bearbeiten' }), { joy: isNew });
+  }
+
+  function saveHilfsmittel(resource: Resource) {
+    const isNew = !resourcesRepo.getById(resource.id);
+    resourcesRepo.save(resource);
+    syncFavoriteResourceToNetwork(resource);
+    syncResourceEditToNetwork(resource);
+    setHilfsmittelModalOpen(false);
     setEditing(null);
     refresh();
     say(pickLine({ page: '/entdecken/ressourcen', trigger: isNew ? 'speichern' : 'eintrag_bearbeiten' }), { joy: isNew });
@@ -316,13 +386,13 @@ export function ResourcesPage() {
             <Button fullWidth icon={<Plus size={17} />} onClick={openNew}>
               {t.resources.addNewSkillCta}
             </Button>
-            <Button fullWidth variant="secondary" icon={<Link2 size={17} />} onClick={() => navigate('/bruecken/neu')}>
+            <Button fullWidth variant="secondary" icon={<Link2 size={17} />} onClick={() => navigate('/entdecken/ressourcen/skillketten/neu')}>
               {t.resources.addNewSkillChainCta}
             </Button>
           </div>
         ) : (
           <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-2">
-            {t.resources.addNew}
+            {typeScope === 'hilfsmittel' ? t.resources.hilfsmittelFormTitleNew : t.resources.addNew}
           </Button>
         )}
         {!typeScope && <p className="text-[12px] text-[var(--color-text-faint)] italic mb-4 leading-relaxed">{t.resources.thoughtStarterHint}</p>}
@@ -576,6 +646,19 @@ export function ResourcesPage() {
       />
 
       <ResourcePrintView resource={printingResource} categoryLabel={categoryLabel} />
+
+      <SkillFormModal key={editing?.id ?? 'new'} open={skillModalOpen} resource={editing} onClose={() => { setSkillModalOpen(false); setEditing(null); }} onSave={saveSkill} />
+
+      <HilfsmittelFormModal
+        key={editing?.id ?? 'new'}
+        open={hilfsmittelModalOpen}
+        resource={editing}
+        onClose={() => {
+          setHilfsmittelModalOpen(false);
+          setEditing(null);
+        }}
+        onSave={saveHilfsmittel}
+      />
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t.resources.addNew}>
         {editing && (
