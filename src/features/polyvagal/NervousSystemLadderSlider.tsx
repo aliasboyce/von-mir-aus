@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { resourceCategoryLabel } from '../resources/resourceMeta';
 import { Info, X, AlertTriangle, Search } from 'lucide-react';
 import { useT } from '../../i18n';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
@@ -38,6 +39,19 @@ interface NervousSystemLadderSliderProps {
   value?: number;
   onValueChange?: (v: number) => void;
 }
+
+/** zone3 (Fokus & Flow) and below stay without this link — Skills are
+ * for when regulation is actually needed, not the already-regulated
+ * zones. zone1/zone2 deliberately excluded even though Achtsamkeit/
+ * Zwischenmenschliche Fertigkeiten are "colored" after them
+ * (resourceMeta.ts's SKILL_CATEGORY_ZONE_COLOR) — that coloring is
+ * about where a skill's EFFECT lands, not about offering it AT that
+ * calm zone. */
+const ZONE_TO_SKILL_CATEGORY: Partial<Record<string, string>> = {
+  zone4: 'emotionsregulation',
+  zone5: 'stresstoleranz',
+  zone6: 'stresstoleranz',
+};
 
 export function NervousSystemLadderSlider({ onSelect, selectedState, value: controlledValue, onValueChange }: NervousSystemLadderSliderProps) {
   const t = useT();
@@ -445,6 +459,27 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
         >
           {t.polyvagal.arousalExercisePrompt.replace('{name}', band.exercises[0].exerciseName)} →
         </button>
+        {/* "Ab dem Fruehwarnbereich soll die App zu den passenden
+         * Skills verweisen, weiter oben auch bei Hyper- und
+         * Hypoarousal"-Auftrag — a second, broader link (not just one
+         * suggested exercise) straight to the matching Skills module,
+         * shown only from Fruehwarnbereich upward in either direction:
+         * the three zones where DBT skills are actually meant to be
+         * reached for. ZONE_TO_SKILL_CATEGORY intentionally lives
+         * here, not in resourceMeta.ts — it's about which SKILLS
+         * belong to a given ZONE, the reverse direction of
+         * SKILL_CATEGORY_ZONE_COLOR (which colors a category FROM its
+         * zone) in resourceMeta.ts; keeping them separate avoids one
+         * file needing to know about the other's domain. */}
+        {ZONE_TO_SKILL_CATEGORY[band.id] && (
+          <Link
+            to={`/entdecken/ressourcen/skills?category=${ZONE_TO_SKILL_CATEGORY[band.id]}`}
+            className="text-[12.5px] font-medium flex items-center gap-1 mt-1.5"
+            style={{ color: band.color }}
+          >
+            {t.polyvagal.zoneSkillLink.replace('{category}', resourceCategoryLabel(t, ZONE_TO_SKILL_CATEGORY[band.id]!))} →
+          </Link>
+        )}
       </div>
 
       {exercisePickerOpen && (
@@ -468,10 +503,10 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
             <div className="flex flex-col gap-2">
               {band.exercises.map((ex) => (
                 <button
-                  key={ex.bridgeId}
+                  key={ex.resourceId}
                   onClick={() => {
                     setExercisePickerOpen(false);
-                    navigate(`/bruecken/${ex.bridgeId}`);
+                    navigate(`/entdecken/ressourcen/skills?open=${ex.resourceId}`);
                   }}
                   className="flex items-center justify-between px-4 py-3 rounded-[var(--radius-md)] text-[14px] text-left"
                   style={{ border: `1.5px solid ${band.color}55`, background: `${band.color}0f`, color: 'var(--color-text)' }}

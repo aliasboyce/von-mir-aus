@@ -17,7 +17,7 @@ Zusammen bilden sie eine biologische Landkarte.
 
 ### Erholungsphase
 
-**10–30 %** — Hier bist du entspannt, im Ruhemodus und regenerierst. Deine Gedanken laufen geordnet und langsam. In dieser Phase bist du empfänglich für klassische Entspannungsübungen, Achtsamkeit, ein gutes Buch oder ein warmes Bad. Es ist die Phase, in der dein Nervensystem Kraft tankt.
+**15–30 %** — Hier bist du entspannt, im Ruhemodus und regenerierst. Deine Gedanken laufen geordnet und langsam. In dieser Phase bist du empfänglich für klassische Entspannungsübungen, Achtsamkeit, ein gutes Buch oder ein warmes Bad. Es ist die Phase, in der dein Nervensystem Kraft tankt.
 
 ### Konzentration & Alltag
 

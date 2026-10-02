@@ -25,7 +25,6 @@ import { customPalettesRepo, derivePaletteVars } from '../services/customPalette
 import { BUILT_IN_PALETTE_IDS } from '../data/types';
 import { StorageErrorBanner } from './StorageErrorBanner';
 import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
-import { UpdateAvailableBanner } from '../components/shared/UpdateAvailableBanner';
 import { WhatsNewCard } from '../components/shared/WhatsNewCard';
 import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
 import { playSound, warmUpAudio } from '../services/sounds';
@@ -265,7 +264,6 @@ export function AppShell() {
         />
       )}
       <StorageErrorBanner />
-      <UpdateAvailableBanner />
       <WhatsNewCard />
       {showPrintFallback && <IOSPrintFallbackModal onClose={() => setShowPrintFallback(false)} />}
 

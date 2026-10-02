@@ -37,7 +37,7 @@ export interface ArousalBand {
    * zone. */
   /** "3 Uebungen pro Zone"-Auftrag — each zone now offers a choice of
    * three pre-built bridges instead of a single fixed suggestion. */
-  exercises: { bridgeId: string; exerciseName: string }[];
+  exercises: { resourceId: string; exerciseName: string }[];
 }
 
 /**
@@ -75,9 +75,9 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     states: ['fine', 'friend'],
     inWindow: true,
     exercises: [
-      { bridgeId: 'bridge_478_atmung', exerciseName: '4-7-8 Atmung' },
-      { bridgeId: 'bridge_36_bauchatmung', exerciseName: '3-zu-6 Bauchatmung' },
-      { bridgeId: 'bridge_gaehn_impuls', exerciseName: 'Sanfter Gähn-Impuls' },
+      { resourceId: 'res_skill_478_atmung', exerciseName: '4-7-8 Atmung' },
+      { resourceId: 'res_skill_36_bauchatmung', exerciseName: '3-zu-6 Bauchatmung' },
+      { resourceId: 'res_skill_gaehn_impuls', exerciseName: 'Sanfter Gähn-Impuls' },
     ],
   },
   {
@@ -90,9 +90,9 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     states: ['fokus', 'praesent'],
     inWindow: true,
     exercises: [
-      { bridgeId: 'bridge_grounding_54321', exerciseName: 'Kognitives Grounding' },
-      { bridgeId: 'bridge_peripheres_sehen', exerciseName: 'Peripheres Sehen' },
-      { bridgeId: 'bridge_box_atmung', exerciseName: 'Box-Atmung (Taktisch)' },
+      { resourceId: 'res_skill_grounding_54321', exerciseName: 'Kognitives Grounding' },
+      { resourceId: 'res_skill_peripheres_sehen', exerciseName: 'Peripheres Sehen' },
+      { resourceId: 'res_skill_box_atmung', exerciseName: 'Box-Atmung (Taktisch)' },
     ],
   },
   {
@@ -105,9 +105,9 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     states: ['flood', 'unruhe'],
     inWindow: true,
     exercises: [
-      { bridgeId: 'bridge_voo_atem', exerciseName: 'Orientierung & Voo-Atem' },
-      { bridgeId: 'bridge_gewichtswahrnehmung', exerciseName: 'Gewichtswahrnehmung' },
-      { bridgeId: 'bridge_auditives_verankern', exerciseName: 'Auditives Verankern' },
+      { resourceId: 'res_skill_voo_atem', exerciseName: 'Orientierung & Voo-Atem' },
+      { resourceId: 'res_skill_gewichtswahrnehmung', exerciseName: 'Gewichtswahrnehmung' },
+      { resourceId: 'res_skill_auditives_verankern', exerciseName: 'Auditives Verankern' },
     ],
   },
   {
@@ -120,9 +120,9 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     states: ['flood', 'unruhe'],
     inWindow: true,
     exercises: [
-      { bridgeId: 'bridge_voo_atem', exerciseName: 'Orientierung & Voo-Atem' },
-      { bridgeId: 'bridge_gewichtswahrnehmung', exerciseName: 'Gewichtswahrnehmung' },
-      { bridgeId: 'bridge_auditives_verankern', exerciseName: 'Auditives Verankern' },
+      { resourceId: 'res_skill_voo_atem', exerciseName: 'Orientierung & Voo-Atem' },
+      { resourceId: 'res_skill_gewichtswahrnehmung', exerciseName: 'Gewichtswahrnehmung' },
+      { resourceId: 'res_skill_auditives_verankern', exerciseName: 'Auditives Verankern' },
     ],
   },
   {
@@ -135,9 +135,9 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     states: ['flucht', 'kampf', 'angepasst'],
     inWindow: false,
     exercises: [
-      { bridgeId: 'bridge_physio_seufzer', exerciseName: 'Physiologischer Seufzer' },
-      { bridgeId: 'bridge_shaking', exerciseName: 'Shaking (Neurogenes Zittern)' },
-      { bridgeId: 'bridge_carotis_druck', exerciseName: 'Carotis-Sanftdruck' },
+      { resourceId: 'res_skill_physio_seufzer', exerciseName: 'Physiologischer Seufzer' },
+      { resourceId: 'res_skill_shaking', exerciseName: 'Shaking (Neurogenes Zittern)' },
+      { resourceId: 'res_skill_carotis_druck', exerciseName: 'Carotis-Sanftdruck' },
     ],
   },
   {
@@ -150,9 +150,9 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     states: ['kollaps', 'fakeRuhe'],
     inWindow: false,
     exercises: [
-      { bridgeId: 'bridge_schmetterling_klopf', exerciseName: 'Schmetterlings-Klopfen' },
-      { bridgeId: 'bridge_oculocardiac', exerciseName: 'Oculocardiac-Reflex (Augendruck)' },
-      { bridgeId: 'bridge_self_holding', exerciseName: 'Self-Holding Umarmung' },
+      { resourceId: 'res_skill_schmetterling_klopf', exerciseName: 'Schmetterlings-Klopfen' },
+      { resourceId: 'res_skill_oculocardiac', exerciseName: 'Oculocardiac-Reflex (Augendruck)' },
+      { resourceId: 'res_skill_self_holding', exerciseName: 'Self-Holding Umarmung' },
     ],
   },
 ];
@@ -318,7 +318,14 @@ export function gradientStopsForBandsVisual(bands: ArousalBand[], wrapAt?: numbe
   const stops: string[] = [];
   bands.forEach((b) => {
     const { top, height } = visualExtentForBand(b, wrapAt);
-    const margin = Math.min(3, height * 0.2);
+    // "Noch weicher, wirklich wieder dieser Regenbogenverlauf"-Fund —
+    // the first attempt at a soft version still capped the blend at a
+    // small 3-point margin, leaving each color a mostly flat band with
+    // only a thin seam of blending — not the continuous, flowing
+    // rainbow look from before. Margin now scales to over a third of
+    // each band's own height, so colors spend most of their space
+    // actively melting into their neighbours rather than sitting flat.
+    const margin = height * 0.38;
     if (b.id === 'zone5') {
       // Value 85 is the described midpoint of this fade — its own
       // visual position marks where the darkening begins.

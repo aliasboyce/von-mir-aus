@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
-import { useSearchParams, useParams } from 'react-router-dom';
-import { Heart, Plus, Link as LinkIcon, Pencil, Trash2, Share2, Upload, Tag, RefreshCw, Compass } from 'lucide-react';
+import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
+import { Heart, Plus, Link as LinkIcon, Link2, Pencil, Trash2, Share2, Upload, Tag, RefreshCw, Compass } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
@@ -21,7 +21,7 @@ import { resizeImageFile } from '../../services/imageResize';
 import { ImageCropModal } from '../../components/shared/ImageCropModal';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded, addMissingDbtSkills } from './resourcesRepo';
+import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded, addMissingDbtSkills, patchKnownSkillCategoryIssues } from './resourcesRepo';
 import { syncFavoriteResourceToNetwork, syncResourceEditToNetwork } from '../safetyNet/networkResourceSync';
 import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel, RESOURCE_CATEGORY_GROUP_META, RESOURCE_CATEGORY_GROUP_ORDER, RESOURCE_CATEGORY_TO_GROUP, SKILL_CATEGORY_ZONE_COLOR } from './resourceMeta';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
@@ -36,6 +36,7 @@ import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/Ene
 seedResourcesIfEmpty();
 migrateResourceAccessChannelsIfNeeded();
 addMissingDbtSkills();
+patchKnownSkillCategoryIssues();
 
 const customCategoryStore = createCustomCategoryStore('resource-custom-categories');
 
@@ -58,10 +59,16 @@ type FilterValue = 'all' | ResourceCategory;
 export function ResourcesPage() {
   const t = useT();
   const say = useCompanionSay();
+  const navigate = useNavigate();
   const { type: typeParam } = useParams<{ type?: string }>();
   const typeScope: 'hilfsmittel' | 'skills' | null = typeParam === 'skills' ? 'skills' : typeParam === 'hilfsmittel' ? 'hilfsmittel' : null;
   const [searchParams, setSearchParams] = useSearchParams();
-  const [filter, setFilter] = useState<FilterValue>('all');
+  // "Ab dem Fruehwarnbereich soll die App zu den passenden Skills
+  // verweisen"-Auftrag — a deep link like .../skills?category=stresstoleranz
+  // lands with that category pre-selected, so a zone-specific link can
+  // point straight at the right module instead of just the general
+  // Skills page.
+  const [filter, setFilter] = useState<FilterValue>(() => new URLSearchParams(window.location.search).get('category') ?? 'all');
   const [energyFilter, setEnergyFilter] = useState<1 | 2 | 3 | null>(null);
   const [items, setItems] = useState<Resource[]>(() => resourcesRepo.getAll());
   const [editing, setEditing] = useState<Resource | null>(null);
@@ -247,17 +254,26 @@ export function ResourcesPage() {
               ))}
             </div>
           )}
-          <button
-            onClick={() => setShowInfo(true)}
-            className="text-[12px] text-[var(--color-primary)] underline underline-offset-2 block mb-2"
-          >
-            {t.bridges.whatsTheDifference}
-          </button>
+          {/* "Was unterscheidet Bruecken von Ressourcen / Was sind
+           * Ressourcen genau muss raus, die Saetze passen da nicht
+           * mehr"-Auftrag — both explainer links only make sense on
+           * the general Ressourcen page, not once scoped to a
+           * specific sub-type like Hilfsmittel or Skills. */}
+          {!typeScope && (
+            <button
+              onClick={() => setShowInfo(true)}
+              className="text-[12px] text-[var(--color-primary)] underline underline-offset-2 block mb-2"
+            >
+              {t.bridges.whatsTheDifference}
+            </button>
+          )}
 
-        <button onClick={() => setShowDefinition((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
-          {showDefinition ? t.resources.hideDefinitionCta : t.resources.showDefinitionCta}
-        </button>
-        {showDefinition && (
+        {!typeScope && (
+          <button onClick={() => setShowDefinition((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
+            {showDefinition ? t.resources.hideDefinitionCta : t.resources.showDefinitionCta}
+          </button>
+        )}
+        {!typeScope && showDefinition && (
           <div className="animate-in mb-5">
             <Card className="mb-3">
               <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{t.resources.definitionText}</p>
@@ -287,18 +303,39 @@ export function ResourcesPage() {
           </div>
         )}
 
-        <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-2">
-          {t.resources.addNew}
-        </Button>
-        <p className="text-[12px] text-[var(--color-text-faint)] italic mb-4 leading-relaxed">{t.resources.thoughtStarterHint}</p>
+        {/* "+ neue Ressource / Ressourcen entdecken aendern bzw raus
+         * auf der Skills-Seite"-Auftrag — on Skills specifically: the
+         * add button reads "+ neuer Skill", a second button opens the
+         * existing Bruecken flow as "+ neue Skillskette" (a skill
+         * chain IS structurally a Bruecke — a sequence of steps —
+         * reusing that proven creation UI rather than building a
+         * second, parallel one), and "Ressourcen entdecken" (an
+         * external-search prompt that doesn't fit Skills) is hidden. */}
+        {typeScope === 'skills' ? (
+          <div className="flex gap-2 mb-2">
+            <Button fullWidth icon={<Plus size={17} />} onClick={openNew}>
+              {t.resources.addNewSkillCta}
+            </Button>
+            <Button fullWidth variant="secondary" icon={<Link2 size={17} />} onClick={() => navigate('/bruecken/neu')}>
+              {t.resources.addNewSkillChainCta}
+            </Button>
+          </div>
+        ) : (
+          <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-2">
+            {t.resources.addNew}
+          </Button>
+        )}
+        {!typeScope && <p className="text-[12px] text-[var(--color-text-faint)] italic mb-4 leading-relaxed">{t.resources.thoughtStarterHint}</p>}
 
-        <button
-          onClick={() => setDiscoverOpen(true)}
-          className="flex items-center gap-2 text-[13px] text-[var(--color-primary)] mb-5"
-        >
-          <Compass size={15} />
-          {t.resources.discoverCta}
-        </button>
+        {typeScope !== 'skills' && (
+          <button
+            onClick={() => setDiscoverOpen(true)}
+            className="flex items-center gap-2 text-[13px] text-[var(--color-primary)] mb-5"
+          >
+            <Compass size={15} />
+            {t.resources.discoverCta}
+          </button>
+        )}
 
         <RecentlyUsedRow type="resource" hrefFor={(id) => `/entdecken/ressourcen?open=${id}`} />
 
@@ -325,7 +362,7 @@ export function ResourcesPage() {
               <div key={group} className="mb-3">
                 <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5 flex items-center gap-1.5">
                   <meta.icon size={12} />
-                  {meta.label(t)}
+                  {typeScope === 'skills' ? t.resources.dbtGroupLabel : meta.label(t)}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {builtIns.map((c) => {
@@ -356,21 +393,30 @@ export function ResourcesPage() {
               </div>
             );
           })}
+          {/* "Meine Skills fuer die ganz selbst erfundenen, zusaetzliche
+           * Kategorien moeglich falls man Skills aus anderen
+           * Therapieansaetzen speichert"-Auftrag — on the Skills page,
+           * the built-in catch-all categories (sonstiges/menschen)
+           * stay hidden (not skill-related), but the person's own
+           * custom categories get their own labelled section instead
+           * of just appearing unlabelled. */}
+          {typeScope === 'skills' && customCategories.some((c) => !c.group) && (
+            <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5 mt-1">{t.resources.myOwnSkillsLabel}</p>
+          )}
           <div className="flex flex-wrap gap-2 items-center">
-            {typeScope !== 'skills' && (
-              <>
-                {RESOURCE_CATEGORY_ORDER.filter((c) => !RESOURCE_CATEGORY_TO_GROUP[c]).map((c) => (
-                  <Chip key={c} selected={filter === c} onClick={() => setFilter(c)}>
-                    {resourceCategoryLabel(t, c)}
-                  </Chip>
-                ))}
-                {customCategories.filter((c) => !c.group).map((c) => (
-                  <Chip key={c.id} selected={filter === c.id} onClick={() => setFilter(c.id)} icon={<Tag size={13} />}>
-                    {c.label}
-                  </Chip>
-                ))}
-              </>
-            )}
+            {typeScope !== 'skills' &&
+              RESOURCE_CATEGORY_ORDER.filter((c) => !RESOURCE_CATEGORY_TO_GROUP[c]).map((c) => (
+                <Chip key={c} selected={filter === c} onClick={() => setFilter(c)}>
+                  {resourceCategoryLabel(t, c)}
+                </Chip>
+              ))}
+            {customCategories
+              .filter((c) => !c.group)
+              .map((c) => (
+                <Chip key={c.id} selected={filter === c.id} onClick={() => setFilter(c.id)} icon={<Tag size={13} />}>
+                  {c.label}
+                </Chip>
+              ))}
             {!addingCategory ? (
               <Chip onClick={() => setAddingCategory(true)} icon={<Plus size={14} />}>
                 {t.bridges.newCategory}

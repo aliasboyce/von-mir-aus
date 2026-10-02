@@ -25,6 +25,24 @@ export function addMissingDbtSkills() {
 }
 
 /**
+ * "Die 5-4-3-2-1-Methode gehoert nicht in Innere Achtsamkeit"-Fund —
+ * addMissingDbtSkills() only ever adds a skill once by id, so a
+ * category correction to the seed data alone would never reach
+ * anyone who already has the old category saved. Targeted, idempotent
+ * fix for this one known-wrong category, same spirit as
+ * patchKnownDemoContentIssues() in bridgesRepo.ts — only touches the
+ * one resource if its category is still the old, wrong value, leaves
+ * anything the person customised on it (title, description, own
+ * notes) untouched.
+ */
+export function patchKnownSkillCategoryIssues() {
+  const r = resourcesRepo.getById('res_skill_54321');
+  if (r && r.category === 'achtsamkeit') {
+    resourcesRepo.save({ ...r, category: 'stresstoleranz' });
+  }
+}
+
+/**
  * "Zugangskanäle & Zugänglichkeit, Schritt 2"-Fund — same gap as
  * migrateBridgeAccessChannelsIfNeeded in bridgesRepo.ts: a resource
  * tagged under the old, narrower sensoryModalities field would have

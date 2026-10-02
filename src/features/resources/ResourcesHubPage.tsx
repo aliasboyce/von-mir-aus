@@ -1,5 +1,6 @@
 import { Wrench, Sparkles, Bookmark } from 'lucide-react';
 import { HelpButton } from '../../components/navigation/HelpButton';
+import { TopBar } from '../../components/navigation/TopBar';
 import { ReorderableTiles } from '../../components/navigation/ReorderableTiles';
 import { useT } from '../../i18n';
 
@@ -23,14 +24,14 @@ export function ResourcesHubPage() {
   ];
 
   return (
-    <div className="px-5 pt-8 pb-6 animate-in">
-      <div className="flex items-start justify-between mb-1">
-        <h1 className="text-[24px]">{t.resources.hubTitle}</h1>
-        <HelpButton helpKey="ressourcen" />
-      </div>
-      <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.resources.hubSubtitle}</p>
+    <div className="animate-in">
+      <TopBar action={<HelpButton helpKey="ressourcen" />} />
+      <div className="px-5 pb-6">
+        <h1 className="text-[24px] mb-1">{t.resources.hubTitle}</h1>
+        <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.resources.hubSubtitle}</p>
 
-      <ReorderableTiles section="ressourcen-hub" tiles={tiles} />
+        <ReorderableTiles section="ressourcen-hub" tiles={tiles} />
+      </div>
     </div>
   );
 }

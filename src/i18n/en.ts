@@ -994,6 +994,10 @@ const en: TranslationDictionary = {
     hilfsmittelSubtitle: 'Concrete tools, digital or analog — apps, books and more.',
     skillsTitle: 'Skills',
     skillsSubtitle: 'Learned sequences for regulating tension on purpose.',
+    dbtGroupLabel: 'DBT',
+    myOwnSkillsLabel: 'My skills',
+    addNewSkillCta: '+ New skill',
+    addNewSkillChainCta: '+ New skill chain',
     skillsIntro:
       '"Skill" means an ability or competence. In Dialectical Behavior Therapy (DBT), skills are deliberate, learned behaviors or techniques for handling difficult situations, stress, or strong emotions — in short: what you actively do or can do to solve a problem.\n\nThere are four base modules: Inner Mindfulness (the foundation — noticing without immediately judging), Distress Tolerance (for emergencies — surviving a crisis without making it worse), Emotion Regulation (understanding and steering feelings over time), and Interpersonal Effectiveness (asserting needs, keeping relationships stable).',
     showDefinitionCta: 'What exactly are resources? →',
@@ -1067,6 +1071,7 @@ const en: TranslationDictionary = {
       stresstoleranz: 'Distress Tolerance',
       emotionsregulation: 'Emotion Regulation',
       zwischenmenschlich: 'Interpersonal Effectiveness',
+      mittelweg: 'Walking the Middle Path',
       sonstiges: 'Other',
     },
     categoryGroups: {
@@ -1430,6 +1435,7 @@ const en: TranslationDictionary = {
       triggerCta: "I don't know right now",
     },
     arousalExercisePrompt: 'Quick help: {name}',
+    zoneSkillLink: 'Matching skills: {category}',
     arousalExercisePickerTitle: 'Which exercise fits right now?',
     todayChart: "Today's course",
     weekChart: "This week's course",

@@ -26,6 +26,7 @@ export const RESOURCE_CATEGORY_ORDER: ResourceCategory[] = [
   'stresstoleranz',
   'emotionsregulation',
   'zwischenmenschlich',
+  'mittelweg',
   'menschen',
   'sonstiges',
 ];
@@ -81,6 +82,12 @@ export const SKILL_CATEGORY_ZONE_COLOR: Partial<Record<ResourceCategory, string>
   zwischenmenschlich: AROUSAL_BANDS[1].color,
   emotionsregulation: AROUSAL_BANDS[3].color,
   stresstoleranz: AROUSAL_BANDS[4].color,
+  // "Modul: Den Mittelweg finden"-Auftrag — the fifth DBT module,
+  // added later than the original four. Erholungsphase (dark green,
+  // the calmest, most grounded zone) fits its own theme of balance
+  // and dialectical middle ground better than any zone actually
+  // associated with activation or escalation.
+  mittelweg: AROUSAL_BANDS[0].color,
 };
 
 export const RESOURCE_CATEGORY_TO_GROUP: Partial<Record<ResourceCategory, ResourceCategoryGroup>> = {
@@ -88,6 +95,7 @@ export const RESOURCE_CATEGORY_TO_GROUP: Partial<Record<ResourceCategory, Resour
   stresstoleranz: 'faehigkeiten',
   emotionsregulation: 'faehigkeiten',
   zwischenmenschlich: 'faehigkeiten',
+  mittelweg: 'faehigkeiten',
   musik: 'hilfsmittel',
   videos: 'hilfsmittel',
   texte: 'hilfsmittel',

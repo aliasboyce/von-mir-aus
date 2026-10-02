@@ -19,8 +19,17 @@ import { useEffect, useState } from 'react';
  */
 const CHECK_INTERVAL_MS = 30 * 60 * 1000;
 
-export function useUpdateAvailable(): boolean {
-  const [updateAvailable, setUpdateAvailable] = useState(false);
+/**
+ * "Die Update-Nachricht jetzt oft schon wieder nicht bekommen"-Fund —
+ * the old return type (a plain boolean) was fine for detection, but
+ * the banner that read it floated at the bottom of every page with no
+ * close button, easy to miss or have covered by other UI. Now returns
+ * the detected buildId itself too, so the banner can move to a fixed,
+ * prominent spot (the Home screen) and track dismissal PER buildId —
+ * closing today's notice doesn't suppress a genuinely new one later.
+ */
+export function useUpdateAvailable(): { available: boolean; buildId: string | null } {
+  const [state, setState] = useState<{ available: boolean; buildId: string | null }>({ available: false, buildId: null });
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +40,7 @@ export function useUpdateAvailable(): boolean {
         if (!res.ok) return;
         const data = (await res.json()) as { buildId?: string };
         if (!cancelled && data.buildId && data.buildId !== __BUILD_ID__) {
-          setUpdateAvailable(true);
+          setState({ available: true, buildId: data.buildId });
         }
       } catch {
         // Offline or a transient network hiccup — never treat this as
@@ -53,5 +62,5 @@ export function useUpdateAvailable(): boolean {
     };
   }, []);
 
-  return updateAvailable;
+  return state;
 }
