@@ -399,3 +399,13 @@ export function dynamicGradientStops(windowStart: number, windowEnd: number): st
   }
   return stops.join(', ');
 }
+
+/** The three broad polyvagal states a ladder value belongs to — what a
+ * PolyvagalCheckIn.zone stores. Frühwarnbereich and Hyperarousal count
+ * as sympathetic, Hypoarousal as dorsal, everything inside the
+ * tolerance window as ventral. */
+export function polyvagalZoneForValue(v: number): PolyvagalZone {
+  if (v < 15) return 'dorsal';
+  if (v >= 60) return 'sympathetic';
+  return 'ventral';
+}

@@ -415,6 +415,26 @@ export interface SkillDetails {
  * view can show the Skill's own card, color and any Hilfsmittel it
  * references (Resource.skillDetails.relatedHilfsmittelIds).
  */
+/**
+ * "Skill starten / beenden, Reflexion, im Rueckblick gespeichert,
+ * gemeinsam mit der Info, dass der Skill bei der und der Anspannung
+ * genutzt wurde"-Auftrag — one record per finished Skill run:
+ * which skill, how long, tension before/after (0-100 on the same
+ * ladder as everywhere else) and a short non-judgmental reflection.
+ */
+export interface SkillUse {
+  id: string;
+  skillId: string;
+  skillTitle: string;
+  startedAt: string;
+  endedAt: string;
+  durationSec: number;
+  tensionBefore?: number;
+  tensionAfter?: number;
+  helped?: 'ja' | 'etwas' | 'nein' | 'unsicher';
+  note?: string;
+}
+
 export interface SkillketteStage {
   ziel?: string;
   aktion1SkillId?: string;
@@ -906,6 +926,10 @@ export interface UserSettings {
    * instead of just one. weatherReminderTime above is kept only for
    * reading old saved data; new writes go here. */
   weatherReminderTimes?: string[];
+  /** "Mehr Erinnerungen, nach innen zu checken, Energie, Einchecken"-
+   * Auftrag — gentle in-app nudges through the day. undefined counts as
+   * 'normal' (three a day); 'off' silences them completely. */
+  gentleReminders?: 'off' | 'normal' | 'more';
   /** when true, the previous day's polyvagal curve summary is auto-added to the diary the next time the app opens on a new day */
   autoAddCurveToDiary?: boolean;
   /** Same "write an actual diary entry" mechanism as autoAddCurveToDiary,
@@ -986,6 +1010,9 @@ export interface PolyvagalCheckIn {
    * a person can still just tap a zone without picking a specific
    * reaction, and so existing check-ins remain valid. */
   survivalState?: ZugangSurvivalState;
+  /** Set when this check-in was recorded at the end of a Skill run
+   * (see SkillUse) so curve and Rueckblick can show "nach Skill X". */
+  afterSkillTitle?: string;
   /** "Genauso wie im Zugang, mit dem zusammen und den Farben"-Auftrag
    * - the tension question belongs directly alongside "wo bist du
    * gerade" in the same view, exactly like Zugang's step 2 does, not

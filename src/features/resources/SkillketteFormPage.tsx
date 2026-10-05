@@ -67,7 +67,10 @@ export function SkillketteFormPage() {
   function handleSave() {
     if (!draft.title.trim()) return;
     skillkettenRepo.save({ ...draft, updatedAt: new Date().toISOString() });
-    navigate(-1);
+    // "Ich finde die Skillkette dann nicht gespeichert"-Fund — used to
+    // go back to the Skills page, where nothing showed the new chain.
+    // Now lands on the chain itself (replace: Back doesn't return to the form).
+    navigate(`/entdecken/ressourcen/skillketten/${draft.id}`, { replace: true });
   }
 
   const stages: { key: 'stufeHoch' | 'stufeMittel' | 'stufeNiedrig'; icon: string; title: string; range: string; color: string; aktion1Label: string; aktion2Label: string }[] = [

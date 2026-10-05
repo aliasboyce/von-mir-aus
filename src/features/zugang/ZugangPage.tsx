@@ -708,19 +708,23 @@ export function ZugangPage() {
               }}
             />
 
-            {careWish.length > 0 && selfSufficient === null && (
-              <Card className="mt-6 animate-in">
-                <p className="text-[14px] text-[var(--color-text)] mb-3">{t.zugang.selfSufficientQuestion}</p>
-                <div className="flex gap-2">
-                  <Button size="sm" fullWidth onClick={() => setSelfSufficient('ja')}>
-                    {t.zugang.selfSufficientYes}
-                  </Button>
-                  <Button size="sm" variant="secondary" fullWidth onClick={() => setSelfSufficient('nein')}>
-                    {t.zugang.needSupportCta}
-                  </Button>
-                </div>
-              </Card>
-            )}
+            {/* "Kann ich mir das gerade selber geben oder brauche ich Hilfe
+             * ist aufeinmal weg, das soll da bleiben"-Fund — the card used
+             * to disappear for good as soon as it was answered (and never
+             * showed at all until a care wish was picked). Now always
+             * present in this step, the current answer stays highlighted,
+             * and it can be changed at any time. */}
+            <Card className="mt-6">
+              <p className="text-[14px] text-[var(--color-text)] mb-3">{t.zugang.selfSufficientQuestion}</p>
+              <div className="flex gap-2">
+                <Button size="sm" fullWidth variant={selfSufficient === 'ja' ? 'primary' : 'secondary'} onClick={() => setSelfSufficient('ja')}>
+                  {t.zugang.selfSufficientYes}
+                </Button>
+                <Button size="sm" fullWidth variant={selfSufficient === 'nein' ? 'primary' : 'secondary'} onClick={() => setSelfSufficient('nein')}>
+                  {t.zugang.needSupportCta}
+                </Button>
+              </div>
+            </Card>
             {selfSufficient === 'nein' && (
               <Card className="mt-4 animate-in" style={{ borderColor: 'var(--color-primary)', borderWidth: 1.5 }}>
                 <div className="flex items-start gap-3">

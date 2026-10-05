@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
-import { triggerPrint } from '../../services/printSupport';
-import { useSearchParams, useParams, useNavigate } from 'react-router-dom';
-import { Heart, Plus, Link as LinkIcon, Link2, Pencil, Trash2, Share2, Upload, Tag, RefreshCw, Compass } from 'lucide-react';
+import { useSearchParams, useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { Heart, Plus, Link as LinkIcon, Link2, GitBranch, Pencil, Trash2, Share2, Upload, Tag, RefreshCw, Compass } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
@@ -27,6 +26,11 @@ import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel, RESOURCE_CATEGORY_GROUP
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { ResourceDetailModal } from './ResourceDetailModal';
 import { SkillFormModal } from './SkillFormModal';
+import { skillkettenRepo } from './skillkettenRepo';
+import { skillkettenForZone } from './skillketteZone';
+import { AROUSAL_BANDS } from '../polyvagal/arousalBands';
+import { buildResourcePdf } from './resourcePdf';
+import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
 import { HilfsmittelFormModal } from './HilfsmittelFormModal';
 import { ResourcePrintView } from './ResourcePrintView';
 import { RecentlyUsedRow } from '../../components/shared/RecentlyUsedRow';
@@ -63,6 +67,7 @@ export function ResourcesPage() {
   const t = useT();
   const say = useCompanionSay();
   const navigate = useNavigate();
+  const skillkettenCount = skillkettenRepo.getAll().length;
   const { type: typeParam } = useParams<{ type?: string }>();
   const typeScope: 'hilfsmittel' | 'skills' | null = typeParam === 'skills' ? 'skills' : typeParam === 'hilfsmittel' ? 'hilfsmittel' : null;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -78,7 +83,9 @@ export function ResourcesPage() {
   // still shows (most existing content before this feature), so nothing
   // existing silently disappears — only items explicitly tagged for a
   // DIFFERENT zone get filtered out.
-  const [zoneFilter] = useState<string | null>(() => new URLSearchParams(window.location.search).get('zone'));
+  // Read live from the URL (not once on mount): "Alle Skills anzeigen" is a
+  // link to the same page without ?zone=, which must clear the filter.
+  const zoneFilter = new URLSearchParams(useLocation().search).get('zone');
   const [energyFilter, setEnergyFilter] = useState<1 | 2 | 3 | null>(null);
   const [items, setItems] = useState<Resource[]>(() => resourcesRepo.getAll());
   const [editing, setEditing] = useState<Resource | null>(null);
@@ -155,10 +162,16 @@ export function ResourcesPage() {
     return base;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, typeScope, customCategories, zoneFilter]);
-  const filtered = useMemo(
-    () => energyExactMatch(filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter), energyFilter),
-    [inTypeScope, filter, energyFilter],
-  );
+  const filtered = useMemo(() => {
+    const list = energyExactMatch(filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter), energyFilter);
+    if (!zoneFilter) return list;
+    // "Geordnet fuer den jeweiligen Anspannungsbereich" — items explicitly
+    // tagged for this zone come first, untagged ones after them.
+    const rank = (r: Resource) => ((r.skillDetails?.zoneIds ?? r.hilfsmittelDetails?.zoneIds)?.includes(zoneFilter) ? 0 : 1);
+    return [...list].sort((a, b) => rank(a) - rank(b));
+  }, [inTypeScope, filter, energyFilter, zoneFilter]);
+  const zoneBand = zoneFilter ? AROUSAL_BANDS.find((b) => b.id === zoneFilter) : undefined;
+  const zoneKetten = zoneFilter && typeScope === 'skills' ? skillkettenForZone(zoneFilter) : [];
 
   function refresh() {
     setItems(resourcesRepo.getAll());
@@ -294,14 +307,17 @@ export function ResourcesPage() {
     }
   }
 
-  function exportResourcePdf(resource: Resource) {
-    // Same mechanism as the Safety Plan PDF: a .print-only block becomes
-    // visible only inside the print stylesheet, then window.print() lets
-    // the OS/browser's own print sheet save or share it as a PDF — this
-    // already works cross-platform (including the mobile share sheet),
-    // no separate PDF library needed.
-    setPrintingResource(resource);
-    setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
+  // "Das PDF erstellen von Skills funktioniert nicht (braucht Safari, da
+  // geht's auch nicht)"-Fund — no longer window.print(): builds a real
+  // PDF file and hands it to the share sheet / download (see
+  // services/pdf/pdfBuilder.ts + pdfShare.ts), which also works in the
+  // iOS home-screen app where printing is blocked.
+  async function exportResourcePdf(resource: Resource) {
+    const needed = (resource.skillDetails?.relatedHilfsmittelIds ?? [])
+      .map((id) => resourcesRepo.getById(id)?.title)
+      .filter((x): x is string => !!x);
+    const bytes = buildResourcePdf(resource, categoryLabel(resource.category), t, needed);
+    await deliverPdf(bytes, safeFilename(resource.title, 'skill'), resource.title);
   }
 
   return (
@@ -322,6 +338,53 @@ export function ResourcesPage() {
                   {para}
                 </p>
               ))}
+            </div>
+          )}
+          {/* "Es sollte bei Skills eine Unterseite mit Skillketten geben"-
+           * Auftrag — gespeicherte Ketten waren nirgends auffindbar; this
+           * tile is the visible doorway to the Skillketten subpage, with a
+           * live count so a freshly saved chain is noticeable right here. */}
+          {typeScope === 'skills' && (
+            <Link
+              to="/entdecken/ressourcen/skillketten"
+              className="flex items-center gap-3 p-3.5 mb-4 rounded-[var(--radius-lg)]"
+              style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-primary)' }}
+            >
+              <GitBranch size={20} className="text-[var(--color-primary)] flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[14px] font-medium text-[var(--color-text)]">{t.resources.skillkettenTileTitle}</p>
+                <p className="text-[12px] text-[var(--color-text-muted)]">
+                  {skillkettenCount > 0 ? t.resources.skillkettenTileCount.replace('{n}', String(skillkettenCount)) : t.resources.skillkettenTileEmpty}
+                </p>
+              </div>
+              <span className="text-[var(--color-primary)]" aria-hidden="true">→</span>
+            </Link>
+          )}
+          {/* "Skills und Skillketten dann geordnet angezeigt fuer den
+           * jeweiligen Anspannungsbereich"-Auftrag — the landing view of
+           * the "zu den Skills" button: which zone this is, the chains
+           * that fit it, then the skills (zone matches first). */}
+          {typeScope === 'skills' && zoneBand && (
+            <div className="rounded-[var(--radius-lg)] p-4 mb-4" style={{ background: `${zoneBand.color}18`, border: `1.5px solid ${zoneBand.color}` }}>
+              <p className="text-[13px] font-semibold mb-0.5" style={{ color: zoneBand.color }}>
+                {t.resources.zoneBannerTitle.replace('{zone}', t.polyvagal.arousalZones[zoneBand.labelKey as keyof typeof t.polyvagal.arousalZones].label)}
+              </p>
+              <p className="text-[12px] text-[var(--color-text-muted)] mb-2">{t.resources.zoneBannerHint}</p>
+              {zoneKetten.length > 0 && (
+                <div className="flex flex-col gap-1.5 mb-2">
+                  <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">{t.resources.skillkettenTileTitle}</p>
+                  {zoneKetten.map((k) => (
+                    <Link key={k.id} to={`/entdecken/ressourcen/skillketten/${k.id}`} className="flex items-center gap-2 px-3 py-2.5 rounded-[var(--radius-md)]" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                      <GitBranch size={16} style={{ color: zoneBand.color }} />
+                      <span className="text-[13.5px] text-[var(--color-text)] flex-1">{k.title}</span>
+                      <span aria-hidden="true" style={{ color: zoneBand.color }}>→</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              <Link to="/entdecken/ressourcen/skills" className="text-[12px] text-[var(--color-text-muted)] underline underline-offset-2">
+                {t.resources.zoneBannerShowAll}
+              </Link>
             </div>
           )}
           {/* "Was unterscheidet Bruecken von Ressourcen / Was sind

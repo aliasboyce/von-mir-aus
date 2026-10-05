@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { resourceCategoryLabel } from '../resources/resourceMeta';
+import { useNavigate } from 'react-router-dom';
 import { Info, X, AlertTriangle, Search } from 'lucide-react';
 import { useT } from '../../i18n';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { useSettings } from '../../state/SettingsContext';
 import { triggerHaptic } from '../../services/haptics';
+import { playSound } from '../../services/sounds';
+import { polyvagalRepo } from './polyvagalRepo';
+import { tensionRepo } from './tensionRepo';
 import {
   AROUSAL_BANDS,
   bandsForBoundaries,
@@ -16,6 +18,7 @@ import {
   visualExtentForBand,
   DEFAULT_ZONE_BOUNDARIES,
   COMFORT_ZONE_COLOR,
+  polyvagalZoneForValue,
 } from './arousalBands';
 import { BodyDetectiveModal } from './BodyDetectiveModal';
 import { windowProgressRepo } from './windowProgressRepo';
@@ -38,22 +41,19 @@ interface NervousSystemLadderSliderProps {
   selectedState?: ZugangSurvivalState | null;
   value?: number;
   onValueChange?: (v: number) => void;
+  /** Hides the Soforthilfe / 'Passende Skills' links under the zone
+   * text — used where the slider is only a measuring tool (the
+   * reflection at the end of a Skill run), so nothing in it can
+   * navigate away mid-reflection. */
+  hideSupportLinks?: boolean;
 }
 
-/** zone3 (Fokus & Flow) and below stay without this link — Skills are
- * for when regulation is actually needed, not the already-regulated
- * zones. zone1/zone2 deliberately excluded even though Achtsamkeit/
- * Zwischenmenschliche Fertigkeiten are "colored" after them
- * (resourceMeta.ts's SKILL_CATEGORY_ZONE_COLOR) — that coloring is
- * about where a skill's EFFECT lands, not about offering it AT that
- * calm zone. */
-const ZONE_TO_SKILL_CATEGORY: Partial<Record<string, string>> = {
-  zone4: 'emotionsregulation',
-  zone5: 'stresstoleranz',
-  zone6: 'stresstoleranz',
-};
+/** The zones where the pop-up '>> zu den Skills' button shows. zone3
+ * (Fokus & Flow) and calmer zones stay without it — skills are for when
+ * regulation is actually needed, not the already-regulated zones. */
+const SKILLS_BUTTON_ZONES = new Set(['zone4', 'zone5', 'zone6']);
 
-export function NervousSystemLadderSlider({ onSelect, selectedState, value: controlledValue, onValueChange }: NervousSystemLadderSliderProps) {
+export function NervousSystemLadderSlider({ onSelect, selectedState, value: controlledValue, onValueChange, hideSupportLinks = false }: NervousSystemLadderSliderProps) {
   const t = useT();
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
@@ -115,6 +115,21 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
     }
   }
 
+  /** Saves the current ladder value as a check-in (unless the very same
+   * value was already saved in the last two minutes) and opens Skills
+   * for this zone. "Der Check-in-Durchgang wird trotzdem abgespeichert.
+   * Immer."-Auftrag. */
+  function goToSkills() {
+    const nowMs = Date.now();
+    const alreadySaved = polyvagalRepo.getAll().some((c) => c.tensionValue === value && nowMs - new Date(c.createdAt).getTime() < 2 * 60 * 1000);
+    if (!alreadySaved) {
+      const nowIso = new Date(nowMs).toISOString();
+      polyvagalRepo.save({ id: createId('pv'), createdAt: nowIso, zone: polyvagalZoneForValue(value), tensionValue: value });
+      tensionRepo.save({ id: createId('tension'), createdAt: nowIso, value });
+    }
+    navigate(`/entdecken/ressourcen/skills?zone=${band.id}`);
+  }
+
   const trackRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
@@ -131,6 +146,12 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
   useEffect(() => {
     if (band.id !== lastBandId) {
       triggerHaptic('select', settings);
+      // "Klick-Sounds fehlen beim Einchecken"-Fund — the ladder track is
+      // a div with role=slider, which the global click listener in
+      // AppShell didn't treat as tappable, and dragging across zones
+      // gave no audio feedback at all. A soft tick each time the
+      // marker crosses into a new zone now matches the haptic one.
+      playSound('click', settings);
       setLastBandId(band.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -385,7 +406,10 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full border-2 pointer-events-none"
             style={{
-              top: `calc(12px + ${visualPositionForValue(value)}% * (100% - 24px - 30px) / 100%)`,
+              // A percentage multiplied by a length is not valid CSS calc() — the
+              // old expression made the browser drop the whole declaration, so
+              // the marker never left the top of the bar. Length * plain number is.
+              top: `calc(12px + (100% - 24px - 28px) * ${visualPositionForValue(value) / 100})`,
               width: 28,
               height: 28,
               background: '#1a1a1a',
@@ -452,6 +476,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
       </div>
       <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: `${band.color}14` }}>
         <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{zoneT.hint}</p>
+        {!hideSupportLinks && (
         <button
           onClick={() => setExercisePickerOpen(true)}
           className="text-[12.5px] font-medium flex items-center gap-1"
@@ -459,26 +484,25 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
         >
           {t.polyvagal.arousalExercisePrompt.replace('{name}', band.exercises[0].exerciseName)} →
         </button>
-        {/* "Ab dem Fruehwarnbereich soll die App zu den passenden
-         * Skills verweisen, weiter oben auch bei Hyper- und
-         * Hypoarousal"-Auftrag — a second, broader link (not just one
-         * suggested exercise) straight to the matching Skills module,
-         * shown only from Fruehwarnbereich upward in either direction:
-         * the three zones where DBT skills are actually meant to be
-         * reached for. ZONE_TO_SKILL_CATEGORY intentionally lives
-         * here, not in resourceMeta.ts — it's about which SKILLS
-         * belong to a given ZONE, the reverse direction of
-         * SKILL_CATEGORY_ZONE_COLOR (which colors a category FROM its
-         * zone) in resourceMeta.ts; keeping them separate avoids one
-         * file needing to know about the other's domain. */}
-        {ZONE_TO_SKILL_CATEGORY[band.id] && (
-          <Link
-            to={`/entdecken/ressourcen/skills?category=${ZONE_TO_SKILL_CATEGORY[band.id]}&zone=${band.id}`}
-            className="text-[12.5px] font-medium flex items-center gap-1 mt-1.5"
-            style={{ color: band.color }}
+        )}
+        {/* "Sobald man im Fruehwarnbereich ist, soll es einen Button geben,
+         * der aufpoppt: >> zu den Skills"-Auftrag — replaces the former
+         * small text link. Appears (and re-pops, via the key) whenever
+         * the marker enters Fruehwarnbereich, Hyperarousal or
+         * Hypoarousal; zone3 (Fokus & Flow) and calmer zones don't show
+         * it — skills are for when regulating is actually needed.
+         * goToSkills() saves the current value as a check-in FIRST, so
+         * the day curve never loses a point just because the person
+         * went straight to the skills. */}
+        {!hideSupportLinks && SKILLS_BUTTON_ZONES.has(band.id) && (
+          <button
+            key={band.id}
+            onClick={goToSkills}
+            className="pop-in w-full mt-3 py-3 rounded-[var(--radius-full)] text-[15px] font-semibold flex items-center justify-center gap-2"
+            style={{ background: band.color, color: '#fff', boxShadow: `0 4px 14px ${band.color}55` }}
           >
-            {t.polyvagal.zoneSkillLink.replace('{category}', resourceCategoryLabel(t, ZONE_TO_SKILL_CATEGORY[band.id]!))} →
-          </Link>
+            <span aria-hidden="true">&gt;&gt;</span> {t.polyvagal.toSkillsCta}
+          </button>
         )}
       </div>
 

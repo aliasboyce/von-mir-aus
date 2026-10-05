@@ -29,6 +29,9 @@ import { ResourcesHubPage } from './features/resources/ResourcesHubPage';
 import { SkillkettenListPage } from './features/resources/SkillkettenListPage';
 import { SkillketteFormPage } from './features/resources/SkillketteFormPage';
 import { SkillketteDetailPage } from './features/resources/SkillketteDetailPage';
+import { SkillRunPage } from './features/resources/SkillRunPage';
+import { CalendarPage } from './features/calendar/CalendarPage';
+import { CalendarOverviewPage } from './features/calendar/CalendarOverviewPage';
 // AccessWheelPage retired — see App.tsx route comment
 import { ZugangPage } from './features/zugang/ZugangPage';
 import { ZugangReviewPage } from './features/zugang/ZugangReviewPage';
@@ -88,6 +91,7 @@ function App() {
                 <Route path="/entdecken/ressourcen/skillketten/neu" element={<SkillketteFormPage />} />
                 <Route path="/entdecken/ressourcen/skillketten/:id/bearbeiten" element={<SkillketteFormPage />} />
                 <Route path="/entdecken/ressourcen/skillketten/:id" element={<SkillketteDetailPage />} />
+                <Route path="/entdecken/ressourcen/skill-start/:id" element={<SkillRunPage />} />
                 <Route path="/entdecken/ressourcen/:type" element={<ResourcesPage />} />
                 {/* Zugangsrad retired per explicit audit decision — its
                  * sliders now live inside Wertekompass (AccessDomainsSection). */}
@@ -96,6 +100,8 @@ function App() {
                 <Route path="/einstellungen/wesen-inhalte" element={<CompanionContentPage />} />
                 <Route path="/einstellungen/wesen-info" element={<CompanionAboutPage />} />
                 <Route path="/system-karte" element={<SystemMapPage />} />
+                <Route path="/kalender" element={<CalendarPage />} />
+                <Route path="/kalender/uebersicht" element={<CalendarOverviewPage />} />
                 <Route path="/quellen" element={<SourceLibraryPage />} />
                 <Route path="/entdecken/beduerfnis-kompass" element={<NeedsCompassPage />} />
                 <Route path="/entdecken/tageskurve" element={<PolyvagalPage />} />

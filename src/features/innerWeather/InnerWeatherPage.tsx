@@ -361,9 +361,9 @@ export function InnerWeatherPage() {
           <div className="w-full flex flex-col gap-3 mt-4">
             <Button
               fullWidth
-              onClick={() => navigate(need ? `/entdecken/beduerfnis-kompass?need=${need}` : '/bruecken')}
+              onClick={() => navigate(need ? `/entdecken/beduerfnis-kompass?need=${need}` : '/entdecken/ressourcen')}
             >
-              {need ? t.weather.exploreBridges : t.weather.exploreBridges}
+              {t.weather.exploreBridges}
             </Button>
             <Button fullWidth variant="ghost" onClick={() => navigate('/')}>
               {t.weather.backHome}

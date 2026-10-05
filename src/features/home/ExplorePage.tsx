@@ -1,4 +1,4 @@
-import { Compass, Activity, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy } from 'lucide-react';
+import { Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { ReorderableTiles } from '../../components/navigation/ReorderableTiles';
@@ -65,6 +65,7 @@ export function ExplorePage() {
   const bridgeTiles: Tile[] = [{ key: 'bruecken', to: '/bruecken', icon: GitBranch, title: t.nav.bridges, subtitle: t.bridges.subtitle, color: 'var(--color-accent-clay)' }];
   const everydayTiles: Tile[] = [
     { key: 'garten', to: '/entdecken/garten', icon: Sprout, title: t.garden.title, subtitle: t.garden.subtitle, color: 'var(--color-accent-sun)' },
+    { key: 'kalender', to: '/kalender', icon: CalendarDays, title: t.calendar.title, subtitle: t.calendar.subtitle, color: 'var(--color-accent-sun)' },
     { key: 'timer', to: '/entdecken/timer', icon: Timer, title: t.simpleTimer.title, subtitle: t.simpleTimer.subtitle, color: 'var(--color-accent-sun)' },
     { key: 'medilog', to: '/entdecken/medi-log', icon: Pill, title: t.mediLog.title, subtitle: t.mediLog.subtitle, color: 'var(--color-accent-sun)' },
   ];

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TopBar } from '../../components/navigation/TopBar';
 import { useT } from '../../i18n';
@@ -20,85 +21,34 @@ const STATIONS: Station[] = [
   { emoji: '📖', titleKey: 'rueckblick', questionKey: 'rueckblickQ', to: '/zugang/rueckblick' },
 ];
 
-interface ExtraGroup {
-  labelKey: string;
-  items: { emoji: string; titleKey: string; to: string }[];
+interface MainArea {
+  id: 'where' | 'regulate' | 'connect' | 'secure' | 'look';
+  emoji: string;
+  color: string;
+  links: { to: string; key: string }[];
 }
 
 /**
- * "Wirklich jede Seite/Funktion, jeweils mit kurzer Beschreibung"-
- * Auftrag — a full audit against every route in App.tsx found this
- * was genuinely out of date: the check-in/Tageskurve page (this
- * session's biggest single area of work) was completely missing, as
- * were the timer, favorites, sources, safety plan, contacts, weekly
- * review, letter-to-self, bookmarks, and medication log. All added
- * below, organized by kind rather than crammed onto the main thread
- * (which stays a clean eight-step conceptual path, not a literal
- * list of every screen).
+ * "Die 'Wie haengt alles zusammen'-Seite aktualisieren und nutzen, um
+ * die Hauptbereiche von Zusatzfunktionen zu trennen und den Sinn
+ * uebersichtlich darzustellen"-Auftrag — the five main areas are the
+ * core (check-in, regulating, connecting, keeping safe, looking back);
+ * every other page is listed below them as an additional function.
  */
-const EXTRA_GROUPS: ExtraGroup[] = [
-  {
-    labelKey: 'groupCheckin',
-    items: [
-      { emoji: '🌤️', titleKey: 'tageskurve', to: '/entdecken/tageskurve' },
-      { emoji: '⏱️', titleKey: 'timer', to: '/entdecken/timer' },
-    ],
-  },
-  {
-    labelKey: 'groupZugangDetails',
-    items: [
-      { emoji: '🫀', titleKey: 'koerper', to: '/entdecken/koerper' },
-      { emoji: '🌊', titleKey: 'nervensystem', to: '/entdecken/nervensystem' },
-      { emoji: '❤️', titleKey: 'gefuehle', to: '/entdecken/gefuehle' },
-    ],
-  },
-  {
-    labelKey: 'groupGedanken',
-    items: [
-      { emoji: '🧠', titleKey: 'denkmaschine', to: '/entdecken/denkmaschine' },
-      { emoji: '🍃', titleKey: 'loslassen', to: '/entdecken/loslassen' },
-    ],
-  },
-  {
-    labelKey: 'groupWerkzeuge',
-    items: [
-      { emoji: '🎁', titleKey: 'ressourcen', to: '/entdecken/ressourcen' },
-      { emoji: '📔', titleKey: 'tagebuch', to: '/sicherheit/tagebuch' },
-      { emoji: '🌱', titleKey: 'garten', to: '/entdecken/garten' },
-      { emoji: '⭐', titleKey: 'favoriten', to: '/favoriten' },
-    ],
-  },
-  {
-    labelKey: 'groupSicherheit',
-    items: [
-      { emoji: '📋', titleKey: 'sicherheitsplan', to: '/sicherheit/plan' },
-      { emoji: '📇', titleKey: 'kontakte', to: '/sicherheit/kontakte' },
-    ],
-  },
-  {
-    labelKey: 'groupRueckblick',
-    items: [
-      { emoji: '📊', titleKey: 'wochenrueckblick', to: '/wochenrueckblick' },
-      { emoji: '📈', titleKey: 'entwicklung', to: '/entdecken/tageskurve/entwicklung' },
-    ],
-  },
-  {
-    labelKey: 'groupBegleitung',
-    items: [
-      { emoji: '✨', titleKey: 'wesen', to: '/einstellungen/wesen-info' },
-      { emoji: '🚨', titleKey: 'krisenmodus', to: '/krisenmodus' },
-      { emoji: '🤝', titleKey: 'helfermodus', to: '/helfermodus' },
-    ],
-  },
-  {
-    labelKey: 'groupSonstiges',
-    items: [
-      { emoji: '💌', titleKey: 'briefAnMich', to: '/entdecken/brief-an-mich' },
-      { emoji: '🔖', titleKey: 'lesezeichen', to: '/entdecken/lesezeichen' },
-      { emoji: '💊', titleKey: 'mediLog', to: '/entdecken/medi-log' },
-      { emoji: '📚', titleKey: 'quellen', to: '/quellen' },
-    ],
-  },
+const MAIN_AREAS: MainArea[] = [
+  { id: 'where', emoji: '📍', color: '#6fbf73', links: [{ to: '/entdecken/tageskurve', key: 'checkin' }, { to: '/zugang', key: 'zugang' }, { to: '/entdecken/nervensystem', key: 'nervensystem' }] },
+  { id: 'regulate', emoji: '🎚️', color: '#c9522f', links: [{ to: '/entdecken/ressourcen/skills', key: 'skills' }, { to: '/entdecken/ressourcen/skillketten', key: 'skillketten' }, { to: '/entdecken/ressourcen/hilfsmittel', key: 'hilfsmittel' }] },
+  { id: 'connect', emoji: '🌉', color: '#8fae3d', links: [{ to: '/bruecken', key: 'bruecken' }, { to: '/entdecken/wertekompass', key: 'wertekompass' }, { to: '/entdecken/beduerfnis-kompass', key: 'beduerfnis' }, { to: '/entdecken/garten', key: 'garten' }] },
+  { id: 'secure', emoji: '🛟', color: '#4a6fa5', links: [{ to: '/sicherheit/netzwerk', key: 'netzwerk' }, { to: '/sicherheit/plan', key: 'sicherheitsplan' }, { to: '/sicherheit/kontakte', key: 'kontakte' }, { to: '/krisenmodus', key: 'krisenmodus' }, { to: '/helfermodus', key: 'helfermodus' }] },
+  { id: 'look', emoji: '📖', color: '#e8a83d', links: [{ to: '/sicherheit/tagebuch', key: 'tagesrueckblick' }, { to: '/wochenrueckblick', key: 'wochenrueckblick' }, { to: '/entdecken/tageskurve/entwicklung', key: 'entwicklung' }] },
+];
+
+const NEW_EXTRA_GROUPS: { labelKey: string; items: { emoji: string; titleKey: string; to: string }[] }[] = [
+  { labelKey: 'nachschlagen', items: [{ emoji: '🫀', titleKey: 'koerper', to: '/entdecken/koerper' }, { emoji: '🌊', titleKey: 'nervensystem', to: '/entdecken/nervensystem' }, { emoji: '❤️', titleKey: 'gefuehle', to: '/entdecken/gefuehle' }, { emoji: '📚', titleKey: 'quellen', to: '/quellen' }] },
+  { labelKey: 'gedanken', items: [{ emoji: '🧠', titleKey: 'denkmaschine', to: '/entdecken/denkmaschine' }, { emoji: '🍃', titleKey: 'loslassen', to: '/entdecken/loslassen' }] },
+  { labelKey: 'schreiben', items: [{ emoji: '📔', titleKey: 'tagebuch', to: '/sicherheit/tagebuch' }, { emoji: '💌', titleKey: 'briefAnMich', to: '/entdecken/brief-an-mich' }, { emoji: '🔖', titleKey: 'lesezeichen', to: '/entdecken/lesezeichen' }] },
+  { labelKey: 'alltag', items: [{ emoji: '📅', titleKey: 'kalender', to: '/kalender' }, { emoji: '⏱️', titleKey: 'timer', to: '/entdecken/timer' }, { emoji: '💊', titleKey: 'mediLog', to: '/entdecken/medi-log' }, { emoji: '⭐', titleKey: 'favoriten', to: '/favoriten' }] },
+  { labelKey: 'begleitung', items: [{ emoji: '✨', titleKey: 'wesen', to: '/einstellungen/wesen-info' }] },
 ];
 
 const VB_W = 320;
@@ -141,6 +91,7 @@ function pathD(): string {
 export function SystemMapPage() {
   const t = useT();
   const navigate = useNavigate();
+  const [showMap, setShowMap] = useState(false);
 
   return (
     <div className="animate-in">
@@ -150,6 +101,75 @@ export function SystemMapPage() {
         <p className="text-[14px] text-[var(--color-text-muted)] mb-2 leading-relaxed">{t.systemMap.subtitle}</p>
         <p className="text-[12px] text-[var(--color-text-faint)] mb-6 leading-relaxed">{t.systemMap.hint}</p>
 
+        {/* The two ways, in the person's own words. */}
+        <div className="rounded-[var(--radius-lg)] p-4 mb-6" style={{ background: 'var(--color-surface-muted)' }}>
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">{t.systemMap.twoWaysTitle}</p>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2">
+            <strong className="text-[var(--color-text)]">{t.systemMap.twoWaysSkillkette}:</strong> {t.resources.skillkettenConcept}
+          </p>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">
+            <strong className="text-[var(--color-text)]">{t.systemMap.twoWaysBruecke}:</strong> {t.bridges.concept}
+          </p>
+        </div>
+
+        <p className="text-[15px] font-semibold text-[var(--color-text)] mb-1">{t.systemMap.mainAreasTitle}</p>
+        <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.systemMap.mainAreasHint}</p>
+        <div className="flex flex-col gap-3 mb-8">
+          {MAIN_AREAS.map((area, i) => (
+            <div key={area.id} className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-surface)', border: `1.5px solid ${area.color}` }}>
+              <div className="flex items-start gap-3 mb-2">
+                <span className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[18px]" style={{ background: `${area.color}22` }}>
+                  {area.emoji}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold text-[var(--color-text)]">
+                    <span style={{ color: area.color }}>{i + 1}.</span> {t.systemMap.areas[area.id].title}
+                  </p>
+                  <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.systemMap.areas[area.id].meaning}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {area.links.map((l) => (
+                  <button
+                    key={l.key}
+                    onClick={() => navigate(l.to)}
+                    className="rounded-full px-3 py-1.5 text-[12.5px] border"
+                    style={{ borderColor: area.color, color: area.color }}
+                  >
+                    {t.systemMap.areaLinks[l.key as keyof typeof t.systemMap.areaLinks]} →
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="pt-2 border-t border-[var(--color-border)] mb-8">
+          <p className="text-[15px] font-semibold text-[var(--color-text)] mt-5 mb-1">{t.systemMap.extrasTitle}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.systemMap.extrasHint}</p>
+          {NEW_EXTRA_GROUPS.map((group) => (
+            <div key={group.labelKey} className="mb-4">
+              <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.systemMap.extraGroupsNew[group.labelKey as keyof typeof t.systemMap.extraGroupsNew]}</p>
+              <div className="grid grid-cols-1 gap-2">
+                {group.items.map((item) => (
+                  <button key={item.titleKey} onClick={() => navigate(item.to)} className="flex items-start gap-2 p-2.5 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] text-left">
+                    <span className="text-[16px] flex-shrink-0">{item.emoji}</span>
+                    <span className="min-w-0">
+                      <span className="block text-[13px] text-[var(--color-text)]">{t.systemMap.extraItems[item.titleKey as keyof typeof t.systemMap.extraItems]}</span>
+                      <span className="block text-[11px] text-[var(--color-text-faint)]">{t.systemMap.extraItemHints[item.titleKey as keyof typeof t.systemMap.extraItemHints]}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={() => setShowMap((v) => !v)} className="text-[13px] text-[var(--color-primary)] underline underline-offset-2 mb-4">
+          {showMap ? t.systemMap.mapHide : t.systemMap.mapShow}
+        </button>
+        {showMap && (
+        <>
         <p className="text-[13px] font-medium text-[var(--color-text-muted)] mb-2">{t.systemMap.mainThreadLabel}</p>
         <div className="flex justify-center mb-2">
           <svg viewBox={`0 0 ${VB_W} ${VB_H}`} width="100%" style={{ maxWidth: 360 }} role="img" aria-hidden="true">
@@ -188,35 +208,8 @@ export function SystemMapPage() {
           ))}
         </div>
 
-        <div className="pt-2 border-t border-[var(--color-border)]">
-          <p className="text-[13px] font-medium text-[var(--color-text-muted)] mt-5 mb-3">{t.systemMap.extrasIntro}</p>
-          {EXTRA_GROUPS.map((group) => (
-            <div key={group.labelKey} className="mb-5">
-              <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">
-                {t.systemMap.extraGroups[group.labelKey as keyof typeof t.systemMap.extraGroups]}
-              </p>
-              <div className="grid grid-cols-1 gap-2">
-                {group.items.map((item) => (
-                  <button
-                    key={item.titleKey}
-                    onClick={() => navigate(item.to)}
-                    className="flex items-start gap-2 p-2.5 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] text-left"
-                  >
-                    <span className="text-[16px] flex-shrink-0">{item.emoji}</span>
-                    <span className="min-w-0">
-                      <span className="block text-[13px] text-[var(--color-text)] truncate">
-                        {t.systemMap.extraItems[item.titleKey as keyof typeof t.systemMap.extraItems]}
-                      </span>
-                      <span className="block text-[11px] text-[var(--color-text-faint)] truncate">
-                        {t.systemMap.extraItemHints[item.titleKey as keyof typeof t.systemMap.extraItemHints]}
-                      </span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        </>
+        )}
 
         <div className="mt-4 pt-5 border-t border-[var(--color-border)]">
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2">{t.systemMap.sideNote1}</p>

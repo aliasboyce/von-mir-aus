@@ -36,6 +36,21 @@ const SKY_BACKGROUNDS_DARK: Record<Exclude<SkyPhase, 'night'>, string> = {
   sunsetGolden: 'linear-gradient(180deg, #2f2530 0%, #3d2b26 45%, var(--color-bg) 100%)',
   sunsetGlow: 'linear-gradient(180deg, #241f2e 0%, #332530 45%, #3d2820 75%, var(--color-bg) 100%)',
 };
+/**
+ * "Himmel auf dem Handy im hellen Modus: klare Linie im Uebergang"-
+ * Fund — the 'day' sky is a radial-gradient whose last stop
+ * (var(--color-bg)) is only reached at the farthest CORNER, so along
+ * the bottom edge of this 220px box the color is still partly blue:
+ * on a narrow phone screen that left a visible hard edge where the box
+ * ends. A mask that fades the whole box (gradient + any leaves/stars)
+ * to transparent over its lower part makes the transition soft no
+ * matter which gradient type a phase uses, in light and dark alike.
+ */
+const SKY_FADE_MASK = {
+  WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%)',
+  maskImage: 'linear-gradient(to bottom, #000 0%, #000 45%, transparent 100%)',
+} as const;
+
 const NIGHT_BASE = 'linear-gradient(180deg, #2b3350 0%, #3c4568 35%, var(--color-bg) 100%)';
 
 type NightVariant = 'stars' | 'glow' | 'dense' | 'veil' | 'twinkle';
@@ -60,7 +75,7 @@ export function SkyAmbiance() {
   const background = isNight ? NIGHT_BASE : backgrounds[phase];
 
   return (
-    <div className="absolute inset-x-0 top-0 h-[220px] overflow-hidden rounded-t-[inherit] pointer-events-none" aria-hidden="true" style={{ zIndex: -1 }}>
+    <div className="absolute inset-x-0 top-0 h-[220px] overflow-hidden rounded-t-[inherit] pointer-events-none" aria-hidden="true" style={{ zIndex: -1, ...SKY_FADE_MASK }}>
       <div className="absolute inset-0" style={{ background, animation: 'sky-settle-in 1.4s ease-out both' }} />
 
       {isNight && <NightStars variant={nightVariant} />}

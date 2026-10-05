@@ -504,6 +504,33 @@ export function SettingsPage() {
         </Card>
 
         <Card className="mb-6" padding="md">
+          <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.gentleRemindersTitle}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.gentleRemindersHint}</p>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['off', t.settings.gentleRemindersOff],
+                ['normal', t.settings.gentleRemindersNormal],
+                ['more', t.settings.gentleRemindersMore],
+              ] as const
+            ).map(([key, label]) => {
+              const active = (settings.gentleReminders ?? 'normal') === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => updateSettings({ gentleReminders: key })}
+                  aria-pressed={active}
+                  className="rounded-full px-4 py-2 text-[13px] border"
+                  style={active ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card className="mb-6" padding="md">
           <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.customRemindersTitle}</p>
           <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.customRemindersHint}</p>
           {customReminders.map((r) => (

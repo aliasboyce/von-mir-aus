@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
-import { triggerPrint } from '../../services/printSupport';
+import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
+import { buildReviewPdf } from '../reviews/reviewPdf';
+import { gatherReviewDays, lastNDaysRange } from '../reviews/reviewData';
+import { reviewSummaryLines } from '../reviews/reviewStats';
+import { skillUsesInLastDays } from '../resources/skillUsesRepo';
+import { networkRepo } from '../safetyNet/networkRepo';
+import { PersonLine } from '../calendar/PersonAvatar';
 import { FileDown, Sparkles } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
@@ -18,8 +24,6 @@ import { diaryCategoriesStore } from '../diary/diaryCategories';
 import { mediLogRepo } from '../mediLog/mediLogRepo';
 import { savedMedicationsRepo, MEDICATION_COLOR_PALETTE } from '../mediLog/savedMedicationsRepo';
 import { MediLogOverallChart } from '../mediLog/MediLogOverallChart';
-import { WeeklyReviewPrintView } from './WeeklyReviewPrintView';
-import { weeklyNarrative } from './weeklyReviewNarrative';
 import { zugangRepo } from '../zugang/zugangRepo';
 import { accessGapRepo } from '../zugang/accessGapRepo';
 import { gardenRepo } from '../garden/gardenRepo';
@@ -45,15 +49,8 @@ export function WeeklyReviewPage() {
   const t = useT();
   const { settings } = useSettings();
   const isEn = settings.language === 'en';
-  const [printingWeekly, setPrintingWeekly] = useState(false);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
   const DAYS = PERIOD_DAYS[period];
-
-  useEffect(() => {
-    const clear = () => setPrintingWeekly(false);
-    window.addEventListener('afterprint', clear);
-    return () => window.removeEventListener('afterprint', clear);
-  }, []);
 
   const stats = useMemo(() => {
     const cutoff = Date.now() - DAYS * 24 * 60 * 60 * 1000;
@@ -146,10 +143,39 @@ export function WeeklyReviewPage() {
   }, [settings.dailyReviewShowMediLog, DAYS]);
 
   const maxZoneCount = Math.max(...POLYVAGAL_ZONE_ORDER.map((z) => stats.zoneCounts[z]), 1);
-  const narrative = useMemo(
-    () => weeklyNarrative(stats.zoneCounts, isEn, period === 'month' ? { de: 'diesen Monat', en: 'this month' } : undefined),
-    [stats.zoneCounts, isEn, period],
-  );
+  // "In den letzten Tagen warst du am haeufigsten im Bereich ... ist
+  // wertend"-Auftrag — the old narrative named the zone you were in most
+  // often. Replaced by only-positive facts: how often you swung back into
+  // your comfort range, how many skill runs moved you toward it.
+  const skillUsesPeriod = useMemo(() => skillUsesInLastDays(DAYS), [DAYS]);
+  // "Termine mit den Notizen der Reflexion im Wochenrueckblick"-Auftrag
+  const periodAppointments = useMemo(() => {
+    const { from, to } = lastNDaysRange(DAYS);
+    return gatherReviewDays(from, to).flatMap((d) => d.appointments).sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`));
+  }, [DAYS]);
+  const summaryLines = useMemo(() => reviewSummaryLines(stats.checkIns, skillUsesPeriod, t), [stats.checkIns, skillUsesPeriod, t]);
+
+  async function exportPdf() {
+    const { from, to } = lastNDaysRange(DAYS);
+    const extra: string[] = [];
+    if (stats.resourceNames.length > 0) extra.push(`${t.weeklyReview.resourcesUsed}: ${stats.resourceNames.map((r) => (r.count > 1 ? `${r.label} x${r.count}` : r.label)).join(', ')}`);
+    if (stats.bridgeNames.length > 0) extra.push(`${t.weeklyReview.bridgesUsed}: ${stats.bridgeNames.map((r) => (r.count > 1 ? `${r.label} x${r.count}` : r.label)).join(', ')}`);
+    if (stats.zugangCount > 0) extra.push(`Zugang: ${stats.zugangCount}`);
+    if (stats.gardenThisWeek.length > 0) extra.push(stats.gardenThisWeek.map((g) => `${g.name}: ${g.daysThisWeek}`).join(', '));
+    if (stats.helpfulYes > 0) extra.push(t.weeklyReview.helpfulNote.replace('{count}', String(stats.helpfulYes)));
+    const title = period === 'month' ? t.weeklyReview.titleMonthly : t.weeklyReview.title;
+    const bytes = buildReviewPdf({
+      kind: period,
+      title,
+      fromDay: from,
+      toDay: to,
+      days: gatherReviewDays(from, to),
+      t,
+      locale: settings.language === 'de' ? 'de-DE' : 'en-US',
+      extraLines: extra,
+    });
+    await deliverPdf(bytes, safeFilename(`${title}-${from}-bis-${to}`, 'rueckblick'), title);
+  }
 
   return (
     <div className="animate-in">
@@ -160,10 +186,7 @@ export function WeeklyReviewPage() {
             <HelpButton helpKey="wochenrueckblick" />
             {stats.totalActivity > 0 && (
               <button
-                onClick={() => {
-                  setPrintingWeekly(true);
-                  setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
-                }}
+                onClick={exportPdf}
                 aria-label={t.weeklyReview.exportPdf}
                 className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
               >
@@ -207,7 +230,17 @@ export function WeeklyReviewPage() {
             {/* 1 — Wesen-geführte Erzählung statt Zahlen zuerst */}
             <div className="flex items-start gap-3">
               <InlineCompanionNote />
-              <p className="text-[15px] text-[var(--color-text)] leading-relaxed flex-1">{narrative}</p>
+              <div className="flex-1">
+                {summaryLines.length > 0 ? (
+                  summaryLines.map((l, i) => (
+                    <p key={i} className="text-[15px] text-[var(--color-text)] leading-relaxed">
+                      {l}
+                    </p>
+                  ))
+                ) : (
+                  <p className="text-[15px] text-[var(--color-text)] leading-relaxed">{isEn ? 'Every check-in is a point on your curve.' : 'Jeder Check-in ist ein Punkt auf deiner Kurve.'}</p>
+                )}
+              </div>
             </div>
 
             {/* 4 — Moment der Woche, statt einer flachen Liste */}
@@ -218,6 +251,32 @@ export function WeeklyReviewPage() {
                   {t.weeklyReview.momentOfWeek}
                 </p>
                 <p className="text-[14px] text-[var(--color-text)] leading-relaxed">{stats.momentOfWeek.content}</p>
+              </Card>
+            )}
+
+            {/* Termine der Woche mit Reflexion und Notizen */}
+            {periodAppointments.length > 0 && (
+              <Card>
+                <p className="text-[13px] font-medium text-[var(--color-text)] mb-3">{t.calendar.reviewAppointments}</p>
+                <div className="flex flex-col gap-2.5">
+                  {periodAppointments.map((a) => {
+                    const person = a.personId ? networkRepo.getAll().find((p) => p.id === a.personId) : undefined;
+                    return (
+                      <div key={a.id}>
+                        <p className="text-[13px] text-[var(--color-text)]">
+                          <span className="tabular-nums text-[var(--color-text-faint)]">{new Date(`${a.date}T12:00:00`).toLocaleDateString(isEn ? 'en-US' : 'de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' })} · {a.time}</span> {a.title}
+                        </p>
+                        {person && (
+                          <div className="mt-1">
+                            <PersonLine entry={person} size={24} />
+                          </div>
+                        )}
+                        {a.reflection && <p className="text-[12.5px] text-[var(--color-text-muted)] italic mt-1 whitespace-pre-line">„{a.reflection}“</p>}
+                        {a.noteForNext && <p className="text-[12px] text-[var(--color-text-muted)] mt-0.5 whitespace-pre-line">→ {a.noteForNext}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
               </Card>
             )}
 
@@ -427,25 +486,6 @@ export function WeeklyReviewPage() {
       </div>
       </div>
 
-      {printingWeekly && (
-        <WeeklyReviewPrintView
-          t={t}
-          zoneCounts={stats.zoneCounts}
-          checkInsCount={stats.checkIns.length}
-          resourceUses={stats.resourceUses}
-          bridgeUses={stats.bridgeUses}
-          helpfulYes={stats.helpfulYes}
-          diaryEntries={stats.diaryEntries}
-          achievements={stats.achievements}
-          mediLogWeekly={stats.mediLogWeekly}
-          labels={{
-            title: period === 'month' ? t.weeklyReview.titleMonthly : t.weeklyReview.title,
-            subtitle: period === 'month' ? t.weeklyReview.subtitleMonthly : t.weeklyReview.subtitle,
-            exportedOn: t.network.exportedOn,
-          }}
-          formatDate={(iso) => new Date(iso).toLocaleDateString(settings.language === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-        />
-      )}
     </div>
   );
 }

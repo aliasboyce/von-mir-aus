@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, Link as LinkIcon, Pencil, Trash2, NotebookPen, Check, FileDown, Link2, Timer as TimerIcon } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
@@ -10,6 +11,7 @@ import { DIARY_DEFAULT_CATEGORY_ID } from '../diary/diaryCategories';
 import { logActivity } from '../../services/activityLog';
 import { HelpfulnessPrompt } from '../../components/shared/HelpfulnessPrompt';
 import { ResourceTimerView } from './ResourceTimerView';
+import { RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
 import { createId } from '../../services/storage/repository';
 import type { Resource, ResourceCategory } from '../../data/types';
 import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
@@ -37,6 +39,7 @@ export function ResourceDetailModal({
   onExportPdf,
 }: ResourceDetailModalProps) {
   const t = useT();
+  const navigate = useNavigate();
   const say = useCompanionSay();
   const [savedToDiary, setSavedToDiary] = useState(false);
   const [lastActivityId, setLastActivityId] = useState<string | null>(null);
@@ -90,6 +93,15 @@ export function ResourceDetailModal({
       <div className="flex flex-col gap-4">
         {resource.image && (
           <PhotoBackground src={resource.image} className="w-full h-40 rounded-[var(--radius-lg)] bg-cover bg-center bg-[var(--color-surface-muted)]" />
+        )}
+
+        {/* "Es soll den Button geben 'Skill starten'"-Auftrag — opens the
+         * run page (count-up timer without an end + the step list),
+         * only for skills, not for Hilfsmittel or other resources. */}
+        {RESOURCE_CATEGORY_TO_GROUP[resource.category] === 'faehigkeiten' && (
+          <Button fullWidth onClick={() => navigate(`/entdecken/ressourcen/skill-start/${resource.id}`)}>
+            {t.skillRun.startCta}
+          </Button>
         )}
 
         {/* "Skills erstellen, strukturiertes Formular"-Auftrag — a

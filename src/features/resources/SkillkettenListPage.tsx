@@ -15,7 +15,8 @@ export function SkillkettenListPage() {
       <TopBar action={<HelpButton helpKey="ressourcen" />} />
       <div className="px-5 pb-10">
         <h1 className="text-[24px] mb-1">{t.resources.skillkettenListTitle}</h1>
-        <p className="text-[14px] text-[var(--color-text-muted)] mb-5">{t.resources.skillkettenListSubtitle}</p>
+        <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.resources.skillkettenListSubtitle}</p>
+        <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mb-5">{t.resources.skillkettenConcept}</p>
 
         <Link to="/entdecken/ressourcen/skillketten/neu">
           <Button fullWidth icon={<Plus size={17} />} className="mb-5">

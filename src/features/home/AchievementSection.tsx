@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { diaryRepo } from '../diary/diaryRepo';
 import { diaryCategoriesStore } from '../diary/diaryCategories';
@@ -29,7 +29,6 @@ export function AchievementSection() {
   const t = useT();
   const say = useCompanionSay();
   const { settings, updateSettings } = useSettings();
-  const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [recent, setRecent] = useState<string[]>(() => {
     const catId = diaryCategoriesStore.getAll().find((c) => c.label === ACHIEVEMENT_CATEGORY_LABEL)?.id;
@@ -55,56 +54,55 @@ export function AchievementSection() {
   }
 
   return (
-    <div className="mb-6">
-      <button onClick={() => setOpen((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)]">
-        {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        <Sparkles size={14} />
+    // "Das habe ich geschafft, Startseite deutlicher, nicht mehr nur
+    // ausklappbar, soll angezeigt werden"-Auftrag — was a collapsed
+    // toggle link; now an always-visible card with the input and the
+    // latest entries right there.
+    <div className="mb-6 rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+      <p className="flex items-center gap-1.5 text-[14px] font-medium text-[var(--color-text)] mb-3">
+        <Sparkles size={15} className="text-[var(--color-accent-clay)]" />
         {t.home.achievementTitle}
-      </button>
+      </p>
 
-      {open && (
-        <div className="mt-3 animate-in">
-          <div className="flex gap-2 mb-3">
-            <input
-              className="input flex-1"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder={t.home.achievementPlaceholder}
-              onKeyDown={(e) => e.key === 'Enter' && save()}
-            />
-            <Button size="sm" onClick={save} disabled={!text.trim()}>
-              {t.common.save}
-            </Button>
-          </div>
-          {recent.length > 0 && (
-            <div className="flex flex-col gap-1.5 mb-3">
-              {recent.map((r, i) => (
-                <p key={i} className="text-[13px] text-[var(--color-text-muted)] flex items-start gap-1.5">
-                  <span className="text-[var(--color-accent-clay)] flex-shrink-0" aria-hidden="true">
-                    ♡
-                  </span>
-                  {r}
-                </p>
-              ))}
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] text-[var(--color-text-faint)]">{t.settings.dailyReviewAchievements}</span>
-            <button
-              role="switch"
-              aria-checked={settings.dailyReviewShowAchievements !== false}
-              onClick={() => updateSettings({ dailyReviewShowAchievements: !(settings.dailyReviewShowAchievements !== false) })}
-              className="w-9 h-5 rounded-full relative flex-shrink-0"
-              style={{ background: settings.dailyReviewShowAchievements !== false ? 'var(--color-primary)' : 'var(--color-border)' }}
-            >
-              <span
-                className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all"
-                style={{ left: settings.dailyReviewShowAchievements !== false ? 17 : 2 }}
-              />
-            </button>
-          </div>
+      <div className="flex gap-2 mb-3">
+        <input
+          className="input flex-1"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={t.home.achievementPlaceholder}
+          onKeyDown={(e) => e.key === 'Enter' && save()}
+        />
+        <Button size="sm" onClick={save} disabled={!text.trim()}>
+          {t.common.save}
+        </Button>
+      </div>
+      {recent.length > 0 && (
+        <div className="flex flex-col gap-1.5 mb-3">
+          {recent.map((r, i) => (
+            <p key={i} className="text-[13px] text-[var(--color-text-muted)] flex items-start gap-1.5">
+              <span className="text-[var(--color-accent-clay)] flex-shrink-0" aria-hidden="true">
+                ♡
+              </span>
+              {r}
+            </p>
+          ))}
         </div>
       )}
+      <div className="flex items-center justify-between">
+        <span className="text-[12px] text-[var(--color-text-faint)]">{t.settings.dailyReviewAchievements}</span>
+        <button
+          role="switch"
+          aria-checked={settings.dailyReviewShowAchievements !== false}
+          onClick={() => updateSettings({ dailyReviewShowAchievements: !(settings.dailyReviewShowAchievements !== false) })}
+          className="w-9 h-5 rounded-full relative flex-shrink-0"
+          style={{ background: settings.dailyReviewShowAchievements !== false ? 'var(--color-primary)' : 'var(--color-border)' }}
+        >
+          <span
+            className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all"
+            style={{ left: settings.dailyReviewShowAchievements !== false ? 17 : 2 }}
+          />
+        </button>
+      </div>
     </div>
   );
 }

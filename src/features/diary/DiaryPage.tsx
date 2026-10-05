@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
-import { triggerPrint } from '../../services/printSupport';
+import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
+import { buildReviewPdf, buildDiaryEntriesPdf } from '../reviews/reviewPdf';
+import { gatherReviewDays } from '../reviews/reviewData';
+import { localDayKey } from '../../services/groupByDay';
 import { Plus, Search, Trash2, X, Tag, Type, FileDown, FileText, Mail, Image as ImageIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TemplatePickerModal } from './TemplatePickerModal';
@@ -151,19 +154,39 @@ export function DiaryPage() {
     return () => window.removeEventListener('afterprint', clear);
   }, []);
 
-  function handleExport(choice: DiaryExportChoice) {
+  // "Jeder Rueckblick soll als PDF erstellbar sein"-Auftrag — both export
+  // kinds now produce a real PDF file (see services/pdf) instead of going
+  // through window.print(), which iOS blocks in home-screen mode.
+  async function handleExport(choice: DiaryExportChoice) {
+    const loc = settings.language === 'de' ? 'de-DE' : 'en-US';
     if (choice.kind === 'entries') {
       const filteredForExport = diaryRepo.getAll().filter((e) => {
-        const day = e.createdAt.slice(0, 10);
+        const day = localDayKey(e.createdAt);
         if (day < choice.fromDate || day > choice.toDate) return false;
         if (choice.categoryId === 'all') return true;
         return effectiveDiaryCategory(e.categoryId) === choice.categoryId;
       });
-      setPrintingEntries({ entries: filteredForExport, fromDate: choice.fromDate, toDate: choice.toDate });
+      const bytes = buildDiaryEntriesPdf({
+        title: t.diary.title,
+        fromDay: choice.fromDate,
+        toDay: choice.toDate,
+        entries: filteredForExport.map((e) => ({ createdAt: e.createdAt, content: e.content, categoryLabel: categoryLabel(effectiveDiaryCategory(e.categoryId)) })),
+        locale: loc,
+        exportedOn: t.reviewSummary.pdfExportedOn,
+      });
+      await deliverPdf(bytes, safeFilename(`${t.diary.title}-${choice.fromDate}-bis-${choice.toDate}`, 'tagebuch'), t.diary.title);
     } else {
-      setPrintingReview({ days: buildReviewDays(choice.fromDate, choice.toDate), fromDate: choice.fromDate, toDate: choice.toDate });
+      const bytes = buildReviewPdf({
+        kind: 'range',
+        title: t.diary.exportKindReview,
+        fromDay: choice.fromDate,
+        toDay: choice.toDate,
+        days: gatherReviewDays(choice.fromDate, choice.toDate),
+        t,
+        locale: loc,
+      });
+      await deliverPdf(bytes, safeFilename(`${t.diary.exportKindReview}-${choice.fromDate}-bis-${choice.toDate}`, 'rueckblick'), t.diary.exportKindReview);
     }
-    setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
   }
 
   const [entries, setEntries] = useState<DiaryEntry[]>(() =>

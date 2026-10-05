@@ -16,6 +16,40 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-kalender-rueckblick',
+    date: '2026',
+    items: [
+      'Neu: Kalender — die nächsten sieben Tage auf einen Blick, Termine mit Person aus deinem Netzwerk, Kategorien in eigenen Farben und „Ich muss gar nichts, aber ich will“.',
+      'Erinnerungen und die Nachfragen eine Stunde nach einem Termin landen im Postfach (nur in der App, keine Push-Meldungen).',
+      'Neu: „Skill starten“ mit Timer und Anleitung, danach kurze Reflexion — im Rückblick siehst du, wie du zurückgeschwungen bist.',
+      'Der Tagesrückblick zeigt deine Kurve mit allen Werten und Uhrzeiten; Tag, Woche und Monat gibt es als PDF.',
+      'Auf dem Regenbogen führt ab dem Frühwarnbereich der Knopf „zu den Skills“ zu den passenden Skills und Skillketten.',
+    ],
+    itemsEn: [
+      'New: Calendar — your next seven days at a glance, appointments with a person from your network, categories in your own colors and "I don\'t have to, but I want to".',
+      'Reminders and the follow-up questions an hour after an appointment arrive in the mailbox (in the app only, no push notifications).',
+      'New: "Start skill" with timer and instructions, then a short reflection — the review shows how you swung back.',
+      'The daily review shows your curve with all values and times; day, week and month are available as PDF.',
+      'On the rainbow, from the early-warning zone upward, the "to the skills" button leads to matching skills and skill chains.',
+    ],
+  },
+  {
+    id: '2026-postfach-skills-pdf',
+    date: '2026',
+    items: [
+      'Neu: Postfach — das kleine Briefsymbol auf der Startseite leuchtet bei Neuem (Updates, Erinnerungen, Briefe) und sammelt alles an einem Ort.',
+      'Neu: Skills und Hilfsmittel haben ein eigenes Formular (Einsatzbereich, Anleitung, Zonen). Skillketten haben jetzt eine eigene Unterseite.',
+      'Das PDF von Skills und Hilfsmitteln funktioniert jetzt auch im iPhone-Startbildschirm-Modus.',
+      'Der Himmel auf der Startseite blendet im hellen Modus weich aus, und „Das habe ich geschafft“ ist immer sichtbar.',
+    ],
+    itemsEn: [
+      'New: Mailbox — the small letter icon on the home screen glows when something is new (updates, reminders, letters) and gathers everything in one place.',
+      'New: Skills and tools have their own form (when to use, instructions, zones). Skill chains now have their own subpage.',
+      'The PDF for skills and tools now also works in the iPhone home-screen mode.',
+      'The home-screen sky now fades softly in light mode, and "What I achieved" is always visible.',
+    ],
+  },
+  {
     id: '2026-lebendige-app-dino-medipackungen',
     date: '2026',
     items: [

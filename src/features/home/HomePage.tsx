@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { IntentPickerModal } from './IntentPickerModal';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
-import { Settings2, X, Info, LifeBuoy, HeartHandshake, Mail, Compass, Pill } from 'lucide-react';
+import { Settings2, X, Info, LifeBuoy, HeartHandshake, Mail, Compass, Pill, CalendarDays } from 'lucide-react';
 import { dueUnopenedLetters, markLetterOpened } from '../briefAnMich/lettersRepo';
 import type { LetterToSelf } from '../briefAnMich/lettersRepo';
 import { LetterEnvelope } from '../briefAnMich/LetterEnvelope';
@@ -33,7 +33,9 @@ import { getHomeContext, getBestEffortWeather } from './homeContext';
 import { pickHomeContextLine } from './homeCompanionLines';
 import { WeatherExplainerModal } from '../innerWeather/WeatherExplainerModal';
 import { SkyAmbiance } from '../../components/shared/SkyAmbiance';
-import { UpdateAvailableBanner } from '../../components/shared/UpdateAvailableBanner';
+import { PostfachButton, PostfachPanel, type LiveEntry } from './PostfachPanel';
+import { useMailbox, markMailRead } from '../../services/mailbox';
+import { FollowUpBody, isFollowUpMail } from '../calendar/FollowUpBody';
 
 function hasCheckedInToday(): boolean {
   const today = new Date().toDateString();
@@ -78,6 +80,8 @@ export function HomePage() {
   const [showIntentPicker, setShowIntentPicker] = useState(false);
   const [groundingOpen, setGroundingOpen] = useState(false);
   const [openLetter, setOpenLetter] = useState<LetterToSelf | null>(null);
+  const [postfachOpen, setPostfachOpen] = useState(false);
+  const { unread: unreadMail, prominent: prominentMail } = useMailbox();
   const dueLetters = dueUnopenedLetters();
   const [dueCustomReminders, setDueCustomReminders] = useState<CustomReminder[]>(() => getDueCustomReminders());
 
@@ -180,10 +184,31 @@ export function HomePage() {
   const hour = new Date().getHours();
   const greeting = t.home.hourlyGreetings[hour] ?? t.home.subtitle;
 
+  // Live entries for the Postfach panel: the same due letter / daily
+  // reminder / custom reminders that also show as cards below.
+  const liveEntries: LiveEntry[] = [
+    ...(!settings.nurJetztMode && dueLetters.length > 0
+      ? [{ key: 'letter', kind: 'letter' as const, title: t.postfach.letterTitle, text: t.briefAnMich.arrivedBanner, actionLabel: t.briefAnMich.tapToOpen, onAction: () => setOpenLetter(dueLetters[0]) }]
+      : []),
+    ...(showReminder
+      ? [{ key: 'checkin', kind: 'checkin' as const, title: t.postfach.checkInTitle, text: t.home.reminderBanner, actionLabel: t.home.checkInCta, actionTo: '/inneres-wetter', onDismiss: () => setReminderDismissed(true) }]
+      : []),
+    ...dueCustomReminders.map((r) => ({
+      key: `custom-${r.id}`,
+      kind: 'reminder' as const,
+      title: t.postfach.reminderTitle,
+      text: r.label,
+      onDismiss: () => {
+        dismissCustomReminder(r.id);
+        setDueCustomReminders((prev) => prev.filter((x) => x.id !== r.id));
+      },
+    })),
+  ];
+  const postfachCount = liveEntries.length + unreadMail.length;
+
   return (
     <div className="px-5 pt-8 pb-6 animate-in relative">
       <SkyAmbiance />
-      <UpdateAvailableBanner />
       <div className="flex items-start justify-between mb-2">
         <div>
           <p className="text-[15px] text-[var(--color-text-muted)]">{greeting}</p>
@@ -192,6 +217,7 @@ export function HomePage() {
           </h1>
         </div>
         <div className="flex items-center gap-1">
+          <PostfachButton count={postfachCount} open={postfachOpen} onToggle={() => setPostfachOpen((v) => !v)} />
           <HelpButton helpKey="home" />
           <Link
             to="/einstellungen"
@@ -233,10 +259,49 @@ export function HomePage() {
           <Pill size={15} />
           {t.home.mediLogCta}
         </Link>
+        <Link
+          to="/kalender"
+          className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]"
+        >
+          <CalendarDays size={15} />
+          {t.calendar.title}
+        </Link>
       </div>
 
-      {!settings.nurJetztMode && dueLetters.length > 0 && (
-        <Card padding="md" className="mb-6 flex items-center gap-3 animate-in" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
+      {postfachOpen && <PostfachPanel live={liveEntries} />}
+
+      {/* "Update-Nachricht soll auf der Startseite landen und bleiben,
+       * bis man sie mit Kreuz schliesst" + "alles was vorne kommt soll
+       * aufleuchten und pulsieren" — unread prominent Postfach messages
+       * (update notices, appointment follow-ups, ...) show their full
+       * text right here, pulsing, until closed with the X (then they
+       * stay readable under Postfach > Frueher). */}
+      {!postfachOpen &&
+        prominentMail.map((m) => (
+          <Card key={m.id} padding="md" className="mb-6 flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-medium text-[var(--color-text)] mb-0.5">{m.title}</p>
+              {m.text && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed whitespace-pre-line">{m.text}</p>}
+              {isFollowUpMail(m) && <FollowUpBody mail={m} />}
+              {m.actionKind === 'reload' && m.actionLabel && (
+                <button onClick={() => window.location.reload()} className="text-[13px] text-[var(--color-primary)] mt-1.5">
+                  {m.actionLabel} →
+                </button>
+              )}
+              {m.actionKind === 'link' && m.actionTo && m.actionLabel && (
+                <Link to={m.actionTo} onClick={() => markMailRead(m.id)} className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5">
+                  {m.actionLabel} →
+                </Link>
+              )}
+            </div>
+            <button onClick={() => markMailRead(m.id)} data-sound="close" aria-label={t.postfach.markRead} className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0">
+              <X size={16} />
+            </button>
+          </Card>
+        ))}
+
+      {!postfachOpen && !settings.nurJetztMode && dueLetters.length > 0 && (
+        <Card padding="md" className="mb-6 flex items-center gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
           <Mail size={20} className="text-[var(--color-accent-clay)] flex-shrink-0" />
           <div className="flex-1">
             <p className="text-[13px] text-[var(--color-text)]">{t.briefAnMich.arrivedBanner}</p>
@@ -247,8 +312,8 @@ export function HomePage() {
         </Card>
       )}
 
-      {showReminder && (
-        <Card padding="md" className="mb-6 flex items-start gap-3 animate-in">
+      {!postfachOpen && showReminder && (
+        <Card padding="md" className="mb-6 flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
           <div className="flex-1">
             <p className="text-[13px] text-[var(--color-text)]">{t.home.reminderBanner}</p>
             <Link to="/inneres-wetter" className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5">
@@ -265,8 +330,8 @@ export function HomePage() {
         </Card>
       )}
 
-      {dueCustomReminders.map((r) => (
-        <Card key={r.id} padding="md" className="mb-6 flex items-start gap-3 animate-in">
+      {!postfachOpen && dueCustomReminders.map((r) => (
+        <Card key={r.id} padding="md" className="mb-6 flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
           <div className="flex-1">
             <p className="text-[13px] text-[var(--color-text)]">{r.label}</p>
           </div>

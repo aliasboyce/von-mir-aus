@@ -25,7 +25,9 @@ import { customPalettesRepo, derivePaletteVars } from '../services/customPalette
 import { BUILT_IN_PALETTE_IDS } from '../data/types';
 import { StorageErrorBanner } from './StorageErrorBanner';
 import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
-import { WhatsNewCard } from '../components/shared/WhatsNewCard';
+import { MailboxSync } from '../components/shared/MailboxSync';
+import { CalendarSync } from '../features/calendar/CalendarSync';
+import { GentleRemindersSync } from '../components/shared/GentleRemindersSync';
 import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
 import { playSound, warmUpAudio } from '../services/sounds';
 import { UsageCheckInPrompt } from '../components/companion/UsageCheckInPrompt';
@@ -70,7 +72,7 @@ export function AppShell() {
     }
     function onClick(e: MouseEvent) {
       const target = e.target as HTMLElement | null;
-      const btn = target?.closest('button, [role="button"], a[href]');
+      const btn = target?.closest('button, [role="button"], [role="slider"], a[href]');
       if (!btn || btn.hasAttribute('data-no-tap-feedback')) return;
       if ((btn as HTMLButtonElement).disabled) return;
       // "Extra Toene fuer Kreuz/Beenden/Zurueck"-Auftrag — any button
@@ -264,7 +266,9 @@ export function AppShell() {
         />
       )}
       <StorageErrorBanner />
-      <WhatsNewCard />
+      <MailboxSync />
+      <CalendarSync />
+      <GentleRemindersSync />
       {showPrintFallback && <IOSPrintFallbackModal onClose={() => setShowPrintFallback(false)} />}
 
       {appCheckInOpen && (

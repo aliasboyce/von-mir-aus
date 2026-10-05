@@ -684,3 +684,42 @@ button {
   0% { transform: translateX(0); }
   100% { transform: translateX(-100px); }
 }
+
+/**
+ * "Erinnerungen und alles was vorne kommt soll aufleuchten und
+ * pulsieren"-Auftrag — a soft, slow glow (not a flash): used on the
+ * Postfach icon while something is unread and on the cards for due
+ * reminders/letters/updates at the top of Home. Skipped entirely by
+ * the existing reduce-motion switch below ([data-reduce-motion]).
+ */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 6px 0 color-mix(in srgb, var(--color-accent-clay) 25%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 20px 5px color-mix(in srgb, var(--color-accent-clay) 60%, transparent);
+  }
+}
+.pulse-glow {
+  animation: pulse-glow 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pulse-glow {
+    animation: none;
+    box-shadow: 0 0 12px 2px color-mix(in srgb, var(--color-accent-clay) 45%, transparent);
+  }
+}
+
+/* "Button, der aufpoppt" — used by the >> zu den Skills button in the
+ * ladder; re-triggered by a changing React key whenever the zone changes. */
+@keyframes pop-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in {
+  animation: pop-in 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pop-in { animation: none; }
+}

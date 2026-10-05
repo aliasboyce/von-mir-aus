@@ -2,6 +2,55 @@
 
 Diese Datei wird bei jeder Sitzung aktualisiert (siehe Abschnitt 23 des Grundsatz-Auftrags). Nichts geht verloren.
 
+## 🔴 AKTUELLER AUFTRAG (Oktober 2026) — Skills/Skillketten/Postfach/Kalender — wird Block fuer Block abgearbeitet
+Reihenfolge: A Kleinkorrekturen → B Fehler (PDF, Update-Meldung) → C Postfach → D Skill starten/Timer/Reflexion → E Regenbogen-Skill-Button + Zonen-Seite → F Rueckblicke + PDFs → G F-Zustaende/Texte/Wie-haengt-alles-zusammen → H Kalender/Termine/Kategorien/'Ich muss gar nichts'/Erinnerungen
+Erledigt wird hier abgehakt ([x]).
+
+### A Kleinkorrekturen
+- [x] A1 Skillketten brauchen eine sichtbare Unterseite bei Skills (gespeicherte Ketten nicht auffindbar)
+- [x] A2 Wesen: 'einen Tipp zeigen' → 'sag mir was'
+- [x] A3 Check-in-Ende: 'passende Bruecken anschauen' → 'passende Ressourcen anschauen'
+- [x] A4 Klick-Sounds fehlen beim Einchecken
+- [x] A5 Zugang: Frage 'kann ich mir das gerade selber geben oder brauche ich Hilfe' ist verschwunden → wiederherstellen
+- [x] A6 Himmel/Sonne: auf dem Handy im hellen Modus harte Linie im Uebergang → weich ueberblenden wie am PC/dunkel (nur Verlauf)
+- [x] A7 Startseite 'Das habe ich geschafft' nicht nur ausklappbar, sondern deutlich sichtbar
+- [x] A8 (Satz in Meine Entwicklung schon frueher ersetzt; Erfolgs-Zeilen "Wert -> Skill -> neuer Wert" im Tagesrueckblick fertig, Wochen-/Monats-Zaehler folgen in F) Wertende Aussage 'am haeufigsten im Bereich Toleranzbereich (Optimal)' ersetzen: Zurueckschwingen zaehlen, Wert → Skills → neuer Wert, nur Erfolge/positiv
+- [x] A9 Texte: Skillkette = 'Ich moechte mich von hier aus in eine andere Verfassung bewegen' (Anspannung nach unten, zurueck in entspannten Zustand); Bruecke = Verbindungsbruecke 'Ich moechte wieder in Verbindung mit einem Lebensbereich kommen aufgrund des Wertes ...' (Bruecken = wie Skillketten, aber mit Ressourcen, die nacheinander Richtung Wert/Beduerfnis fuehren)
+
+### B Fehler
+- [x] B1 (fuer Ressourcen/Skills/Hilfsmittel: echte PDF-Datei per Teilen/Download, eigener PDF-Generator services/pdf; die uebrigen window.print-Stellen werden in F2 umgestellt) PDF-Erstellung bei Skills funktioniert nicht ('braucht Safari', geht dort auch nicht)
+- [x] B2 (Update-Nachricht kommt jetzt automatisch ins Postfach: neue Version erkannt + erster Start nach Update, mit Changelog-Text; Ursache war der veraltete handgeschriebene Changelog) Update-Nachricht kommt wieder nicht an (Ursache untersuchen: Service Worker / version.json)
+
+### C Postfach
+- [x] C1 Startseite: kleines Brief-Symbol (gab es schon) = Postfach, leuchtet/pulsiert bei Neuem; ausgeklappt: alle neuen Nachrichten (Update, Erinnerung, Brief an mich, ...)
+- [x] C2 Erinnerungen sofort mit Text sichtbar (nicht erst ausklappbar), alles Vordere leuchtet und pulsiert
+
+### D Skill starten
+- [x] D1 Skills: einzelne Schritte nacheinander eintragen (vorhanden), Knopf 'Skill starten' → Timer-Seite ohne Zeitende MIT angezeigter Schritt-Anleitung
+- [x] D2 (Reflexion mit Regenbogen, gespeichert als SkillUse + Check-in in der Kurve; Anzeige im Tagesrueckblick - Wochen/Monat/Kurve folgen in F) 'Skill beenden' → kurze Reflexionsfragen (Anspannung jetzt, wo befinde ich mich jetzt: Regulations-Regenbogen) → im Rueckblick gespeichert inkl. 'Skill X genutzt bei Anspannung Y'
+
+### E Regenbogen
+- [x] E1 (Knopf poppt ab Fruehwarnbereich/Hyper/Hypo auf, speichert den Check-in immer mit, Zonen-Seite mit Banner + passenden Skillketten + Skills zuerst; ausserdem Marker-Punkt-Fehler behoben) Ab Fruehwarnbereich (und Hyper/Hypo): aufpoppender Knopf '>> zu den Skills' → Skills UND Skillketten geordnet fuer den Anspannungsbereich; Check-in wird IMMER trotzdem gespeichert (fuer die Tageskurve)
+
+### F Rueckblicke
+- [x] F1 (klare Kurve mit Farbbereichen, jeder Wert/Farbe/Uhrzeit als Tabelle, grosse wischbare Ansicht, PDF pro Tag) Tagesrueckblick: klare Anspannungskurve mit Farbbereichen, jeder Wert/jede Farbe/jede Uhrzeit, vergroessern, nichts verzogen, als PDF druckbar
+- [x] F2 (Tag/Woche/Monat + Tagebuch-Export als echte PDF-Dateien; Wochen-/Monats-Erzaehlung jetzt nur positiv: zurueckgeschwungen + Skills) Tages-/Wochen-/Monatsrueckblick jeweils als PDF erstellbar (zum Ausdrucken/Mitnehmen zur Therapie)
+
+### G Inhalt
+- [x] G1 (Fight, Flight, Freeze aktiv/funktionell, Sicherungsausfall, Fawn, Flop, Faint + Fine/Flood/Friend mit Prozentbereichen, nach der Skala geordnet; Texte aus dem Regenbogen-Info-Text) Nervensystem-Seite: F-Zustaende aktualisieren + in die richtigen Anspannungsbereiche (wie Info-Text beim Regenbogen), vollstaendig: Fight, Flight, Fawn, Freeze, Flop, Faint
+- [x] G2 (fuenf Hauptbereiche mit Sinn + Verknuepfungen, Zusatzfunktionen getrennt, roter Faden als einklappbare Karte) 'Wie haengt alles zusammen'-Seite aktualisieren: Hauptbereiche von Zusatzfunktionen trennen, Sinn uebersichtlich
+
+### H Kalender
+- [x] H1 (Seite mit 7 Quadraten, heute eingerahmt, Termine mit Datum/Uhrzeit/Erinnerung, spaetere Termine + Uebersicht, Erinnerungen landen zur Zeit im Postfach/Startseite) Neue Seite Kalender: nur die naechsten 7 Tage als 7 Quadrate, aktueller Tag eingerahmt, minimal/klar; Termine mit Uhrzeit+Datum, Erinnerungen → landen zur Zeit auf der Startseite/Postfach; spaetere Termine eintragbar + Terminuebersicht; die Hauptansicht zeigt IMMER nur die naechsten 7 Tage
+- [x] H2 (Person aus dem Netzwerk, Nachfragen 1h danach im Postfach mit Textfeldern, naechster Termin + Notiz fuer den naechsten Termin; Termine+Reflexionen+Wunschliste im Tages-/Wochenrueckblick und in den PDFs) 'Termin mit ...' Person aus dem Netzwerk (Name, Symbol, Rolle, Bild uebernommen); 1 Std nach Termin automatisch im Postfach: (1) 'Wie war dein Termin?' Textfeld Reflexion (2) 'Willst du den naechsten Termin eintragen oder dir etwas notieren?' → neuer Termin bei dieser Person (automatisch im Kalender) + Notizfeld (am naechsten Termin angezeigt); Termine+Reflexionen im Tages- und Wochenrueckblick
+- [x] H3 Terminkategorien (z. B. Privat, Aerztlich, Freunde) mit frei waehlbaren Farben; Termine in der Kategoriefarbe
+- [x] H4 Pro Tag Wunschliste 'Ich muss gar nichts, aber ich will:' mit Abhaken (abgehakt dunkler/graeulicher, bleibt sichtbar); beim ersten Erstellen Hinweis: noch keine Push-Benachrichtigungen, Erinnerungen nur innerhalb der App
+- [x] H5 (sanfte Erinnerungen: einchecken / nach innen spueren / Energie, 3 oder 6 am Tag, in den Einstellungen aus/sanft/oefter, nur im Postfach) Mehr Erinnerungen allgemein: nach innen checken, Energie des Wesens, Erinnerung ans Einchecken
+
+### Fuer spaeter (nicht jetzt)
+- Meldungstext am Anfang + gesamte Anleitung nochmal ueberpruefen
+- 'Animation reduzieren' ueberarbeiten (Blaetter dort ganz schnell)
+
 ## 🔴 Noch offen / Fehler
 _(aktuell keine bekannten offenen Fehler — wird laufend gepflegt)_
 

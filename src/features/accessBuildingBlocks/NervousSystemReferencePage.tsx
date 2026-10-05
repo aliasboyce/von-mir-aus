@@ -4,6 +4,9 @@ import { Activity, ChevronDown, ChevronUp } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Card } from '../../components/ui/Card';
+import { F_STATES } from '../../content/fStates';
+import { bandForValue } from '../polyvagal/arousalBands';
+import { useSettings } from '../../state/SettingsContext';
 import { useT } from '../../i18n';
 import { SURVIVAL_STATE_ORDER, SURVIVAL_STATE_META } from '../zugang/zugangContent';
 import { POLYVAGAL_ZONE_META } from '../polyvagal/polyvagalMeta';
@@ -65,6 +68,7 @@ function BasicsItem({
 
 export function NervousSystemReferencePage() {
   const t = useT();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [showBasics, setShowBasics] = useState(false);
   const [openBasicsItem, setOpenBasicsItem] = useState<string | null>(null);
@@ -86,27 +90,6 @@ export function NervousSystemReferencePage() {
     zone,
     states: SURVIVAL_STATE_ORDER.filter((s) => SURVIVAL_TO_POLYVAGAL_ZONE[s] === zone && CORE_ZONE_STATES.has(s)),
   }));
-  type ExtendedItem = { zone: PolyvagalZone; emoji: string; name: string; meaning: string; mechanism: string };
-  const movedCoreStates: ExtendedItem[] = (['angepasst', 'kollaps'] as const).map((s) => {
-    const meta = SURVIVAL_STATE_META[s];
-    const zone = SURVIVAL_TO_POLYVAGAL_ZONE[s];
-    return {
-      zone,
-      emoji: meta.emoji,
-      name: `${meta.label} (${meta.labelEn})`,
-      meaning: t.nervousSystemRef.movedStateNote,
-      mechanism: t.zugang.survivalExplainers[meta.explanationKey as keyof typeof t.zugang.survivalExplainers],
-    };
-  });
-  const allExtended: ExtendedItem[] = [...(t.nervousSystemRef.extendedResponses as ExtendedItem[]), ...movedCoreStates];
-  // "Fine/Flood/Friend gehoeren ins Toleranzfenster"-Korrektur — these
-  // are now correctly tagged 'ventral' (see zugangContent.ts), so this
-  // section now covers all three zones, not just sympathetic/dorsal.
-  const extendedByZone = (['ventral', 'sympathetic', 'dorsal'] as const).map((zone) => ({
-    zone,
-    items: allExtended.filter((r) => r.zone === zone),
-  }));
-
   return (
     <div className="animate-in">
       <TopBar onBack={() => navigate(-1)} action={<HelpButton helpKey="nervensystem" />} />
@@ -332,22 +315,39 @@ export function NervousSystemReferencePage() {
         </button>
         {showExtendedResponses && (
           <div className="animate-in mb-6">
-            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2">{t.nervousSystemRef.extendedIntro}</p>
-            <p className="text-[11px] text-[var(--color-text-faint)] italic leading-relaxed mb-4">{t.nervousSystemRef.extendedZoneHedge}</p>
-            {extendedByZone.map(({ zone, items }) => (
-              <div key={zone} className="mb-4">
-                <p className="text-[12px] uppercase tracking-wide mb-2" style={{ color: POLYVAGAL_ZONE_META[zone].color }}>
-                  {POLYVAGAL_ZONE_META[zone].label(t)}
-                </p>
-                {items.map((r) => (
-                  <Card key={r.name} className="mb-2" style={{ borderLeft: `3px solid ${POLYVAGAL_ZONE_META[zone].color}` }}>
-                    <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{r.emoji} {r.name}</p>
-                    <p className="text-[12px] text-[var(--color-text-faint)] mb-2 italic">{r.meaning}</p>
-                    <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{r.mechanism}</p>
-                  </Card>
-                ))}
-              </div>
-            ))}
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2">{t.nervousSystemRef.fStatesIntro}</p>
+            <p className="text-[11px] text-[var(--color-text-faint)] italic leading-relaxed mb-4">{t.nervousSystemRef.fStatesHedge}</p>
+            {(['window', 'hyper', 'hypo'] as const).map((group) => {
+              const entries = F_STATES.filter((f) => f.group === group);
+              const groupLabel = group === 'window' ? t.nervousSystemRef.fStatesGroupWindow : group === 'hyper' ? t.nervousSystemRef.fStatesGroupHyper : t.nervousSystemRef.fStatesGroupHypo;
+              const groupColor = group === 'window' ? bandForValue(45).color : group === 'hyper' ? bandForValue(80).color : bandForValue(7).color;
+              return (
+                <div key={group} className="mb-5">
+                  <p className="text-[12px] uppercase tracking-wide mb-2" style={{ color: groupColor }}>
+                    {groupLabel}
+                  </p>
+                  {entries.map((f) => {
+                    const lang = settings.language === 'en' ? f.en : f.de;
+                    const color = bandForValue(Math.round((f.min + f.max) / 2)).color;
+                    return (
+                      <Card key={f.id} className="mb-2" style={{ borderLeft: `3px solid ${color}` }}>
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <p className="text-[14px] font-medium text-[var(--color-text)]">
+                            {f.emoji} {lang.name}
+                          </p>
+                          <span className="flex-shrink-0 text-[11px] font-medium px-2 py-0.5 rounded-full tabular-nums" style={{ background: color, color: '#fff' }}>
+                            {f.approx ? 'ca. ' : ''}
+                            {f.min}–{f.max} %
+                          </span>
+                        </div>
+                        <p className="text-[12px] text-[var(--color-text-faint)] mb-2 italic">{lang.meaning}</p>
+                        <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{lang.mechanism}</p>
+                      </Card>
+                    );
+                  })}
+                </div>
+              );
+            })}
             <SourceNoteCard
               text={t.nervousSystemRef.extendedSource}
               sourceIds={['attachmentproject-trauma-responses', 'ninds-syncope', 'webmd-fight-flight-freeze-fawn']}

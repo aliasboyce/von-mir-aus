@@ -7,8 +7,10 @@ import { useSettings } from '../../state/SettingsContext';
 import { weatherRepo } from '../innerWeather/weatherRepo';
 import { WEATHER_META, NEED_META } from '../innerWeather/weatherMeta';
 import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
-import { MiniCurve } from '../polyvagal/MiniCurve';
-import { describeDay } from '../polyvagal/describeDay';
+import { DayCurveBlock } from '../reviews/DayCurveBlock';
+import { buildReviewPdf } from '../reviews/reviewPdf';
+import { gatherReviewDays } from '../reviews/reviewData';
+import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { TensionDayChart } from '../polyvagal/TensionDayChart';
 import { describeTensionDay } from '../polyvagal/describeTensionDay';
@@ -16,6 +18,11 @@ import { mediLogRepo } from '../mediLog/mediLogRepo';
 import { MediLogChart } from '../mediLog/MediLogChart';
 import { effectiveDiaryCategory, DIARY_DEFAULT_CATEGORY_ID, diaryCategoriesStore } from './diaryCategories';
 import { groupByDay } from '../../services/groupByDay';
+import { skillUsesRepo } from '../resources/skillUsesRepo';
+import { appointmentsRepo, wishesRepo, type Appointment, type Wish } from '../calendar/calendarRepo';
+import { networkRepo } from '../safetyNet/networkRepo';
+import { PersonLine } from '../calendar/PersonAvatar';
+import { skillUseLine, skillUseTime, skillUseIsSuccess } from '../resources/skillUseText';
 import type { DiaryEntry } from '../../data/types';
 
 interface DailyReviewProps {
@@ -36,6 +43,12 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
   const t = useT();
   const { settings } = useSettings();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
+
+  async function exportDayPdf(day: string) {
+    const title = t.reviewSummary.pdfDayHeading;
+    const bytes = buildReviewPdf({ kind: 'day', title, fromDay: day, toDay: day, days: gatherReviewDays(day, day), t, locale });
+    await deliverPdf(bytes, safeFilename(`rueckblick-${day}`, 'rueckblick'), title);
+  }
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const showWeather = settings.dailyReviewShowWeather !== false;
   const showPolyvagal = settings.dailyReviewShowPolyvagal !== false;
@@ -82,10 +95,16 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
     const diaryByDay = groupByDay(generalEntries, (d) => d.createdAt);
     const mediLogByDay = groupByDay(mediLog, (m) => m.takenAt);
     const achievementsByDay = groupByDay(achievements, (a) => a.createdAt);
+    const skillUsesByDay = groupByDay(skillUsesRepo.getAll(), (u) => u.endedAt);
+    const apByDay = new Map<string, Appointment[]>();
+    appointmentsRepo.getAll().forEach((a) => apByDay.set(a.date, [...(apByDay.get(a.date) ?? []), a]));
+    const wiByDay = new Map<string, Wish[]>();
+    wishesRepo.getAll().forEach((w) => wiByDay.set(w.day, [...(wiByDay.get(w.day) ?? []), w]));
 
     const dayKeys = new Set<string>([
       ...weatherByDay.keys(), ...polyvagalByDay.keys(), ...tensionByDay.keys(),
-      ...diaryByDay.keys(), ...mediLogByDay.keys(), ...achievementsByDay.keys(),
+      ...diaryByDay.keys(), ...mediLogByDay.keys(), ...achievementsByDay.keys(), ...skillUsesByDay.keys(),
+      ...apByDay.keys(), ...wiByDay.keys(),
     ]);
 
     return Array.from(dayKeys)
@@ -99,6 +118,9 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
         diary: diaryByDay.get(day) ?? [],
         mediLog: mediLogByDay.get(day) ?? [],
         achievements: achievementsByDay.get(day) ?? [],
+        skillUses: skillUsesByDay.get(day) ?? [],
+        appointments: (apByDay.get(day) ?? []).sort((a, b) => a.time.localeCompare(b.time)),
+        wishes: wiByDay.get(day) ?? [],
       }));
   }, [generalEntries, achievementEntries, showWeather, showPolyvagal, showTension, showMediLog, showAchievements]);
 
@@ -108,10 +130,10 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {days.map(({ day, weather, polyvagal, tension, diary, mediLog, achievements }) => (
+      {days.map(({ day, weather, polyvagal, tension, diary, mediLog, achievements, skillUses, appointments, wishes }) => (
         <Card key={day}>
           <p className="text-[13px] font-medium text-[var(--color-text)] mb-3">
-            {new Date(day).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
+            {new Date(`${day}T12:00:00`).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
           </p>
 
           {weather.length > 0 && (
@@ -131,16 +153,13 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
             </div>
           )}
 
-          {polyvagal.length > 0 && (
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex-shrink-0 bg-[var(--color-surface-muted)] rounded-[var(--radius-md)] p-1.5">
-                <MiniCurve points={polyvagal} width={100} height={32} />
-              </div>
-              <p className="text-[12px] text-[var(--color-text-muted)] flex-1">{describeDay(polyvagal, t)}</p>
-            </div>
-          )}
+          {/* "Im Tagesrueckblick soll die klare Kurve der Anspannung mit den
+           * Farbbereichen angezeigt werden — jeder Wert, jede Farbe, jede
+           * Uhrzeit, vergroesserbar, als PDF" — replaces the tiny sketch
+           * curve and the evaluative one-sentence day description. */}
+          {polyvagal.length > 0 && <DayCurveBlock checkIns={polyvagal} skillUses={skillUses} onPdf={() => exportDayPdf(day)} />}
 
-          {tension.length > 0 && (
+          {tension.length > 0 && polyvagal.length === 0 && (
             <div className="flex items-center gap-3 mb-3">
               <div className="flex-shrink-0 bg-[var(--color-surface-muted)] rounded-[var(--radius-md)] p-1.5" style={{ width: 100 }}>
                 <TensionDayChart entries={tension} />
@@ -161,6 +180,63 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
                 ))}
               </div>
               <MediLogChart entries={mediLog} height={70} />
+            </div>
+          )}
+
+          {/* "Skill genutzt bei der und der Anspannung — im Rueckblick
+           * gespeichert"-Auftrag: every finished Skill run of the day. */}
+          {skillUses.length > 0 && (
+            <div className="mb-3">
+              <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{t.skillRun.usedIn}</p>
+              <div className="flex flex-col gap-1">
+                {skillUses.map((u) => (
+                  <p key={u.id} className="text-[13px] text-[var(--color-text)] flex items-start gap-1.5">
+                    <span className="text-[var(--color-text-faint)] flex-shrink-0 tabular-nums">{skillUseTime(u, locale)}</span>
+                    <span>
+                      {skillUseLine(u, t)}
+                      {skillUseIsSuccess(u) && <span className="text-[var(--color-primary)]"> ✓</span>}
+                      {u.note && <span className="block text-[12px] text-[var(--color-text-muted)] italic">„{u.note}“</span>}
+                    </span>
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {appointments.length > 0 && (
+            <div className="mb-3">
+              <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{t.calendar.reviewAppointments}</p>
+              <div className="flex flex-col gap-2">
+                {appointments.map((a) => {
+                  const person = a.personId ? networkRepo.getAll().find((p) => p.id === a.personId) : undefined;
+                  return (
+                    <div key={a.id} className="rounded-[var(--radius-md)] p-2.5" style={{ background: 'var(--color-surface-muted)' }}>
+                      <p className="text-[13px] text-[var(--color-text)]">
+                        <span className="tabular-nums text-[var(--color-text-faint)]">{a.time}</span> {a.title}
+                      </p>
+                      {person && (
+                        <div className="mt-1">
+                          <PersonLine entry={person} size={24} />
+                        </div>
+                      )}
+                      {a.reflection && <p className="text-[12.5px] text-[var(--color-text-muted)] italic mt-1.5 whitespace-pre-line">„{a.reflection}“</p>}
+                      {a.noteForNext && <p className="text-[12px] text-[var(--color-text-muted)] mt-1 whitespace-pre-line">→ {a.noteForNext}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {wishes.length > 0 && (
+            <div className="mb-3">
+              <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{t.calendar.reviewWishes}</p>
+              {wishes.map((w) => (
+                <p key={w.id} className="text-[13px] flex items-start gap-1.5" style={{ color: w.done ? 'var(--color-text-faint)' : 'var(--color-text)' }}>
+                  <span aria-hidden="true">{w.done ? '✓' : '○'}</span>
+                  <span style={{ textDecoration: w.done ? 'line-through' : 'none' }}>{w.text}</span>
+                </p>
+              ))}
             </div>
           )}
 
@@ -211,7 +287,10 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
             tension.length === 0 &&
             diary.length === 0 &&
             mediLog.length === 0 &&
-            achievements.length === 0 && (
+            achievements.length === 0 &&
+            skillUses.length === 0 &&
+            appointments.length === 0 &&
+            wishes.length === 0 && (
               <p className="text-[13px] text-[var(--color-text-faint)]">{t.diary.reviewNothingThisDay}</p>
             )}
         </Card>
