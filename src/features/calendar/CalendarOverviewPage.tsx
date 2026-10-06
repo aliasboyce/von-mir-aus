@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { TopBar } from '../../components/navigation/TopBar';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
@@ -18,7 +18,9 @@ export function CalendarOverviewPage() {
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
   const [, setVersion] = useState(0);
   const [showPast, setShowPast] = useState(false);
-  const [editing, setEditing] = useState<Appointment | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  // /kalender/uebersicht?open=<id> — opened from a network person's next appointment
+  const [editing, setEditing] = useState<Appointment | null>(() => appointmentsRepo.getById(searchParams.get('open') ?? '') ?? null);
   const now = Date.now();
   const all = appointmentsRepo.getAll();
   const upcoming = all.filter((a) => startOf(a).getTime() >= now - 60 * 60 * 1000).sort((a, b) => startOf(a).getTime() - startOf(b).getTime());
@@ -74,9 +76,13 @@ export function CalendarOverviewPage() {
         key={editing?.id ?? 'none'}
         open={!!editing}
         appointment={editing}
-        onClose={() => setEditing(null)}
+        onClose={() => {
+          setEditing(null);
+          if (searchParams.get('open')) setSearchParams({}, { replace: true });
+        }}
         onSaved={() => {
           setEditing(null);
+          if (searchParams.get('open')) setSearchParams({}, { replace: true });
           setVersion((v) => v + 1);
         }}
         onDeleted={() => {

@@ -25,20 +25,20 @@ interface WeatherAnimationProps {
  * playing once and freezing on its final, invisible frame.
  */
 export function WeatherAnimation({ condition }: WeatherAnimationProps) {
-  const isSun = condition === 'klar' || condition === 'sonnig';
-  const isClouds = condition === 'bewoelkt' || condition === 'windig';
-  const isBreeze = condition === 'brise';
-  const isRain = condition === 'regnerisch' || condition === 'sturm' || condition === 'hurrikan';
+  const isSun = condition === 'klar' || condition === 'sonnig' || condition === 'sonne_wolken' || condition === 'sonne_wind' || condition === 'sonnenschauer' || condition === 'aufklaren';
+  const isClouds = condition === 'bewoelkt' || condition === 'windig' || condition === 'sonne_wolken';
+  const isBreeze = condition === 'brise' || condition === 'sonne_wind';
+  const isRain = condition === 'regnerisch' || condition === 'sturm' || condition === 'hurrikan' || condition === 'sonnenschauer';
   const isStorm = condition === 'gewitter' || condition === 'sturm' || condition === 'hurrikan';
   const isMist = condition === 'nebel';
   const isSnow = condition === 'schnee';
   const isHail = condition === 'hagel';
   const isTornado = condition === 'tornado' || condition === 'hurrikan';
-  const isHeat = condition === 'hitze';
+  const isHeat = condition === 'hitze' || condition === 'schwuel';
   const isFrost = condition === 'frost';
   // Sturm/Hurrikan intensify the shared rain effect rather than
   // needing their own particle system — more drops, faster fall.
-  const rainCount = condition === 'hurrikan' ? 16 : condition === 'sturm' ? 13 : condition === 'gewitter' ? 8 : 10;
+  const rainCount = condition === 'hurrikan' ? 16 : condition === 'sturm' ? 13 : condition === 'gewitter' ? 8 : condition === 'sonnenschauer' ? 5 : 10;
   const rainSpeed = condition === 'hurrikan' ? 0.5 : condition === 'sturm' ? 0.6 : condition === 'gewitter' ? 0.7 : 1.1;
 
   return (

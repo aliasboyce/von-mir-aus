@@ -61,7 +61,7 @@ const ACHIEVEMENT_CATEGORY_LABEL = 'Erfolge';
 function buildReviewDays(fromDate: string, toDate: string) {
   const achievementCategoryId = diaryCategoriesStore.getAll().find((c) => c.label === ACHIEVEMENT_CATEGORY_LABEL)?.id;
   const allDiary = diaryRepo.getAll();
-  const generalEntries = allDiary.filter((d) => effectiveDiaryCategory(d.categoryId) === DIARY_DEFAULT_CATEGORY_ID);
+  const generalEntries = allDiary.filter((d) => d.inReview === true);
   const achievementEntries = achievementCategoryId ? allDiary.filter((d) => d.categoryId === achievementCategoryId) : [];
 
   const weather = weatherRepo.getAll().filter((w) => {
@@ -213,6 +213,7 @@ export function DiaryPage() {
   const [draftPhoto, setDraftPhoto] = useState<string | undefined>(undefined);
   const [draftCategory, setDraftCategory] = useState<string>(DIARY_DEFAULT_CATEGORY_ID);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [draftInReview, setDraftInReview] = useState(false);
   const [view, setView] = useState<'entries' | 'review'>('entries');
   const [fontPickerOpen, setFontPickerOpen] = useState(false);
 
@@ -265,6 +266,7 @@ export function DiaryPage() {
 
   function startEdit(entry: DiaryEntry) {
     setEditingId(entry.id);
+    setDraftInReview(entry.inReview === true);
     setDraftText(entry.content);
     setDraftPhoto(entry.photo);
     setDraftCategory(effectiveDiaryCategory(entry.categoryId));
@@ -277,10 +279,10 @@ export function DiaryPage() {
     if (editingId) {
       const existing = diaryRepo.getById(editingId);
       if (existing) {
-        diaryRepo.save({ ...existing, content: draftText, categoryId: draftCategory, photo: draftPhoto, updatedAt: now });
+        diaryRepo.save({ ...existing, content: draftText, categoryId: draftCategory, photo: draftPhoto, inReview: draftInReview, updatedAt: now });
       }
     } else {
-      diaryRepo.save({ id: createId('diary'), createdAt: now, updatedAt: now, content: draftText, categoryId: draftCategory, photo: draftPhoto });
+      diaryRepo.save({ id: createId('diary'), createdAt: now, updatedAt: now, content: draftText, categoryId: draftCategory, photo: draftPhoto, inReview: draftInReview });
     }
     setComposing(false);
     setDraftText('');
@@ -440,6 +442,16 @@ export function DiaryPage() {
                   onChange={(e) => setDraftText(e.target.value)}
                   style={styleForCategory(draftCategory)}
                 />
+
+                {/* "Das Einzige, wo man entscheidet, ob es in den Rueckblick
+                 * uebernommen wird": a switch per entry */}
+                <label className="flex items-start gap-2.5 mb-3 cursor-pointer">
+                  <input type="checkbox" className="mt-0.5" checked={draftInReview} onChange={(e) => setDraftInReview(e.target.checked)} />
+                  <span>
+                    <span className="block text-[13px] text-[var(--color-text)]">{t.diary.inReviewToggle}</span>
+                    <span className="block text-[11.5px] text-[var(--color-text-faint)]">{t.diary.inReviewHint}</span>
+                  </span>
+                </label>
 
                 <div className="mb-3">
                   {draftPhoto ? (

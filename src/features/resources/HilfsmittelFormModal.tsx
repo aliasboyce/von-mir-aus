@@ -1,4 +1,11 @@
 import { useState } from 'react';
+import { networkRepo } from '../safetyNet/networkRepo';
+import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
+import type { NeedDirection } from '../../data/types';
+import { useSettings } from '../../state/SettingsContext';
+import { HILFSMITTEL_MAIN, subtypesFor } from '../../content/hilfsmittelCategories';
+import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
+import type { EnergyLevel } from '../../content/energyLevels';
 import { RefreshCw } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
@@ -8,7 +15,7 @@ import { ZonePicker } from '../../components/shared/ZonePicker';
 import { useT } from '../../i18n';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { createId } from '../../services/storage/repository';
-import { RESOURCE_CATEGORY_ORDER, RESOURCE_CATEGORY_TO_GROUP, resourceCategoryLabel } from './resourceMeta';
+import { resourceCategoryLabel } from './resourceMeta';
 import type { Resource, ResourceCategory, AccessChannel } from '../../data/types';
 
 interface HilfsmittelFormModalProps {
@@ -18,7 +25,7 @@ interface HilfsmittelFormModalProps {
   onSave: (resource: Resource) => void;
 }
 
-const HILFSMITTEL_CATEGORIES = RESOURCE_CATEGORY_ORDER.filter((c) => RESOURCE_CATEGORY_TO_GROUP[c] === 'hilfsmittel');
+const HILFSMITTEL_CATEGORIES = [...HILFSMITTEL_MAIN] as string[];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -45,9 +52,11 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  */
 export function HilfsmittelFormModal({ open, resource, onClose, onSave }: HilfsmittelFormModalProps) {
   const t = useT();
+  const { settings } = useSettings();
   const d = resource?.hilfsmittelDetails;
   const [title, setTitle] = useState(resource?.title ?? '');
   const [category, setCategory] = useState<ResourceCategory>(resource?.category ?? 'haptisch');
+  const [subcategory, setSubcategory] = useState<string | undefined>(resource?.subcategory);
   const [image, setImage] = useState(resource?.image ?? suggestedImage(resource?.title ?? '', resource?.category ?? 'haptisch'));
   const [imageSuggestions, setImageSuggestions] = useState(() => suggestedImageOptions(resource?.title ?? '', resource?.category ?? 'haptisch'));
   const [subtitle, setSubtitle] = useState(d?.subtitle ?? '');
@@ -64,6 +73,9 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
   const [bereitschaft, setBereitschaft] = useState(d?.bereitschaft ?? '');
   const [accessChannels, setAccessChannels] = useState<AccessChannel[]>(resource?.accessChannels ?? []);
   const [zoneIds, setZoneIds] = useState<string[]>(d?.zoneIds ?? []);
+  const [inNetwork, setInNetwork] = useState<boolean>(() => resource?.inNetwork ?? networkRepo.getAll().some((e) => e.linkedResourceId === resource?.id));
+  const [linkedNeeds, setLinkedNeeds] = useState<NeedDirection[]>(resource?.linkedNeeds ?? []);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | undefined>(resource?.energyLevel);
 
   function handleSave() {
     if (!title.trim()) return;
@@ -71,10 +83,14 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
       id: resource?.id ?? createId('res'),
       title,
       category,
+      subcategory: subtypesFor(category).some((s) => s.id === subcategory) ? subcategory : undefined,
       image,
       tags: resource?.tags ?? [],
       favorite: resource?.favorite ?? false,
       accessChannels,
+      energyLevel,
+      linkedNeeds: linkedNeeds.length > 0 ? linkedNeeds : undefined,
+      inNetwork,
       createdAt: resource?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       hilfsmittelDetails: {
@@ -107,8 +123,8 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
         </Field>
 
         <Field label={t.resources.categoryLabel}>
-          <select className="input" value={category} onChange={(e) => setCategory(e.target.value as ResourceCategory)}>
-            {HILFSMITTEL_CATEGORIES.map((c) => (
+          <select className="input" value={category} onChange={(e) => { setCategory(e.target.value as ResourceCategory); setSubcategory(undefined); }}>
+            {(HILFSMITTEL_CATEGORIES.includes(category) ? HILFSMITTEL_CATEGORIES : [...HILFSMITTEL_CATEGORIES, category]).map((c) => (
               <option key={c} value={c}>
                 {resourceCategoryLabel(t, c)}
               </option>
@@ -116,7 +132,50 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
           </select>
         </Field>
 
+        {/* Medienart / Orts-Art as a sub-category of the chosen category:
+         * Videos under Visuell, Musik under Auditiv, Wissen / Texte /
+         * Buecher / Apps under Kognitiv, Natur / Ort / besondere Umgebung /
+         * Platz (and own ones) under Orte. */}
+        {subtypesFor(category).length > 0 && (
+          <div>
+            <p className="text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5">{t.resources.subcategoryField}</p>
+            <div className="flex flex-wrap gap-2">
+              {subtypesFor(category).map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSubcategory(subcategory === s.id ? undefined : s.id)}
+                  aria-pressed={subcategory === s.id}
+                  className="rounded-full px-3.5 py-1.5 text-[13px] border"
+                  style={subcategory === s.id ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
+                >
+                  {settings.language === 'en' ? s.en : s.de}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <ZonePicker selected={zoneIds} onChange={setZoneIds} />
+
+        {/* "Bei Hilfsmittel erstellen soll man auch die Energie angeben,
+         * die man dafuer braucht"-Auftrag */}
+        <div>
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5">{t.energy.formTitleHilfsmittel}</p>
+          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.energy.fieldHint}</p>
+          <EnergyLevelPicker value={energyLevel} onChange={setEnergyLevel} />
+        </div>
+
+        <NeedsMultiPicker selected={linkedNeeds} onChange={setLinkedNeeds} />
+
+        {/* "Beim Erstellen abhaken, dass es im Netzwerk erscheinen soll" */}
+        <label className="flex items-start gap-2.5 cursor-pointer">
+          <input type="checkbox" className="mt-0.5" checked={inNetwork} onChange={(e) => setInNetwork(e.target.checked)} />
+          <span>
+            <span className="block text-[13px] text-[var(--color-text)]">{t.resources.inNetworkToggle}</span>
+            <span className="block text-[11.5px] text-[var(--color-text-faint)]">{t.resources.inNetworkHint}</span>
+          </span>
+        </label>
 
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
           <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.hilfsmittelSection1Title}</p>

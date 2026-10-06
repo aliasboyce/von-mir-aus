@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSettings } from '../../state/SettingsContext';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useSearchParams, useParams, useNavigate, useLocation, Link } from 'react-router-dom';
@@ -38,7 +39,13 @@ import { RecentlyUsedRow } from '../../components/shared/RecentlyUsedRow';
 import { createCustomCategoryStore } from '../../services/customCategories';
 import { createId } from '../../services/storage/repository';
 import type { Resource, ResourceCategory, ResourceCategoryGroup } from '../../data/types';
+import { resourceFitsNeed } from '../../content/needResources';
+import { NEED_META } from '../innerWeather/weatherMeta';
+import type { NeedDirection } from '../../data/types';
+import { HILFSMITTEL_MAIN, subtypesFor, customOrteSubStore, type SubType } from '../../content/hilfsmittelCategories';
 import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
+import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
+import type { EnergyLevel } from '../../content/energyLevels';
 
 seedResourcesIfEmpty();
 migrateResourceAccessChannelsIfNeeded();
@@ -77,6 +84,7 @@ export function ResourcesPage() {
   // lands with that category pre-selected, so a zone-specific link can
   // point straight at the right module instead of just the general
   // Skills page.
+  const { settings } = useSettings();
   const [filter, setFilter] = useState<FilterValue>(() => new URLSearchParams(window.location.search).get('category') ?? 'all');
   // "Soll auch genau bei denen fuer diesen Bereich landen"-Auftrag —
   // a precise zone filter (e.g. ?zone=zone4) on top of the category
@@ -86,8 +94,16 @@ export function ResourcesPage() {
   // DIFFERENT zone get filtered out.
   // Read live from the URL (not once on mount): "Alle Skills anzeigen" is a
   // link to the same page without ?zone=, which must clear the filter.
-  const zoneFilter = new URLSearchParams(useLocation().search).get('zone');
-  const [energyFilter, setEnergyFilter] = useState<1 | 2 | 3 | null>(null);
+  const locSearch = useLocation().search;
+  const zoneFilter = new URLSearchParams(locSearch).get('zone');
+  // /...?need=<NeedDirection> — arriving from the check-in's need step
+  const needFilter = new URLSearchParams(locSearch).get('need') as NeedDirection | null;
+  // Hilfsmittel only: second chip row (Musik under Auditiv, Natur under Orte, ...)
+  const [subFilter, setSubFilter] = useState<string | null>(null);
+  const [addingSub, setAddingSub] = useState(false);
+  const [newSubName, setNewSubName] = useState('');
+  const [, bumpSubs] = useState(0);
+  const [energyFilter, setEnergyFilter] = useState<EnergyLevel | null>(null);
   const [items, setItems] = useState<Resource[]>(() => resourcesRepo.getAll());
   const [editing, setEditing] = useState<Resource | null>(null);
   // "Das Hinzufuegen-Feld soll nur bei Skills immer so aufgebaut
@@ -154,6 +170,7 @@ export function ResourcesPage() {
         return typeScope === 'skills' ? isSkill : !isSkill;
       });
     }
+    if (needFilter) base = base.filter((r) => resourceFitsNeed(r, needFilter));
     if (zoneFilter) {
       base = base.filter((r) => {
         const zoneIds = r.skillDetails?.zoneIds ?? r.hilfsmittelDetails?.zoneIds;
@@ -162,15 +179,17 @@ export function ResourcesPage() {
     }
     return base;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, typeScope, customCategories, zoneFilter]);
+  }, [items, typeScope, customCategories, zoneFilter, needFilter]);
   const filtered = useMemo(() => {
-    const list = energyExactMatch(filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter), energyFilter);
+    const byCategory = filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter);
+    const bySub = subFilter && typeScope === 'hilfsmittel' ? byCategory.filter((r) => r.subcategory === subFilter) : byCategory;
+    const list = energyExactMatch(bySub, energyFilter);
     if (!zoneFilter) return list;
     // "Geordnet fuer den jeweiligen Anspannungsbereich" — items explicitly
     // tagged for this zone come first, untagged ones after them.
     const rank = (r: Resource) => ((r.skillDetails?.zoneIds ?? r.hilfsmittelDetails?.zoneIds)?.includes(zoneFilter) ? 0 : 1);
     return [...list].sort((a, b) => rank(a) - rank(b));
-  }, [inTypeScope, filter, energyFilter, zoneFilter]);
+  }, [inTypeScope, filter, subFilter, typeScope, energyFilter, zoneFilter]);
   const zoneBand = zoneFilter ? AROUSAL_BANDS.find((b) => b.id === zoneFilter) : undefined;
   const zoneKetten = zoneFilter && typeScope === 'skills' ? skillkettenForZone(zoneFilter) : [];
 
@@ -352,6 +371,25 @@ export function ResourcesPage() {
            * jeweiligen Anspannungsbereich"-Auftrag — the landing view of
            * the "zu den Skills" button: which zone this is, the chains
            * that fit it, then the skills (zone matches first). */}
+          {needFilter && NEED_META[needFilter] && (
+            <div className="rounded-[var(--radius-lg)] p-4 mb-4" style={{ background: 'var(--color-primary-soft)', border: '1.5px solid var(--color-primary)' }}>
+              <p className="text-[13.5px] font-semibold text-[var(--color-text)] mb-2">
+                {NEED_META[needFilter].icon} {t.resources.needBannerTitle.replace('{need}', NEED_META[needFilter].label(t))}
+              </p>
+              <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[12.5px]">
+                <Link
+                  to={`/entdecken/ressourcen/${typeScope === 'skills' ? 'hilfsmittel' : 'skills'}?need=${needFilter}`}
+                  className="text-[var(--color-primary)] underline underline-offset-2"
+                >
+                  {typeScope === 'skills' ? t.resources.needBannerAlsoHilfsmittel : t.resources.needBannerAlsoSkills}
+                </Link>
+                <Link to={`/entdecken/ressourcen/${typeScope ?? 'hilfsmittel'}`} className="text-[var(--color-text-muted)] underline underline-offset-2">
+                  {t.resources.needBannerShowAll}
+                </Link>
+              </div>
+            </div>
+          )}
+
           {typeScope === 'skills' && zoneBand && (
             <div className="rounded-[var(--radius-lg)] p-4 mb-4" style={{ background: `${zoneBand.color}18`, border: `1.5px solid ${zoneBand.color}` }}>
               <p className="text-[13px] font-semibold mb-0.5" style={{ color: zoneBand.color }}>
@@ -474,7 +512,61 @@ export function ResourcesPage() {
               {t.common.all}
             </Chip>
           </div>
-          {RESOURCE_CATEGORY_GROUP_ORDER.filter((g) => !typeScope || (typeScope === 'skills') === (g === 'faehigkeiten')).map((group) => {
+          {typeScope === 'hilfsmittel' && (
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-2">
+                {HILFSMITTEL_MAIN.map((c) => (
+                  <Chip key={c} selected={filter === c} onClick={() => { setFilter(c); setSubFilter(null); setAddingSub(false); }}>
+                    {resourceCategoryLabel(t, c)}
+                  </Chip>
+                ))}
+                {customCategories.filter((c) => c.group === 'hilfsmittel').map((c) => (
+                  <Chip key={c.id} selected={filter === c.id} onClick={() => { setFilter(c.id); setSubFilter(null); }} icon={<Tag size={13} />}>
+                    {c.label}
+                  </Chip>
+                ))}
+              </div>
+              {/* second row: the sub-categories of the chosen category */}
+              {filter !== 'all' && subtypesFor(filter).length > 0 && (
+                <div className="mt-3 pl-3 animate-in" style={{ borderLeft: '2px solid var(--color-border)' }}>
+                  <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">{t.resources.subcategoriesLabel}</p>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {subtypesFor(filter).map((s) => (
+                      <Chip key={s.id} selected={subFilter === s.id} onClick={() => setSubFilter(subFilter === s.id ? null : s.id)}>
+                        {settings.language === 'en' ? s.en : s.de}
+                      </Chip>
+                    ))}
+                    {filter === 'orte' && !addingSub && (
+                      <Chip onClick={() => setAddingSub(true)} icon={<Plus size={14} />}>
+                        {t.resources.addOwnSubcategory}
+                      </Chip>
+                    )}
+                    {filter === 'orte' && addingSub && (
+                      <span className="flex items-center gap-1.5">
+                        <input autoFocus className="input" style={{ width: 150 }} placeholder={t.resources.subcategoryPlaceholder} value={newSubName} onChange={(e) => setNewSubName(e.target.value)} />
+                        <button
+                          className="text-[13px] text-[var(--color-primary)] px-2"
+                          onClick={() => {
+                            const name = newSubName.trim();
+                            if (!name) return;
+                            const created: SubType = { id: `own_${Date.now().toString(36)}`, de: name, en: name };
+                            customOrteSubStore.set([...customOrteSubStore.get(), created]);
+                            setNewSubName('');
+                            setAddingSub(false);
+                            setSubFilter(created.id);
+                            bumpSubs((n) => n + 1);
+                          }}
+                        >
+                          {t.common.save}
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {typeScope !== 'hilfsmittel' && RESOURCE_CATEGORY_GROUP_ORDER.filter((g) => !typeScope || (typeScope === 'skills') === (g === 'faehigkeiten')).map((group) => {
             const meta = RESOURCE_CATEGORY_GROUP_META[group];
             const builtIns = RESOURCE_CATEGORY_ORDER.filter((c) => RESOURCE_CATEGORY_TO_GROUP[c] === group);
             const customs = customCategories.filter((c) => c.group === group);
@@ -525,7 +617,7 @@ export function ResourcesPage() {
             <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5 mt-1">{t.resources.myOwnSkillsLabel}</p>
           )}
           <div className="flex flex-wrap gap-2 items-center">
-            {typeScope !== 'skills' &&
+            {typeScope === undefined &&
               RESOURCE_CATEGORY_ORDER.filter((c) => !RESOURCE_CATEGORY_TO_GROUP[c]).map((c) => (
                 <Chip key={c} selected={filter === c} onClick={() => setFilter(c)}>
                   {resourceCategoryLabel(t, c)}
@@ -765,22 +857,7 @@ export function ResourcesPage() {
             </Field>
             <Field label={t.energy.fieldLabel}>
               <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.energy.fieldHint}</p>
-              <div className="flex gap-1.5">
-                {([1, 2, 3] as const).map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    onClick={() => setEditing({ ...editing, energyLevel: editing.energyLevel === level ? undefined : level })}
-                    className="flex-1 py-2 rounded-[var(--radius-md)] border text-[15px]"
-                    style={{
-                      borderColor: editing.energyLevel === level ? 'var(--color-primary)' : 'var(--color-border)',
-                      background: editing.energyLevel === level ? 'var(--color-primary-soft)' : 'var(--color-surface)',
-                    }}
-                  >
-                    {'🔋'.repeat(level)}
-                  </button>
-                ))}
-              </div>
+              <EnergyLevelPicker value={editing.energyLevel} onChange={(v) => setEditing({ ...editing, energyLevel: v })} />
             </Field>
             <Field label={t.resources.categoryLabel}>
               <select

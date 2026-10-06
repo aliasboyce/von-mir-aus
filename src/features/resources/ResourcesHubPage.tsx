@@ -2,7 +2,10 @@ import { Wrench, Sparkles, Bookmark } from 'lucide-react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { TopBar } from '../../components/navigation/TopBar';
 import { ReorderableTiles } from '../../components/navigation/ReorderableTiles';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useT } from '../../i18n';
+import { resourcesRepo } from './resourcesRepo';
+import { RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
 
 /**
  * "Ressourcen-Unterteilung nochmal neu"-Auftrag — /entdecken/ressourcen
@@ -16,6 +19,17 @@ import { useT } from '../../i18n';
  */
 export function ResourcesHubPage() {
   const t = useT();
+  const [searchParams] = useSearchParams();
+  // "Links mit ?open= gingen seit dem Umbau ins Leere" — eight places in the
+  // app (favorites, recently used, network, needs compass, safety plan, ...)
+  // still link to /entdecken/ressourcen?open=<id>. This page is only the hub
+  // now, so forward to the page that actually holds that item.
+  const openId = searchParams.get('open');
+  const opened = openId ? resourcesRepo.getById(openId) : undefined;
+  if (opened) {
+    const type = RESOURCE_CATEGORY_TO_GROUP[opened.category] === 'faehigkeiten' ? 'skills' : 'hilfsmittel';
+    return <Navigate to={`/entdecken/ressourcen/${type}?open=${opened.id}`} replace />;
+  }
 
   const tiles = [
     { key: 'hilfsmittel', to: '/entdecken/ressourcen/hilfsmittel', icon: Wrench, title: t.resources.hilfsmittelTitle, subtitle: t.resources.hilfsmittelSubtitle },

@@ -174,6 +174,13 @@ export function BookmarksPage() {
               {c.label}
             </Chip>
           ))}
+          {/* "Bei den gespeicherten Quellen soll man selber Kategorien hinzufuegen
+           * koennen" — the add / rename / delete dialog existed but was only
+           * reachable from a place that was easy to miss; now it is right
+           * here, at the end of the category row. */}
+          <Chip onClick={() => { setAddingCategory(true); setManagingCategories(true); }} icon={<Plus size={14} />}>
+            {t.bookmarks.newCategory}
+          </Chip>
         </div>
 
         {filtered.length === 0 ? (

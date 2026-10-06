@@ -26,6 +26,7 @@ export function BriefAnMichPage() {
   const [, refresh] = useState(0);
   const [writing, setWriting] = useState(false);
   const [text, setText] = useState('');
+  const [inReview, setInReview] = useState(false);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('09:00');
   const [openLetterId, setOpenLetterId] = useState<string | null>(null);
@@ -36,7 +37,7 @@ export function BriefAnMichPage() {
 
   function save() {
     if (!text.trim() || !date) return;
-    addLetter(text.trim(), new Date(`${date}T${time}`).toISOString());
+    addLetter(text.trim(), new Date(`${date}T${time}`).toISOString(), inReview);
     setText('');
     setDate('');
     setTime('09:00');
@@ -69,6 +70,10 @@ export function BriefAnMichPage() {
               value={text}
               onChange={(e) => setText(e.target.value)}
             />
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" className="mt-0.5" checked={inReview} onChange={(e) => setInReview(e.target.checked)} />
+              <span className="text-[13px] text-[var(--color-text)]">{t.reviewMail.inReviewLetter}</span>
+            </label>
             <div className="flex gap-2">
               <label className="flex-1 flex flex-col gap-1">
                 <span className="text-[12px] text-[var(--color-text-faint)]">{t.briefAnMich.dateLabel}</span>

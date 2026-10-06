@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Plus, Upload, Tag, RefreshCw } from 'lucide-react';
+import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
 import { Modal } from '../../components/ui/Modal';
 import { ImageSuggestionCarousel } from '../../components/shared/ImageSuggestionCarousel';
 import { Button } from '../../components/ui/Button';
@@ -95,7 +96,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
       });
   }
 
-  function updateLevel(index: number, patch: Partial<{ title: string; description: string; energyLevel: 1 | 2 | 3 | undefined }>) {
+  function updateLevel(index: number, patch: Partial<{ title: string; description: string; energyLevel: 1 | 2 | 3 | 4 | undefined }>) {
     if (!draft) return;
     const levels = draft.levels.map((l, i) => (i === index ? { ...l, ...patch } : l));
     setDraft({ ...draft, levels });
@@ -409,22 +410,9 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
                   value={level.description}
                   onChange={(e) => updateLevel(i, { description: e.target.value })}
                 />
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-[11px] text-[var(--color-text-faint)] mr-1">{t.bridges.levelEnergyLabel}</span>
-                  {([1, 2, 3] as const).map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => updateLevel(i, { energyLevel: level.energyLevel === n ? undefined : n })}
-                      className="px-2 py-1 rounded-full text-[11px] border"
-                      style={{
-                        borderColor: level.energyLevel === n ? 'var(--color-primary)' : 'var(--color-border)',
-                        background: level.energyLevel === n ? 'var(--color-primary-soft)' : 'transparent',
-                      }}
-                    >
-                      {'⚡'.repeat(n)}
-                    </button>
-                  ))}
+                <div className="mt-1">
+                  <span className="block text-[11px] text-[var(--color-text-faint)] mb-1">{t.bridges.levelEnergyLabel}</span>
+                  <EnergyLevelPicker value={level.energyLevel} onChange={(v) => updateLevel(i, { energyLevel: v })} />
                 </div>
               </div>
             ))}

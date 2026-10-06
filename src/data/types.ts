@@ -24,6 +24,14 @@ export type WeatherCondition =
    * of intensity (a gentle breeze through to a hurricane) and two
    * temperature-only states that don't fit the original set at all
    * (heat/drought, frost/cold). */
+  /** "Mehr Zwischenzustaende"-Auftrag — five in-between states ("bisschen Sonne
+   * aber auch windig"), because the original ones are too extreme to describe
+   * most of an ordinary day. */
+  | 'sonne_wolken'
+  | 'sonne_wind'
+  | 'sonnenschauer'
+  | 'schwuel'
+  | 'aufklaren'
   | 'brise'
   | 'sturm'
   | 'schnee'
@@ -79,7 +87,10 @@ export type NeedCategory = 'koerperlich' | 'psychisch_sozial';
 // Sicheres Netz (Safe Network) + Wichtige Kontakte
 // ---------------------------------------------------------------------------
 
-export type NetworkCategory = 'person' | 'ort' | 'aktivitaet' | 'ressource' | string;
+/** The four network roles: Person (can be picked for calendar appointments),
+ * Ressource (a skill), Hilfsmittel (a tool) and Ort (a place). 'aktivitaet' only
+ * remains for old data and is migrated to 'ressource'. */
+export type NetworkCategory = 'person' | 'ressource' | 'hilfsmittel' | 'ort' | 'aktivitaet' | string;
 
 /** What a network entry can help with — chosen by the person, not inferred. */
 /** "Wie hilft mir das"-Auftrag — the four built-in values stay as
@@ -222,10 +233,10 @@ export interface BridgeLevel {
   title: string;
   description: string;
   /** "Level einem Energielevel zuordnen, genauso wie bei Ressourcen"-
-   * Auftrag — same 1/2/3 scale as Resource.energyLevel, so a person
+   * Auftrag — same 1-4 scale as Resource.energyLevel, so a person
    * can filter/pick a bridge level by how much capacity they have
    * right now, not just by intensity/depth. */
-  energyLevel?: 1 | 2 | 3;
+  energyLevel?: 1 | 2 | 3 | 4;
 }
 
 export interface Bridge {
@@ -321,6 +332,15 @@ export interface Resource {
   title: string;
   description?: string;
   category: ResourceCategory;
+  /** Sub-category inside a Hilfsmittel category (Videos under Visuell, Musik under Auditiv,
+   * Natur/Ort/... under Orte) — see content/hilfsmittelCategories.ts. */
+  subcategory?: string;
+  /** Needs this item helps with (set in the form); empty = default by category,
+   * see content/needResources.ts. */
+  linkedNeeds?: NeedDirection[];
+  /** "Im Netzwerk anzeigen" — the person decided this item (a skill = Ressource,
+   * a tool = Hilfsmittel, a place = Ort) also appears in the safety network. */
+  inNetwork?: boolean;
   /** Path or URL to a representative image — REQUIRED, deliberately
    * matching Bridge.image's non-optional pattern. This field being
    * optional was the exact structural gap that let the photo feature
@@ -337,8 +357,8 @@ export interface Resource {
    * much energy this resource typically takes. Resources only —
    * Bridges already have their own "levels" progression and don't
    * need a second, overlapping energy concept on top of that. 1 =
-   * sehr wenig, 2 = etwas, 3 = geht gerade. */
-  energyLevel?: 1 | 2 | 3;
+   * fast nichts da, 2 = wenig, 3 = mittel, 4 = viel (siehe content/energyLevels.ts). */
+  energyLevel?: 1 | 2 | 3 | 4;
   note?: string;
   link?: string;
   tags: string[];
@@ -429,6 +449,10 @@ export interface SkillUse {
   startedAt: string;
   endedAt: string;
   durationSec: number;
+  /** 'chain' = a whole Skillkette was run (skillTitle then names the chain). */
+  kind?: 'skill' | 'chain';
+  /** Titles of the skills worked through, in order (chains only). */
+  chainSteps?: string[];
   tensionBefore?: number;
   tensionAfter?: number;
   helped?: 'ja' | 'etwas' | 'nein' | 'unsicher';
@@ -811,6 +835,10 @@ export interface RecurringDoseChange {
 
 export interface DiaryEntry {
   id: string;
+  /** "Das Einzige, wo man entscheidet, ob es in den Rueckblick uebernommen
+   * wird, sind einzelne Tagebuecher und Briefe" — only entries with this
+   * set appear in the daily/weekly/monthly reviews (and their PDFs). */
+  inReview?: boolean;
   createdAt: string;
   updatedAt: string;
   content: string;
@@ -930,6 +958,10 @@ export interface UserSettings {
    * Auftrag — gentle in-app nudges through the day. undefined counts as
    * 'normal' (three a day); 'off' silences them completely. */
   gentleReminders?: 'off' | 'normal' | 'more';
+  /** "HH:MM" — when the daily review arrives in the Postfach (default 20:00);
+   * the weekly one follows on Sundays at the same time, the monthly one on
+   * the last day of the month. */
+  reviewTime?: string;
   /** when true, the previous day's polyvagal curve summary is auto-added to the diary the next time the app opens on a new day */
   autoAddCurveToDiary?: boolean;
   /** Same "write an actual diary entry" mechanism as autoAddCurveToDiary,

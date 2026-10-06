@@ -7,6 +7,11 @@ import { skillOutcome } from './skillUsesRepo';
  * word it the same way. */
 export function skillUseLine(u: SkillUse, t: TranslationDictionary): string {
   const r = t.skillRun;
+  if (u.kind === 'chain' && u.chainSteps && u.chainSteps.length > 0) {
+    // chains: the line carries the skills worked through, in order
+    const base = { ...u, kind: 'skill' as const, chainSteps: undefined };
+    return `${skillUseLine(base, t)} (${u.chainSteps.join(' → ')})`;
+  }
   if (u.tensionBefore != null && u.tensionAfter != null) {
     return r.usedLine.replace('{title}', u.skillTitle).replace('{before}', String(u.tensionBefore)).replace('{after}', String(u.tensionAfter));
   }

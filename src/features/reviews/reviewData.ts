@@ -2,9 +2,14 @@ import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { skillUsesRepo } from '../resources/skillUsesRepo';
 import { weatherRepo } from '../innerWeather/weatherRepo';
 import { diaryRepo } from '../diary/diaryRepo';
-import { diaryCategoriesStore, effectiveDiaryCategory, DIARY_DEFAULT_CATEGORY_ID } from '../diary/diaryCategories';
+import { diaryCategoriesStore } from '../diary/diaryCategories';
 import { mediLogRepo } from '../mediLog/mediLogRepo';
 import { appointmentsRepo, wishesRepo, type Appointment, type Wish } from '../calendar/calendarRepo';
+import { activityRepo } from '../../services/activityLog';
+import { zugangRepo } from '../zugang/zugangRepo';
+import { gardenRepo } from '../garden/gardenRepo';
+import { distinctCheckInDays } from '../garden/gardenGrowth';
+import { lettersRepo, type LetterToSelf } from '../briefAnMich/lettersRepo';
 import { groupByDay } from '../../services/groupByDay';
 import type { PolyvagalCheckIn, SkillUse, DiaryEntry, WeatherCheckIn, MediLogEntry } from '../../data/types';
 
@@ -19,6 +24,14 @@ export interface ReviewDay {
   /** "Termine mit den Notizen der Reflexion im Tages-/Wochenrueckblick" */
   appointments: Appointment[];
   wishes: Wish[];
+  /** resources / bridges / contacts the person used (activity log) */
+  activities: { label: string; type: string }[];
+  /** number of Zugang passes */
+  zugangCount: number;
+  /** letters to self the person chose to include */
+  letters: LetterToSelf[];
+  /** names of garden items checked in that day */
+  garden: string[];
 }
 
 export function dayKeyOf(date: Date): string {
@@ -32,7 +45,8 @@ export function gatherReviewDays(fromDay: string, toDay: string): ReviewDay[] {
   const inRange = (key: string) => key >= fromDay && key <= toDay;
   const achievementCategoryId = diaryCategoriesStore.getAll().find((c) => c.label === 'Erfolge')?.id;
   const allDiary = diaryRepo.getAll();
-  const general = allDiary.filter((d) => effectiveDiaryCategory(d.categoryId) === DIARY_DEFAULT_CATEGORY_ID);
+  // only entries the person chose to include (switch on the entry)
+  const general = allDiary.filter((d) => d.inReview === true);
   const achievements = achievementCategoryId ? allDiary.filter((d) => d.categoryId === achievementCategoryId) : [];
 
   const cByDay = groupByDay(polyvagalRepo.getAll(), (c) => c.createdAt);
@@ -45,11 +59,16 @@ export function gatherReviewDays(fromDay: string, toDay: string): ReviewDay[] {
   // grouped by that string directly (not parsed through Date).
   const apByDay = new Map<string, Appointment[]>();
   appointmentsRepo.getAll().forEach((a) => apByDay.set(a.date, [...(apByDay.get(a.date) ?? []), a]));
+  const actByDay = groupByDay(activityRepo.getAll().filter((e) => e.type !== 'checkin'), (e) => e.createdAt);
+  const zugByDay = groupByDay(zugangRepo.getAll(), (z) => z.createdAt);
+  const letByDay = groupByDay(lettersRepo.getAll().filter((l) => l.inReview === true), (l) => l.createdAt);
+  const gardenByDay = new Map<string, string[]>();
+  gardenRepo.getAll().forEach((g) => distinctCheckInDays(g).forEach((d) => gardenByDay.set(d, [...(gardenByDay.get(d) ?? []), g.name])));
   const wiByDay = new Map<string, Wish[]>();
   wishesRepo.getAll().forEach((w) => wiByDay.set(w.day, [...(wiByDay.get(w.day) ?? []), w]));
 
   const keys = new Set<string>();
-  [cByDay, sByDay, wByDay, dByDay, aByDay, mByDay, apByDay, wiByDay].forEach((m) => m.forEach((_, k) => inRange(k) && keys.add(k)));
+  [cByDay, sByDay, wByDay, dByDay, aByDay, mByDay, apByDay, wiByDay, actByDay, zugByDay, letByDay, gardenByDay].forEach((m) => m.forEach((_, k) => inRange(k) && keys.add(k)));
 
   return Array.from(keys)
     .sort((a, b) => a.localeCompare(b))
@@ -63,6 +82,10 @@ export function gatherReviewDays(fromDay: string, toDay: string): ReviewDay[] {
       mediLog: mByDay.get(day) ?? [],
       appointments: (apByDay.get(day) ?? []).sort((a, b) => a.time.localeCompare(b.time)),
       wishes: wiByDay.get(day) ?? [],
+      activities: (actByDay.get(day) ?? []).map((e) => ({ label: e.label, type: e.type })),
+      zugangCount: (zugByDay.get(day) ?? []).length,
+      letters: letByDay.get(day) ?? [],
+      garden: gardenByDay.get(day) ?? [],
     }));
 }
 

@@ -9,6 +9,7 @@ import { categoryLabel, helpsWithLabel } from './networkMeta';
 import { getIcon } from '../../components/icons/networkIcons';
 import { NetworkEntryForm } from './NetworkEntryForm';
 import { resourcesRepo } from '../resources/resourcesRepo';
+import { NextAppointmentBlock } from '../calendar/NextAppointmentBlock';
 import type { NetworkCategoryConfig, NetworkEntry } from '../../data/types';
 
 interface NetworkDetailModalProps {
@@ -128,6 +129,8 @@ export function NetworkDetailModal({
               ))}
             </div>
           )}
+
+          {active.category === 'person' && <NextAppointmentBlock personId={active.id} personName={active.name} />}
 
           {(active.phone || active.email) && (
             <div className="flex gap-2">

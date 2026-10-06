@@ -81,17 +81,24 @@ export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProp
 
         {showResult == null ? (
           <>
-            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-4">{t.polyvagal.bodyDetective.intro}</p>
-            <div className="flex flex-col gap-5">
-              {questions.map((q) => (
-                <div key={q.id}>
-                  <p className="text-[13.5px] font-medium text-[var(--color-text)] mb-2">{q.question}</p>
-                  <div className="flex flex-col gap-2">
+            <p className="text-[13.5px] text-[var(--color-text-muted)] leading-[1.7] mb-6">{t.polyvagal.bodyDetective.intro}</p>
+            {/* "Die Ansicht der Fragen ist aufeinander gequetscht - mehr
+             * Abstaende": every question is its own block with a divider,
+             * a small "Frage n von N" label, a roomy question text and
+             * options with real padding and line height. */}
+            <div className="flex flex-col gap-9">
+              {questions.map((q, qi) => (
+                <div key={q.id} className={qi > 0 ? 'pt-8' : ''} style={qi > 0 ? { borderTop: '1px solid var(--color-border)' } : undefined}>
+                  <p className="text-[11.5px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">
+                    {t.polyvagal.bodyDetective.questionOf.replace('{n}', String(qi + 1)).replace('{total}', String(questions.length))}
+                  </p>
+                  <p className="text-[15px] font-medium text-[var(--color-text)] leading-[1.6] mb-4">{q.question}</p>
+                  <div className="flex flex-col gap-3">
                     {q.options.map((opt) => (
                       <button
                         key={opt.id}
                         onClick={() => pick(q.id, opt.weight)}
-                        className="text-left px-3.5 py-2.5 rounded-[var(--radius-md)] text-[13px]"
+                        className="text-left px-4 py-3.5 rounded-[var(--radius-md)] text-[14px] leading-[1.6]"
                         style={{
                           border: `1.5px solid ${answers[q.id] === opt.weight ? 'var(--color-primary)' : 'var(--color-border)'}`,
                           background: answers[q.id] === opt.weight ? 'var(--color-primary-soft)' : 'var(--color-surface)',
@@ -108,7 +115,7 @@ export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProp
             <button
               onClick={evaluate}
               disabled={!allAnswered}
-              className="w-full mt-5 py-3 rounded-full text-[14px]"
+              className="w-full mt-8 py-3.5 rounded-full text-[14px]"
               style={{
                 background: allAnswered ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                 color: allAnswered ? 'var(--color-surface)' : 'var(--color-text-faint)',

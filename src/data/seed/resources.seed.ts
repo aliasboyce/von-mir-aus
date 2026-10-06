@@ -11,7 +11,7 @@ export const DEMO_RESOURCES: Resource[] = [
   {
     id: 'res_waldspaziergang',
     title: 'Waldspaziergang',
-    category: 'natur',
+    category: 'orte', subcategory: 'natur',
     image: img('Waldspaziergang Natur Baum'),
     description: 'Der Geruch von feuchter Erde und Moos.',
     tags: ['natur', 'erdung'],
@@ -22,7 +22,7 @@ export const DEMO_RESOURCES: Resource[] = [
   {
     id: 'res_klavier',
     title: 'Sanftes Piano',
-    category: 'musik',
+    category: 'auditiv', subcategory: 'musik',
     image: img('Sanftes Piano Musik'),
     description: 'Beruhigende Melodien zum Abschalten.',
     tags: ['musik', 'ruhe'],
@@ -33,7 +33,7 @@ export const DEMO_RESOURCES: Resource[] = [
   {
     id: 'res_atemzitat',
     title: 'Atem holen',
-    category: 'texte',
+    category: 'kognitiv', subcategory: 'texte',
     image: img('Atem holen atmen'),
     description: 'Ein kurzer Hinweis, dass es reicht, einfach nur zu sein.',
     tags: ['zitat'],
@@ -44,7 +44,7 @@ export const DEMO_RESOURCES: Resource[] = [
   {
     id: 'res_waermequelle',
     title: 'Wärmequelle',
-    category: 'sonstiges',
+    category: 'komfort',
     image: img('Wärmequelle Tee Decke warm'),
     description: 'Eine warme Tasse Tee oder eine Decke.',
     tags: ['körper', 'wärme'],
@@ -167,7 +167,7 @@ export const DBT_SKILL_RESOURCES: Resource[] = [
   {
     id: 'res_skill_478_atmung',
     title: '4-7-8 Atmung',
-    category: 'achtsamkeit',
+    category: 'stresstoleranz',
     image: img('Atem atmen Wind'),
     description:
       'Eine ruhige, verlängerte Ausatmung, um den Körper aus reiner Unter-Aktivierung sanft aufzuwecken — passend, wenn Herz und Atem ganz flach und langsam sind.\n\n4 Sekunden einatmen, 7 Sekunden halten (oder kürzer, falls unangenehm), 8 Sekunden ausatmen. 3–4 Mal wiederholen, im eigenen Tempo.\n\nNach Dr. Andrew Weil, basierend auf Pranayama. Die lange Ausatmung erhöht nachweislich die Herzratenvariabilität.',
@@ -179,7 +179,7 @@ export const DBT_SKILL_RESOURCES: Resource[] = [
   {
     id: 'res_skill_36_bauchatmung',
     title: '3-zu-6 Bauchatmung',
-    category: 'achtsamkeit',
+    category: 'stresstoleranz',
     image: img('Atem atmen Wind'),
     description:
       'Die Ausatemzeit exakt verdoppeln, um tief in die Regeneration zu finden — für die reine Ruhephase, nicht für den Arbeitsmodus.\n\nHände auf den Bauchnabel legen. 3 Sekunden tief in den Bauch einatmen, dann 6 Sekunden langsam und lautlos durch die Lippenbremse ausatmen. Mehrmals wiederholen.\n\nAus der klinischen Verhaltensmedizin: das exakte Verdoppeln der Ausatemzeit senkt nachweislich den Blutdruck.',
@@ -191,7 +191,7 @@ export const DBT_SKILL_RESOURCES: Resource[] = [
   {
     id: 'res_skill_gaehn_impuls',
     title: 'Sanfter Gähn-Impuls',
-    category: 'achtsamkeit',
+    category: 'stresstoleranz',
     image: img('Entspannung Ruhe Erholung'),
     description:
       'Ein künstlich ausgelöstes, echtes Gähnen bringt sanfte, entspannte Wachheit — ganz ohne Stresshormone.\n\nMund weit öffnen und so tun, als würde man herzhaft gähnen, bis ein echtes Gähnen getriggert wird. 2–3 Mal wiederholen, Schultern sinken lassen.\n\nKünstlich induziertes Gähnen stimuliert den Nervus Trigeminus und reguliert die Gehirntemperatur.',
@@ -203,7 +203,7 @@ export const DBT_SKILL_RESOURCES: Resource[] = [
   {
     id: 'res_skill_grounding_54321',
     title: 'Kognitives Grounding',
-    category: 'achtsamkeit',
+    category: 'stresstoleranz',
     image: img('Achtsamkeit Sinne wahrnehmen'),
     description:
       'Die 5-4-3-2-1-Methode holt die Aufmerksamkeit aus dem Kreisen zurück in den gegenwärtigen Moment — der Klassiker für den Fokus-Sweetspot.\n\n5 Dinge sehen, 4 spüren, 3 hören, 2 riechen, 1 schmecken — der Reihe nach.\n\nAus MBSR nach Dr. Jon Kabat-Zinn: lenkt die Aktivität weg von der überaktiven Amygdala hin zum präfrontalen Kortex.',
@@ -215,7 +215,7 @@ export const DBT_SKILL_RESOURCES: Resource[] = [
   {
     id: 'res_skill_peripheres_sehen',
     title: 'Peripheres Sehen',
-    category: 'achtsamkeit',
+    category: 'stresstoleranz',
     image: img('Augen Blick Orientierung'),
     description:
       'Vom Tunnelblick zum Weitwinkel — hält das Gehirn wach und aufmerksam, ohne die Alarmbereitschaft zu triggern.\n\nEinen Punkt geradeaus fixieren. Ohne die Augen zu bewegen, die Aufmerksamkeit bewusst zu den Seiten ausdehnen, bis die äußeren Ränder des Sichtfelds gleichzeitig wahrgenommen werden.\n\nNach Dr. Andrew Huberman: peripheres Sehen deaktiviert die sympathische Alarmbereitschaft.',
@@ -227,7 +227,7 @@ export const DBT_SKILL_RESOURCES: Resource[] = [
   {
     id: 'res_skill_box_atmung',
     title: 'Box-Atmung (Taktisch)',
-    category: 'achtsamkeit',
+    category: 'stresstoleranz',
     image: img('Atem atmen Wind'),
     description:
       'Vier gleich lange Phasen balancieren das Nervensystem aus — für ruhige, laserfokussierte Handlungsbereitschaft.\n\n4 Sekunden einatmen – 4 Sekunden halten – 4 Sekunden ausatmen – 4 Sekunden leer abwarten. 2 Minuten wiederholen.\n\nAus dem Tactical Breathing Protocol der US Navy SEALs.',

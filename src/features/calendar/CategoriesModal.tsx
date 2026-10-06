@@ -25,6 +25,12 @@ export function CategoriesModal({ open, onClose, onChanged }: { open: boolean; o
     reload();
   }
 
+  function rename(c: CalendarCategory, label: string) {
+    calendarCategoriesRepo.save({ ...c, label });
+    setList(calendarCategoriesRepo.getAll());
+    onChanged();
+  }
+
   function recolor(c: CalendarCategory, next: string) {
     calendarCategoriesRepo.save({ ...c, color: next });
     reload();
@@ -42,18 +48,27 @@ export function CategoriesModal({ open, onClose, onChanged }: { open: boolean; o
       <div className="flex flex-col gap-4 pb-2">
         {list.map((c) => (
           <div key={c.id} className="rounded-[var(--radius-md)] p-3" style={{ border: `1.5px solid ${c.color}` }}>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[14px] font-medium" style={{ color: c.color }}>
-                {c.label}
-              </p>
-              <button onClick={() => remove(c)} aria-label={t.calendar.categoryDelete} className="text-[var(--color-text-faint)] p-1">
-                <Trash2 size={15} />
+            <div className="flex items-center gap-2 mb-3">
+              {/* "Terminkategorien selber bearbeiten/loeschen" — the name is an
+               * input that saves as you type */}
+              <input
+                className="input flex-1"
+                aria-label={t.calendar.categoryName}
+                value={c.label}
+                onChange={(e) => rename(c, e.target.value)}
+                style={{ color: c.color, fontWeight: 600 }}
+              />
+              <button onClick={() => remove(c)} aria-label={t.calendar.categoryDelete} className="text-[var(--color-text-faint)] p-2">
+                <Trash2 size={16} />
               </button>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {CATEGORY_COLOR_CHOICES.map((col) => (
                 <button key={col} onClick={() => recolor(c, col)} aria-label={col} className="w-7 h-7 rounded-full" style={{ background: col, outline: c.color === col ? '2px solid var(--color-text)' : 'none', outlineOffset: 2 }} />
               ))}
+              <label className="relative w-7 h-7 rounded-full overflow-hidden border border-[var(--color-border)] flex items-center justify-center text-[14px] cursor-pointer" title={t.calendar.categoryOwnColor} style={{ background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)' }}>
+                <input type="color" value={c.color} onChange={(e) => recolor(c, e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" aria-label={t.calendar.categoryOwnColor} />
+              </label>
             </div>
           </div>
         ))}
@@ -64,6 +79,9 @@ export function CategoriesModal({ open, onClose, onChanged }: { open: boolean; o
             {CATEGORY_COLOR_CHOICES.map((col) => (
               <button key={col} onClick={() => setColor(col)} aria-label={col} className="w-7 h-7 rounded-full" style={{ background: col, outline: color === col ? '2px solid var(--color-text)' : 'none', outlineOffset: 2 }} />
             ))}
+            <label className="relative w-7 h-7 rounded-full overflow-hidden border border-[var(--color-border)] cursor-pointer" title={t.calendar.categoryOwnColor} style={{ background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)' }}>
+              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" aria-label={t.calendar.categoryOwnColor} />
+            </label>
           </div>
           <Button fullWidth onClick={add} disabled={!name.trim()}>
             {t.calendar.categoryAdd}

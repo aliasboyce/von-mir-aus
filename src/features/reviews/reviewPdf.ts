@@ -123,6 +123,19 @@ function dayBlock(doc: PdfDoc, d: ReviewDay, t: TranslationDictionary, locale: s
       if (a.noteForNext) doc.paragraph(`${t.calendar.followUp2NoteLabel}: ${a.noteForNext}`, { size: 9.5, indent: 22, color: [80, 80, 80], gap: 2 });
     });
   }
+  if (d.activities.length > 0) {
+    sectionTitle(doc, t.reviewSummary.pdfUsedTitle);
+    d.activities.forEach((a) => doc.paragraph(`- ${a.label}`, { size: 10, indent: 8, gap: 1 }));
+  }
+  if (d.zugangCount > 0) doc.paragraph(`${t.reviewSummary.pdfZugangTitle}: ${t.reviewSummary.pdfZugangCount.replace('{n}', String(d.zugangCount))}`, { size: 10, gap: 3 });
+  if (d.garden.length > 0) {
+    sectionTitle(doc, t.reviewSummary.pdfGardenTitle);
+    d.garden.forEach((g) => doc.paragraph(`- ${g}`, { size: 10, indent: 8, gap: 1 }));
+  }
+  if (d.letters.length > 0) {
+    sectionTitle(doc, t.reviewSummary.pdfLettersTitle);
+    d.letters.forEach((l) => doc.paragraph(`"${l.text}"`, { size: 10, indent: 8, gap: 3 }));
+  }
   if (d.wishes.length > 0) {
     sectionTitle(doc, t.calendar.reviewWishes);
     d.wishes.forEach((w) => doc.paragraph(`${w.done ? '[x]' : '[ ]'}  ${w.text}`, { size: 10, indent: 8, color: w.done ? [120, 120, 120] : [40, 40, 40], gap: 1 }));
@@ -142,7 +155,7 @@ function dayBlock(doc: PdfDoc, d: ReviewDay, t: TranslationDictionary, locale: s
     sectionTitle(doc, t.reviewSummary.pdfDiaryTitle);
     d.diary.forEach((e) => doc.paragraph(`"${e.content}"`, { size: 10, indent: 8, gap: 3 }));
   }
-  if (d.checkIns.length + d.skillUses.length + d.weather.length + d.mediLog.length + d.achievements.length + d.diary.length + d.appointments.length + d.wishes.length === 0) {
+  if (d.checkIns.length + d.skillUses.length + d.weather.length + d.mediLog.length + d.achievements.length + d.diary.length + d.appointments.length + d.wishes.length + d.activities.length + d.zugangCount + d.garden.length + d.letters.length === 0) {
     doc.paragraph(t.reviewSummary.pdfNothing, { size: 10, color: [130, 130, 130] });
   }
 }

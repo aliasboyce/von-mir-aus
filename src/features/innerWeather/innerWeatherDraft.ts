@@ -2,7 +2,7 @@ import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import type { NeedDirection, WeatherCondition } from '../../data/types';
 
 export interface InnerWeatherDraft {
-  step: 'select' | 'reflect' | 'zone' | 'tension' | 'need' | 'done';
+  step: 'select' | 'reflect' | 'zone' | 'tension' | 'need' | 'path' | 'done';
   condition: WeatherCondition | null;
   need: NeedDirection | null;
   checkInId: string | null;

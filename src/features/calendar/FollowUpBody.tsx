@@ -22,7 +22,7 @@ export function isFollowUpMail(m: MailItem): boolean {
 export function FollowUpBody({ mail }: { mail: MailItem }) {
   const t = useT();
   const appointment = appointmentsRepo.getById(mail.payload?.appointmentId ?? '');
-  const step = mail.payload?.step === '2' ? 2 : 1;
+  const step = mail.payload?.step === 'all' ? 3 : mail.payload?.step === '2' ? 2 : 1;
   const [reflection, setReflection] = useState(appointment?.reflection ?? '');
   const [note, setNote] = useState(appointment?.noteForNext ?? '');
   const [date, setDate] = useState('');
@@ -66,7 +66,64 @@ export function FollowUpBody({ mail }: { mail: MailItem }) {
     markMailRead(mail.id);
   }
 
+  /** "Fertig": saves reflection, note for next time and (if a date was
+   * entered) the next appointment in one go. */
+  function finishAll() {
+    const nowIso = new Date().toISOString();
+    appointmentsRepo.save({
+      ...a,
+      reflection: reflection.trim() || undefined,
+      reflectionAt: reflection.trim() ? nowIso : a.reflectionAt,
+      noteForNext: note.trim() || undefined,
+      updatedAt: nowIso,
+    });
+    if (date) {
+      appointmentsRepo.save({
+        id: createId('appt'),
+        title: a.title,
+        date,
+        time,
+        categoryId: a.categoryId,
+        personId: a.personId,
+        reminderMinutes: a.reminderMinutes ?? 15,
+        previousAppointmentId: a.id,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      });
+    }
+    setDone(t.calendar.followUpAllSaved);
+    markMailRead(mail.id);
+  }
+
   const todayKey = dayKey(new Date());
+
+  if (step === 3) {
+    return (
+      <div className="mt-2 flex flex-col gap-4">
+        <div>
+          <textarea className="input w-full" rows={3} value={reflection} onChange={(e) => setReflection(e.target.value)} placeholder={t.calendar.followUp1Placeholder} />
+        </div>
+        <div>
+          <p className="text-[12.5px] font-medium text-[var(--color-text)] mb-1.5">{t.calendar.followUpAllNext}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <input type="date" className="input" style={{ width: 'auto' }} min={todayKey} value={date} onChange={(e) => setDate(e.target.value)} />
+            <span className="text-[12px] text-[var(--color-text-muted)]">{t.calendar.followUp2Time}</span>
+            <input type="time" className="input" style={{ width: 'auto' }} value={time} onChange={(e) => setTime(e.target.value)} />
+          </div>
+        </div>
+        <div>
+          <p className="text-[12.5px] font-medium text-[var(--color-text)] mb-1.5">{t.calendar.followUpAllNote}</p>
+          <textarea className="input w-full" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={finishAll} className="rounded-full px-6 py-2 text-[14px] text-[var(--color-surface)]" style={{ background: 'var(--color-primary)' }}>
+            {t.calendar.followUpDoneCta}
+          </button>
+          {done && <span className="text-[12.5px] text-[var(--color-primary)]">{done}</span>}
+        </div>
+      </div>
+    );
+  }
 
   if (step === 1) {
     return (

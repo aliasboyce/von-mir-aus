@@ -504,6 +504,15 @@ export function SettingsPage() {
         </Card>
 
         <Card className="mb-6" padding="md">
+          <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.reviewTimeTitle}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.reviewTimeHint}</p>
+          <label className="flex items-center gap-3">
+            <span className="text-[13px] text-[var(--color-text-muted)]">{t.settings.reviewTimeLabel}</span>
+            <input type="time" className="input" style={{ width: 'auto' }} value={settings.reviewTime ?? '20:00'} onChange={(e) => e.target.value && updateSettings({ reviewTime: e.target.value })} />
+          </label>
+        </Card>
+
+        <Card className="mb-6" padding="md">
           <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.gentleRemindersTitle}</p>
           <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.gentleRemindersHint}</p>
           <div className="flex flex-wrap gap-2">

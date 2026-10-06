@@ -15,7 +15,8 @@ export const SURVIVAL_TO_POLYVAGAL_ZONE: Record<ZugangSurvivalState, PolyvagalZo
   mobilisiert: 'sympathetic',
   flucht: 'sympathetic',
   kampf: 'sympathetic',
-  angepasst: 'sympathetic',
+  // Fawn sits at 12-15% on the ladder (Hypoarousal edge) — see content/fStates.ts
+  angepasst: 'dorsal',
   erstarren: 'dorsal',
   kollaps: 'dorsal',
   // "Fine/Flood/Friend gehoeren ins Toleranzfenster"-Korrektur — all
@@ -28,5 +29,6 @@ export const SURVIVAL_TO_POLYVAGAL_ZONE: Record<ZugangSurvivalState, PolyvagalZo
   fokus: 'ventral',
   praesent: 'ventral',
   unruhe: 'ventral',
-  blockiert: 'dorsal',
+  // 'Blockiert' = Freeze unter Hochspannung (85-95%), i.e. still sympathetic
+  blockiert: 'sympathetic',
 };

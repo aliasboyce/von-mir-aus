@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Plus, Tag, ListOrdered, Check, X } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -45,7 +45,10 @@ export function CalendarPage() {
   const [selected, setSelected] = useState(todayKey);
   const [version, setVersion] = useState(0);
   const refresh = () => setVersion((v) => v + 1);
-  const [formOpen, setFormOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  // /kalender?new=<personId> — opened from a network person ("Termin mit ... eintragen")
+  const newWithPerson = searchParams.get('new');
+  const [formOpen, setFormOpen] = useState(!!newWithPerson);
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [wishText, setWishText] = useState('');
@@ -239,13 +242,17 @@ export function CalendarPage() {
       </div>
 
       <AppointmentFormModal
-        key={editing?.id ?? `new-${selected}`}
+        key={editing?.id ?? `new-${selected}-${newWithPerson ?? ''}`}
         open={formOpen}
         appointment={editing}
-        defaults={{ date: selected }}
-        onClose={() => setFormOpen(false)}
+        defaults={{ date: selected, personId: newWithPerson ?? undefined }}
+        onClose={() => {
+          setFormOpen(false);
+          if (newWithPerson) setSearchParams({}, { replace: true });
+        }}
         onSaved={(a) => {
           setFormOpen(false);
+          if (newWithPerson) setSearchParams({}, { replace: true });
           if (a.date >= todayKey && days.some((d) => dayKey(d) === a.date)) setSelected(a.date);
           refresh();
         }}

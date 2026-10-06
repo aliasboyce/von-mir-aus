@@ -25,9 +25,9 @@ interface WeatherWheelProps {
  * and item spacing also increased so 15 conditions no longer crowd
  * each other.
  */
-const SIZE = 360;
+const SIZE = 380;
 const CENTER = SIZE / 2;
-const RADIUS = 152;
+const RADIUS = 162;
 
 function pointFor(index: number, total: number): { x: number; y: number } {
   const angle = (2 * Math.PI * index) / total - Math.PI / 2;
@@ -140,7 +140,7 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div ref={boxRef} className="mx-auto" style={{ width: '100%', maxWidth: SIZE, height: SIZE * scale }}>
+      <div ref={boxRef} className="mx-auto mt-4" style={{ width: "100%", maxWidth: SIZE, height: SIZE * scale }}>
       <div
         ref={wheelRef}
         className="relative touch-none"

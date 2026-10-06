@@ -1,6 +1,8 @@
 import { createRepository, createId } from '../../services/storage/repository';
 
 export interface LetterToSelf {
+  /** Same choice as DiaryEntry.inReview — the letter shows up in the review of the day it was written. */
+  inReview?: boolean;
   id: string;
   text: string;
   createdAt: string;
@@ -12,8 +14,8 @@ export interface LetterToSelf {
 
 export const lettersRepo = createRepository<LetterToSelf>('letters-to-self');
 
-export function addLetter(text: string, scheduledFor: string): LetterToSelf {
-  const letter: LetterToSelf = { id: createId('letter'), text, createdAt: new Date().toISOString(), scheduledFor, opened: false };
+export function addLetter(text: string, scheduledFor: string, inReview = false): LetterToSelf {
+  const letter: LetterToSelf = { id: createId('letter'), text, createdAt: new Date().toISOString(), scheduledFor, opened: false, inReview };
   lettersRepo.save(letter);
   return letter;
 }

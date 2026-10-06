@@ -30,12 +30,13 @@ import { diaryRepo } from '../diary/diaryRepo';
 import { createId } from '../../services/storage/repository';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { getHomeContext, getBestEffortWeather } from './homeContext';
-import { pickHomeContextLine } from './homeCompanionLines';
+import { pickHomeContextLine, pickCustomHomeLine } from './homeCompanionLines';
 import { WeatherExplainerModal } from '../innerWeather/WeatherExplainerModal';
 import { SkyAmbiance } from '../../components/shared/SkyAmbiance';
 import { PostfachButton, PostfachPanel, type LiveEntry } from './PostfachPanel';
 import { useMailbox, markMailRead } from '../../services/mailbox';
 import { FollowUpBody, isFollowUpMail } from '../calendar/FollowUpBody';
+import { ReviewMailBody, isReviewMail } from '../reviews/ReviewMailBody';
 
 function hasCheckedInToday(): boolean {
   const today = new Date().toDateString();
@@ -143,6 +144,12 @@ export function HomePage() {
   // permission-gated) weather. Only ~45% of Home visits so it stays a
   // pleasant surprise rather than a fixed greeting that gets stale fast.
   useEffect(() => {
+    // the person's own Home sentences get their own chance first
+    const own = pickCustomHomeLine();
+    if (own) {
+      say(own);
+      return;
+    }
     if (Math.random() > 0.45) return;
     let cancelled = false;
     getBestEffortWeather().then(() => {
@@ -283,6 +290,7 @@ export function HomePage() {
               <p className="text-[13px] font-medium text-[var(--color-text)] mb-0.5">{m.title}</p>
               {m.text && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed whitespace-pre-line">{m.text}</p>}
               {isFollowUpMail(m) && <FollowUpBody mail={m} />}
+              {isReviewMail(m) && <ReviewMailBody mail={m} />}
               {m.actionKind === 'reload' && m.actionLabel && (
                 <button onClick={() => window.location.reload()} className="text-[13px] text-[var(--color-primary)] mt-1.5">
                   {m.actionLabel} →

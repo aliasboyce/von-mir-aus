@@ -2,15 +2,15 @@ import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { createRepository } from '../../services/storage/repository';
 import type { ColorPalette, NetworkCategoryConfig } from '../../data/types';
 
-export const BUILT_IN_CATEGORY_IDS = ['person', 'ort', 'aktivitaet', 'ressource'] as const;
+export const BUILT_IN_CATEGORY_IDS = ['person', 'ressource', 'hilfsmittel', 'ort'] as const;
 
 /** The default, built-in categories — labels come from i18n at render time,
  * these just carry stable ids/icons/isCustom + starting colors. */
 export const DEFAULT_CATEGORIES: NetworkCategoryConfig[] = [
   { id: 'person', label: 'Person', color: '#8FAF8A', iconKey: 'user', isCustom: false },
-  { id: 'ort', label: 'Ort', color: '#8FB6CE', iconKey: 'mapPin', isCustom: false },
-  { id: 'aktivitaet', label: 'Aktivität', color: '#E8C27E', iconKey: 'sparkles', isCustom: false },
   { id: 'ressource', label: 'Ressource', color: '#D6A788', iconKey: 'bookHeart', isCustom: false },
+  { id: 'hilfsmittel', label: 'Hilfsmittel', color: '#E8C27E', iconKey: 'sparkles', isCustom: false },
+  { id: 'ort', label: 'Ort', color: '#8FB6CE', iconKey: 'mapPin', isCustom: false },
 ];
 
 /** A soft pastel palette, proposed as the default — gentle enough not to
@@ -22,8 +22,8 @@ export const PASTEL_PALETTE: ColorPalette = {
   colors: {
     person: '#8FAF8A',
     ort: '#8FB6CE',
-    aktivitaet: '#E8C27E',
     ressource: '#D6A788',
+    hilfsmittel: '#E8C27E',
   },
 };
 
@@ -34,8 +34,8 @@ export const FOREST_PALETTE: ColorPalette = {
   colors: {
     person: '#5C7A4E',
     ort: '#6C8C8A',
-    aktivitaet: '#C7A24A',
     ressource: '#A97155',
+    hilfsmittel: '#C7A24A',
   },
 };
 
@@ -46,8 +46,8 @@ export const EVENING_PALETTE: ColorPalette = {
   colors: {
     person: '#8A7CA8',
     ort: '#7B93B0',
-    aktivitaet: '#D69A6B',
     ressource: '#B87A93',
+    hilfsmittel: '#D69A6B',
   },
 };
 

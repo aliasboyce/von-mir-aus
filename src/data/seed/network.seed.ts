@@ -101,7 +101,7 @@ export const DEMO_NETWORK: NetworkEntry[] = [
   {
     id: 'net_lesen',
     name: 'Etwas lesen',
-    category: 'aktivitaet',
+    category: 'ressource',
     role: 'Rückzug',
     helpsWith: ['alltag'],
     createdAt: now,

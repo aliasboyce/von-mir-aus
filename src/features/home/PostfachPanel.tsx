@@ -4,6 +4,7 @@ import { Mail, X, Sparkles, Bell, CalendarClock, Heart, Info } from 'lucide-reac
 import { useT } from '../../i18n';
 import { markAllMailRead, markMailRead, useMailbox, type MailItem, type MailKind } from '../../services/mailbox';
 import { FollowUpBody, isFollowUpMail } from '../calendar/FollowUpBody';
+import { ReviewMailBody, isReviewMail } from '../reviews/ReviewMailBody';
 
 /** A live entry computed by HomePage from state that already lives
  * there (a due letter, today's check-in reminder, a custom reminder).
@@ -151,6 +152,7 @@ function MailRow({ item, unread = false }: { item: MailItem; unread?: boolean })
           <p className="text-[13px] font-medium text-[var(--color-text)]">{item.title}</p>
           {item.text && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed whitespace-pre-line">{item.text}</p>}
           {isFollowUpMail(item) && <FollowUpBody mail={item} />}
+          {isReviewMail(item) && <ReviewMailBody mail={item} />}
           {item.actionKind === 'reload' && item.actionLabel && (
             <button onClick={() => runMailAction(item)} className="text-[13px] text-[var(--color-primary)] block mt-1.5">
               {item.actionLabel} →

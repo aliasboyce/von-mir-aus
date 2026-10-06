@@ -67,8 +67,8 @@ export const SURVIVAL_STATE_ORDER: ZugangSurvivalState[] = ['verbunden', 'mobili
  */
 export const EXTENDED_STATE_GROUPS: { zone: PolyvagalZone; states: ZugangSurvivalState[] }[] = [
   { zone: 'ventral', states: ['verbunden', 'fine', 'friend', 'flood'] },
-  { zone: 'sympathetic', states: ['mobilisiert', 'flucht', 'kampf', 'angepasst'] },
-  { zone: 'dorsal', states: ['erstarren', 'kollaps', 'fakeRuhe'] },
+  { zone: 'sympathetic', states: ['mobilisiert', 'flucht', 'kampf', 'blockiert'] },
+  { zone: 'dorsal', states: ['angepasst', 'erstarren', 'kollaps', 'fakeRuhe'] },
 ];
 
 export const SURVIVAL_STATE_META: Record<ZugangSurvivalState, SurvivalStateMeta> = {
@@ -78,7 +78,7 @@ export const SURVIVAL_STATE_META: Record<ZugangSurvivalState, SurvivalStateMeta>
   kampf: { emoji: '🥊', label: 'Kampf', labelEn: 'Fight', group: 'aktiviert', explanationKey: 'kampf' },
   erstarren: { emoji: '🧊', label: 'Erstarren', labelEn: 'Freeze', group: 'reduziert', explanationKey: 'erstarren' },
   kollaps: { emoji: '🪨', label: 'Kollaps', labelEn: 'Collapse', group: 'reduziert', explanationKey: 'kollaps' },
-  angepasst: { emoji: '🤝', label: 'Angepasst', labelEn: 'Fawn', group: 'aktiviert', explanationKey: 'angepasst' },
+  angepasst: { emoji: '🤝', label: 'Angepasst', labelEn: 'Fawn', group: 'reduziert', explanationKey: 'angepasst' },
   fine: { emoji: '🙂', label: 'Fine', labelEn: 'Fine', group: 'verbunden', explanationKey: 'fine' },
   flood: { emoji: '🌊', label: 'Flood', labelEn: 'Flood', group: 'verbunden', explanationKey: 'flood' },
   friend: { emoji: '🧑\u200d🤝\u200d🧑', label: 'Friend', labelEn: 'Friend', group: 'verbunden', explanationKey: 'friend' },
@@ -86,7 +86,7 @@ export const SURVIVAL_STATE_META: Record<ZugangSurvivalState, SurvivalStateMeta>
   fokus: { emoji: '🎯', label: 'Fokus', labelEn: 'Focus', group: 'verbunden', explanationKey: 'fokus' },
   praesent: { emoji: '✨', label: 'Präsent', labelEn: 'Present', group: 'verbunden', explanationKey: 'praesent' },
   unruhe: { emoji: '〰️', label: 'Unruhe', labelEn: 'Restlessness', group: 'aktiviert', explanationKey: 'unruhe' },
-  blockiert: { emoji: '🔒', label: 'Blockiert', labelEn: 'Blocked', group: 'reduziert', explanationKey: 'blockiert' },
+  blockiert: { emoji: '🔒', label: 'Blockiert', labelEn: 'Blocked', group: 'aktiviert', explanationKey: 'blockiert' },
 };
 
 // ---------------------------------------------------------------------

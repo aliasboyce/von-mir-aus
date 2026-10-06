@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { runStartupMigrations } from '../services/migrations';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { ErrorBoundary } from './ErrorBoundary';
 import { BottomNav } from '../components/navigation/BottomNav';
@@ -27,6 +28,7 @@ import { StorageErrorBanner } from './StorageErrorBanner';
 import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
 import { MailboxSync } from '../components/shared/MailboxSync';
 import { CalendarSync } from '../features/calendar/CalendarSync';
+import { ReviewMailSync } from '../features/reviews/ReviewMailSync';
 import { GentleRemindersSync } from '../components/shared/GentleRemindersSync';
 import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
 import { playSound, warmUpAudio } from '../services/sounds';
@@ -44,6 +46,11 @@ export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
+  // Runs once, synchronously, before any page below reads saved data.
+  useState(() => {
+    runStartupMigrations();
+    return true;
+  });
 
   // "Bei jedem Tippen von Buttons ein Sound"-Auftrag — one listener
   // here covers every button in the app (including ones added later),
@@ -70,9 +77,25 @@ export function AppShell() {
     function onPointerDown() {
       warmUpAudio();
     }
+    /** What counts as "something that was tapped": real buttons and links,
+     * plus (the part that used to be missing, so those taps stayed silent)
+     * switches, tabs, checkboxes/radios/selects and any clickable card or
+     * div — recognised by its pointer cursor. Labels are left out on
+     * purpose: a click on a label re-fires as a click on its input, which
+     * would play the sound twice. */
+    function tappable(target: HTMLElement | null): HTMLElement | null {
+      if (!target) return null;
+      const direct = target.closest<HTMLElement>('button, [role="button"], [role="slider"], [role="switch"], [role="tab"], a[href], summary, select, input[type="checkbox"], input[type="radio"]');
+      if (direct) return direct;
+      let el: HTMLElement | null = target;
+      for (let i = 0; i < 5 && el && el !== document.body; i++, el = el.parentElement) {
+        if (getComputedStyle(el).cursor === 'pointer') return el;
+      }
+      return null;
+    }
     function onClick(e: MouseEvent) {
       const target = e.target as HTMLElement | null;
-      const btn = target?.closest('button, [role="button"], [role="slider"], a[href]');
+      const btn = tappable(target);
       if (!btn || btn.hasAttribute('data-no-tap-feedback')) return;
       if ((btn as HTMLButtonElement).disabled) return;
       // "Extra Toene fuer Kreuz/Beenden/Zurueck"-Auftrag — any button
@@ -93,10 +116,21 @@ export function AppShell() {
       playSound(isMainNav ? 'menu' : 'click', settingsRef.current);
       triggerHaptic('tap', settingsRef.current);
     }
+    // Also warm up on touchstart / keydown and whenever the app comes back to
+    // the foreground (an interrupted audio context is revived right there).
+    function onVisible() {
+      if (document.visibilityState === 'visible') warmUpAudio();
+    }
     document.addEventListener('pointerdown', onPointerDown, true);
+    document.addEventListener('touchstart', onPointerDown, { capture: true, passive: true });
+    document.addEventListener('keydown', onPointerDown, true);
+    document.addEventListener('visibilitychange', onVisible);
     document.addEventListener('click', onClick, true);
     return () => {
       document.removeEventListener('pointerdown', onPointerDown, true);
+      document.removeEventListener('touchstart', onPointerDown, true);
+      document.removeEventListener('keydown', onPointerDown, true);
+      document.removeEventListener('visibilitychange', onVisible);
       document.removeEventListener('click', onClick, true);
     };
   }, []);
@@ -268,6 +302,7 @@ export function AppShell() {
       <StorageErrorBanner />
       <MailboxSync />
       <CalendarSync />
+      <ReviewMailSync />
       <GentleRemindersSync />
       {showPrintFallback && <IOSPrintFallbackModal onClose={() => setShowPrintFallback(false)} />}
 

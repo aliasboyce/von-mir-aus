@@ -30,6 +30,7 @@ import { SkillkettenListPage } from './features/resources/SkillkettenListPage';
 import { SkillketteFormPage } from './features/resources/SkillketteFormPage';
 import { SkillketteDetailPage } from './features/resources/SkillketteDetailPage';
 import { SkillRunPage } from './features/resources/SkillRunPage';
+import { SkillketteRunPage } from './features/resources/SkillketteRunPage';
 import { CalendarPage } from './features/calendar/CalendarPage';
 import { CalendarOverviewPage } from './features/calendar/CalendarOverviewPage';
 // AccessWheelPage retired — see App.tsx route comment
@@ -90,6 +91,7 @@ function App() {
                 <Route path="/entdecken/ressourcen/skillketten" element={<SkillkettenListPage />} />
                 <Route path="/entdecken/ressourcen/skillketten/neu" element={<SkillketteFormPage />} />
                 <Route path="/entdecken/ressourcen/skillketten/:id/bearbeiten" element={<SkillketteFormPage />} />
+                <Route path="/entdecken/ressourcen/skillketten/:id/start" element={<SkillketteRunPage />} />
                 <Route path="/entdecken/ressourcen/skillketten/:id" element={<SkillketteDetailPage />} />
                 <Route path="/entdecken/ressourcen/skill-start/:id" element={<SkillRunPage />} />
                 <Route path="/entdecken/ressourcen/:type" element={<ResourcesPage />} />

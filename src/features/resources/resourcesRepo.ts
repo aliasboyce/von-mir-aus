@@ -66,12 +66,16 @@ const DEFAULT_ZONE_BY_SKILL_CATEGORY: Record<string, string> = {
   mittelweg: 'zone1',
 };
 
+const ACUTE_EXERCISE_IDS = ['res_skill_478_atmung', 'res_skill_36_bauchatmung', 'res_skill_gaehn_impuls', 'res_skill_grounding_54321', 'res_skill_peripheres_sehen', 'res_skill_box_atmung'];
+
 export function assignDefaultZoneIdsToSkills() {
   resourcesRepo.getAll().forEach((r) => {
     if (r.skillDetails?.zoneIds) return;
     const defaultZone = DEFAULT_ZONE_BY_SKILL_CATEGORY[r.category];
     if (!defaultZone) return;
-    resourcesRepo.save({ ...r, skillDetails: { ...r.skillDetails, zoneIds: [defaultZone] } });
+    // acute breathing/body exercises are used from the Fruehwarnbereich on
+    const zoneIds = ACUTE_EXERCISE_IDS.includes(r.id) ? ['zone4', 'zone5'] : [defaultZone];
+    resourcesRepo.save({ ...r, skillDetails: { ...r.skillDetails, zoneIds } });
   });
 }
 

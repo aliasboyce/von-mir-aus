@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ChevronUp, ChevronDown, ArrowUpDown, Check } from 'lucide-react';
+import { ChevronRight, ChevronUp, ChevronDown, ArrowUpDown, Check, Pin, Archive } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { useT } from '../../i18n';
 import { getOrderedKeys, setOrderedKeys, type OrderableSection } from '../../services/sectionOrder';
@@ -20,9 +20,23 @@ export interface OrderableTile {
   color?: string;
 }
 
+/** Optional pin / archive controls (used on Entdecken only): while
+ * `customizing` is on, every tile shows a pin and an archive button and
+ * stops being a link, so tapping can't navigate away by accident. */
+export interface TileCustomization {
+  customizing: boolean;
+  pinned: string[];
+  archived: string[];
+  onTogglePin: (key: string) => void;
+  onToggleArchive: (key: string) => void;
+}
+
 interface ReorderableTilesProps {
   section: OrderableSection;
   tiles: OrderableTile[];
+  customization?: TileCustomization;
+  /** Hide the per-section "Reihenfolge aendern" button (pinned / archive blocks). */
+  hideReorder?: boolean;
 }
 
 /**
@@ -33,7 +47,7 @@ interface ReorderableTilesProps {
  * are simpler to build correctly, and are just as capable of achieving
  * "move Brücken to the top" as a drag would be.
  */
-export function ReorderableTiles({ section, tiles }: ReorderableTilesProps) {
+export function ReorderableTiles({ section, tiles, customization, hideReorder }: ReorderableTilesProps) {
   const t = useT();
   const [editing, setEditing] = useState(false);
   const [order, setOrder] = useState<string[]>(() => getOrderedKeys(section, tiles.map((tl) => tl.key)));
@@ -51,17 +65,19 @@ export function ReorderableTiles({ section, tiles }: ReorderableTilesProps) {
 
   return (
     <div>
-      <div className="flex justify-end mb-2">
-        <button onClick={() => setEditing((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
-          {editing ? <Check size={14} /> : <ArrowUpDown size={14} />}
-          {editing ? t.common.done : t.common.reorder}
-        </button>
-      </div>
+      {!hideReorder && (
+        <div className="flex justify-end mb-2">
+          <button onClick={() => setEditing((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+            {editing ? <Check size={14} /> : <ArrowUpDown size={14} />}
+            {editing ? t.common.done : t.common.reorder}
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-col gap-3">
         {ordered.map(({ key, to, icon: Icon, title, subtitle, color }, i) => {
           const content = (
-            <Card interactive={!editing} className="flex items-center gap-4">
+            <Card interactive={!editing && !customization?.customizing} className="flex items-center gap-4">
               <div
                 className="w-11 h-11 rounded-[var(--radius-md)] flex items-center justify-center flex-shrink-0"
                 style={{ background: color ? `${color}22` : 'var(--color-primary-soft)', color: color ?? 'var(--color-primary)' }}
@@ -72,7 +88,28 @@ export function ReorderableTiles({ section, tiles }: ReorderableTilesProps) {
                 <p className="text-[15px] text-[var(--color-text)]">{title}</p>
                 <p className="text-[13px] text-[var(--color-text-muted)] line-clamp-2">{subtitle}</p>
               </div>
-              {editing ? (
+              {customization?.customizing ? (
+                <div className="flex gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => customization.onTogglePin(key)}
+                    aria-pressed={customization.pinned.includes(key)}
+                    aria-label={customization.pinned.includes(key) ? t.explore.unpinCta : t.explore.pinCta}
+                    className="p-2 rounded-full"
+                    style={customization.pinned.includes(key) ? { background: 'var(--color-primary)', color: 'var(--color-surface)' } : { color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}
+                  >
+                    <Pin size={15} />
+                  </button>
+                  <button
+                    onClick={() => customization.onToggleArchive(key)}
+                    aria-pressed={customization.archived.includes(key)}
+                    aria-label={customization.archived.includes(key) ? t.explore.unarchiveCta : t.explore.archiveCta}
+                    className="p-2 rounded-full"
+                    style={customization.archived.includes(key) ? { background: 'var(--color-text-muted)', color: 'var(--color-surface)' } : { color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}
+                  >
+                    <Archive size={15} />
+                  </button>
+                </div>
+              ) : editing ? (
                 <div className="flex flex-col gap-1 flex-shrink-0">
                   <button
                     onClick={() => move(i, -1)}
@@ -96,7 +133,7 @@ export function ReorderableTiles({ section, tiles }: ReorderableTilesProps) {
               )}
             </Card>
           );
-          return editing ? (
+          return editing || customization?.customizing ? (
             <div key={key}>{content}</div>
           ) : (
             <Link key={key} to={to}>

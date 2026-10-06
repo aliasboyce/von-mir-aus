@@ -16,10 +16,15 @@ import { TensionDayChart } from '../polyvagal/TensionDayChart';
 import { describeTensionDay } from '../polyvagal/describeTensionDay';
 import { mediLogRepo } from '../mediLog/mediLogRepo';
 import { MediLogChart } from '../mediLog/MediLogChart';
-import { effectiveDiaryCategory, DIARY_DEFAULT_CATEGORY_ID, diaryCategoriesStore } from './diaryCategories';
+import { diaryCategoriesStore } from './diaryCategories';
 import { groupByDay } from '../../services/groupByDay';
 import { skillUsesRepo } from '../resources/skillUsesRepo';
 import { appointmentsRepo, wishesRepo, type Appointment, type Wish } from '../calendar/calendarRepo';
+import { activityRepo } from '../../services/activityLog';
+import { zugangRepo } from '../zugang/zugangRepo';
+import { gardenRepo } from '../garden/gardenRepo';
+import { distinctCheckInDays } from '../garden/gardenGrowth';
+import { lettersRepo } from '../briefAnMich/lettersRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { PersonLine } from '../calendar/PersonAvatar';
 import { skillUseLine, skillUseTime, skillUseIsSuccess } from '../resources/skillUseText';
@@ -67,7 +72,7 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
   // instead, with heart bullets matching the Home page, not folded in
   // here as plain text.
   const generalEntries = useMemo(
-    () => diaryEntries.filter((d) => effectiveDiaryCategory(d.categoryId) === DIARY_DEFAULT_CATEGORY_ID),
+    () => diaryEntries.filter((d) => d.inReview === true),
     [diaryEntries],
   );
   const achievementEntries = useMemo(
@@ -98,13 +103,18 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
     const skillUsesByDay = groupByDay(skillUsesRepo.getAll(), (u) => u.endedAt);
     const apByDay = new Map<string, Appointment[]>();
     appointmentsRepo.getAll().forEach((a) => apByDay.set(a.date, [...(apByDay.get(a.date) ?? []), a]));
+    const actByDay = groupByDay(activityRepo.getAll().filter((e) => e.type !== 'checkin'), (e) => e.createdAt);
+    const zugByDay = groupByDay(zugangRepo.getAll(), (z) => z.createdAt);
+    const letByDay = groupByDay(lettersRepo.getAll().filter((l) => l.inReview === true), (l) => l.createdAt);
+    const gardenByDay = new Map<string, string[]>();
+    gardenRepo.getAll().forEach((g) => distinctCheckInDays(g).forEach((d) => gardenByDay.set(d, [...(gardenByDay.get(d) ?? []), g.name])));
     const wiByDay = new Map<string, Wish[]>();
     wishesRepo.getAll().forEach((w) => wiByDay.set(w.day, [...(wiByDay.get(w.day) ?? []), w]));
 
     const dayKeys = new Set<string>([
       ...weatherByDay.keys(), ...polyvagalByDay.keys(), ...tensionByDay.keys(),
       ...diaryByDay.keys(), ...mediLogByDay.keys(), ...achievementsByDay.keys(), ...skillUsesByDay.keys(),
-      ...apByDay.keys(), ...wiByDay.keys(),
+      ...apByDay.keys(), ...wiByDay.keys(), ...actByDay.keys(), ...zugByDay.keys(), ...letByDay.keys(), ...gardenByDay.keys(),
     ]);
 
     return Array.from(dayKeys)
@@ -121,6 +131,10 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
         skillUses: skillUsesByDay.get(day) ?? [],
         appointments: (apByDay.get(day) ?? []).sort((a, b) => a.time.localeCompare(b.time)),
         wishes: wiByDay.get(day) ?? [],
+        activities: actByDay.get(day) ?? [],
+        zugangCount: (zugByDay.get(day) ?? []).length,
+        letters: letByDay.get(day) ?? [],
+        garden: gardenByDay.get(day) ?? [],
       }));
   }, [generalEntries, achievementEntries, showWeather, showPolyvagal, showTension, showMediLog, showAchievements]);
 
@@ -130,7 +144,7 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {days.map(({ day, weather, polyvagal, tension, diary, mediLog, achievements, skillUses, appointments, wishes }) => (
+      {days.map(({ day, weather, polyvagal, tension, diary, mediLog, achievements, skillUses, appointments, wishes, activities, zugangCount, letters, garden }) => (
         <Card key={day}>
           <p className="text-[13px] font-medium text-[var(--color-text)] mb-3">
             {new Date(`${day}T12:00:00`).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -200,6 +214,30 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
                   </p>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* "Jede Funktion, die man in der App anwendet, soll in den Rueckblick" —
+           * used resources/bridges/contacts, Zugang, garden and chosen letters */}
+          {(activities.length > 0 || zugangCount > 0 || garden.length > 0) && (
+            <div className="mb-3">
+              <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{t.reviewSummary.pdfUsedTitle}</p>
+              {activities.map((a) => (
+                <p key={a.id} className="text-[13px] text-[var(--color-text)]">• {a.label}</p>
+              ))}
+              {zugangCount > 0 && <p className="text-[13px] text-[var(--color-text)]">• {t.reviewSummary.pdfZugangTitle}: {t.reviewSummary.pdfZugangCount.replace('{n}', String(zugangCount))}</p>}
+              {garden.map((g) => (
+                <p key={g} className="text-[13px] text-[var(--color-text)]">• {t.reviewSummary.pdfGardenTitle}: {g}</p>
+              ))}
+            </div>
+          )}
+
+          {letters.length > 0 && (
+            <div className="mb-3">
+              <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{t.reviewSummary.pdfLettersTitle}</p>
+              {letters.map((l) => (
+                <p key={l.id} className="text-[13px] text-[var(--color-text-muted)] italic whitespace-pre-line">„{l.text}“</p>
+              ))}
             </div>
           )}
 
@@ -290,7 +328,11 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
             achievements.length === 0 &&
             skillUses.length === 0 &&
             appointments.length === 0 &&
-            wishes.length === 0 && (
+            wishes.length === 0 &&
+            activities.length === 0 &&
+            zugangCount === 0 &&
+            letters.length === 0 &&
+            garden.length === 0 && (
               <p className="text-[13px] text-[var(--color-text-faint)]">{t.diary.reviewNothingThisDay}</p>
             )}
         </Card>

@@ -46,6 +46,7 @@ import { gardenRepo } from '../garden/gardenRepo';
 import { useSettings } from '../../state/SettingsContext';
 import type { ZugangSurvivalState, Bridge, AccessChannel } from '../../data/types';
 import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
+import type { EnergyLevel } from '../../content/energyLevels';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
 const STEP_COUNT = 11; // 0..10, see render switch below
@@ -187,7 +188,7 @@ export function ZugangPage() {
     return withScore.slice(0, 4).map((s) => s.resource);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openChannels]);
-  const [energyFilter, setEnergyFilter] = useState<1 | 2 | 3 | null>(null);
+  const [energyFilter, setEnergyFilter] = useState<EnergyLevel | null>(null);
   const activityContacts = useMemo(() => networkRepo.getAll().filter((e) => e.category === 'person').slice(0, 4), []);
 
   function toggle(list: string[], setList: (v: string[]) => void, value: string) {

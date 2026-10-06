@@ -1,6 +1,15 @@
 import { networkRepo } from './networkRepo';
 import { createId } from '../../services/storage/repository';
 import type { Resource } from '../../data/types';
+import { RESOURCE_CATEGORY_TO_GROUP } from '../resources/resourceMeta';
+
+/** The network role a resource belongs to: a skill is a Ressource, a place
+ * (category Orte) an Ort, every other tool a Hilfsmittel. */
+export function networkCategoryFor(resource: Resource): 'ressource' | 'hilfsmittel' | 'ort' {
+  if (RESOURCE_CATEGORY_TO_GROUP[resource.category] === 'faehigkeiten') return 'ressource';
+  if (resource.category === 'orte') return 'ort';
+  return 'hilfsmittel';
+}
 
 /**
  * Called whenever a resource's favorite flag changes. Auto-CREATES a
@@ -22,14 +31,20 @@ import type { Resource } from '../../data/types';
  * the person to remove themselves if they want it gone.
  */
 export function syncFavoriteResourceToNetwork(resource: Resource): void {
-  if (!resource.favorite) return;
+  // explicit "im Netzwerk anzeigen" switch: unchecked removes the linked node
+  // (an explicit choice), checked or favorited makes sure there is one
+  if (resource.inNetwork === false && !resource.favorite) {
+    networkRepo.getAll().filter((e) => e.linkedResourceId === resource.id).forEach((e) => networkRepo.remove(e.id));
+    return;
+  }
+  if (!resource.favorite && resource.inNetwork !== true) return;
   const already = networkRepo.getAll().some((e) => e.linkedResourceId === resource.id);
   if (already) return;
   const now = new Date().toISOString();
   networkRepo.save({
     id: createId('net'),
     name: resource.title,
-    category: 'ressource',
+    category: networkCategoryFor(resource),
     description: resource.description,
     linkedResourceId: resource.id,
     // "Bild und Informationen automatisch uebernehmen"-Auftrag — the

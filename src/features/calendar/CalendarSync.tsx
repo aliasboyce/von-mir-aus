@@ -20,7 +20,9 @@ const CHECK_EVERY_MS = 30 * 1000;
  * Without a server there are no real push notifications: this only
  * runs while the app is open, and catches up the moment it is opened
  * again (a missed reminder is skipped silently if its time is long
- * past, a missed follow-up still comes for up to a week).
+ * past, a missed follow-up still comes for up to a week). The follow-up
+ * is ONE message (step 'all') — older installs may still hold the former
+ * two-message pair (steps '1' and '2'), which FollowUpBody keeps rendering.
  */
 export function CalendarSync() {
   const t = useT();
@@ -73,24 +75,17 @@ export function CalendarSync() {
           if (now < start + 7 * 24 * 60 * MIN) {
             const who = person ? ` ${settings.language === 'de' ? 'mit' : 'with'} ${person.name}` : '';
             const base = new Date(now).getTime();
-            // The "how was it" card sorts above the "next appointment" card.
+            // ONE message with everything in it (reflection, optional next
+            // appointment, note for next time, then "Fertig") — it used to be
+            // two separate cards.
             addMail({
-              id: `appt-fu2-${tag}`,
-              kind: 'followup',
-              title: t.calendar.followUp2Title,
-              text: '',
-              prominent: true,
-              createdAt: new Date(base).toISOString(),
-              payload: { appointmentId: a.id, step: '2' },
-            });
-            addMail({
-              id: `appt-fu1-${tag}`,
+              id: `appt-fu-${tag}`,
               kind: 'followup',
               title: t.calendar.followUp1Title,
               text: t.calendar.followUp1Text.replace('{title}', a.title).replace('{person}', who),
               prominent: true,
-              createdAt: new Date(base + 1000).toISOString(),
-              payload: { appointmentId: a.id, step: '1' },
+              createdAt: new Date(base).toISOString(),
+              payload: { appointmentId: a.id, step: 'all' },
             });
           }
           changed = { ...changed, followUpDeliveredAt: new Date(now).toISOString() };

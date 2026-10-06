@@ -41,12 +41,39 @@ function getContext(): AudioContext | null {
  * context running ahead of time so the actual click sound later can
  * skip the resume-and-wait step entirely and schedule synchronously.
  */
+let unlocked = false;
 export function warmUpAudio() {
+  // "Ton mal ja, mal nein"-Fund (1): iOS keeps Web Audio silent while the
+  // hardware silent switch is on, unless the page declares its audio as
+  // 'playback' (Safari 16.4+). Harmless where unsupported.
+  try {
+    const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+    if (session) session.type = 'playback';
+  } catch {
+    // not supported
+  }
   const audioCtx = getContext();
-  if (audioCtx && audioCtx.state === 'suspended') {
+  if (!audioCtx) return;
+  // (2) 'interrupted' (iOS after a call / app switch) needs a resume just
+  // like 'suspended' — the old check only looked for 'suspended', so after
+  // an interruption every sound silently stayed off.
+  if (audioCtx.state !== 'running') {
     audioCtx.resume().catch(() => {
       // best-effort warmup; a real tap's own resume() call is the fallback
     });
+  }
+  // (3) iOS only fully unlocks audio once SOMETHING has been started
+  // inside a user gesture: play one inaudible one-sample buffer, once.
+  if (!unlocked) {
+    try {
+      const source = audioCtx.createBufferSource();
+      source.buffer = audioCtx.createBuffer(1, 1, 22050);
+      source.connect(audioCtx.destination);
+      source.start(0);
+      unlocked = true;
+    } catch {
+      // try again on the next gesture
+    }
   }
 }
 
@@ -305,8 +332,18 @@ export function playCompanionSound(kind: CompanionSoundKind, settings: Pick<User
       // nice-to-have only
     }
   }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().then(schedule).catch(schedule);
+  // (4) the old code waited for resume() with no time limit — when that
+  // promise hangs (it does on some phones), no sound ever came. Now: wait
+  // at most 300 ms, and only schedule if the context really is running,
+  // so a late resume never produces a burst of stacked old clicks.
+  if (audioCtx.state !== 'running') {
+    Promise.race([audioCtx.resume(), new Promise((resolve) => setTimeout(resolve, 300))])
+      .then(() => {
+        if (audioCtx.state === 'running') schedule();
+      })
+      .catch(() => {
+        if (audioCtx.state === 'running') schedule();
+      });
   } else {
     schedule();
   }

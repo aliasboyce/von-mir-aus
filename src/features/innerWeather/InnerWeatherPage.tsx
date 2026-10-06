@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import { bandForValue } from '../polyvagal/arousalBands';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
@@ -22,7 +23,7 @@ import { createId } from '../../services/storage/repository';
 import type { NeedDirection, WeatherCondition, PolyvagalZone, ZugangSurvivalState } from '../../data/types';
 import { saveInnerWeatherDraft, loadRecentInnerWeatherDraft, clearInnerWeatherDraft } from './innerWeatherDraft';
 
-type Step = 'select' | 'reflect' | 'zone' | 'tension' | 'need' | 'done';
+type Step = 'select' | 'reflect' | 'zone' | 'tension' | 'need' | 'path' | 'done';
 
 /** A soft, non-diagnostic reflection line per condition, connecting the
  * weather metaphor the person just picked to what it might mean for their
@@ -38,6 +39,11 @@ function reflectionFor(t: ReturnType<typeof useT>, condition: WeatherCondition):
     regnerisch: t.weather.reflect.regnerisch,
     gewitter: t.weather.reflect.gewitter,
     nebel: t.weather.reflect.nebel,
+    sonne_wolken: t.weather.reflect.sonne_wolken,
+    sonne_wind: t.weather.reflect.sonne_wind,
+    sonnenschauer: t.weather.reflect.sonnenschauer,
+    schwuel: t.weather.reflect.schwuel,
+    aufklaren: t.weather.reflect.aufklaren,
     brise: t.weather.reflect.brise,
     sturm: t.weather.reflect.sturm,
     schnee: t.weather.reflect.schnee,
@@ -85,7 +91,7 @@ export function InnerWeatherPage() {
   // Kept as one linear array so the back button and "weiter" always
   // agree on what's next/previous, rather than hand-writing the
   // adjacency in two separate places that could drift out of sync.
-  const STEP_ORDER: Step[] = ['select', 'reflect', 'zone', 'need', 'done'];
+  const STEP_ORDER: Step[] = ['select', 'reflect', 'zone', 'need', 'path', 'done'];
 
   function goBack() {
     const idx = STEP_ORDER.indexOf(step);
@@ -137,8 +143,28 @@ export function InnerWeatherPage() {
         need: n,
       });
     }
-    setStep('done');
     say(pickLine({ page: '/inneres-wetter', trigger: 'speichern' }), { joy: true });
+    // "Nach dem Check-in soll nach Auswahl des Beduerfnisses an die passenden
+    // Ressourcen weitergeleitet werden (im Toleranzfenster); im Warnbereich
+    // erst die Frage: erst Skills anwenden oder trotzdem gleich zu den
+    // Ressourcen?" — warning = Fruehwarnbereich and above (60%+) or the
+    // Hypoarousal range (under 15%).
+    if (tensionValue >= 60 || tensionValue < 15) {
+      setStep('path');
+    } else {
+      clearInnerWeatherDraft();
+      navigate(`/entdecken/ressourcen/hilfsmittel?need=${n}`);
+    }
+  }
+
+  function leaveToSkills() {
+    clearInnerWeatherDraft();
+    navigate(`/entdecken/ressourcen/skills?zone=${bandForValue(tensionValue).id}`);
+  }
+
+  function leaveToResources() {
+    clearInnerWeatherDraft();
+    navigate(`/entdecken/ressourcen/hilfsmittel${need ? `?need=${need}` : ''}`);
   }
 
   function skipToDone() {
@@ -339,6 +365,29 @@ export function InnerWeatherPage() {
           >
             {t.common.skip}
           </button>
+        </div>
+      )}
+
+      {step === 'path' && (
+        <div className="animate-in flex-1 flex flex-col items-center justify-center text-center gap-5 py-10">
+          <span className="text-[44px]" aria-hidden="true">
+            {need ? NEED_META[need].icon : '🧭'}
+          </span>
+          <div>
+            <h1 className="text-[22px] mb-2">{t.weather.pathTitle}</h1>
+            <p className="text-[14px] text-[var(--color-text-muted)] max-w-[300px]">{t.weather.pathText}</p>
+          </div>
+          <div className="w-full flex flex-col gap-3 mt-2">
+            <Button fullWidth onClick={leaveToSkills}>
+              {t.weather.pathSkills}
+            </Button>
+            <Button fullWidth variant="secondary" onClick={leaveToResources}>
+              {t.weather.pathResources}
+            </Button>
+            <Button fullWidth variant="ghost" onClick={() => setStep('done')}>
+              {t.weather.pathLater}
+            </Button>
+          </div>
         </div>
       )}
 

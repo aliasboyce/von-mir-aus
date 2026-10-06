@@ -64,6 +64,20 @@ export interface ArousalBand {
  * per zone slot — only labelKey text and min/max move, so every
  * feature keyed off zone id/color/exercises keeps working untouched.
  */
+/*
+ * "Was trifft am ehesten zu?"-Pruefung — the tags offered per zone, checked
+ * against the F-states placement in content/fStates.ts (same text as the
+ * rainbow explainer):
+ *   Erholungsphase 15-29     Verbunden, Friend
+ *   Konzentration/Alltag     Fine, Praesent
+ *   Fokus & Flow 40-59       Fokus, Praesent          (Flood/Unruhe REMOVED: they
+ *                                                      sit at the upper edge)
+ *   Fruehwarnbereich 60-69   Flood, Unruhe, Mobilisiert
+ *   Hyperarousal 70-100      Kampf, Flucht, Blockiert (= Freeze unter Hochspannung;
+ *                                                      Fawn REMOVED: it sits at 12-15%)
+ *   Hypoarousal 0-14         Angepasst (Fawn), Erstarren (Freeze), Kollaps (Flop/Faint),
+ *                            Fake-Ruhe
+ */
 export const AROUSAL_BANDS: ArousalBand[] = [
   {
     id: 'zone1',
@@ -72,7 +86,7 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     color: '#3d8b52',
     labelKey: 'zone1',
     polyvagalZone: 'ventral',
-    states: ['fine', 'friend'],
+    states: ['verbunden', 'friend'],
     inWindow: true,
     exercises: [
       { resourceId: 'res_skill_478_atmung', exerciseName: '4-7-8 Atmung' },
@@ -87,7 +101,7 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     color: '#8fae3d',
     labelKey: 'zone2',
     polyvagalZone: 'ventral',
-    states: ['fokus', 'praesent'],
+    states: ['fine', 'praesent'],
     inWindow: true,
     exercises: [
       { resourceId: 'res_skill_grounding_54321', exerciseName: 'Kognitives Grounding' },
@@ -102,7 +116,7 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     color: '#6fbf73',
     labelKey: 'zone3',
     polyvagalZone: 'ventral',
-    states: ['flood', 'unruhe'],
+    states: ['fokus', 'praesent'],
     inWindow: true,
     exercises: [
       { resourceId: 'res_skill_voo_atem', exerciseName: 'Orientierung & Voo-Atem' },
@@ -117,7 +131,7 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     color: '#e8a83d',
     labelKey: 'zone4',
     polyvagalZone: 'ventral',
-    states: ['flood', 'unruhe'],
+    states: ['flood', 'unruhe', 'mobilisiert'],
     inWindow: true,
     exercises: [
       { resourceId: 'res_skill_voo_atem', exerciseName: 'Orientierung & Voo-Atem' },
@@ -132,7 +146,7 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     color: '#c9522f',
     labelKey: 'zone5',
     polyvagalZone: 'sympathetic',
-    states: ['flucht', 'kampf', 'angepasst'],
+    states: ['kampf', 'flucht', 'blockiert'],
     inWindow: false,
     exercises: [
       { resourceId: 'res_skill_physio_seufzer', exerciseName: 'Physiologischer Seufzer' },
@@ -147,7 +161,7 @@ export const AROUSAL_BANDS: ArousalBand[] = [
     color: '#4a6fa5',
     labelKey: 'zone6',
     polyvagalZone: 'dorsal',
-    states: ['kollaps', 'fakeRuhe'],
+    states: ['angepasst', 'erstarren', 'kollaps', 'fakeRuhe'],
     inWindow: false,
     exercises: [
       { resourceId: 'res_skill_schmetterling_klopf', exerciseName: 'Schmetterlings-Klopfen' },

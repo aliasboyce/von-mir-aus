@@ -76,7 +76,7 @@ let currentLanguage: 'de' | 'en' = 'de';
 export function setCompanionLanguage(lang: 'de' | 'en'): void {
   currentLanguage = lang;
 }
-function textFor(line: CompanionLine): string {
+export function textFor(line: CompanionLine): string {
   return currentLanguage === 'en' ? line.textEn : line.text;
 }
 

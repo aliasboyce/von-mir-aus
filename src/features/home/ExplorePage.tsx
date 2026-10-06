@@ -1,7 +1,9 @@
-import { Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy } from 'lucide-react';
+import { useState } from 'react';
+import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
-import { ReorderableTiles } from '../../components/navigation/ReorderableTiles';
+import { ReorderableTiles, type TileCustomization } from '../../components/navigation/ReorderableTiles';
+import { getPins, getArchived, togglePin, toggleArchive } from '../../services/exploreCustomization';
 import { useT } from '../../i18n';
 import type { OrderableSection } from '../../services/sectionOrder';
 
@@ -29,6 +31,24 @@ interface Tile {
  */
 export function ExplorePage() {
   const t = useT();
+  const [customizing, setCustomizing] = useState(false);
+  const [pins, setPins] = useState<string[]>(() => getPins());
+  const [archived, setArchived] = useState<string[]>(() => getArchived());
+  const customization: TileCustomization = {
+    customizing,
+    pinned: pins,
+    archived,
+    onTogglePin: (key) => {
+      setPins(togglePin(key));
+      setArchived(getArchived());
+    },
+    onToggleArchive: (key) => {
+      setArchived(toggleArchive(key));
+      setPins(getPins());
+    },
+  };
+  // every group below gets a fresh start when something was pinned/archived
+  const versionKey = `${pins.join(',')}|${archived.join(',')}`;
 
   const bodyTiles: Tile[] = [
     { key: 'koerper', to: '/entdecken/koerper', icon: PersonStanding, title: t.bodyAwarenessRef.title, subtitle: t.bodyAwarenessRef.subtitle, color: 'var(--color-accent-clay)' },
@@ -96,6 +116,11 @@ export function ExplorePage() {
     { label: t.explore.subUnterstuetzen, section: 'entdecken-unterstuetzen', tiles: supportTiles },
   ];
 
+  const allTiles = [...erforschenGroups, ...tunGroups].flatMap((g) => g.tiles);
+  const pinnedTiles = pins.map((k) => allTiles.find((tl) => tl.key === k)).filter((tl): tl is Tile => !!tl);
+  const archivedTiles = archived.map((k) => allTiles.find((tl) => tl.key === k)).filter((tl): tl is Tile => !!tl);
+  const hide = (tiles: Tile[]) => tiles.filter((tl) => !pins.includes(tl.key) && !archived.includes(tl.key));
+
   return (
     <div className="px-5 pt-8 pb-6 animate-in">
       <div className="flex items-start justify-between mb-1">
@@ -103,6 +128,22 @@ export function ExplorePage() {
         <HelpButton helpKey="entdecken" />
       </div>
       <p className="text-[14px] text-[var(--color-text-muted)] mb-2">{t.resources.subtitle}</p>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed flex-1">{customizing ? t.explore.customizeHint : ''}</p>
+        <button onClick={() => setCustomizing((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] flex-shrink-0">
+          {customizing ? <Check size={14} /> : <Pin size={14} />}
+          {customizing ? t.explore.customizeDone : t.explore.customize}
+        </button>
+      </div>
+
+      {pinnedTiles.length > 0 && (
+        <div className="mb-6">
+          <p className="text-[15px] font-medium text-[var(--color-text)] mb-2 flex items-center gap-1.5">
+            <Pin size={15} /> {t.explore.pinnedTitle}
+          </p>
+          <ReorderableTiles key={`pin-${versionKey}`} section="entdecken-angepinnt" tiles={pinnedTiles} customization={customization} />
+        </div>
+      )}
       <p className="text-[13px] text-[var(--color-text-faint)] mb-3 leading-relaxed">{t.explore.groupsIntro}</p>
       <Link
         to="/system-karte"
@@ -122,7 +163,7 @@ export function ExplorePage() {
       {erforschenGroups.map((g) => (
         <div key={g.section} className="mb-5">
           <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{g.label}</p>
-          <ReorderableTiles section={g.section} tiles={g.tiles} />
+          {hide(g.tiles).length > 0 && <ReorderableTiles key={`${g.section}-${versionKey}`} section={g.section} tiles={hide(g.tiles)} customization={customization} />}
         </div>
       ))}
       <Link to="/quellen" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-1 mb-1">
@@ -134,9 +175,21 @@ export function ExplorePage() {
       {tunGroups.map((g) => (
         <div key={g.section} className="mb-5">
           <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{g.label}</p>
-          <ReorderableTiles section={g.section} tiles={g.tiles} />
+          {hide(g.tiles).length > 0 && <ReorderableTiles key={`${g.section}-${versionKey}`} section={g.section} tiles={hide(g.tiles)} customization={customization} />}
         </div>
       ))}
+
+      {archivedTiles.length > 0 && (
+        <div className="mt-8 pt-5" style={{ borderTop: '1px solid var(--color-border)' }}>
+          <p className="text-[13px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2 flex items-center gap-1.5">
+            <Archive size={14} /> {t.explore.archiveTitle}
+          </p>
+          {/* archived pages: still reachable, but visibly set back — darker and greyed */}
+          <div style={{ opacity: 0.6, filter: 'grayscale(0.85)' }}>
+            <ReorderableTiles key={`arch-${versionKey}`} section="entdecken-archiv" tiles={archivedTiles} customization={customization} hideReorder />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

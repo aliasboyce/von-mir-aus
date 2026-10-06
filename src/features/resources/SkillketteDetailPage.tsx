@@ -77,6 +77,15 @@ export function SkillketteDetailPage() {
         </div>
         {kette.subtitle && <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{kette.subtitle}</p>}
 
+        {/* "Skillkette starten" — same idea as 'Skill starten', but for the whole chain */}
+        <button
+          onClick={() => navigate(`/entdecken/ressourcen/skillketten/${kette.id}/start`)}
+          className="w-full py-3.5 rounded-[var(--radius-full)] text-[15px] font-medium mb-5"
+          style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}
+        >
+          {t.skillRun.chainStartCta}
+        </button>
+
         {(kette.notfallTrigger || kette.koerperlicheWarnsignale || kette.startProzent) && (
           <div className="rounded-[var(--radius-lg)] p-3.5 mb-4" style={{ background: 'var(--color-surface-muted)' }}>
             <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{t.resources.skillketteSection1Title}</p>

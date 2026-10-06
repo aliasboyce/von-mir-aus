@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import { networkRepo } from '../safetyNet/networkRepo';
+import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
+import type { NeedDirection } from '../../data/types';
+import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
+import type { EnergyLevel } from '../../content/energyLevels';
 import { Plus, X, RefreshCw } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
@@ -69,6 +74,9 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
   const [gegenanzeigen, setGegenanzeigen] = useState(d?.gegenanzeigen ?? '');
   const [unterwegsAlternative, setUnterwegsAlternative] = useState(d?.unterwegsAlternative ?? '');
   const [accessChannels, setAccessChannels] = useState<AccessChannel[]>(resource?.accessChannels ?? []);
+  const [inNetwork, setInNetwork] = useState<boolean>(() => resource?.inNetwork ?? networkRepo.getAll().some((e) => e.linkedResourceId === resource?.id));
+  const [linkedNeeds, setLinkedNeeds] = useState<NeedDirection[]>(resource?.linkedNeeds ?? []);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | undefined>(resource?.energyLevel);
   const [zoneIds, setZoneIds] = useState<string[]>(d?.zoneIds ?? []);
   const [relatedHilfsmittelIds, setRelatedHilfsmittelIds] = useState<string[]>(d?.relatedHilfsmittelIds ?? []);
   const hilfsmittelOptions = resourcesRepo.getAll().filter((r) => RESOURCE_CATEGORY_TO_GROUP[r.category] === 'hilfsmittel');
@@ -94,6 +102,9 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
       tags: resource?.tags ?? ['dbt'],
       favorite: resource?.favorite ?? false,
       accessChannels,
+      energyLevel,
+      linkedNeeds: linkedNeeds.length > 0 ? linkedNeeds : undefined,
+      inNetwork,
       createdAt: resource?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       skillDetails: {
@@ -134,6 +145,23 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
         </Field>
 
         <ZonePicker selected={zoneIds} onChange={setZoneIds} />
+
+        <div>
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5">{t.energy.formTitleSkill}</p>
+          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.energy.fieldHint}</p>
+          <EnergyLevelPicker value={energyLevel} onChange={setEnergyLevel} />
+        </div>
+
+        <NeedsMultiPicker selected={linkedNeeds} onChange={setLinkedNeeds} />
+
+        {/* "Beim Erstellen abhaken, dass es im Netzwerk erscheinen soll" */}
+        <label className="flex items-start gap-2.5 cursor-pointer">
+          <input type="checkbox" className="mt-0.5" checked={inNetwork} onChange={(e) => setInNetwork(e.target.checked)} />
+          <span>
+            <span className="block text-[13px] text-[var(--color-text)]">{t.resources.inNetworkToggle}</span>
+            <span className="block text-[11.5px] text-[var(--color-text-faint)]">{t.resources.inNetworkHint}</span>
+          </span>
+        </label>
 
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
           <p className="text-[13px] font-semibold text-[var(--color-text)] mb-2">{t.resources.skillSection1Title}</p>

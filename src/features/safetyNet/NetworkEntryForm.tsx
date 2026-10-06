@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { RESOURCE_CATEGORY_TO_GROUP } from '../resources/resourceMeta';
 import { Plus, X, Upload } from 'lucide-react';
 import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
@@ -92,15 +93,27 @@ export function NetworkEntryForm({
   }
 
   const selectedCategory = categories.find((c) => c.id === draft.category) ?? categories[0];
-  const relevantResources = resources.filter(
-    () => draft.category === 'aktivitaet' || draft.category === 'ressource' || draft.linkedResourceId,
-  );
+  // "Beim Netzwerk-Element gleich mit einer vorhandenen Ressource / einem
+  // Hilfsmittel / einem Ort verbinden, damit nichts doppelt ist": the list
+  // offered depends on the role — Ressource = skills, Hilfsmittel = tools
+  // (not places), Ort = the Orte category.
+  const relevantResources = resources.filter((r) => {
+    const isSkill = RESOURCE_CATEGORY_TO_GROUP[r.category] === 'faehigkeiten';
+    if (draft.category === 'ressource' || draft.category === 'aktivitaet') return isSkill;
+    if (draft.category === 'hilfsmittel') return !isSkill && r.category !== 'orte';
+    if (draft.category === 'ort') return r.category === 'orte';
+    return false;
+  });
 
   return (
     <form
       className="flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
+        // the linked resource now carries the "im Netzwerk" mark, so the
+        // two stay one connected thing instead of two copies
+        const linked = draft.linkedResourceId ? resources.find((r) => r.id === draft.linkedResourceId) : undefined;
+        if (linked && linked.inNetwork !== true) resourcesRepo.save({ ...linked, inNetwork: true });
         onSubmit();
       }}
     >
@@ -368,13 +381,23 @@ export function NetworkEntryForm({
         </>
       )}
 
-      {(draft.category === 'aktivitaet' || draft.category === 'ressource') && relevantResources.length > 0 && (
+      {(draft.category === 'ressource' || draft.category === 'hilfsmittel' || draft.category === 'ort' || draft.category === 'aktivitaet') && relevantResources.length > 0 && (
         <Field label={`${t.network.linkedResource} ${t.common.optional}`}>
           <p className="text-[11px] text-[var(--color-text-faint)] -mt-1 mb-1">{t.network.linkedResourceHint}</p>
           <select
             className="input"
             value={draft.linkedResourceId ?? ''}
-            onChange={(e) => onChange({ ...draft, linkedResourceId: e.target.value || undefined })}
+            onChange={(e) => {
+              const picked = relevantResources.find((r) => r.id === e.target.value);
+              // choosing one fills in what the entry does not have yet
+              onChange({
+                ...draft,
+                linkedResourceId: e.target.value || undefined,
+                name: draft.name.trim() ? draft.name : picked?.title ?? draft.name,
+                description: draft.description || picked?.description,
+                photoDataUrl: draft.photoDataUrl ?? picked?.image,
+              });
+            }}
           >
             <option value="">{t.network.linkedResourceNone}</option>
             {relevantResources.map((r) => (

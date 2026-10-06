@@ -22,7 +22,9 @@ export type OrderableSection =
   | 'entdecken-bruecken-bauen'
   | 'entdecken-alltag'
   | 'entdecken-schreiben'
-  | 'entdecken-unterstuetzen';
+  | 'entdecken-unterstuetzen'
+  | 'entdecken-angepinnt'
+  | 'entdecken-archiv';
 
 const stores: Record<OrderableSection, ReturnType<typeof createKeyValueStore<string[]>>> = {
   entdecken: createKeyValueStore<string[]>('section-order-entdecken', []),
@@ -47,6 +49,8 @@ const stores: Record<OrderableSection, ReturnType<typeof createKeyValueStore<str
   'entdecken-alltag': createKeyValueStore<string[]>('section-order-entdecken-alltag', []),
   'entdecken-schreiben': createKeyValueStore<string[]>('section-order-entdecken-schreiben', []),
   'entdecken-unterstuetzen': createKeyValueStore<string[]>('section-order-entdecken-unterstuetzen', []),
+  'entdecken-angepinnt': createKeyValueStore<string[]>('section-order-entdecken-angepinnt', []),
+  'entdecken-archiv': createKeyValueStore<string[]>('section-order-entdecken-archiv', []),
 };
 
 /** Returns `defaultKeys` reordered according to any saved custom order -

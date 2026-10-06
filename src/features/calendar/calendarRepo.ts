@@ -59,8 +59,14 @@ const DEFAULT_CATEGORIES: CalendarCategory[] = [
   { id: 'cal_freunde', label: 'Freunde', color: '#3d8b52' },
 ];
 
+const categoriesSeededStore = createKeyValueStore<boolean>('calendar-categories-seeded', false);
+
+/** Pre-fills the three suggestions exactly ONCE. (seedIfEmpty on its own
+ * would bring them back whenever someone deleted all categories.) */
 export function seedCalendarCategoriesIfEmpty() {
+  if (categoriesSeededStore.get()) return;
   calendarCategoriesRepo.seedIfEmpty(DEFAULT_CATEGORIES);
+  categoriesSeededStore.set(true);
 }
 
 export const CATEGORY_COLOR_CHOICES = ['#c9522f', '#e8a83d', '#8fae3d', '#3d8b52', '#4a6fa5', '#7d5a95', '#b4637a', '#5a6b5e'];

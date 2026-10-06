@@ -1,4 +1,6 @@
 import type { TimeOfDay, WeatherMood } from './homeContext';
+import { getCustomLines, currentTimeOfDay, getDeactivatedIds } from '../../components/companion/companionContentManagement';
+import { textFor } from '../../components/companion/companionRegistry';
 
 /**
  * Extensible contextual sayings for the Home hero companion. To add a new
@@ -75,4 +77,38 @@ export function pickHomeContextLine(
   const chosen = (candidates.length > 0 ? candidates : pool)[Math.floor(Math.random() * (candidates.length > 0 ? candidates.length : pool.length))];
   lastShown = chosen;
   return chosen;
+}
+
+/**
+ * "Ich habe neue Saetze hinzugefuegt, die am Anfang auf der Startseite
+ * angezeigt werden — aber sie werden mir nie angezeigt"-Fund. Own
+ * sentences added under Wesen-Inhalte (Ort: Startseite, or "ueberall"
+ * with an opening trigger) are kept in the companion registry, but the
+ * Home page never asked the registry — it only used the fixed lists
+ * above, so those sentences could not appear. This returns one of the
+ * person's own Home sentences, or null. How often one is offered follows
+ * the frequency they chose (selten ~12%, gelegentlich ~30%, haeufig
+ * ~50% per visit), and the time-of-day choice is respected.
+ */
+const CUSTOM_HOME_CHANCE = { selten: 0.12, gelegentlich: 0.3, haeufig: 0.5 } as const;
+let lastCustom: string | null = null;
+
+export function pickCustomHomeLine(): string | null {
+  const deactivated = getDeactivatedIds();
+  const now = currentTimeOfDay();
+  const lines = getCustomLines().filter((l) => {
+    if (deactivated.has(l.id)) return false;
+    const forHome = l.page === '/' || (l.page === '*' && (l.trigger === 'erstes_oeffnen' || l.trigger === 'wiederholtes_oeffnen'));
+    const timeOk = !l.timeOfDay || l.timeOfDay === 'any' || l.timeOfDay === now;
+    return forHome && timeOk;
+  });
+  if (lines.length === 0) return null;
+  // the chance of showing a custom line at all = the highest frequency among the candidates
+  const chance = Math.max(...lines.map((l) => CUSTOM_HOME_CHANCE[l.frequency ?? 'gelegentlich']));
+  if (Math.random() > chance) return null;
+  const fresh = lines.filter((l) => textFor(l) !== lastCustom);
+  const pool = fresh.length > 0 ? fresh : lines;
+  const chosen = pool[Math.floor(Math.random() * pool.length)];
+  lastCustom = textFor(chosen);
+  return lastCustom;
 }

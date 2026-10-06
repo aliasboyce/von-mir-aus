@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useSettings } from '../../state/SettingsContext';
+import { energyInfo } from '../../content/energyLevels';
 import { goBack } from '../../services/navigation';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -41,6 +43,7 @@ export function BridgeDetailPage() {
   const fromZugang = searchParams.get('fromZugang') === '1';
   const [showZugangExitDialog, setShowZugangExitDialog] = useState(false);
   const t = useT();
+  const { settings } = useSettings();
   const say = useCompanionSay();
   const [bridge, setBridge] = useState<Bridge | undefined>(() => (id ? bridgesRepo.getById(id) : undefined));
   // "Bruecken als Verbindungen"-Brief — a genuine, honest usage-history
@@ -422,7 +425,7 @@ export function BridgeDetailPage() {
                   </span>
                   {lvl.energyLevel && (
                     <span className="inline-block mt-1 text-[11px] text-[var(--color-text-faint)]">
-                      {'⚡'.repeat(lvl.energyLevel)}
+                      {'🔋'.repeat(lvl.energyLevel)} {energyInfo(lvl.energyLevel, settings.language === 'en' ? 'en' : 'de')?.label}
                     </span>
                   )}
                 </span>
