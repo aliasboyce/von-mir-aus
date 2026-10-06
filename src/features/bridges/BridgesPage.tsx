@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -122,7 +123,7 @@ export function BridgesPage() {
       <div className="flex items-start justify-between mb-1">
         <div className="flex items-center gap-2">
           {location.key !== 'default' && (
-            <button onClick={() => navigate(-1)} aria-label={t.common.back} className="w-8 h-8 -ml-1.5 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)] flex-shrink-0">
+            <button onClick={() => goBack(navigate)} aria-label={t.common.back} className="w-8 h-8 -ml-1.5 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)] flex-shrink-0">
               <ChevronLeft size={20} />
             </button>
           )}

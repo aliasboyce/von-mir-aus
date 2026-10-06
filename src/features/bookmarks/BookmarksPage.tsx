@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { Plus, Bookmark as BookmarkIcon, ExternalLink, Trash2, Pencil, Settings2, X, Check, Link2, FileDown } from 'lucide-react';
@@ -120,20 +121,7 @@ export function BookmarksPage() {
       categoryLabel: categoryLabel(bm.categoryId),
     };
     const url = `${window.location.origin}/entdecken/lesezeichen/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: bm.title, url });
-      } catch {
-        // person cancelled the share sheet — nothing to do
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        alert(t.resources.shareLinkCopied);
-      } catch {
-        // clipboard unavailable — silently ignore
-      }
-    }
+    await shareOrCopy({ title: bm.title, url }, t.resources.shareLinkCopied);
   }
 
   function remove(id: string) {

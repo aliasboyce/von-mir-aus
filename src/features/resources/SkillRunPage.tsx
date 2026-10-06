@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
@@ -119,7 +120,7 @@ export function SkillRunPage() {
 
   function cancelRun() {
     if (elapsedSec > 10 && !window.confirm(t.skillRun.cancelConfirm)) return;
-    navigate(-1);
+    goBack(navigate);
   }
 
   function save() {

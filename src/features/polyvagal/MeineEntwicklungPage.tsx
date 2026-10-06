@@ -16,6 +16,7 @@ import { MiniCurve } from './MiniCurve';
 import { PolyvagalDayChart } from './PolyvagalDayChart';
 import { ChartPrintView } from './ChartPrintView';
 import { DailyReviewsPrintView } from './DailyReviewsPrintView';
+import { exportCurvePdf } from '../reviews/curvePdf';
 import { bandForValueCalibrated, FALLBACK_TENSION_BY_ZONE } from './arousalBands';
 import type { PolyvagalCheckIn } from '../../data/types';
 
@@ -110,7 +111,7 @@ export function MeineEntwicklungPage() {
             <Maximize2 size={15} />
           </button>
           <button
-            onClick={() => window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50)}
+            onClick={() => void exportCurvePdf(chartPeriod, t, locale)}
             aria-label={t.polyvagal.printChartCta}
             className="w-9 h-9 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center flex-shrink-0"
           >
@@ -136,7 +137,7 @@ export function MeineEntwicklungPage() {
                   {chartPeriod === 'week' ? t.polyvagal.weekChart : chartPeriod === 'month' ? t.polyvagal.monthChart : t.polyvagal.todayChart}
                 </p>
                 <button
-                  onClick={() => window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50)}
+                  onClick={() => void exportCurvePdf(chartPeriod, t, locale)}
                   aria-label={t.polyvagal.printChartCta}
                   className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
                 >
@@ -177,7 +178,7 @@ export function MeineEntwicklungPage() {
             <div className="flex items-center justify-between mb-3">
               <p className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.polyvagal.dailyReviewsTitle}</p>
               <button
-                onClick={() => window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50)}
+                onClick={() => window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation, 'daily-reviews'), 50)}
                 aria-label={t.polyvagal.printDailyReviewsCta}
                 className="w-8 h-8 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center flex-shrink-0"
               >

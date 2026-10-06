@@ -162,7 +162,7 @@ export function SettingsPage() {
         <SectionLabel>🎨 {t.settings.appearance}</SectionLabel>
         <Card className="mb-3" padding="md">
           <p className="text-[13px] text-[var(--color-text-muted)] mb-2">{t.settings.theme}</p>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Chip
               selected={settings.themeMode === 'light'}
               onClick={() => updateSettings({ themeMode: 'light' as ThemeMode })}

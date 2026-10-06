@@ -86,7 +86,7 @@ export const COMPANION_LINES: CompanionLine[] = [
   { id: 'greet-2', text: 'Hallo. Ich bin hier, ganz in deinem Tempo.', textEn: 'Hi. I\'m here, at whatever pace works for you.', category: 'einfuehrung', page: '/', trigger: 'erstes_oeffnen' },
   { id: 'greet-3', text: 'Da bist du ja. Kein Grund zur Eile.', textEn: 'There you are. No rush.', category: 'einfuehrung', page: '/', trigger: 'wiederholtes_oeffnen' },
   { id: 'greet-4', text: 'Übrigens: Du kannst mich halten und verschieben, wohin du magst — und über mein Menü schlafen legen oder aufwecken.', textEn: 'By the way: you can hold and move me wherever you like — and put me to sleep or wake me up from my menu.', category: 'einfuehrung', page: '/', trigger: 'wiederholtes_oeffnen' },
-  { id: 'greet-4', text: 'Willkommen zurück.', textEn: 'Welcome back.', category: 'einfuehrung', page: '/', trigger: 'wiederholtes_oeffnen' },
+  { id: 'greet-5', text: 'Willkommen zurück.', textEn: 'Welcome back.', category: 'einfuehrung', page: '/', trigger: 'wiederholtes_oeffnen' },
   { id: 'home-1', text: 'Du musst hier nichts leisten — nur schauen, was gerade da ist.', textEn: 'There\'s nothing to achieve here — just notice what\'s there right now.', category: 'beruhigend', page: '*', trigger: 'erstes_oeffnen' },
   { id: 'home-2', text: 'Ein kleiner Check-in reicht schon.', textEn: 'A quick check-in is plenty.', category: 'tipp', page: '/', trigger: 'leerlauf' },
   { id: 'home-3', text: 'Kein Druck. Du entscheidest, was du gerade brauchst.', textEn: 'No pressure. You decide what you need right now.', category: 'beruhigend', page: '*', trigger: 'leerlauf' },

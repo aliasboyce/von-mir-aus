@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Send, Wind, Scissors } from 'lucide-react';
@@ -76,7 +77,7 @@ export function LetGoPage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} action={<HelpButton helpKey="letGo" />} />
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="letGo" />} />
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-1">{t.letGo.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6 leading-relaxed">{t.letGo.subtitle}</p>

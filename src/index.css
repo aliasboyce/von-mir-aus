@@ -572,6 +572,9 @@ button {
   .print-only {
     display: block !important;
   }
+  .print-only[data-print-skip] {
+    display: none !important;
+  }
 }
 .print-only {
   display: none;

@@ -9,8 +9,8 @@ import { Button } from '../../components/ui/Button';
 import { ReminderControl } from '../../components/shared/ReminderControl';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
-import { triggerPrint } from '../../services/printSupport';
 import { ChartPrintView } from './ChartPrintView';
+import { exportCurvePdf } from '../reviews/curvePdf';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { polyvagalRepo, todaysCheckIns, checkInsInLastDays } from './polyvagalRepo';
@@ -279,7 +279,7 @@ export function PolyvagalPage() {
                 {chartPeriod === 'week' ? t.polyvagal.weekChart : chartPeriod === 'month' ? t.polyvagal.monthChart : t.polyvagal.todayChart}
               </p>
               <button
-                onClick={() => window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50)}
+                onClick={() => void exportCurvePdf(chartPeriod, t, settings.language === 'de' ? 'de-DE' : 'en-US')}
                 aria-label={t.polyvagal.printChartCta}
                 className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
               >

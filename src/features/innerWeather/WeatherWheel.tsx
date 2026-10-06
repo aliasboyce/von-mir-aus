@@ -50,6 +50,23 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
   const [rotation, setRotation] = useState(() => -(selectedIndex >= 0 ? selectedIndex : 0) * stepDeg);
   const dragState = useRef<{ startAngle: number; startRotation: number; lastAngle: number; moved: boolean } | null>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
+  // "Wetter-Rad ist auf kleinen Handys zu breit"-Fund — the wheel is laid
+  // out at a fixed 360px (all its items are positioned in px). On phones
+  // narrower than ~400px that pushed the whole page sideways (60px on a
+  // 320px phone). It is now scaled down to the width actually available;
+  // dragging only uses angles around the (scaled) centre, so it is
+  // unaffected.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const update = () => setScale(Math.min(1, el.clientWidth / SIZE));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const [dragging, setDragging] = useState(false);
   // "Nur bei echtem Antippen weitergehen"-Auftrag — what's currently
   // framed at the top marker, purely a preview until confirmed by a
@@ -123,10 +140,11 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
 
   return (
     <div className="flex flex-col items-center gap-3">
+      <div ref={boxRef} className="mx-auto" style={{ width: '100%', maxWidth: SIZE, height: SIZE * scale }}>
       <div
         ref={wheelRef}
-        className="relative mx-auto touch-none"
-        style={{ width: SIZE, height: SIZE, cursor: dragging ? 'grabbing' : 'grab' }}
+        className="relative touch-none"
+        style={{ width: SIZE, height: SIZE, cursor: dragging ? 'grabbing' : 'grab', transform: `scale(${scale})`, transformOrigin: 'top left' }}
         onPointerDown={onPointerDown}
         role="slider"
         aria-label={t.weather.subtitle}
@@ -218,6 +236,7 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
             );
           })}
         </div>
+      </div>
       </div>
       <p className="text-[12px] text-[var(--color-text-faint)] text-center max-w-[280px]">{t.weather.wheelDragHint}</p>
     </div>

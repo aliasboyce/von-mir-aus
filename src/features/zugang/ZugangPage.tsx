@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { goBack as goBackSafe } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useNavigate, Link } from 'react-router-dom';
 import { ChevronLeft, History } from 'lucide-react';
@@ -199,7 +200,7 @@ export function ZugangPage() {
   function goBack() {
     setBackCount((c) => c + 1);
     if (step === 0) {
-      navigate(-1);
+      goBackSafe(navigate);
       return;
     }
     setStep((s) => Math.max(s - 1, 0));
@@ -302,7 +303,7 @@ export function ZugangPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 text-center">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => goBackSafe(navigate)}
           aria-label={t.common.close}
           className="absolute top-5 left-5 w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)]"
           style={{ top: 'max(20px, env(safe-area-inset-top))' }}

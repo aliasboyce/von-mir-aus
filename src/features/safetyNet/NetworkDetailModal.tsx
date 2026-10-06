@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { shareOrCopy } from '../../services/shareOrCopy';
 import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, Trash2, Pencil, ArrowUpRight, Link2, Share2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
@@ -81,20 +82,7 @@ export function NetworkDetailModal({
       helpsWith: entry.helpsWith,
     };
     const url = `${window.location.origin}/sicherheit/kontakte/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: entry.name, url });
-      } catch {
-        // person cancelled the share sheet — nothing to do
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        alert(t.resources.shareLinkCopied);
-      } catch {
-        // clipboard unavailable — silently ignore
-      }
-    }
+    await shareOrCopy({ title: entry.name, url }, t.resources.shareLinkCopied);
   }
 
   return (

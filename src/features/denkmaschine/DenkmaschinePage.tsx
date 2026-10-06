@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { createPortal } from 'react-dom';
 import { useNavigate, Link } from 'react-router-dom';
 import { Plus, X, Check } from 'lucide-react';
@@ -102,7 +103,7 @@ export function DenkmaschinePage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} action={<HelpButton helpKey="glaubenssaetze" />} />
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="glaubenssaetze" />} />
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-1">{t.glaubenssaetze.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-2 leading-relaxed">{t.glaubenssaetze.subtitle}</p>

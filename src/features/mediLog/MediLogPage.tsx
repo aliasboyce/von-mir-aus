@@ -429,7 +429,8 @@ export function MediLogPage() {
           {t.mediLog.addNew}
         </Button>
 
-        <div className="flex items-center gap-4 mb-5">
+        {/* flex-wrap: four link-buttons in a non-wrapping row were wider than a phone and made the whole page scroll sideways */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 mb-5">
           <button
             onClick={() => setManagingMedications(true)}
             className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"

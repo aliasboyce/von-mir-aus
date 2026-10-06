@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { useNavigate, Link } from 'react-router-dom';
 import { Moon, MessageCircle, Compass, Wand2, Bell, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -31,7 +32,7 @@ export function CompanionAboutPage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} />
+      <TopBar onBack={() => goBack(navigate)} />
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-1">{t.companionAbout.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6 leading-relaxed">{t.companionAbout.subtitle}</p>

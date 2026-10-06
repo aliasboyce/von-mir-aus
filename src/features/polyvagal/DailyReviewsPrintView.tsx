@@ -27,7 +27,7 @@ export function DailyReviewsPrintView({ sortedDays, grouped, locale, notesVersio
   void notesVersion;
 
   return (
-    <div className="print-only" style={{ padding: '40px 36px', color: '#1a1a1a', background: '#ffffff', fontFamily: 'system-ui, sans-serif' }}>
+    <div className="print-only" data-print-id="daily-reviews" style={{ padding: '40px 36px', color: '#1a1a1a', background: '#ffffff', fontFamily: 'system-ui, sans-serif' }}>
       <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 4 }}>{t.polyvagal.dailyReviewsTitle}</h1>
       <p style={{ fontSize: 12, color: '#777', marginBottom: 24 }}>
         {t.network.exportedOn} {new Date().toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })}

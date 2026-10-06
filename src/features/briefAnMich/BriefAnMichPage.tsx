@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Mail } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -49,7 +50,7 @@ export function BriefAnMichPage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} action={<HelpButton helpKey="briefAnMich" />} />
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="briefAnMich" />} />
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-1">{t.briefAnMich.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6 leading-relaxed">{t.briefAnMich.subtitle}</p>

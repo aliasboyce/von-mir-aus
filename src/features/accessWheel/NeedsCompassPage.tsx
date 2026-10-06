@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -107,7 +108,7 @@ export function NeedsCompassPage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} action={<HelpButton helpKey="beduerfnisKompass" />} />
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="beduerfnisKompass" />} />
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1">{t.weather.needsPageTitle}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.accessWheel.compassSubtitle}</p>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useSearchParams, useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Heart, Plus, Link as LinkIcon, Link2, GitBranch, Pencil, Trash2, Share2, Upload, Tag, RefreshCw, Compass } from 'lucide-react';
@@ -291,20 +292,7 @@ export function ResourcesPage() {
       tags: resource.tags,
     };
     const url = `${window.location.origin}/entdecken/ressourcen/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: resource.title, url });
-      } catch {
-        // person cancelled the share sheet — nothing to do
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        alert(t.resources.shareLinkCopied);
-      } catch {
-        // clipboard unavailable — silently ignore
-      }
-    }
+    await shareOrCopy({ title: resource.title, url }, t.resources.shareLinkCopied);
   }
 
   // "Das PDF erstellen von Skills funktioniert nicht (braucht Safari, da
@@ -710,10 +698,10 @@ export function ResourcesPage() {
 
       <ResourcePrintView resource={printingResource} categoryLabel={categoryLabel} />
 
-      <SkillFormModal key={editing?.id ?? 'new'} open={skillModalOpen} resource={editing} onClose={() => { setSkillModalOpen(false); setEditing(null); }} onSave={saveSkill} />
+      <SkillFormModal key={`skill-${editing?.id ?? 'new'}`} open={skillModalOpen} resource={editing} onClose={() => { setSkillModalOpen(false); setEditing(null); }} onSave={saveSkill} />
 
       <HilfsmittelFormModal
-        key={editing?.id ?? 'new'}
+        key={`hilfsmittel-${editing?.id ?? 'new'}`}
         open={hilfsmittelModalOpen}
         resource={editing}
         onClose={() => {

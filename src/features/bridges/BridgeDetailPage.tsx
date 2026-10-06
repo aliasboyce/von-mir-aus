@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { goBack } from '../../services/navigation';
+import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -159,20 +161,7 @@ export function BridgeDetailPage() {
       tip: bridge.tip,
     };
     const url = `${window.location.origin}/bruecken/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: bridge.title, url });
-      } catch {
-        // person cancelled the share sheet — nothing to do
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(url);
-        alert(t.resources.shareLinkCopied);
-      } catch {
-        // clipboard unavailable — silently ignore
-      }
-    }
+    await shareOrCopy({ title: bridge.title, url }, t.resources.shareLinkCopied);
   }
 
   function exportBridgePdf() {
@@ -244,7 +233,7 @@ export function BridgeDetailPage() {
         />
         <div className="relative flex items-center justify-between p-5">
           <button
-            onClick={() => (fromZugang ? setShowZugangExitDialog(true) : navigate(-1))}
+            onClick={() => (fromZugang ? setShowZugangExitDialog(true) : goBack(navigate))}
             aria-label={t.common.back}
             className="w-10 h-10 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-text)]"
           >

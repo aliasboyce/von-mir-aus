@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
+import { goBack } from '../../services/navigation';
 import { useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useT } from '../../i18n';
@@ -21,7 +22,7 @@ export function TopBar({ onBack, action, transparent = false }: TopBarProps) {
       ].join(' ')}
     >
       <button
-        onClick={() => (onBack ? onBack() : navigate(-1))}
+        onClick={() => (onBack ? onBack() : goBack(navigate))}
         aria-label={t.common.back}
         className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-[var(--color-text)] hover:bg-[var(--color-surface-muted)] transition-colors"
       >

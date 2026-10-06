@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowDown } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -185,7 +186,7 @@ export function SkillketteFormPage() {
             <Button fullWidth onClick={handleSave} disabled={!draft.title.trim()}>
               {t.common.save}
             </Button>
-            <Button variant="ghost" onClick={() => navigate(-1)}>
+            <Button variant="ghost" onClick={() => goBack(navigate)}>
               {t.common.cancel}
             </Button>
           </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { useNavigate } from 'react-router-dom';
 import { TopBar } from '../../components/navigation/TopBar';
 import { useT } from '../../i18n';
@@ -85,7 +86,7 @@ function pathD(): string {
  * red-thread stations existed), organized by kind rather than as more
  * winding-path stops, keeping the map calm instead of adding
  * crossing lines; (3) navigation back to this page after visiting any
- * station relies on the app's already-consistent navigate(-1) pattern
+ * station relies on the app's already-consistent goBack(navigate) pattern
  * on every page's TopBar, so "Zurück" naturally returns here.
  */
 export function SystemMapPage() {
@@ -95,7 +96,7 @@ export function SystemMapPage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} />
+      <TopBar onBack={() => goBack(navigate)} />
       <div className="px-5 pb-10">
         <h1 className="text-[24px] mb-1">{t.systemMap.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-2 leading-relaxed">{t.systemMap.subtitle}</p>

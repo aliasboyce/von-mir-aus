@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { goBack } from '../../services/navigation';
 import { useNavigate } from 'react-router-dom';
 import { ExternalLink, Download } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -36,7 +37,7 @@ export function SourceLibraryPage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} />
+      <TopBar onBack={() => goBack(navigate)} />
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-1">{t.sourceLibrary.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1 leading-relaxed">{t.sourceLibrary.subtitle}</p>

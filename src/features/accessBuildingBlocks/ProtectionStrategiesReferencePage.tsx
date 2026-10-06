@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { goBack } from '../../services/navigation';
 import { useNavigate, Link } from 'react-router-dom';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -46,7 +47,7 @@ export function ProtectionStrategiesReferencePage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} action={<HelpButton helpKey="schutzstrategien" />} />
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="schutzstrategien" />} />
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-1">{t.protectionRef.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-5 leading-relaxed">{t.protectionRef.subtitle}</p>

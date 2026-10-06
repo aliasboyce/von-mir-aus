@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { shareOrCopy } from '../../services/shareOrCopy';
 import { Send } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
@@ -28,15 +29,7 @@ export function QuickHelpModal({ open, onClose }: QuickHelpModalProps) {
   }
 
   async function send() {
-    if (navigator.share) {
-      try {
-        await navigator.share({ text: message });
-      } catch {
-        // person cancelled the share sheet - nothing to do
-      }
-    } else {
-      await navigator.clipboard.writeText(message);
-    }
+    await shareOrCopy({ text: message }, t.resources.shareCopied);
   }
 
   return (

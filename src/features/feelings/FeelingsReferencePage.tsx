@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
@@ -36,7 +37,7 @@ export function FeelingsReferencePage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} action={<HelpButton helpKey="gefuehle" />} />
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="gefuehle" />} />
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-1">{t.feelingsRef.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-5 leading-relaxed">{t.feelingsRef.subtitle}</p>

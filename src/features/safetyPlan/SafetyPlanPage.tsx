@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { useNavigate } from 'react-router-dom';
@@ -192,20 +193,7 @@ export function SafetyPlanPage() {
         ...s.items.map((i) => `- ${i}`),
       ]),
     ].join('\n');
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: plan.name, text });
-      } catch {
-        // cancelled
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(text);
-        alert(t.resources.shareCopied);
-      } catch {
-        // clipboard unavailable
-      }
-    }
+    await shareOrCopy({ title: plan.name, text }, t.resources.shareCopied);
   }
 
   if (!plan) return null;

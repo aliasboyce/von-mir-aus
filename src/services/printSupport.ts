@@ -1,4 +1,5 @@
 import { showIOSPrintFallback } from './iosPrintFallbackBus';
+import { exportPrintBlocksToPdf } from './pdf/domToPdf';
 
 /**
  * iOS Safari, when a web app is added to the home screen and launched
@@ -36,11 +37,29 @@ export function isStandaloneIOS(): boolean {
  * genuine anchor click, so this dispatches one instead of using
  * window.open directly.
  */
-export function triggerPrint(_explanationText: string): boolean {
+export function triggerPrint(_explanationText: string, only?: string): boolean {
+  // "Mehrere Druckbereiche auf einer Seite"-Fund — window.print() prints
+  // EVERY .print-only block in the document, so a button on a page with
+  // two of them (Meine Entwicklung) printed both documents together.
+  // `only` names the one block (its data-print-id) this button means.
+  const blocks = [...document.querySelectorAll<HTMLElement>('.print-only')];
+  const skip = only ? blocks.filter((e) => e.dataset.printId !== only) : [];
+  skip.forEach((e) => e.setAttribute('data-print-skip', ''));
+  const restore = () => skip.forEach((e) => e.removeAttribute('data-print-skip'));
   if (isStandaloneIOS()) {
-    showIOSPrintFallback();
+    // "Das PDF braucht Safari, aber da geht's auch nicht"-Fund — the
+    // Safari escape hatch never worked reliably. The print view that is
+    // already in the document is turned into a real PDF file and handed
+    // to the share sheet instead; the old explanation dialog only
+    // appears if there is no print view to convert.
+    void exportPrintBlocksToPdf('dokument', only).then((ok) => {
+      restore();
+      if (!ok) showIOSPrintFallback();
+    });
     return false;
   }
+  window.addEventListener('afterprint', restore, { once: true });
+  window.setTimeout(restore, 120000);
   window.print();
   return true;
 }

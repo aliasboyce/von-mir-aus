@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { goBack } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Search, X } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -46,7 +47,7 @@ export function ZugangReviewPage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate(-1)} action={<HelpButton helpKey="zugangRueckblick" />} />
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="zugangRueckblick" />} />
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1">{t.zugang.reviewTitle}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.zugang.reviewSubtitle}</p>

@@ -70,12 +70,15 @@ export function PhotoBackground({
       style={
         activeUrl
           ? { ...style, backgroundImage: `url("${activeUrl}")` }
-          : { ...style, background: 'var(--color-surface-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }
+          // While the photo loads — or when it never arrives (offline, blocked,
+          // slow network) — the children must stay laid out EXACTLY as with a
+          // photo. This used to switch the box to a centered flex row, which
+          // squeezed a header's buttons together and turned its category pill
+          // into a wrapped circle on the bridge page (and flashed that broken
+          // layout briefly on every normal load).
+          : { ...style, background: 'var(--color-surface-muted)' }
       }
     >
-      {!activeUrl && status === 'failed' && (
-        <span className="text-[11px] text-[var(--color-text-faint)] text-center px-2">📷</span>
-      )}
       {children}
     </div>
   );
