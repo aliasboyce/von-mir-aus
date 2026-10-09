@@ -138,7 +138,7 @@ function dayBlock(doc: PdfDoc, d: ReviewDay, t: TranslationDictionary, locale: s
   }
   if (d.wishes.length > 0) {
     sectionTitle(doc, t.calendar.reviewWishes);
-    d.wishes.forEach((w) => doc.paragraph(`${w.done ? '[x]' : '[ ]'}  ${w.text}`, { size: 10, indent: 8, color: w.done ? [120, 120, 120] : [40, 40, 40], gap: 1 }));
+    d.wishes.forEach((w) => doc.paragraph(`${w.done ? (w.intent === 'soll' ? '[-]' : '[x]') : '[ ]'}  ${w.text}${w.intent === 'soll' ? ` (${t.calendar.intentSoll})` : ''}`, { size: 10, indent: 8, color: w.done ? [120, 120, 120] : [40, 40, 40], gap: 1 }));
   }
   if (d.weather.length > 0) {
     doc.paragraph(d.weather.map((w) => WEATHER_META[w.condition].label(t)).join(', '), { size: 10, color: [80, 80, 80], gap: 3 });

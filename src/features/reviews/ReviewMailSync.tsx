@@ -1,9 +1,13 @@
 import { useEffect } from 'react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
-import { addMail } from '../../services/mailbox';
+import { addMail, mailboxRepo } from '../../services/mailbox';
+import { createKeyValueStore } from '../../services/storage/keyValueStore';
+import { notifyHint } from '../../services/hintFeedback';
 import { gatherReviewDays } from './reviewData';
 import { dayKey } from '../calendar/calendarRepo';
+
+const hintStore = createKeyValueStore<string>('review-soft-hint-last-day', '');
 
 function pad(n: number) {
   return String(n).padStart(2, '0');
@@ -37,6 +41,22 @@ export function ReviewMailSync() {
       };
       const hasData = (from: string, to: string) => gatherReviewDays(from, to).length > 0;
 
+      // "Sanfter Hinweis ohne Diagnose": when a lot was done on a day while the check-ins
+      // were high, the daily review carries one neutral question — never two days in a
+      // row, and only if the person has not switched it off.
+      const softHintFor = (key: string): boolean => {
+        if (settings.reviewBodyHint === false) return false;
+        const d = gatherReviewDays(key, key)[0];
+        if (!d) return false;
+        const high = d.checkIns.filter((c) => (c.tensionValue ?? 0) >= 60).length;
+        const done = d.wishes.filter((w) => w.done && w.intent !== 'soll').length + d.achievements.length + d.skillUses.filter((u) => !u.practice).length;
+        if (high < 2 || done < 3) return false;
+        const last = hintStore.get();
+        const y = new Date(`${key}T12:00:00`);
+        y.setDate(y.getDate() - 1);
+        return last !== dayKey(y);
+      };
+
       // ---- daily: today once the time has passed, yesterday as catch-up
       for (const offset of [0, 1]) {
         const d = new Date(now);
@@ -44,15 +64,19 @@ export function ReviewMailSync() {
         if (offset === 0 && now < atTime(d)) continue;
         const key = dayKey(d);
         if (!hasData(key, key)) continue;
-        addMail({
+        const soft = !mailboxRepo.getById(`review-day-${key}`) && softHintFor(key);
+        if (addMail({
           id: `review-day-${key}`,
           kind: 'info',
           title: t.reviewMail.dayTitle.replace('{date}', d.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })),
           text: '',
           prominent: true,
           createdAt: atTime(d).toISOString(),
-          payload: { review: 'day', day: key },
-        });
+          payload: { review: 'day', day: key, ...(soft ? { softHint: '1' } : {}) },
+        })) {
+          notifyHint(settings.hintMode);
+          if (soft) hintStore.set(key);
+        }
       }
 
       // ---- weekly: Sunday at the time (catch-up Monday/Tuesday for the Sunday before)
@@ -66,7 +90,7 @@ export function ReviewMailSync() {
         const from = dayKey(start);
         const to = dayKey(sun);
         if (!hasData(from, to)) continue;
-        addMail({
+        if (addMail({
           id: `review-week-${to}`,
           kind: 'info',
           title: t.reviewMail.weekTitle,
@@ -74,7 +98,7 @@ export function ReviewMailSync() {
           prominent: true,
           createdAt: atTime(sun).toISOString(),
           payload: { review: 'week', from, to },
-        });
+        })) notifyHint(settings.hintMode);
       }
 
       // ---- monthly: last day of the month at the time (catch-up for the first 3 days after)
@@ -91,7 +115,7 @@ export function ReviewMailSync() {
         const from = dayKey(first);
         const to = dayKey(target);
         if (!hasData(from, to)) continue;
-        addMail({
+        if (addMail({
           id: `review-month-${target.getFullYear()}-${pad(target.getMonth() + 1)}`,
           kind: 'info',
           title: t.reviewMail.monthTitle.replace('{month}', target.toLocaleDateString(locale, { month: 'long', year: 'numeric' })),
@@ -99,7 +123,7 @@ export function ReviewMailSync() {
           prominent: true,
           createdAt: atTime(target).toISOString(),
           payload: { review: 'month', from, to },
-        });
+        })) notifyHint(settings.hintMode);
         break;
       }
     }
@@ -112,7 +136,7 @@ export function ReviewMailSync() {
       document.removeEventListener('visibilitychange', onVisible);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeStr, settings.language]);
+  }, [timeStr, settings.language, settings.hintMode]);
 
   return null;
 }

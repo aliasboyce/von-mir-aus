@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
+import { buildAppointmentsIcs } from '../../services/icsExport';
+import { deliverTextFile } from '../../services/fileShare';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Tag, ListOrdered, Check, X } from 'lucide-react';
+import { Plus, Tag, ListOrdered, Check, X, CalendarPlus } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useT } from '../../i18n';
@@ -13,6 +15,7 @@ import { CategoriesModal } from './CategoriesModal';
 import { PushHintModal } from './PushHintModal';
 import {
   appointmentsOnDay,
+  appointmentsRepo,
   calendarCategoriesRepo,
   carryNotesFor,
   dayKey,
@@ -52,6 +55,7 @@ export function CalendarPage() {
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [wishText, setWishText] = useState('');
+  const [wishIntent, setWishIntent] = useState<'will' | 'soll' | undefined>(undefined);
   const [wishHintOpen, setWishHintOpen] = useState(false);
   const [pendingWish, setPendingWish] = useState<string | null>(null);
 
@@ -63,6 +67,16 @@ export function CalendarPage() {
   const dayAppointments = appointmentsOnDay(selected);
   const dayWishes = wishesOnDay(selected);
 
+  async function exportIcs() {
+    const all = appointmentsRepo.getAll();
+    const ics = buildAppointmentsIcs(all, categories, (pid) => people.find((p) => p.id === pid)?.name, t.calendar.title);
+    if (!ics.includes('BEGIN:VEVENT')) {
+      alert(t.calendar.icsNothing);
+      return;
+    }
+    await deliverTextFile(ics, 'von-mir-aus-termine.ics', 'text/calendar', t.calendar.title);
+  }
+
   function openNew() {
     setEditing(null);
     setFormOpen(true);
@@ -73,8 +87,9 @@ export function CalendarPage() {
   }
 
   function saveWish(text: string) {
-    wishesRepo.save({ id: createId('wish'), day: selected, text, done: false, createdAt: new Date().toISOString() });
+    wishesRepo.save({ id: createId('wish'), day: selected, text, done: false, intent: wishIntent, createdAt: new Date().toISOString() });
     setWishText('');
+    setWishIntent(undefined);
     refresh();
   }
   function addWish() {
@@ -100,6 +115,11 @@ export function CalendarPage() {
     if (w) wishesRepo.save({ ...w, done: !w.done });
     refresh();
   }
+  function setIntent(id: string, intent: 'will' | 'soll') {
+    const w = wishesRepo.getById(id);
+    if (w) wishesRepo.save({ ...w, intent: w.intent === intent ? undefined : intent });
+    refresh();
+  }
   function removeWish(id: string) {
     wishesRepo.remove(id);
     refresh();
@@ -107,7 +127,7 @@ export function CalendarPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="home" />} />
+      <TopBar action={<HelpButton helpKey="kalender" />} />
       <div className="px-5 pb-12">
         <h1 className="text-[24px] mb-1">{t.calendar.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-7">{t.calendar.subtitle}</p>
@@ -156,13 +176,22 @@ export function CalendarPage() {
           </button>
         </div>
 
-        <div className="flex items-center gap-4 mb-6">
+ <div className="flex items-center gap-4 mb-3">
           <Link to="/kalender/uebersicht" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
             <ListOrdered size={14} /> {t.calendar.overview}
           </Link>
           <button onClick={() => setCategoriesOpen(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
             <Tag size={14} /> {t.calendar.categories}
           </button>
+        </div>
+
+        {/* "Echte Erinnerungen auch bei geschlossener App": hand the appointments to the
+         * phone's own calendar. The notice is verbatim — it matters. */}
+        <div className="mb-6">
+          <button onClick={exportIcs} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+            <CalendarPlus size={14} /> {t.calendar.icsButton}
+          </button>
+          <p className="text-[11.5px] leading-relaxed text-[var(--color-text-faint)] mt-1.5">{t.calendar.icsNotice}</p>
         </div>
 
         {/* the selected day */}
@@ -211,10 +240,11 @@ export function CalendarPage() {
 
         {/* "Ich muss gar nichts, aber ich will:" */}
         <div className="rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[14px] font-medium text-[var(--color-text)] mb-3">{t.calendar.wishesTitle}</p>
+          <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{t.calendar.wishesTitle}</p>
+          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-3">{t.calendar.wishBodyCheck}</p>
           <div className="flex flex-col gap-1.5 mb-3">
             {dayWishes.map((w) => (
-              <div key={w.id} className="flex items-center gap-2.5">
+              <div key={w.id} className="flex items-center gap-2.5 flex-wrap">
                 <button
                   onClick={() => toggleWish(w.id)}
                   aria-pressed={w.done}
@@ -229,7 +259,34 @@ export function CalendarPage() {
                 <button onClick={() => removeWish(w.id)} aria-label={t.calendar.wishDelete} className="p-1 text-[var(--color-text-faint)]">
                   <X size={14} />
                 </button>
+                {/* will ich / soll ich — two small marks, tap again to clear */}
+                <div className="basis-full pl-[34px] flex gap-1.5 -mt-1">
+                  {(['will', 'soll'] as const).map((k) => (
+                    <button
+                      key={k}
+                      onClick={() => setIntent(w.id, k)}
+                      aria-pressed={w.intent === k}
+                      className="rounded-full px-2.5 py-0.5 text-[11px] border"
+                      style={w.intent === k ? { background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', color: 'var(--color-primary)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-faint)' }}
+                    >
+                      {k === 'will' ? t.calendar.intentWill : t.calendar.intentSoll}
+                    </button>
+                  ))}
+                </div>
               </div>
+            ))}
+          </div>
+          <div className="flex gap-1.5 mb-2">
+            {(['will', 'soll'] as const).map((k) => (
+              <button
+                key={k}
+                onClick={() => setWishIntent(wishIntent === k ? undefined : k)}
+                aria-pressed={wishIntent === k}
+                className="rounded-full px-2.5 py-0.5 text-[11px] border"
+                style={wishIntent === k ? { background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', color: 'var(--color-primary)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-faint)' }}
+              >
+                {k === 'will' ? t.calendar.intentWill : t.calendar.intentSoll}
+              </button>
             ))}
           </div>
           <div className="flex gap-2">

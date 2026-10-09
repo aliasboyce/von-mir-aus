@@ -129,6 +129,10 @@ export interface NetworkEntry {
   phone?: string;
   email?: string;
   helpsWith: HelpsWith[];
+  /** "Was hilft mir von dir" — one line, in the person's own words, about what this
+   * person can do that helps ("Bitte stell einfach Tee hin, sag nichts"). It is
+   * taken over into the "Hilfe holen" message to exactly this person. */
+  whatHelps?: string;
   /** Marks entries surfaced in the dedicated "Wichtige Kontakte" list (capped to 5 shown, rest reachable via "Alle Kontakte") */
   isImportantContact?: boolean;
   /**
@@ -341,6 +345,11 @@ export interface Resource {
   /** "Im Netzwerk anzeigen" — the person decided this item (a skill = Ressource,
    * a tool = Hilfsmittel, a place = Ort) also appears in the safety network. */
   inNetwork?: boolean;
+  /** "Kontext-Anker": a photo from a safe place and a short voice note recorded in a safe
+   * moment — both shown at the top when the skill is started, to bring the context
+   * back when the knowledge alone cannot be reached. Kept on the device only. */
+  contextPhoto?: string;
+  contextVoice?: string;
   /** Path or URL to a representative image — REQUIRED, deliberately
    * matching Bridge.image's non-optional pattern. This field being
    * optional was the exact structural gap that let the photo feature
@@ -395,6 +404,10 @@ export interface Resource {
 
 export interface SkillDetails {
   subtitle?: string;
+  /** Works through the body / senses ('koerper') or through thinking ('kognitiv') —
+   * decides whether it is offered in hoher Anspannung / Rueckzug (zone 5/6).
+   * See content/skillModality.ts. */
+  modality?: 'koerper' | 'kognitiv';
   /** "Verbinde so, dass man angibt, in welchem Anspannungsbereich es
    * hilft... wenn man dann Check-in oder Zugang macht und auf Skills
    * verwiesen wird, soll man genau bei denen fuer diesen Bereich
@@ -451,6 +464,9 @@ export interface SkillUse {
   durationSec: number;
   /** 'chain' = a whole Skillkette was run (skillTitle then names the chain). */
   kind?: 'skill' | 'chain';
+  /** A practice run done on purpose at light tension ("Uebung") — kept out of
+   * the swung-back counts and the personal roadmap. */
+  practice?: boolean;
   /** Titles of the skills worked through, in order (chains only). */
   chainSteps?: string[];
   tensionBefore?: number;
@@ -520,6 +536,10 @@ export interface TieredItem {
   id: string;
   text: string;
   tier: WarningTier;
+  /** "Wenn-Dann": a skill or Hilfsmittel (Resource id) that goes with this warning
+   * sign — it then comes first in the personal roadmap when the check-in lands in
+   * this tier. */
+  resourceId?: string;
 }
 
 /** references into other parts of the app, scoped to one warning tier —
@@ -962,6 +982,17 @@ export interface UserSettings {
    * the weekly one follows on Sundays at the same time, the monthly one on
    * the last day of the month. */
   reviewTime?: string;
+  /** How a NEW hint (reminder, follow-up, review) announces itself while the app
+   * is open: not at all, with a soft sound, or with a short vibration (Android
+   * only). undefined counts as 'still'. */
+  hintMode?: 'still' | 'klang' | 'vibration';
+  /** Load the example photos on cards and in the picker from the internet
+   * (picsum.photos)? undefined counts as on, as before. Off = calm colour fields
+   * and no request leaves the device; own photos always stay local. */
+  onlineImages?: boolean;
+  /** The soft line in the automatic daily review about much having been done
+   * at high tension — on by default, switchable off. */
+  reviewBodyHint?: boolean;
   /** when true, the previous day's polyvagal curve summary is auto-added to the diary the next time the app opens on a new day */
   autoAddCurveToDiary?: boolean;
   /** Same "write an actual diary entry" mechanism as autoAddCurveToDiary,

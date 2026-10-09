@@ -84,7 +84,7 @@ export function SkyAmbiance() {
         Array.from({ length: 7 }, (_, i) => (
           <div
             key={i}
-            className="absolute rounded-full"
+            className="absolute rounded-full ambient-fall"
             style={{
               left: `${8 + i * 13}%`,
               top: -10,
@@ -100,7 +100,7 @@ export function SkyAmbiance() {
         Array.from({ length: 7 }, (_, i) => (
           <div
             key={i}
-            className="absolute rounded-full"
+            className="absolute rounded-full ambient-fall"
             style={{ left: `${6 + i * 13}%`, top: -10, width: 4, height: 4, background: '#ffffff', animation: `snow-fall-ambient ${8 + (i % 3)}s linear ${i * 1.3}s infinite` }}
           />
         ))}
@@ -108,7 +108,7 @@ export function SkyAmbiance() {
         Array.from({ length: 7 }, (_, i) => (
           <div
             key={i}
-            className="absolute rounded-full"
+            className="absolute rounded-full ambient-fall"
             style={{ left: `${8 + i * 13}%`, top: -10, width: 6, height: 6, background: i % 2 === 0 ? '#f6c9d6' : '#fdeef2', animation: `petal-fall ${8 + (i % 3)}s linear ${i * 1.2}s infinite` }}
           />
         ))}
@@ -116,7 +116,7 @@ export function SkyAmbiance() {
         Array.from({ length: 5 }, (_, i) => (
           <div
             key={i}
-            className="absolute rounded-full"
+            className="absolute rounded-full ambient-fall"
             style={{ left: `${15 + i * 17}%`, top: `${20 + (i % 3) * 15}%`, width: 3, height: 3, background: '#fff4c2', animation: `pollen-drift ${4 + (i % 3)}s ease-in-out ${i * 0.6}s infinite` }}
           />
         ))}

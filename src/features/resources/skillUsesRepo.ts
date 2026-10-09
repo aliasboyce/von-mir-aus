@@ -47,5 +47,5 @@ export function skillOutcome(u: Pick<SkillUse, 'tensionBefore' | 'tensionAfter'>
 /** How many times a skill run ended closer to the window than it began
  * — the positive "swung back" count shown in the reviews. */
 export function countSwungBack(uses: SkillUse[]): number {
-  return uses.filter((u) => skillOutcome(u) === 'moved-toward').length;
+  return uses.filter((u) => !u.practice && skillOutcome(u) === 'moved-toward').length;
 }

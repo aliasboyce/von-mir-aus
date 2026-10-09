@@ -16,6 +16,50 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-fahrplan-zustand',
+    date: '2026',
+    items: [
+      'Skills richten sich nach deinem Zustand: In hoher Anspannung und im Rückzug zeigt die App nur Skills, die über den Körper wirken.',
+      'Persönlicher Fahrplan: Dort, wo „zu den Skills“ landet, siehst du zuerst deinen Plan und was dir bei ähnlicher Anspannung schon geholfen hat.',
+      'Neu auf der Startseite: „Heute bisher“ — welcher Tag, was du schon getan hast, wer kommt.',
+      'Sicherheitsplan: Warnsignale lassen sich mit einem Skill verknüpfen; das Körperdetektiv kann ein Körperzeichen in den Plan aufnehmen. Bei Personen im Netzwerk gibt es „Was hilft mir von dir“.',
+      'Hinweise wandern in Zeit, Form und Wortlaut; du wählst still, mit Klang oder mit Vibration. Termine und Check-in-Erinnerungen gibt es auch als Kalenderdatei für den Handy-Kalender.',
+      'Bei leichter Unruhe schlägt die App eine kurze Übung vor. Skills können einen Anker bekommen: ein Foto und eine Sprachnotiz.',
+      '„Ich will“ kennt „will ich“ und „soll ich“; der automatische Tagesrückblick enthält bei Bedarf eine sanfte Frage.',
+    ],
+    itemsEn: [
+      'Skills follow your state: in high tension and withdrawal the app only shows skills that work through the body.',
+      'Personal roadmap: where "to the skills" lands you first see your plan and what has helped you at a similar tension.',
+      'New on the home screen: "So far today" — which day, what you already did, who is coming.',
+      'Safety plan: warning signs can be linked to a skill; the body detective can add a body sign to the plan. People in the network have "What helps me from you".',
+      'Hints move in time, form and wording; you choose silent, with sound or with vibration. Appointments and check-in reminders are also available as a calendar file for your phone calendar.',
+      'At light unrest the app suggests a short practice. Skills can get an anchor: a photo and a voice note.',
+      '"I want to" knows "I want" and "I should"; the automatic daily review includes a gentle question when needed.',
+    ],
+  },
+  {
+    id: '2026-energie-netzwerk-rueckblick',
+    date: '2026',
+    items: [
+      'Neu: Skillketten kannst du jetzt starten — Schritt für Schritt, sichtbar als Kette, mit Reflexion danach.',
+      'Neu: vier Energielevel mit Beschreibungen; Hilfsmittel und Skills geben an, wie viel Energie sie brauchen.',
+      'Hilfsmittel sind neu geordnet (Sinne und Funktion, Orte mit Unterkategorien). Klavier, „Atem holen“, Waldspaziergang und Wärmequelle sind jetzt Skills.',
+      'Nach dem Check-in führt dein Bedürfnis zu passenden Ressourcen; bei hoher Anspannung fragt die App zuerst, ob du lieber einen Skill ausprobieren möchtest.',
+      'Tages-, Wochen- und Monatsrückblick kommen automatisch ins Postfach (Uhrzeit in den Einstellungen).',
+      'Netzwerk mit vier Rollen: Person, Ressource, Hilfsmittel, Ort — verbunden mit deinen Einträgen und mit dem Kalender.',
+      'Entdecken: Seiten anpinnen und archivieren. Eigene Sätze für die Startseite werden jetzt angezeigt. Klick-Töne sind verlässlicher, und „Animation reduzieren“ beruhigt jetzt auch die Blätter.',
+    ],
+    itemsEn: [
+      'New: you can now start skill chains — step by step, shown as a chain, with a reflection afterwards.',
+      'New: four energy levels with descriptions; tools and skills state how much energy they need.',
+      'Tools are reorganised (senses and function, places with sub-categories). Piano, "Catch your breath", forest walk and warmth source are now skills.',
+      'After the check-in your need leads to matching resources; when tension is high the app first asks whether you would rather try a skill.',
+      'Daily, weekly and monthly reviews arrive in the mailbox automatically (time in settings).',
+      'Network with four roles: person, resource, tool, place — connected to your entries and the calendar.',
+      'Explore: pin and archive pages. Your own home-screen sentences now show up. Click sounds are more reliable, and "Reduce animation" now also calms the leaves.',
+    ],
+  },
+  {
     id: '2026-kalender-rueckblick',
     date: '2026',
     items: [

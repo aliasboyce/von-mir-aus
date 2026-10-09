@@ -1,9 +1,28 @@
 import { createRepository } from '../../services/storage/repository';
+import { SEED_SKILL_ZONES } from '../../content/seedSkillZones';
 import type { Resource } from '../../data/types';
 import { DEMO_RESOURCES, DBT_SKILL_RESOURCES } from '../../data/seed/resources.seed';
 import { migrateAccessChannelValues } from '../zugangskanaele/accessChannels';
 
 export const resourcesRepo = createRepository<Resource>('resources');
+
+let resourcesReady = false;
+/**
+ * The starter resources used to be created only when the Resources page's
+ * chunk was first loaded. Anything else that reads them before that — the
+ * safety plan's skill picker, the roadmap, the network's linking, the
+ * calendar — saw an EMPTY list on a fresh install. Called once at app
+ * start (services/migrations.ts) so every page sees the same data.
+ */
+export function ensureResourcesReady() {
+  if (resourcesReady) return;
+  resourcesReady = true;
+  seedResourcesIfEmpty();
+  migrateResourceAccessChannelsIfNeeded();
+  addMissingDbtSkills();
+  patchKnownSkillCategoryIssues();
+  assignDefaultZoneIdsToSkills();
+}
 
 export function seedResourcesIfEmpty() {
   resourcesRepo.seedIfEmpty(DEMO_RESOURCES);
@@ -74,7 +93,7 @@ export function assignDefaultZoneIdsToSkills() {
     const defaultZone = DEFAULT_ZONE_BY_SKILL_CATEGORY[r.category];
     if (!defaultZone) return;
     // acute breathing/body exercises are used from the Fruehwarnbereich on
-    const zoneIds = ACUTE_EXERCISE_IDS.includes(r.id) ? ['zone4', 'zone5'] : [defaultZone];
+    const zoneIds = SEED_SKILL_ZONES[r.id] ?? (ACUTE_EXERCISE_IDS.includes(r.id) ? ['zone4', 'zone5'] : [defaultZone]);
     resourcesRepo.save({ ...r, skillDetails: { ...r.skillDetails, zoneIds } });
   });
 }

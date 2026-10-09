@@ -11,7 +11,7 @@ export const DEMO_RESOURCES: Resource[] = [
   {
     id: 'res_waldspaziergang',
     title: 'Waldspaziergang',
-    category: 'orte', subcategory: 'natur',
+    category: 'emotionsregulation',
     image: img('Waldspaziergang Natur Baum'),
     description: 'Der Geruch von feuchter Erde und Moos.',
     tags: ['natur', 'erdung'],
@@ -22,7 +22,7 @@ export const DEMO_RESOURCES: Resource[] = [
   {
     id: 'res_klavier',
     title: 'Sanftes Piano',
-    category: 'auditiv', subcategory: 'musik',
+    category: 'stresstoleranz',
     image: img('Sanftes Piano Musik'),
     description: 'Beruhigende Melodien zum Abschalten.',
     tags: ['musik', 'ruhe'],
@@ -33,7 +33,7 @@ export const DEMO_RESOURCES: Resource[] = [
   {
     id: 'res_atemzitat',
     title: 'Atem holen',
-    category: 'kognitiv', subcategory: 'texte',
+    category: 'achtsamkeit',
     image: img('Atem holen atmen'),
     description: 'Ein kurzer Hinweis, dass es reicht, einfach nur zu sein.',
     tags: ['zitat'],
@@ -44,7 +44,7 @@ export const DEMO_RESOURCES: Resource[] = [
   {
     id: 'res_waermequelle',
     title: 'Wärmequelle',
-    category: 'komfort',
+    category: 'stresstoleranz',
     image: img('Wärmequelle Tee Decke warm'),
     description: 'Eine warme Tasse Tee oder eine Decke.',
     tags: ['körper', 'wärme'],

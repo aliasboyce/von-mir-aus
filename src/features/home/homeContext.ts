@@ -59,7 +59,10 @@ export async function getBestEffortWeather(): Promise<WeatherMood> {
       );
     });
 
-    const { latitude, longitude } = position.coords;
+    // rounded to one decimal (about 11 km): plenty for "is it raining", and the weather
+    // service never receives the exact position
+    const latitude = Math.round(position.coords.latitude * 10) / 10;
+    const longitude = Math.round(position.coords.longitude * 10) / 10;
     const res = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=weather_code`,
     );

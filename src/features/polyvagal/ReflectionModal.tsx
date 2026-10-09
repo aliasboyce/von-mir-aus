@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
@@ -37,7 +38,8 @@ export function ReflectionModal({ checkIn, onClose, onSaved }: ReflectionModalPr
   }
 
   return (
-    <div className="fixed inset-0 z-[410] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
+    createPortal(
+<div className="fixed inset-0 z-[410] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
       <div
         className="w-full max-w-[440px] max-h-[85vh] overflow-y-auto rounded-[var(--radius-xl)] p-5 animate-in"
         style={{ background: 'var(--color-surface)' }}
@@ -81,6 +83,7 @@ export function ReflectionModal({ checkIn, onClose, onSaved }: ReflectionModalPr
           {t.common.save}
         </button>
       </div>
-    </div>
+    </div>,
+ document.body)
   );
 }

@@ -115,6 +115,12 @@ export function NetworkDetailModal({
           </div>
 
           {active.description && <p className="text-[14px] text-[var(--color-text)]">{active.description}</p>}
+          {active.whatHelps && (
+            <div className="rounded-[var(--radius-md)] px-3 py-2.5" style={{ background: 'var(--color-primary-soft)' }}>
+              <p className="text-[11.5px] uppercase tracking-wide text-[var(--color-text-faint)] mb-0.5">{t.network.whatHelpsLabel}</p>
+              <p className="text-[14px] text-[var(--color-text)] whitespace-pre-line">{active.whatHelps}</p>
+            </div>
+          )}
           {active.note && <p className="text-[13px] text-[var(--color-text-muted)] italic">„{active.note}“</p>}
 
           {active.helpsWith.length > 0 && (

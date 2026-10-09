@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useT } from '../../i18n';
 
 export type UsageCheckInContext = 'game' | 'app';
@@ -24,7 +25,8 @@ export function UsageCheckInPrompt({ context, onContinue, onExit }: UsageCheckIn
   const copy = context === 'game' ? t.usageCheckIn.game : t.usageCheckIn.app;
 
   return (
-    <div className="fixed inset-0 z-[430] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }}>
+    createPortal(
+<div className="fixed inset-0 z-[430] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }}>
       <div className="w-full max-w-[380px] rounded-[var(--radius-xl)] p-5 animate-in text-center" style={{ background: 'var(--color-surface)' }}>
         <p className="text-[15px] font-medium text-[var(--color-text)] mb-2">{copy.title}</p>
         <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-5">{copy.question}</p>
@@ -45,6 +47,7 @@ export function UsageCheckInPrompt({ context, onContinue, onExit }: UsageCheckIn
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+ document.body)
   );
 }

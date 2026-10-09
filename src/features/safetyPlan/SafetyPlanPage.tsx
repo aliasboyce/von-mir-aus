@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { RESOURCE_CATEGORY_TO_GROUP } from '../resources/resourceMeta';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
@@ -123,6 +124,14 @@ export function SafetyPlanPage() {
     say(pickLine({ page: '/sicherheit/plan', trigger: 'speichern' }));
   }
 
+  const [linkingWarnId, setLinkingWarnId] = useState<string | null>(null);
+  /** "Warnsignale lassen sich mit einem Skill oder Hilfsmittel verknuepfen" */
+  function setWarningResource(id: string, resourceId: string | undefined) {
+    if (!plan) return;
+    persist({ ...plan, warningSignals: plan.warningSignals.map((w) => (w.id === id ? { ...w, resourceId } : w)) });
+    setLinkingWarnId(null);
+  }
+
   function removeWarning(id: string) {
     if (!plan) return;
     persist({ ...plan, warningSignals: plan.warningSignals.filter((w) => w.id !== id) });
@@ -180,7 +189,7 @@ export function SafetyPlanPage() {
       plan.name,
       t.safetyPlan.warningSignals + ':',
       ...WARNING_TIER_ORDER.flatMap((tier) =>
-        plan.warningSignals.filter((w) => w.tier === tier).map((w) => `[${TIER_LABELS[tier]}] ${w.text}`),
+        plan.warningSignals.filter((w) => w.tier === tier).map((w) => `[${TIER_LABELS[tier]}] ${w.text}${w.resourceId && resourcesRepo.getById(w.resourceId) ? ` → ${resourcesRepo.getById(w.resourceId)!.title}` : ''}`),
       ),
       '',
       t.safetyPlan.helpItems + ':',
@@ -345,17 +354,56 @@ export function SafetyPlanPage() {
               </p>
               {warnItems.length > 0 && (
                 <ul className="flex flex-col gap-1.5 mb-2.5">
-                  {warnItems.map((w) => (
-                    <li key={w.id} className="flex items-start justify-between gap-2 text-[13px] text-[var(--color-text-muted)]">
-                      <span className="flex items-start gap-1.5">
-                        <span aria-hidden="true" className="text-[var(--color-text-faint)]">•</span>
-                        <span>{w.text}</span>
-                      </span>
-                      <button onClick={() => removeWarning(w.id)} className="text-[var(--color-text-faint)] hover:text-[var(--color-danger)] no-print flex-shrink-0">
-                        <X size={13} />
-                      </button>
-                    </li>
-                  ))}
+                  {warnItems.map((w) => {
+                    const linkedRes = w.resourceId ? resourcesRepo.getById(w.resourceId) : undefined;
+                    return (
+                      <li key={w.id} className="text-[13px] text-[var(--color-text-muted)]">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="flex items-start gap-1.5">
+                            <span aria-hidden="true" className="text-[var(--color-text-faint)]">•</span>
+                            <span>{w.text}</span>
+                          </span>
+                          <button onClick={() => removeWarning(w.id)} className="text-[var(--color-text-faint)] hover:text-[var(--color-danger)] no-print flex-shrink-0">
+                            <X size={13} />
+                          </button>
+                        </div>
+                        {/* the "dann" of the if-then plan */}
+                        {linkedRes ? (
+                          <p className="ml-4 mt-0.5 text-[12.5px] flex items-center gap-1.5" style={{ color: tierColor.color }}>
+                            <span aria-hidden="true">→</span> {linkedRes.title}
+                            <button onClick={() => setWarningResource(w.id, undefined)} aria-label={t.common.remove} className="text-[var(--color-text-faint)] no-print">
+                              <X size={11} />
+                            </button>
+                          </p>
+                        ) : linkingWarnId === w.id ? (
+                          <select
+                            autoFocus
+                            className="input ml-4 mt-1 no-print"
+                            style={{ width: 'calc(100% - 16px)' }}
+                            defaultValue=""
+                            onChange={(e) => setWarningResource(w.id, e.target.value || undefined)}
+                            onBlur={() => setLinkingWarnId(null)}
+                          >
+                            <option value="">{t.safetyPlan.linkPick}</option>
+                            <optgroup label={t.safetyPlan.linkSkills}>
+                              {resourcesRepo.getAll().filter((r) => RESOURCE_CATEGORY_TO_GROUP[r.category] === 'faehigkeiten').map((r) => (
+                                <option key={r.id} value={r.id}>{r.title}</option>
+                              ))}
+                            </optgroup>
+                            <optgroup label={t.safetyPlan.linkTools}>
+                              {resourcesRepo.getAll().filter((r) => RESOURCE_CATEGORY_TO_GROUP[r.category] !== 'faehigkeiten').map((r) => (
+                                <option key={r.id} value={r.id}>{r.title}</option>
+                              ))}
+                            </optgroup>
+                          </select>
+                        ) : (
+                          <button onClick={() => setLinkingWarnId(w.id)} className="ml-4 mt-0.5 text-[12px] text-[var(--color-primary)] no-print">
+                            + {t.safetyPlan.linkAdd}
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
               <div className="flex items-center gap-2 mb-4 no-print">

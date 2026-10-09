@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { HelpButton } from '../../components/navigation/HelpButton';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -52,6 +53,7 @@ export function SkillketteRunPage() {
   const t = useT();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const practice = new URLSearchParams(useLocation().search).get('practice') === '1';
   const kette = id ? skillkettenRepo.getById(id) : undefined;
 
   const steps = useMemo(() => {
@@ -97,6 +99,7 @@ export function SkillketteRunPage() {
   const outcomeText = useMemo(() => {
     if (!saved) return '';
     const r = t.skillRun;
+    if (saved.practice) return r.practiceDone;
     const kind = skillOutcome(saved);
     const fill = (s: string) => s.replace('{before}', String(saved.tensionBefore ?? '')).replace('{after}', String(saved.tensionAfter ?? ''));
     return kind === 'moved-toward' ? fill(r.outcomeToward) : kind === 'same' ? fill(r.outcomeSame) : kind === 'moved-away' ? fill(r.outcomeAway) : r.outcomeUnknown;
@@ -151,6 +154,7 @@ export function SkillketteRunPage() {
       tensionAfter: after,
       helped,
       note: note.trim() || undefined,
+      practice: practice || undefined,
     };
     skillUsesRepo.save(use);
     const iso = end.toISOString();
@@ -172,11 +176,17 @@ export function SkillketteRunPage() {
 
   return (
     <div className="animate-in">
-      <TopBar />
+      <TopBar action={<HelpButton helpKey="skillLauf" />} />
       <div className="px-5 pb-12">
         <p className="text-[12px] uppercase tracking-wide mb-1 text-[var(--color-primary)]">{t.skillRun.chainStartCta}</p>
         <h1 className="text-[24px] mb-1">{k.title}</h1>
         {k.subtitle && <p className="text-[14px] text-[var(--color-text-muted)] italic mb-3">{k.subtitle}</p>}
+
+        {practice && (
+          <p className="text-[12.5px] leading-relaxed rounded-[var(--radius-md)] px-3 py-2 mb-2" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-text-muted)' }}>
+            {t.skillRun.practiceBanner}
+          </p>
+        )}
 
         {phase === 'run' && (
           <>

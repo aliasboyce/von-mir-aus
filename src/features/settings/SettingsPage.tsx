@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { buildDailyRemindersIcs } from '../../services/icsExport';
+import { deliverTextFile } from '../../services/fileShare';
+import { GENTLE_SCHEDULES } from '../../components/shared/GentleRemindersSync';
+import { GENTLE_HINTS } from '../../content/gentleHints';
+import { notifyHint, vibrationSupported } from '../../services/hintFeedback';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
-import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell, X } from 'lucide-react';
+import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell, X, CalendarPlus } from 'lucide-react';
 import { getAllLichtwesen } from '../../components/companion/customLichtwesen';
 import { customLichtwesenRepo } from '../../components/companion/customLichtwesen';
 import type { LichtwesenConfig } from '../../components/companion/lichtwesen';
@@ -63,6 +68,15 @@ const SECTION_KEYS: { key: string; labelKey: 'home' | 'explore' | 'bridges' | 's
 export function SettingsPage() {
   const t = useT();
   const { settings, updateSettings } = useSettings();
+
+  /** The daily check-in reminders as recurring events with an alarm, for the phone's own calendar. */
+  async function exportDailyIcs() {
+    const mode = (settings.gentleReminders ?? 'normal') as 'normal' | 'more';
+    if (mode !== 'normal' && mode !== 'more') return;
+    const lang = settings.language === 'en' ? 'en' : 'de';
+    const slots = GENTLE_SCHEDULES[mode].map((s) => ({ hour: s.hour, minute: s.minute, title: `${GENTLE_HINTS[s.kind].variants[0][lang].title} · ${t.common.appName}` }));
+    await deliverTextFile(buildDailyRemindersIcs(slots, t.common.appName), 'von-mir-aus-erinnerungen.ics', 'text/calendar', t.settings.gentleRemindersTitle);
+  }
   const [createCompanionOpen, setCreateCompanionOpen] = useState(false);
   const [customReminders, setCustomReminders] = useState<CustomReminder[]>(() => customRemindersRepo.getAll());
   const [addingReminder, setAddingReminder] = useState(false);
@@ -185,6 +199,15 @@ export function SettingsPage() {
               {t.settings.themeSystem}
             </Chip>
           </div>
+        
+          {/* Fotos aus dem Internet (picsum.photos): one switch, off = nothing leaves the device */}
+          <label className="flex items-start gap-2.5 mt-4 cursor-pointer">
+            <input type="checkbox" className="mt-0.5" checked={settings.onlineImages !== false} onChange={(e) => updateSettings({ onlineImages: e.target.checked })} />
+            <span>
+              <span className="block text-[13px] text-[var(--color-text)]">{t.settings.onlineImagesTitle}</span>
+              <span className="block text-[11.5px] text-[var(--color-text-faint)] leading-relaxed">{t.settings.onlineImagesHint}</span>
+            </span>
+          </label>
         </Card>
 
         <Card className="mb-3" padding="md">
@@ -504,11 +527,50 @@ export function SettingsPage() {
         </Card>
 
         <Card className="mb-6" padding="md">
+          <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.hintModeTitle}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.hintModeHint}</p>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['still', t.settings.hintModeStill, true],
+                ['klang', t.settings.hintModeSound, true],
+                ['vibration', t.settings.hintModeVibration, vibrationSupported()],
+              ] as const
+            ).map(([key, label, available]) => {
+              const active = (settings.hintMode ?? 'still') === key;
+              return (
+                <button
+                  key={key}
+                  disabled={!available}
+                  onClick={() => {
+                    updateSettings({ hintMode: key });
+                    if (key !== 'still') notifyHint(key);
+                  }}
+                  aria-pressed={active}
+                  className="rounded-full px-4 py-2 text-[13px] border disabled:opacity-40"
+                  style={active ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {!vibrationSupported() && <p className="text-[11.5px] text-[var(--color-text-faint)] mt-2">{t.settings.hintModeNoVibration}</p>}
+        </Card>
+
+        <Card className="mb-6" padding="md">
           <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.reviewTimeTitle}</p>
           <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.reviewTimeHint}</p>
           <label className="flex items-center gap-3">
             <span className="text-[13px] text-[var(--color-text-muted)]">{t.settings.reviewTimeLabel}</span>
             <input type="time" className="input" style={{ width: 'auto' }} value={settings.reviewTime ?? '20:00'} onChange={(e) => e.target.value && updateSettings({ reviewTime: e.target.value })} />
+          </label>
+          <label className="flex items-start gap-2.5 mt-4 cursor-pointer">
+            <input type="checkbox" className="mt-0.5" checked={settings.reviewBodyHint !== false} onChange={(e) => updateSettings({ reviewBodyHint: e.target.checked })} />
+            <span>
+              <span className="block text-[13px] text-[var(--color-text)]">{t.reviewMail.softHintSetting}</span>
+              <span className="block text-[11.5px] text-[var(--color-text-faint)]">{t.reviewMail.softHintSettingHint}</span>
+            </span>
           </label>
         </Card>
 
@@ -537,6 +599,14 @@ export function SettingsPage() {
               );
             })}
           </div>
+          {(settings.gentleReminders ?? 'normal') !== 'off' && (
+            <div className="mt-4">
+              <button onClick={exportDailyIcs} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+                <CalendarPlus size={14} /> {t.settings.icsRemindersButton}
+              </button>
+              <p className="text-[11.5px] leading-relaxed text-[var(--color-text-faint)] mt-1.5">{t.calendar.icsNotice}</p>
+            </div>
+          )}
         </Card>
 
         <Card className="mb-6" padding="md">

@@ -29,7 +29,8 @@ export function countReturnsToWindow(checkIns: PolyvagalCheckIn[]): { returns: n
 }
 
 export function skillsSwungBack(uses: SkillUse[]): number {
-  return uses.filter((u) => skillOutcome(u) === 'moved-toward').length;
+  // practice runs (done calm, on purpose) never count as swinging back
+  return uses.filter((u) => !u.practice && skillOutcome(u) === 'moved-toward').length;
 }
 
 /** The short positive summary lines for a set of check-ins / skill runs. */
@@ -41,9 +42,10 @@ export function reviewSummaryLines(checkIns: PolyvagalCheckIn[], uses: SkillUse[
   const { returns, everOutside } = countReturnsToWindow(checkIns);
   if (returns > 0) lines.push(r.returns.replace('{n}', String(returns)));
   else if (checkIns.length > 0 && !everOutside) lines.push(r.stayedInside);
-  if (uses.length > 0) {
-    lines.push(r.skillsUsed.replace('{n}', String(uses.length)));
-    const swung = skillsSwungBack(uses);
+  const real = uses.filter((u) => !u.practice);
+  if (real.length > 0) {
+    lines.push(r.skillsUsed.replace('{n}', String(real.length)));
+    const swung = skillsSwungBack(real);
     if (swung > 0) lines.push(r.skillsSwung.replace('{n}', String(swung)));
   }
   return lines;

@@ -1,10 +1,11 @@
 import { createKeyValueStore } from './storage/keyValueStore';
-import { resourcesRepo } from '../features/resources/resourcesRepo';
+import { resourcesRepo, ensureResourcesReady } from '../features/resources/resourcesRepo';
 import { bridgesRepo } from '../features/bridges/bridgesRepo';
 import { diaryRepo } from '../features/diary/diaryRepo';
 import { effectiveDiaryCategory, DIARY_DEFAULT_CATEGORY_ID } from '../features/diary/diaryCategories';
 import { networkRepo } from '../features/safetyNet/networkRepo';
 import { networkCategoryFor } from '../features/safetyNet/networkResourceSync';
+import { SEED_SKILL_ZONES } from '../content/seedSkillZones';
 import { LEGACY_HILFSMITTEL_CATEGORY } from '../content/hilfsmittelCategories';
 
 /**
@@ -103,9 +104,55 @@ function migrateNetworkRoles() {
   networkRolesV1.set(true);
 }
 
+const seedSkillsV3 = createKeyValueStore<boolean>('migration-seed-items-are-skills-v3', false);
+
+/** The four starter items (Sanftes Piano, Atem holen, Waldspaziergang,
+ * Waermequelle) are skills, not Hilfsmittel — each is a thing you DO to
+ * regulate (listen, breathe, walk, warm yourself), so they belong to the
+ * DBT module whose zone they are used in. Moved regardless of where the
+ * earlier category clean-up had put them, with their zone tags; a zone
+ * list the person already edited is left alone. */
+const SEED_SKILL_HOME: Record<string, { category: string; zones: string[] }> = {
+  res_waldspaziergang: { category: 'emotionsregulation', zones: ['zone4'] },
+  res_klavier: { category: 'stresstoleranz', zones: ['zone4', 'zone5'] },
+  res_atemzitat: { category: 'achtsamkeit', zones: ['zone3'] },
+  res_waermequelle: { category: 'stresstoleranz', zones: ['zone4', 'zone5', 'zone6'] },
+};
+function migrateSeedItemsToSkills() {
+  if (seedSkillsV3.get()) return;
+  Object.entries(SEED_SKILL_HOME).forEach(([id, home]) => {
+    const r = resourcesRepo.getById(id);
+    if (!r) return;
+    resourcesRepo.save({ ...r, category: home.category, subcategory: undefined, skillDetails: { ...r.skillDetails, zoneIds: r.skillDetails?.zoneIds ?? home.zones } });
+    // a network node made from it follows: skills are 'Ressource' there
+    networkRepo.getAll().filter((e) => e.linkedResourceId === id).forEach((e) => networkRepo.save({ ...e, category: 'ressource' }));
+  });
+  seedSkillsV3.set(true);
+}
+
+const seedZonesV4 = createKeyValueStore<boolean>('migration-seed-skill-zones-v4', false);
+
+/** Gives the starter skills their zone-6 (Rueckzug) tags, but only where the
+ * zones still equal what the app assigned automatically. */
+function migrateSeedSkillZones() {
+  if (seedZonesV4.get()) return;
+  const sameAs = (a: string[] | undefined, b: string[]) => !!a && a.length === b.length && a.every((z) => b.includes(z));
+  Object.entries(SEED_SKILL_ZONES).forEach(([id, zones]) => {
+    const r = resourcesRepo.getById(id);
+    if (!r) return;
+    const cur = r.skillDetails?.zoneIds;
+    const untouched = !cur || sameAs(cur, ['zone5']) || sameAs(cur, ['zone4', 'zone5']) || sameAs(cur, ['zone4', 'zone5', 'zone6']);
+    if (untouched) resourcesRepo.save({ ...r, skillDetails: { ...r.skillDetails, zoneIds: zones } });
+  });
+  seedZonesV4.set(true);
+}
+
 export function runStartupMigrations() {
+  ensureResourcesReady();
   migrateEnergyScale();
   migrateHilfsmittelAndSkills();
   migrateDiaryReviewFlag();
   migrateNetworkRoles();
+  migrateSeedItemsToSkills();
+  migrateSeedSkillZones();
 }

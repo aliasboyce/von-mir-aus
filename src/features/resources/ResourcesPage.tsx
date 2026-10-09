@@ -40,6 +40,8 @@ import { createCustomCategoryStore } from '../../services/customCategories';
 import { createId } from '../../services/storage/repository';
 import type { Resource, ResourceCategory, ResourceCategoryGroup } from '../../data/types';
 import { resourceFitsNeed } from '../../content/needResources';
+import { skillModality, isCrisisZone } from '../../content/skillModality';
+import { ZoneRoadmap } from './ZoneRoadmap';
 import { NEED_META } from '../innerWeather/weatherMeta';
 import type { NeedDirection } from '../../data/types';
 import { HILFSMITTEL_MAIN, subtypesFor, customOrteSubStore, type SubType } from '../../content/hilfsmittelCategories';
@@ -174,7 +176,17 @@ export function ResourcesPage() {
     if (zoneFilter) {
       base = base.filter((r) => {
         const zoneIds = r.skillDetails?.zoneIds ?? r.hilfsmittelDetails?.zoneIds;
-        return !zoneIds || zoneIds.length === 0 || zoneIds.includes(zoneFilter);
+        const tagged = !!zoneIds && zoneIds.length > 0;
+        // Zustandsgerechtes Filtern: an item without any zone tag shows up under
+        // "Alle" and in zones 1-4 only; in hoher Anspannung / Rueckzug (5, 6)
+        // only what is explicitly tagged for that zone ...
+        if (!(tagged ? zoneIds!.includes(zoneFilter) : !isCrisisZone(zoneFilter))) return false;
+        // ... and there only body-led items, no thinking-led ones.
+        if (isCrisisZone(zoneFilter)) {
+          const isSkill = RESOURCE_CATEGORY_TO_GROUP[r.category] === 'faehigkeiten';
+          return isSkill ? skillModality(r) === 'koerper' : r.category !== 'kognitiv';
+        }
+        return true;
       });
     }
     return base;
@@ -389,6 +401,8 @@ export function ResourcesPage() {
               </div>
             </div>
           )}
+
+          {typeScope === 'skills' && zoneBand && <ZoneRoadmap zoneId={zoneFilter} explicitValue={new URLSearchParams(locSearch).get('v')} />}
 
           {typeScope === 'skills' && zoneBand && (
             <div className="rounded-[var(--radius-lg)] p-4 mb-4" style={{ background: `${zoneBand.color}18`, border: `1.5px solid ${zoneBand.color}` }}>

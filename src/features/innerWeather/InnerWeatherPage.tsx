@@ -159,7 +159,7 @@ export function InnerWeatherPage() {
 
   function leaveToSkills() {
     clearInnerWeatherDraft();
-    navigate(`/entdecken/ressourcen/skills?zone=${bandForValue(tensionValue).id}`);
+    navigate(`/entdecken/ressourcen/skills?zone=${bandForValue(tensionValue).id}&v=${Math.round(tensionValue)}`);
   }
 
   function leaveToResources() {

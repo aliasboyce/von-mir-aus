@@ -7,6 +7,7 @@ import { skillOutcome } from './skillUsesRepo';
  * word it the same way. */
 export function skillUseLine(u: SkillUse, t: TranslationDictionary): string {
   const r = t.skillRun;
+  if (u.practice && !u.skillTitle.endsWith(r.practiceTag)) return skillUseLine({ ...u, skillTitle: `${u.skillTitle}${r.practiceTag}`, practice: false }, t);
   if (u.kind === 'chain' && u.chainSteps && u.chainSteps.length > 0) {
     // chains: the line carries the skills worked through, in order
     const base = { ...u, kind: 'skill' as const, chainSteps: undefined };
@@ -26,5 +27,5 @@ export function skillUseTime(u: SkillUse, locale: string): string {
 /** A short, only-ever-positive tag for a run that ended closer to the
  * tolerance window than it started. */
 export function skillUseIsSuccess(u: SkillUse): boolean {
-  return skillOutcome(u) === 'moved-toward';
+  return !u.practice && skillOutcome(u) === 'moved-toward';
 }

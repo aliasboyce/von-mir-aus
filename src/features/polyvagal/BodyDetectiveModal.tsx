@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { tierForValue } from '../safetyPlan/tierForValue';
+import { safetyPlansRepo, seedSafetyPlansIfEmpty } from '../safetyPlan/safetyPlansRepo';
+import { createId } from '../../services/storage/repository';
+import { createPortal } from 'react-dom';
 import { X, Search } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
@@ -44,6 +48,10 @@ export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProp
   const questions = useQuestions();
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [showResult, setShowResult] = useState<number | null>(null);
+  // "Das ist dein Koerperzeichen - in den Plan aufnehmen?": the answers that
+  // point away from the comfortable range, offered for the safety plan
+  const [planPicks, setPlanPicks] = useState<string[] | null>(null);
+  const [planSaved, setPlanSaved] = useState(false);
 
   const allAnswered = questions.every((q) => answers[q.id] !== undefined);
 
@@ -57,6 +65,26 @@ export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProp
     setShowResult(avg);
   }
 
+  const chosenAnswers = questions
+    .map((q) => q.options.find((o) => o.weight === answers[q.id]))
+    .filter((o): o is Option => !!o);
+  const tier = showResult != null ? tierForValue(showResult) : null;
+
+  function addToPlan() {
+    if (!tier) return;
+    seedSafetyPlansIfEmpty();
+    const plan = safetyPlansRepo.getAll()[0];
+    if (!plan) return;
+    const picked = planPicks ?? chosenAnswers.filter((o) => o.weight >= 60 || o.weight < 15).map((o) => o.text);
+    const fresh = picked.filter((text) => !plan.warningSignals.some((w) => w.text === text));
+    safetyPlansRepo.save({
+      ...plan,
+      warningSignals: [...plan.warningSignals, ...fresh.map((text) => ({ id: createId('warn'), text, tier }))],
+      updatedAt: new Date().toISOString(),
+    });
+    setPlanSaved(true);
+  }
+
   function applyResult() {
     if (showResult != null) onResult(showResult);
     onClose();
@@ -64,7 +92,10 @@ export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProp
 
   const band = showResult != null ? bandForValueCalibrated(showResult, settings.arousalZoneBoundaries) : null;
 
-  return (
+  // rendered at <body> level so the dimmed backdrop (and the dialog itself)
+  // really sits above the bottom navigation — inside the animated page
+  // container it was clipped below it and the last button could be hidden.
+  return createPortal(
     <div className="fixed inset-0 z-[420] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
       <div
         className="w-full max-w-[440px] max-h-[85vh] overflow-y-auto rounded-[var(--radius-xl)] p-5 animate-in"
@@ -138,6 +169,40 @@ export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProp
             <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-5">
               {t.polyvagal.arousalZones[band!.labelKey as keyof typeof t.polyvagal.arousalZones].hint}
             </p>
+            {tier && (
+              <div className="rounded-[var(--radius-lg)] p-4 mb-5" style={{ background: 'var(--color-surface-muted)' }}>
+                <p className="text-[13.5px] font-medium text-[var(--color-text)] mb-1">{t.polyvagal.bodyDetective.planTitle}</p>
+                <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.polyvagal.bodyDetective.planHint}</p>
+                {planSaved ? (
+                  <p className="text-[13px] text-[var(--color-primary)]">{t.polyvagal.bodyDetective.planSaved}</p>
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-2 mb-3">
+                      {chosenAnswers.map((o) => {
+                        const on = (planPicks ?? chosenAnswers.filter((x) => x.weight >= 60 || x.weight < 15).map((x) => x.text)).includes(o.text);
+                        return (
+                          <label key={o.id} className="flex items-start gap-2.5 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="mt-1"
+                              checked={on}
+                              onChange={() => {
+                                const base = planPicks ?? chosenAnswers.filter((x) => x.weight >= 60 || x.weight < 15).map((x) => x.text);
+                                setPlanPicks(on ? base.filter((x) => x !== o.text) : [...base, o.text]);
+                              }}
+                            />
+                            <span className="text-[13px] text-[var(--color-text)] leading-snug">{o.text}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <button onClick={addToPlan} className="rounded-full px-4 py-2 text-[13px] border" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
+                      {t.polyvagal.bodyDetective.planCta}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
             <button onClick={applyResult} className="w-full py-3 rounded-full text-[14px]" style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}>
               {t.polyvagal.bodyDetective.applyCta}
             </button>
@@ -145,5 +210,7 @@ export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProp
         )}
       </div>
     </div>
+    ,
+    document.body,
   );
 }

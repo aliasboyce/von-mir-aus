@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { TodaySoFar } from './TodaySoFar';
 import { createPortal } from 'react-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
@@ -239,6 +240,8 @@ export function HomePage() {
       <p className="text-[15px] text-[var(--color-text-muted)] mb-5 max-w-[280px]">
         {t.home.subtitle}
       </p>
+
+      <TodaySoFar />
 
       {/* Punkt 1 — klein und ruhig gehalten, aber jederzeit ohne Suchen
        * erreichbar. Bewusst VOR dem Wesen/Check-In platziert: wer diese

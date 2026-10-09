@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Info, X, AlertTriangle, Search } from 'lucide-react';
 import { useT } from '../../i18n';
@@ -127,7 +128,7 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
       polyvagalRepo.save({ id: createId('pv'), createdAt: nowIso, zone: polyvagalZoneForValue(value), tensionValue: value });
       tensionRepo.save({ id: createId('tension'), createdAt: nowIso, value });
     }
-    navigate(`/entdecken/ressourcen/skills?zone=${band.id}`);
+    navigate(`/entdecken/ressourcen/skills?zone=${band.id}&v=${Math.round(value)}`);
   }
 
   const trackRef = useRef<HTMLDivElement>(null);
@@ -338,7 +339,8 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
       )}
 
       {infoOpen && (
-        <div className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={() => setInfoOpen(false)}>
+        createPortal(
+<div className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={() => setInfoOpen(false)}>
           <div
             className="w-full max-w-[420px] max-h-[80vh] overflow-y-auto rounded-[var(--radius-xl)] p-5 animate-in"
             style={{ background: 'var(--color-surface)' }}
@@ -371,7 +373,8 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
               );
             })}
           </div>
-        </div>
+        </div>,
+ document.body)
       )}
 
       <div className="flex items-stretch gap-4 rounded-[var(--radius-lg)] overflow-hidden" style={{ height: 340, background: 'var(--color-surface-muted)' }}>
@@ -507,7 +510,8 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
       </div>
 
       {exercisePickerOpen && (
-        <div
+        createPortal(
+<div
           className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.4)' }}
           onClick={() => setExercisePickerOpen(false)}
@@ -541,7 +545,8 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+ document.body)
       )}
 
       {/* dynamic F-tags, 2-column grid, change per band */}

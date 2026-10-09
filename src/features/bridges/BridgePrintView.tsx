@@ -1,3 +1,4 @@
+import { isRemoteImage, useRemoteImagesAllowed } from '../../services/onlineImages';
 import type { Bridge } from '../../data/types';
 
 interface BridgePrintViewProps {
@@ -11,13 +12,14 @@ interface BridgePrintViewProps {
  * (an array of one) and export-all/selected from the list page — each
  * bridge gets its own page-break-protected block. */
 export function BridgePrintView({ bridges, categoryLabel, title }: BridgePrintViewProps) {
+  const remoteOk = useRemoteImagesAllowed();
   if (bridges.length === 0) return null;
   return (
     <div className="print-only" style={{ padding: '40px 36px', color: '#1a1a1a', background: '#ffffff', fontFamily: 'system-ui, sans-serif' }}>
       {title && bridges.length > 1 && <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 28 }}>{title}</h1>}
       {bridges.map((bridge, i) => (
         <div key={bridge.id} style={{ breakInside: 'avoid' }}>
-          {bridge.image && (
+          {bridge.image && (!isRemoteImage(bridge.image) || remoteOk) && (
             <img
               src={bridge.image}
               alt=""

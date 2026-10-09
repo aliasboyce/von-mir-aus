@@ -1,3 +1,4 @@
+import { isRemoteImage, useRemoteImagesAllowed } from '../../services/onlineImages';
 import type { Resource, ResourceCategory } from '../../data/types';
 
 interface ResourcePrintViewProps {
@@ -16,10 +17,11 @@ interface ResourcePrintViewProps {
  * text dump of the data.
  */
 export function ResourcePrintView({ resource, categoryLabel }: ResourcePrintViewProps) {
+  const remoteOk = useRemoteImagesAllowed();
   if (!resource) return null;
   return (
     <div className="print-only" style={{ padding: '40px 36px', color: '#1a1a1a', background: '#ffffff', fontFamily: 'system-ui, sans-serif' }}>
-      {resource.image && (
+      {resource.image && (!isRemoteImage(resource.image) || remoteOk) && (
         <img
           src={resource.image}
           alt=""

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isRemoteImage, useRemoteImagesAllowed } from '../../services/onlineImages';
 
 /**
  * "Es klappt schon wieder nicht mit den Fotos"-Auftrag — this is the
@@ -37,8 +38,14 @@ export function PhotoBackground({
 }) {
   const [status, setStatus] = useState<'loading' | 'ok' | 'fallback-loading' | 'fallback-ok' | 'failed'>('loading');
   const fallbackSrc = toFallbackSeed(src);
+  // switched off in Settings: no request at all, straight to the calm colour field
+  const blocked = isRemoteImage(src) && !useRemoteImagesAllowed();
 
   useEffect(() => {
+    if (blocked) {
+      setStatus('failed');
+      return;
+    }
     setStatus('loading');
     const img = new Image();
     img.onload = () => setStatus('ok');
@@ -48,7 +55,7 @@ export function PhotoBackground({
       img.onload = null;
       img.onerror = null;
     };
-  }, [src]);
+  }, [src, blocked]);
 
   useEffect(() => {
     if (status !== 'fallback-loading') return;
@@ -62,7 +69,7 @@ export function PhotoBackground({
     };
   }, [status, fallbackSrc]);
 
-  const activeUrl = status === 'ok' ? src : status === 'fallback-ok' ? fallbackSrc : null;
+  const activeUrl = blocked ? null : status === 'ok' ? src : status === 'fallback-ok' ? fallbackSrc : null;
 
   return (
     <div

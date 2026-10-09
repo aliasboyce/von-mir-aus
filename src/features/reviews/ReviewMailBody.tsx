@@ -36,7 +36,9 @@ export function ReviewMailBody({ mail }: { mail: MailItem }) {
   const wishes = days.flatMap((d) => d.wishes);
   const lines = reviewSummaryLines(checkIns, uses, t);
   if (appts.length > 0) lines.push(t.reviewMail.appointments.replace('{n}', String(appts.length)));
-  if (wishes.length > 0) lines.push(t.reviewMail.wishesDone.replace('{done}', String(wishes.filter((w) => w.done).length)).replace('{total}', String(wishes.length)));
+  // only "will" things count positively; a "soll" ticked off is just done, not celebrated
+  const wanted = wishes.filter((w) => w.intent !== 'soll');
+  if (wanted.length > 0) lines.push(t.reviewMail.wishesDone.replace('{done}', String(wanted.filter((w) => w.done).length)).replace('{total}', String(wanted.length)));
 
   async function pdf() {
     const title = mail.title;
@@ -46,6 +48,7 @@ export function ReviewMailBody({ mail }: { mail: MailItem }) {
 
   return (
     <div className="mt-1.5">
+      {p.softHint === '1' && settings.reviewBodyHint !== false && <p className="text-[13px] italic text-[var(--color-text-muted)] leading-relaxed mb-2">{t.reviewMail.softHint}</p>}
       {kind === 'day' && days[0] && days[0].checkIns.length > 0 ? (
         <DayCurveBlock checkIns={days[0].checkIns} skillUses={days[0].skillUses} onPdf={pdf} />
       ) : (

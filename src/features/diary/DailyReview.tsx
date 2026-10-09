@@ -271,8 +271,8 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
               <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{t.calendar.reviewWishes}</p>
               {wishes.map((w) => (
                 <p key={w.id} className="text-[13px] flex items-start gap-1.5" style={{ color: w.done ? 'var(--color-text-faint)' : 'var(--color-text)' }}>
-                  <span aria-hidden="true">{w.done ? '✓' : '○'}</span>
-                  <span style={{ textDecoration: w.done ? 'line-through' : 'none' }}>{w.text}</span>
+                  <span aria-hidden="true">{w.done ? (w.intent === 'soll' ? '·' : '✓') : '○'}</span>
+                  <span style={{ textDecoration: w.done ? 'line-through' : 'none' }}>{w.text}{w.intent === 'soll' && <span className="text-[11px] text-[var(--color-text-faint)]"> · {t.calendar.intentSoll}</span>}</span>
                 </p>
               ))}
             </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { HelpButton } from '../../components/navigation/HelpButton';
 import { goBack } from '../../services/navigation';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -53,6 +54,8 @@ export function SkillRunPage() {
   const t = useT();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  // ?practice=1 — a one-minute practice offered at light tension ("Uebung"): saved, but kept out of the swung-back numbers
+  const practice = new URLSearchParams(useLocation().search).get('practice') === '1';
   const skill = id ? resourcesRepo.getById(id) : undefined;
 
   const [stage, setStage] = useState<'run' | 'reflect' | 'done'>('run');
@@ -94,6 +97,7 @@ export function SkillRunPage() {
   const outcomeText = useMemo(() => {
     if (!saved) return '';
     const r = t.skillRun;
+    if (saved.practice) return r.practiceDone;
     const kind = skillOutcome(saved);
     const fill = (s: string) => s.replace('{before}', String(saved.tensionBefore ?? '')).replace('{after}', String(saved.tensionAfter ?? ''));
     if (kind === 'moved-toward') return fill(r.outcomeToward);
@@ -137,6 +141,7 @@ export function SkillRunPage() {
       tensionAfter: after,
       helped,
       note: note.trim() || undefined,
+      practice: practice || undefined,
     };
     skillUsesRepo.save(use);
     // The value measured at the end is also a real check-in, so the
@@ -150,13 +155,27 @@ export function SkillRunPage() {
 
   return (
     <div className="animate-in">
-      <TopBar />
+      <TopBar action={<HelpButton helpKey="skillLauf" />} />
       <div className="px-5 pb-12">
         <p className="text-[12px] uppercase tracking-wide mb-1" style={{ color: catColor }}>
           {t.skillRun.startCta}
         </p>
         <h1 className="text-[24px] mb-1">{skill.title}</h1>
         {skill.skillDetails?.subtitle && <p className="text-[14px] text-[var(--color-text-muted)] italic mb-3">{skill.skillDetails.subtitle}</p>}
+
+        {(skill.contextPhoto || skill.contextVoice) && stage === 'run' && (
+          <div className="rounded-[var(--radius-lg)] p-3 mb-3 flex flex-col gap-2" style={{ background: 'var(--color-surface-muted)' }}>
+            <p className="text-[11.5px] uppercase tracking-wide text-[var(--color-text-faint)]">{t.resources.contextRunTitle}</p>
+            {skill.contextPhoto && <img src={skill.contextPhoto} alt="" className="w-full max-h-[200px] object-cover rounded-[var(--radius-md)]" />}
+            {skill.contextVoice && <audio controls src={skill.contextVoice} className="w-full" style={{ height: 38 }} />}
+          </div>
+        )}
+
+        {practice && (
+          <p className="text-[12.5px] leading-relaxed rounded-[var(--radius-md)] px-3 py-2 mb-2" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-text-muted)' }}>
+            {t.skillRun.practiceBanner}
+          </p>
+        )}
 
         {stage === 'run' && (
           <>

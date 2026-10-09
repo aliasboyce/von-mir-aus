@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useSettings } from '../../state/SettingsContext';
 import { energyInfo } from '../../content/energyLevels';
 import { goBack } from '../../services/navigation';
@@ -535,7 +536,8 @@ export function BridgeDetailPage() {
       </Modal>
       {showAccessGap && <AccessGapModal subject={bridge.title} onClose={() => setShowAccessGap(false)} />}
       {showZugangExitDialog && (
-        <div className="fixed inset-0 z-[240] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={() => setShowZugangExitDialog(false)}>
+        createPortal(
+<div className="fixed inset-0 z-[240] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={() => setShowZugangExitDialog(false)}>
           <div
             className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[380px] p-5"
             onClick={(e) => e.stopPropagation()}
@@ -573,7 +575,8 @@ export function BridgeDetailPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+ document.body)
       )}
     </div>
   );

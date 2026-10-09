@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Upload, X, Check } from 'lucide-react';
 import { useT } from '../../i18n';
 import { resizeImageFile } from '../../services/imageResize';
@@ -45,7 +46,7 @@ export function NetworkBackgroundPicker({ open, onClose, onChange }: NetworkBack
       });
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center bg-black/30" onClick={onClose}>
       <div
         className="w-full sm:max-w-[380px] sm:rounded-[var(--radius-xl)] rounded-t-[var(--radius-xl)] bg-[var(--color-surface)] p-5 pb-[max(20px,env(safe-area-inset-bottom))] max-h-[85vh] overflow-y-auto animate-in"
@@ -111,6 +112,7 @@ export function NetworkBackgroundPicker({ open, onClose, onChange }: NetworkBack
           <div className="mt-3 w-full h-20 rounded-[var(--radius-lg)] bg-cover bg-center" style={{ backgroundImage: `url(${current.value})` }} />
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

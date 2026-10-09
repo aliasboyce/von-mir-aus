@@ -44,6 +44,9 @@ export interface Wish {
   day: string;
   text: string;
   done: boolean;
+  /** "Will ich das, oder soll ich das?" — the person's own answer. Only 'soll' is kept
+   * out of the positive counts in the reviews (an undecided or old entry counts as before). */
+  intent?: 'will' | 'soll';
   createdAt: string;
 }
 

@@ -214,7 +214,8 @@ export function DiaryPage() {
   const [draftCategory, setDraftCategory] = useState<string>(DIARY_DEFAULT_CATEGORY_ID);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftInReview, setDraftInReview] = useState(false);
-  const [view, setView] = useState<'entries' | 'review'>('entries');
+  // /sicherheit/tagebuch?tab=review opens straight on the Tagesrueckblick (used by "Heute bisher" on Home)
+  const [view, setView] = useState<'entries' | 'review'>(() => (new URLSearchParams(window.location.search).get('tab') === 'review' ? 'review' : 'entries'));
   const [fontPickerOpen, setFontPickerOpen] = useState(false);
 
   function categoryLabel(id: string): string {

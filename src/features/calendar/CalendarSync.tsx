@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { addMail } from '../../services/mailbox';
+import { notifyHint } from '../../services/hintFeedback';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { appointmentsRepo, carryNotesFor, dayKey, startOf, type Appointment } from './calendarRepo';
 
@@ -57,7 +58,7 @@ export function CalendarSync() {
               const lines = [when + (person ? ` · ${person.name}` : '')];
               if (a.note) lines.push(a.note);
               carryNotesFor(a).forEach((n) => lines.push(`${t.calendar.carryNoteTitle}: ${n}`));
-              addMail({
+              const rem = addMail({
                 id: `appt-reminder-${tag}`,
                 kind: 'reminder',
                 title: t.calendar.reminderMailTitle.replace('{title}', a.title),
@@ -65,6 +66,7 @@ export function CalendarSync() {
                 prominent: true,
                 payload: { appointmentId: a.id },
               });
+              if (rem) notifyHint(settings.hintMode);
             }
             changed = { ...changed, reminderDeliveredAt: new Date(now).toISOString() };
           }
@@ -78,7 +80,7 @@ export function CalendarSync() {
             // ONE message with everything in it (reflection, optional next
             // appointment, note for next time, then "Fertig") — it used to be
             // two separate cards.
-            addMail({
+            const fu = addMail({
               id: `appt-fu-${tag}`,
               kind: 'followup',
               title: t.calendar.followUp1Title,
@@ -87,6 +89,7 @@ export function CalendarSync() {
               createdAt: new Date(base).toISOString(),
               payload: { appointmentId: a.id, step: 'all' },
             });
+            if (fu) notifyHint(settings.hintMode);
           }
           changed = { ...changed, followUpDeliveredAt: new Date(now).toISOString() };
         }
@@ -104,7 +107,7 @@ export function CalendarSync() {
       document.removeEventListener('visibilitychange', onVisible);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.language]);
+  }, [settings.language, settings.hintMode]);
 
   return null;
 }

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 
@@ -27,7 +28,10 @@ export function TooMuchModal({ onClose }: TooMuchModalProps) {
     navigate('/');
   }
 
-  return (
+  // rendered at <body> level so the dimmed backdrop (and the dialog itself)
+  // really sits above the bottom navigation — inside the animated page
+  // container it was clipped below it and the last button could be hidden.
+  return createPortal(
     <div className="fixed inset-0 z-[420] flex items-end sm:items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={onClose}>
       <div className="w-full max-w-[420px] rounded-[var(--radius-xl)] p-5 animate-in" style={{ background: 'var(--color-surface)' }} onClick={(e) => e.stopPropagation()}>
         <p className="text-[15px] font-medium text-[var(--color-text)] mb-2">{t.companion.tooMuchTitle}</p>
@@ -43,5 +47,7 @@ export function TooMuchModal({ onClose }: TooMuchModalProps) {
         </button>
       </div>
     </div>
+    ,
+    document.body,
   );
 }

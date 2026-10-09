@@ -5,6 +5,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
 import { useT } from '../../i18n';
+import { networkRepo } from '../safetyNet/networkRepo';
 
 interface QuickHelpModalProps {
   open: boolean;
@@ -17,6 +18,13 @@ export function QuickHelpModal({ open, onClose }: QuickHelpModalProps) {
   const t = useT();
   const [variant, setVariant] = useState<Variant>('kurz');
   const [message, setMessage] = useState(t.safetyPlan.quickHelpTexts.kurz);
+  // "Hilfe holen uebernimmt 'Was hilft mir von dir' in die Nachricht an genau diese Person"
+  const people = networkRepo.getAll().filter((e) => e.category === 'person' && e.whatHelps);
+  const [personId, setPersonId] = useState<string | null>(null);
+  const withPerson = (base: string, id: string | null) => {
+    const p = people.find((x) => x.id === id);
+    return p?.whatHelps ? `${base}\n${p.whatHelps}` : base;
+  };
 
   function selectVariant(v: Variant) {
     // Choosing a variant always loads that template — that's the whole
@@ -25,7 +33,12 @@ export function QuickHelpModal({ open, onClose }: QuickHelpModalProps) {
     // in-progress typing), which made switching look broken: the chip
     // would highlight but the text underneath never changed.
     setVariant(v);
-    setMessage(t.safetyPlan.quickHelpTexts[v]);
+    setMessage(withPerson(t.safetyPlan.quickHelpTexts[v], personId));
+  }
+
+  function selectPerson(id: string | null) {
+    setPersonId(id);
+    setMessage(withPerson(t.safetyPlan.quickHelpTexts[variant], id));
   }
 
   async function send() {
@@ -42,6 +55,21 @@ export function QuickHelpModal({ open, onClose }: QuickHelpModalProps) {
             </Chip>
           ))}
         </div>
+        {people.length > 0 && (
+          <div>
+            <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{t.safetyPlan.quickHelpTo}</p>
+            <div className="flex flex-wrap gap-2">
+              <Chip selected={personId === null} onClick={() => selectPerson(null)}>
+                {t.safetyPlan.quickHelpToNobody}
+              </Chip>
+              {people.map((p) => (
+                <Chip key={p.id} selected={personId === p.id} onClick={() => selectPerson(p.id)}>
+                  {p.name}
+                </Chip>
+              ))}
+            </div>
+          </div>
+        )}
         <textarea
           className="input"
           rows={4}

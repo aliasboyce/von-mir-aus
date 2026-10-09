@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { VoiceNoteRecorder } from '../../components/shared/VoiceNoteRecorder';
+import { resizeImageFile } from '../../services/imageResize';
+import { Upload, Trash2 } from 'lucide-react';
+import { skillModality, type SkillModality } from '../../content/skillModality';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
 import type { NeedDirection } from '../../data/types';
@@ -76,6 +80,10 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
   const [accessChannels, setAccessChannels] = useState<AccessChannel[]>(resource?.accessChannels ?? []);
   const [inNetwork, setInNetwork] = useState<boolean>(() => resource?.inNetwork ?? networkRepo.getAll().some((e) => e.linkedResourceId === resource?.id));
   const [linkedNeeds, setLinkedNeeds] = useState<NeedDirection[]>(resource?.linkedNeeds ?? []);
+  // new skills start as 'koerper' (the safer default for crisis zones); an existing one keeps what it is
+  const [modality, setModality] = useState<SkillModality>(resource ? skillModality(resource) : 'koerper');
+  const [contextPhoto, setContextPhoto] = useState<string | undefined>(resource?.contextPhoto);
+  const [contextVoice, setContextVoice] = useState<string | undefined>(resource?.contextVoice);
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | undefined>(resource?.energyLevel);
   const [zoneIds, setZoneIds] = useState<string[]>(d?.zoneIds ?? []);
   const [relatedHilfsmittelIds, setRelatedHilfsmittelIds] = useState<string[]>(d?.relatedHilfsmittelIds ?? []);
@@ -103,11 +111,14 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
       favorite: resource?.favorite ?? false,
       accessChannels,
       energyLevel,
+      contextPhoto,
+      contextVoice,
       linkedNeeds: linkedNeeds.length > 0 ? linkedNeeds : undefined,
       inNetwork,
       createdAt: resource?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       skillDetails: {
+        modality,
         subtitle: subtitle || undefined,
         zoneIds: zoneIds.length > 0 ? zoneIds : undefined,
         relatedHilfsmittelIds: relatedHilfsmittelIds.length > 0 ? relatedHilfsmittelIds : undefined,
@@ -146,6 +157,26 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
 
         <ZonePicker selected={zoneIds} onChange={setZoneIds} />
 
+        {/* Koerper oder Denken: decides whether the skill is offered in zone 5/6 */}
+        <div>
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5">{t.resources.modalityTitle}</p>
+          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.modalityHint}</p>
+          <div className="flex gap-2">
+            {([['koerper', t.resources.modalityBody], ['kognitiv', t.resources.modalityMind]] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={modality === key}
+                onClick={() => setModality(key)}
+                className="flex-1 rounded-[var(--radius-md)] border px-3 py-2.5 text-[13px] text-left"
+                style={modality === key ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-soft)', color: 'var(--color-text)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div>
           <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5">{t.energy.formTitleSkill}</p>
           <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.energy.fieldHint}</p>
@@ -153,6 +184,34 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
         </div>
 
         <NeedsMultiPicker selected={linkedNeeds} onChange={setLinkedNeeds} />
+
+        {/* Kontext-Anker: photo + short voice note from a safe moment */}
+        <div>
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5">{t.resources.contextTitle}</p>
+          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-3">{t.resources.contextHint}</p>
+          {contextPhoto ? (
+            <div className="relative mb-3">
+              <img src={contextPhoto} alt="" className="w-full max-h-[180px] object-cover rounded-[var(--radius-md)]" />
+              <button type="button" onClick={() => setContextPhoto(undefined)} aria-label={t.resources.voiceDelete} className="absolute top-2 right-2 rounded-full p-1.5" style={{ background: 'rgba(0,0,0,0.5)', color: '#fff' }}>
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ) : (
+            <label className="flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[13.5px] border cursor-pointer mb-3" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
+              <Upload size={15} /> {t.resources.contextPhotoCta}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) resizeImageFile(f, 640, 0.8).then(setContextPhoto).catch(() => undefined);
+                }}
+              />
+            </label>
+          )}
+          <VoiceNoteRecorder value={contextVoice} onChange={setContextVoice} />
+        </div>
 
         {/* "Beim Erstellen abhaken, dass es im Netzwerk erscheinen soll" */}
         <label className="flex items-start gap-2.5 cursor-pointer">

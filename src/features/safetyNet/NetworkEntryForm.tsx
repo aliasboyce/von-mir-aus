@@ -320,6 +320,12 @@ export function NetworkEntryForm({
         )}
       </Field>
 
+      {draft.category === 'person' && (
+        <Field label={`${t.network.whatHelpsLabel} ${t.common.optional}`}>
+          <textarea className="input" rows={2} placeholder={t.network.whatHelpsPlaceholder} value={draft.whatHelps ?? ''} onChange={(e) => onChange({ ...draft, whatHelps: e.target.value || undefined })} />
+        </Field>
+      )}
+
       <Field label={`${t.network.noteLabel} ${t.common.optional}`}>
         <textarea
           className="input"

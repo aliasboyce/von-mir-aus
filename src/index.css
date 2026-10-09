@@ -580,9 +580,23 @@ button {
   display: none;
 }
 
+/* "Animation reduzieren" — the old rule only shortened every duration to
+ * 0.01ms. For an INFINITE animation (falling leaves, snow, petals, glows,
+ * spinners) that made it repeat 100,000 times a second: the leaves flickered
+ * wildly instead of calming down. Now every animation runs once (so one-off
+ * entrances still just finish), endless ones stop, purely decorative falling
+ * things (.ambient-fall) disappear, and the soft glow stays as a still glow. */
 [data-reduce-motion='true'] * {
   animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+}
+[data-reduce-motion='true'] .ambient-fall {
+  display: none !important;
+}
+[data-reduce-motion='true'] .pulse-glow {
+  animation: none !important;
+  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--color-accent-clay) 45%, transparent);
 }
 
 

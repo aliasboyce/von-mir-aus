@@ -4,7 +4,7 @@ export type HelpKey =
   | 'timer' | 'garten' | 'mediLog' | 'bruecken' | 'bridgeDetail' | 'sicherheit' | 'sicherheitsnetz'
   | 'kontakte' | 'sicherheitsplan' | 'tagebuch' | 'einstellungen' | 'wesenInhalte' | 'favoriten'
   | 'wesenAblenkung' | 'wesenOrientierung' | 'wesenMitteilungen'
-  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich';
+  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf';
 
 interface HelpEntry {
   title: string;
@@ -17,26 +17,26 @@ export const HELP_CONTENT: Record<HelpKey, HelpEntry> = {
   home: {
     title: 'Startseite',
     titleEn: 'Home',
-    body: 'Hier landest du beim Öffnen der App. Der Check-In lädt dich ein, kurz anzukommen — er ist freiwillig, nicht verpflichtend. Darunter findest du schnelle Wege zu dem, was dir gerade helfen könnte.',
-    bodyEn: 'This is where you land when opening the app. The Check-In invites you to briefly arrive — it\'s optional, not required. Below it, you\'ll find quick paths to whatever might help right now.',
+    body: 'Hier landest du beim Öffnen der App. Die schmale Zeile unter dem Titel zeigt „Heute bisher“: welcher Tag, wie spät, wann du eingecheckt hast, welchen Skill du gemacht hast und wer kommt — ein Tipp öffnet den Tagesrückblick. Der Check-In ist freiwillig. Oben rechts liegt das Postfach mit Erinnerungen, Termin-Nachfragen, Updates und deinen automatischen Rückblicken.',
+    bodyEn: 'This is where you land when opening the app. The slim line under the title shows "So far today": which day, what time, when you checked in, which skill you did and who is coming — a tap opens the daily review. The check-in is optional. The mailbox at the top right holds reminders, appointment follow-ups, updates and your automatic reviews.',
   },
   checkin: {
     title: 'Check-In',
     titleEn: 'Check-In',
-    body: 'Ein kurzer, geführter Moment: inneres Wetter, dann „Wo bist du gerade?", dann Spannung, dann Bedürfnisse. Es gibt kein richtig oder falsch — du kannst jederzeit überspringen. Nichts davon musst du ausfüllen, um die App zu nutzen.',
-    bodyEn: 'A brief guided moment: inner weather, then "Where are you right now?", then tension, then needs. There\'s no right or wrong — you can skip at any point. None of this is required to use the app.',
+    body: 'Ein kurzer, geführter Moment: inneres Wetter, dann „Wo bist du gerade?“, dann Bedürfnisse. Danach geht es zu den Ressourcen, die zu deinem Bedürfnis passen. Bist du gerade stark angespannt, fragt dich die App zuerst, ob du lieber einen Skill ausprobieren oder gleich zu den Ressourcen möchtest. Du kannst jederzeit überspringen.',
+    bodyEn: 'A brief guided moment: inner weather, then "Where are you right now?", then needs. Afterwards you are taken to the resources that fit your need. If you are very tense, the app first asks whether you would rather try a skill or go straight to the resources. You can skip at any point.',
   },
   entdecken: {
     title: 'Entdecken',
     titleEn: 'Explore',
-    body: 'Eine Übersicht über die verschiedenen Werkzeuge der App — Ressourcen, Tageskurve, Garten, Medi-Log und mehr. Du musst nichts davon nutzen; wähle das, was gerade zu dir passt.',
-    bodyEn: "An overview of the app's different tools — resources, daily curve, garden, medi-log and more. You don't have to use all of them; pick whatever fits right now.",
+    body: 'Eine Übersicht über die Werkzeuge der App. Mit „Anpassen“ kannst du Seiten anpinnen (dann stehen sie ganz oben) oder archivieren (dann liegen sie grau ganz unten) — so bleibt sichtbar, was du wirklich nutzt. Du musst nichts davon nutzen; wähle das, was gerade zu dir passt.',
+    bodyEn: 'An overview of the app\'s tools. With "Customize" you can pin pages (they then sit at the very top) or archive them (they then sit greyed at the very bottom) — so what you really use stays visible. You do not have to use any of it; pick what fits right now.',
   },
   ressourcen: {
     title: 'Ressourcen',
     titleEn: 'Resources',
-    body: 'Ressourcen sind Dinge, auf die du zurückgreifen kannst — ein Gegenstand, eine Person, ein Ort, eine Erinnerung, eine Fähigkeit. Sammle hier, was dir in schwierigen Momenten Halt geben kann, damit es griffbereit ist, wenn du es brauchst.',
-    bodyEn: "Resources are things you can draw on — an object, a person, a place, a memory, a skill. Collect here what can give you steadiness in difficult moments, so it's within reach when you need it.",
+    body: 'Hier sammelst du, was dir in schwierigen Momenten Halt gibt: Hilfsmittel (Dinge, nach Sinnen und Funktion geordnet), Skills (Fähigkeiten, die du übst) und gespeicherte Quellen. Jeder Eintrag kann angeben, wie viel Energie er braucht, zu welchem Bedürfnis und welchem Anspannungsbereich er passt und ob er im Netzwerk erscheinen soll. Bei einem Skill findest du „Skill starten“ mit Anleitung und Timer.',
+    bodyEn: 'Here you collect what holds you in hard moments: tools (things, sorted by senses and function), skills (abilities you practice) and saved sources. Each entry can state how much energy it needs, which need and tension range it fits, and whether it should appear in the network. For a skill you will find "Start skill" with instructions and timer.',
   },
   zugangsrad: {
     title: 'Zugangsrad',
@@ -137,8 +137,8 @@ export const HELP_CONTENT: Record<HelpKey, HelpEntry> = {
   sicherheitsplan: {
     title: 'Sicherheitsplan',
     titleEn: 'Safety Plan',
-    body: 'Ein persönlicher Plan für schwierige Momente: Warnsignale, was hilft, und Anlaufstellen. Am besten schon jetzt ausfüllen, wenn es dir gut geht, damit er da ist, wenn du ihn brauchst.',
-    bodyEn: "A personal plan for difficult moments: warning signs, what helps, and who to reach out to. It's best to fill this in now, while things feel okay, so it's ready when you need it.",
+    body: 'Dein persönlicher Plan für schwere Momente: Warnsignale in drei Stufen und was dann hilft. Bei jedem Warnsignal kannst du einen Skill oder ein Hilfsmittel verknüpfen („Wenn …, dann …“). Landest du später in dieser Stufe, steht dein Plan als Erstes im persönlichen Fahrplan. Auch das Körperdetektiv kann ein Körperzeichen hier aufnehmen. „Hilfe holen“ übernimmt bei einer Person aus deinem Netzwerk, was dir von ihr hilft.',
+    bodyEn: 'Your personal plan for hard moments: warning signs in three tiers and what helps then. For each warning sign you can link a skill or tool ("If …, then …"). If you land in that tier later, your plan comes first in the personal roadmap. The body detective can also add a body sign here. "Get help" takes over what helps you from a person in your network.',
   },
   tagebuch: {
     title: 'Tagebuch',
@@ -229,5 +229,17 @@ export const HELP_CONTENT: Record<HelpKey, HelpEntry> = {
     titleEn: 'Letter to myself',
     body: 'Schreib einen Brief an dein zukünftiges Ich mit einem Datum — das Wesen zeigt ihn dir zur passenden Zeit auf der Startseite.',
     bodyEn: 'Write a letter to your future self with a date — the companion shows it to you at the right time on the home screen.',
+  },
+  kalender: {
+    title: 'Kalender',
+    titleEn: 'Calendar',
+    body: 'Die nächsten sieben Tage auf einen Blick — heute ist eingerahmt. Termine trägst du mit Datum, Uhrzeit, Kategorie und, wenn du magst, einer Person aus deinem Netzwerk ein. Erinnerungen erscheinen im Postfach; für Erinnerungen bei geschlossener App kannst du die Termine als Kalenderdatei in den Handy-Kalender übernehmen (eine Momentaufnahme, bei Änderungen neu exportieren). Unter „Ich muss gar nichts, aber ich will“ sammelst du Dinge für den Tag — markiere, ob du etwas willst oder sollst, und spür vorher kurz in den Körper.',
+    bodyEn: 'Your next seven days at a glance — today is framed. You enter appointments with date, time, category and, if you like, a person from your network. Reminders appear in the mailbox; for reminders while the app is closed you can put the appointments into your phone calendar as a calendar file (a snapshot, export again after changes). Under "I do not have to do anything, but I want to" you collect things for the day — mark whether you want to or should, and feel into your body first.',
+  },
+  skillLauf: {
+    title: 'Skill oder Skillkette starten',
+    titleEn: 'Start a skill or skill chain',
+    body: 'Die Uhr zählt einfach mit — es gibt kein Ende, das du erreichen musst. Du siehst die Schritte der Anleitung (bei einer Kette Schritt für Schritt nacheinander) und kannst jederzeit beenden. Danach schaust du kurz nach, wo deine Anspannung jetzt ist. Das landet in Kurve und Rückblick — dort siehst du, wann du zurückgeschwungen bist.',
+    bodyEn: 'The clock simply runs along — there is no end you have to reach. You see the instruction steps (for a chain, one after another) and can stop at any time. Afterwards you briefly check where your tension is now. That goes into the curve and the review — there you see when you swung back.',
   },
 };

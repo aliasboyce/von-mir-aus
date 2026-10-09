@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { isRemoteImage, useRemoteImagesAllowed } from '../../services/onlineImages';
 
 interface ImageSuggestionCarouselProps {
   images: string[];
@@ -30,16 +31,20 @@ interface ImageSuggestionCarouselProps {
  */
 export function ImageSuggestionCarousel({ images, selected, onSelect, ariaLabel, trailingContent }: ImageSuggestionCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const allowRemote = useRemoteImagesAllowed();
 
   function scrollBy(amount: number) {
     scrollerRef.current?.scrollBy({ left: amount, behavior: 'smooth' });
   }
 
-  if (images.length === 0 && !trailingContent) return null;
+  // with online photos off, the example photos are not even requested; what is
+  // left is whatever the caller adds (e.g. a "no image" button)
+  const visibleImages = allowRemote ? images : images.filter((u) => !isRemoteImage(u));
+  if (visibleImages.length === 0 && !trailingContent) return null;
 
   return (
     <div className="relative">
-      {images.length > 4 && (
+      {visibleImages.length > 4 && (
         <button
           type="button"
           onClick={() => scrollBy(-160)}
@@ -52,11 +57,11 @@ export function ImageSuggestionCarousel({ images, selected, onSelect, ariaLabel,
       <div
         ref={scrollerRef}
         className="flex gap-2 overflow-x-auto py-1"
-        style={{ paddingLeft: images.length > 4 ? 34 : 4, paddingRight: images.length > 4 ? 34 : 4 }}
+        style={{ paddingLeft: visibleImages.length > 4 ? 34 : 4, paddingRight: visibleImages.length > 4 ? 34 : 4 }}
         role="group"
         aria-label={ariaLabel}
       >
-        {images.map((url) => (
+        {visibleImages.map((url) => (
           <button
             key={url}
             type="button"
@@ -72,7 +77,7 @@ export function ImageSuggestionCarousel({ images, selected, onSelect, ariaLabel,
         ))}
         {trailingContent}
       </div>
-      {images.length > 4 && (
+      {visibleImages.length > 4 && (
         <button
           type="button"
           onClick={() => scrollBy(160)}
