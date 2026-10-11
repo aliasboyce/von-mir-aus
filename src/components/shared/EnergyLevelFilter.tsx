@@ -1,6 +1,7 @@
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { ENERGY_LEVELS, type EnergyLevel } from '../../content/energyLevels';
+import { EnergyOrb } from './EnergyOrb';
 
 /**
  * "Energie als Kostenfilter, nicht als Modul"-Brief — deliberately
@@ -22,14 +23,14 @@ export function energyExactMatch<T extends { energyLevel?: EnergyLevel }>(items:
   return items.filter((item) => item.energyLevel === level);
 }
 
-export function EnergyLevelFilter({ value, onChange }: { value: EnergyLevel | null; onChange: (v: EnergyLevel | null) => void }) {
+export function EnergyLevelFilter({ value, onChange, hideQuestion = false }: { value: EnergyLevel | null; onChange: (v: EnergyLevel | null) => void; hideQuestion?: boolean }) {
   const t = useT();
   const { settings } = useSettings();
   const lang = settings.language === 'en' ? 'en' : 'de';
   const selected = value !== null ? ENERGY_LEVELS.find((e) => e.level === value) : undefined;
   return (
     <div className="mb-4">
-      <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.energy.filterQuestion}</p>
+      {!hideQuestion && <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.energy.filterQuestion}</p>}
       <div className="grid grid-cols-4 gap-1.5 mb-1.5">
         {ENERGY_LEVELS.map((e) => {
           const info = lang === 'en' ? e.en : e.de;
@@ -44,7 +45,7 @@ export function EnergyLevelFilter({ value, onChange }: { value: EnergyLevel | nu
                 background: value === e.level ? 'var(--color-primary-soft)' : 'var(--color-surface)',
               }}
             >
-              <span className="text-[11px] leading-none" aria-hidden="true">{'🔋'.repeat(e.level)}</span>
+              <EnergyOrb level={e.level} size={38} active={value === e.level} />
               <span className="text-[10.5px] text-[var(--color-text-muted)] text-center leading-tight">{info.label}</span>
             </button>
           );

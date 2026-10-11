@@ -7,6 +7,8 @@ import { networkRepo } from '../safetyNet/networkRepo';
 import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
 import type { NeedDirection } from '../../data/types';
 import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
+import { FitProfileFields } from '../../components/shared/FitProfileFields';
+import type { FitProfile } from '../../content/fitCriteria';
 import type { EnergyLevel } from '../../content/energyLevels';
 import { Plus, X, RefreshCw } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
@@ -85,6 +87,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
   const [contextPhoto, setContextPhoto] = useState<string | undefined>(resource?.contextPhoto);
   const [contextVoice, setContextVoice] = useState<string | undefined>(resource?.contextVoice);
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | undefined>(resource?.energyLevel);
+  const [fit, setFit] = useState<FitProfile | undefined>(resource?.fit);
   const [zoneIds, setZoneIds] = useState<string[]>(d?.zoneIds ?? []);
   const [relatedHilfsmittelIds, setRelatedHilfsmittelIds] = useState<string[]>(d?.relatedHilfsmittelIds ?? []);
   const hilfsmittelOptions = resourcesRepo.getAll().filter((r) => RESOURCE_CATEGORY_TO_GROUP[r.category] === 'hilfsmittel');
@@ -111,6 +114,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
       favorite: resource?.favorite ?? false,
       accessChannels,
       energyLevel,
+      fit,
       contextPhoto,
       contextVoice,
       linkedNeeds: linkedNeeds.length > 0 ? linkedNeeds : undefined,
@@ -182,6 +186,8 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
           <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.energy.fieldHint}</p>
           <EnergyLevelPicker value={energyLevel} onChange={setEnergyLevel} />
         </div>
+
+        <FitProfileFields value={fit} onChange={setFit} />
 
         <NeedsMultiPicker selected={linkedNeeds} onChange={setLinkedNeeds} />
 

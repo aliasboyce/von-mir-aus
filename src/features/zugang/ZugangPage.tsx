@@ -15,6 +15,9 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { createId } from '../../services/storage/repository';
 import { SuggestionMultiSelect } from './SuggestionMultiSelect';
+import { NamingInput } from './NamingInput';
+import { ZugangBranch, type ZugangIntent } from './ZugangBranch';
+import { bandForValue } from '../polyvagal/arousalBands';
 import { BodySensationPicker } from './BodySensationPicker';
 import { zugangRepo, SURVIVAL_TO_POLYVAGAL_ZONE } from './zugangRepo';
 import { getCustomSuggestions, addCustomSuggestion, editCustomSuggestion, removeCustomSuggestion } from './zugangSuggestions';
@@ -39,14 +42,14 @@ import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from '../bridges/bridgeMeta';
-import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { useSettings } from '../../state/SettingsContext';
-import type { ZugangSurvivalState, Bridge, AccessChannel } from '../../data/types';
-import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
-import type { EnergyLevel } from '../../content/energyLevels';
+import type { ZugangSurvivalState, Bridge } from '../../data/types';
+import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { availableChannels, countHiddenUnmarked, filterByFit, subjectOfResource } from '../../content/fitCriteria';
+import { useFitFilter } from '../../state/fitFilterStore';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
 const STEP_COUNT = 11; // 0..10, see render switch below
@@ -89,6 +92,15 @@ export function ZugangPage() {
   const [showIntro, setShowIntro] = useState(!recentDraft);
   const [ichJetzt, setIchJetzt] = useState(recentDraft?.ichJetzt ?? '');
   const [body, setBody] = useState<string[]>(recentDraft?.body ?? []);
+  // Wahrnehmen zuerst selbst: free words first, then plain options, and only
+  // then the nervous-system colours as help for placing what was noticed.
+  const [bodyStage, setBodyStage] = useState<'free' | 'neutral' | 'colored'>('free');
+  const [feelingStage, setFeelingStage] = useState<'free' | 'options'>('free');
+  // The fork after perceiving: 'choose' (two doors), 'regulate' (skills and
+  // Skillketten), 'need' (passed through, continue with the existing path).
+  const [branch, setBranch] = useState<'choose' | 'regulate' | 'need' | null>(recentDraft?.branch ?? null);
+  const [intent, setIntent] = useState<ZugangIntent>(recentDraft?.intent ?? null);
+  const inBranch = branch === 'choose' || branch === 'regulate';
   const [survivalState, setSurvivalState] = useState<ZugangSurvivalState | null>(recentDraft?.survivalState ?? null);
   const [tensionValue, setTensionValue] = useState<number>(recentDraft?.tensionValue ?? 50);
   const [feelings, setFeelings] = useState<string[]>(recentDraft?.feelings ?? []);
@@ -113,7 +125,11 @@ export function ZugangPage() {
   // long-term record like feelings or needs are — keeping it out of
   // storage keeps the whole feature simple and easy to remove later
   // if it doesn't earn its place.
-  const [openChannels, setOpenChannels] = useState<AccessChannel[]>([]);
+  // Now the same state as the Zugangskanäle page ("Was ist gerade
+  // vorhanden?") and the shared "Was geht gerade?" filter, so what the
+  // person says once counts everywhere (still session-only).
+  const { filter: fitFilter } = useFitFilter();
+  const openChannels = useMemo(() => availableChannels(fitFilter.levels), [fitFilter.levels]);
   const [connection, setConnection] = useState<string[]>(recentDraft?.connection ?? []);
   const [action, setAction] = useState(recentDraft?.action ?? '');
   const [reflection, setReflection] = useState(recentDraft?.reflection ?? '');
@@ -167,10 +183,10 @@ export function ZugangPage() {
     if (!hasProgress) return;
     saveZugangDraft({
       step, ichJetzt, body, survivalState, tensionValue, feelings, protectionStrategy,
-      careWish, selfSufficient, need, obstacle, bridgeId, connection, action, reflection,
+      careWish, selfSufficient, need, obstacle, bridgeId, connection, action, reflection, branch, intent,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, ichJetzt, body, survivalState, tensionValue, feelings, protectionStrategy, careWish, selfSufficient, need, obstacle, bridgeId, connection, action, reflection, showIntro, saved]);
+  }, [step, ichJetzt, body, survivalState, tensionValue, feelings, protectionStrategy, careWish, selfSufficient, need, obstacle, bridgeId, connection, action, reflection, branch, intent, showIntro, saved]);
 
   const allBridges = useMemo(() => bridgesRepo.getAll(), []);
   const selectedBridge = useMemo(() => allBridges.find((b) => b.id === bridgeId), [allBridges, bridgeId]);
@@ -188,7 +204,6 @@ export function ZugangPage() {
     return withScore.slice(0, 4).map((s) => s.resource);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openChannels]);
-  const [energyFilter, setEnergyFilter] = useState<EnergyLevel | null>(null);
   const activityContacts = useMemo(() => networkRepo.getAll().filter((e) => e.category === 'person').slice(0, 4), []);
 
   function toggle(list: string[], setList: (v: string[]) => void, value: string) {
@@ -196,10 +211,23 @@ export function ZugangPage() {
   }
 
   function goNext() {
+    // after perceiving (Körper, Zustand, Gefühl): the fork, once
+    if (step === 3 && branch === null) {
+      setBranch('choose');
+      return;
+    }
     setStep((s) => Math.min(s + 1, STEP_COUNT - 1));
   }
   function goBack() {
     setBackCount((c) => c + 1);
+    if (branch === 'regulate') {
+      setBranch('choose');
+      return;
+    }
+    if (branch === 'choose') {
+      setBranch(null);
+      return;
+    }
     if (step === 0) {
       goBackSafe(navigate);
       return;
@@ -257,7 +285,7 @@ export function ZugangPage() {
     navigate(`/bruecken/${bridgeId}?fromZugang=1`);
   }
 
-  function saveEntry(endedVia: 'complete' | 'bridge' | 'safetynet' | 'abandoned' = 'complete') {
+  function saveEntry(endedVia: 'complete' | 'bridge' | 'safetynet' | 'abandoned' | 'regulate' = 'complete') {
     const now = new Date().toISOString();
     zugangRepo.save({
       id: createId('zugang'),
@@ -286,12 +314,21 @@ export function ZugangPage() {
     clearZugangDraft();
   }
 
+  function finishRegulate() {
+    setBranch(null);
+    setStep(10);
+    saveEntry('regulate');
+    setSaved(true);
+    say(pickLine({ page: '/zugang', trigger: 'speichern' }), { joy: true });
+  }
+
   function finish() {
     saveEntry();
     setSaved(true);
     say(pickLine({ page: '/zugang', trigger: 'speichern' }), { joy: true });
   }
 
+  const shownStep = inBranch ? -1 : step;
   const stepLabels = [
     t.zugang.step0Title, t.zugang.step1Title, t.zugang.step2Title, t.zugang.step3Title,
     t.zugang.step4Title, t.zugang.step5Title, t.zugang.step6Title, t.zugang.step7Title,
@@ -320,6 +357,8 @@ export function ZugangPage() {
               onClick={() => {
                 if (draft) {
                   setStep(draft.step);
+                  setBranch(draft.branch ?? null);
+                  setIntent(draft.intent ?? null);
                   setIchJetzt(draft.ichJetzt);
                   setBody(draft.body);
                   setSurvivalState(draft.survivalState);
@@ -355,9 +394,35 @@ export function ZugangPage() {
           <>
             <p className="text-[14px] text-[var(--color-text-muted)] leading-relaxed max-w-[300px] mb-2">{t.zugang.introText1}</p>
             <p className="text-[14px] text-[var(--color-text-muted)] leading-relaxed max-w-[300px] mb-8">{t.zugang.introText2}</p>
-            <Button onClick={() => setShowIntro(false)} className="mb-3">
-              {t.zugang.introStartCta}
-            </Button>
+            <div className="w-full max-w-[320px] flex flex-col gap-2.5 mb-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setIntent('regulate');
+                  setShowIntro(false);
+                }}
+                className="rounded-[var(--radius-lg)] border px-4 py-3 text-left"
+                style={{ borderColor: 'var(--color-primary)', background: 'var(--color-surface)' }}
+              >
+                <span className="block text-[15px] text-[var(--color-text)]">{t.zugang.intentRegulate}</span>
+                <span className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.intentRegulateHint}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIntent('act');
+                  setShowIntro(false);
+                }}
+                className="rounded-[var(--radius-lg)] border px-4 py-3 text-left"
+                style={{ borderColor: 'var(--color-primary)', background: 'var(--color-surface)' }}
+              >
+                <span className="block text-[15px] text-[var(--color-text)]">{t.zugang.intentAct}</span>
+                <span className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.intentActHint}</span>
+              </button>
+            </div>
+            <button type="button" onClick={() => setShowIntro(false)} className="text-[13px] text-[var(--color-text-faint)] underline mb-5">
+              {t.zugang.introOpenCta}
+            </button>
           </>
         )}
         <Link to="/zugang/rueckblick" className="flex items-center justify-center gap-1.5 text-[13px] text-[var(--color-primary)]">
@@ -400,7 +465,7 @@ export function ZugangPage() {
         </div>
       )}
 
-      {!saved && (
+      {!saved && !inBranch && (
         <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] text-center mb-4">
           {stepLabels[step]}
         </p>
@@ -431,8 +496,23 @@ export function ZugangPage() {
         </Card>
       )}
 
-      <div className="flex-1 animate-in" key={step}>
-        {step === 0 && (
+      <div className="flex-1 animate-in" key={inBranch ? `branch-${branch}` : step}>
+        {inBranch && (
+          <ZugangBranch
+            mode={branch === 'regulate' ? 'regulate' : 'choose'}
+            band={survivalState ? bandForValue(tensionValue) : null}
+            intent={intent}
+            onChoose={(c) => {
+              if (c === 'regulate') setBranch('regulate');
+              else {
+                setBranch('need');
+                setStep(4);
+              }
+            }}
+            onFinishRegulate={finishRegulate}
+          />
+        )}
+        {shownStep === 0 && (
           <div>
             <ZugangStepHeader question={t.zugang.step0Question} hint={t.zugang.step0Hint} />
             <textarea
@@ -445,34 +525,79 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 1 && (
+        {shownStep === 1 && (
           <div>
             <ZugangStepHeader question={t.zugang.step1Question} hint={t.zugang.step1Hint} />
-            <BodySensationPicker
-              suggestions={BODY_SENSATIONS_DE}
-              customSuggestions={getCustomSuggestions('body')}
-              selected={body}
-              onToggle={(v) => toggle(body, setBody, v)}
-              onAddCustom={(v) => {
-                addCustomSuggestion('body', v);
-                setBody([...body, v]);
-              }}
-              onEditCustom={(o, n) => {
-                editCustomSuggestion('body', o, n);
-                setBody(body.map((b) => (b === o ? n : b)));
-              }}
-              onDeleteCustom={(v) => {
-                removeCustomSuggestion('body', v);
-                setBody(body.filter((b) => b !== v));
-              }}
-            />
+            {bodyStage === 'free' && (
+              <>
+                <p className="text-[12.5px] text-[var(--color-text-faint)] mb-3">{t.zugang.bodyNamingHint}</p>
+                <NamingInput
+                  placeholder={t.zugang.bodyNamingPlaceholder}
+                  terms={body}
+                  onAdd={(v) => {
+                    if (!BODY_SENSATIONS_DE.includes(v) && !getCustomSuggestions('body').includes(v)) addCustomSuggestion('body', v);
+                    setBody([...body, v]);
+                  }}
+                  onRemove={(v) => setBody(body.filter((b) => b !== v))}
+                />
+                <button type="button" onClick={() => setBodyStage('neutral')} className="mt-4 text-[13px] text-[var(--color-primary)] underline underline-offset-2 text-left">
+                  {t.zugang.bodyShowOptions}
+                </button>
+              </>
+            )}
+            {bodyStage === 'neutral' && (
+              <>
+                <p className="text-[12.5px] text-[var(--color-text-faint)] mb-3">{t.zugang.bodyOptionsIntro}</p>
+                <SuggestionMultiSelect
+                  suggestions={[...BODY_SENSATIONS_DE].sort((a, b) => a.localeCompare(b, 'de'))}
+                  customSuggestions={getCustomSuggestions('body')}
+                  selected={body}
+                  onToggle={(v) => toggle(body, setBody, v)}
+                  onAddCustom={(v) => {
+                    addCustomSuggestion('body', v);
+                    setBody([...body, v]);
+                  }}
+                  onEditCustom={(o, n) => {
+                    editCustomSuggestion('body', o, n);
+                    setBody(body.map((b) => (b === o ? n : b)));
+                  }}
+                  onDeleteCustom={(v) => {
+                    removeCustomSuggestion('body', v);
+                    setBody(body.filter((b) => b !== v));
+                  }}
+                />
+                <button type="button" onClick={() => setBodyStage('colored')} className="mt-4 text-[13px] text-[var(--color-primary)] underline underline-offset-2 text-left">
+                  {t.zugang.bodyShowColors}
+                </button>
+              </>
+            )}
+            {bodyStage === 'colored' && (
+              <BodySensationPicker
+                suggestions={BODY_SENSATIONS_DE}
+                customSuggestions={getCustomSuggestions('body')}
+                selected={body}
+                onToggle={(v) => toggle(body, setBody, v)}
+                onAddCustom={(v) => {
+                  addCustomSuggestion('body', v);
+                  setBody([...body, v]);
+                }}
+                onEditCustom={(o, n) => {
+                  editCustomSuggestion('body', o, n);
+                  setBody(body.map((b) => (b === o ? n : b)));
+                }}
+                onDeleteCustom={(v) => {
+                  removeCustomSuggestion('body', v);
+                  setBody(body.filter((b) => b !== v));
+                }}
+              />
+            )}
             <Link to="/entdecken/koerper" className="text-[12px] text-[var(--color-primary)] block mt-4">
               {t.zugang.bodyRefLink}
             </Link>
           </div>
         )}
 
-        {step === 2 && (
+        {shownStep === 2 && (
           <div>
             <ZugangStepHeader question={t.zugang.step2Question} questionOnly />
             <ArousalModelExplainer />
@@ -488,9 +613,28 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 3 && (
+        {shownStep === 3 && (
           <div>
             <ZugangStepHeader question={t.zugang.step3Question} hint={t.zugang.step3Hint} />
+            {feelingStage === 'free' && (
+              <>
+                <p className="text-[12.5px] text-[var(--color-text-faint)] mb-3">{t.zugang.feelingNamingHint}</p>
+                <NamingInput
+                  placeholder={t.zugang.feelingNamingPlaceholder}
+                  terms={feelings}
+                  onAdd={(v) => {
+                    if (!getCustomSuggestions('feeling').includes(v) && !FEELING_GROUPS.some((g) => g.sub.includes(v) || g.subEn.includes(v))) addCustomSuggestion('feeling', v);
+                    setFeelings([...feelings, v]);
+                  }}
+                  onRemove={(v) => setFeelings(feelings.filter((f) => f !== v))}
+                />
+                <button type="button" onClick={() => setFeelingStage('options')} className="mt-4 text-[13px] text-[var(--color-primary)] underline underline-offset-2 text-left">
+                  {t.zugang.feelingShowOptions}
+                </button>
+              </>
+            )}
+            {feelingStage === 'options' && (
+              <>
             <div className="flex flex-col gap-2">
               {FEELING_GROUPS.map((g) => {
                 const label = isEnLang(settings) ? g.labelEn : g.label;
@@ -549,6 +693,8 @@ export function ZugangPage() {
                 setFeelings(feelings.filter((f) => f !== v));
               }}
             />
+              </>
+            )}
             <Link to="/entdecken/gefuehle" className="text-[12px] text-[var(--color-primary)] block mt-4">
               {t.zugang.feelingsRefLink}
             </Link>
@@ -584,7 +730,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 4 && (
+        {shownStep === 4 && (
           <div>
             <ZugangStepHeader question={t.zugang.step4Question} hint={t.zugang.step4Hint} />
             <SuggestionMultiSelect
@@ -667,7 +813,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 5 && (
+        {shownStep === 5 && (
           <div>
             <ZugangStepHeader question={t.zugang.step5Question} hint={t.zugang.step5Hint} />
             <div className="flex flex-col gap-2 mb-5">
@@ -748,7 +894,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 6 && (
+        {shownStep === 6 && (
           <div>
             <ZugangStepHeader question={t.zugang.step6Question} hint={t.zugang.step6Hint} />
             <div className="flex flex-col gap-4">
@@ -815,7 +961,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 7 && (
+        {shownStep === 7 && (
           <div>
             <ZugangStepHeader question={t.zugang.step7Question} hint={t.zugang.step7Hint} />
             <SuggestionMultiSelect
@@ -845,7 +991,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 8 && (
+        {shownStep === 8 && (
           <div>
             <ZugangStepHeader question={t.zugang.step9Question} hint={t.zugang.step9Hint} />
             <SuggestionMultiSelect
@@ -872,7 +1018,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 9 && (
+        {shownStep === 9 && (
           <div>
             <ZugangStepHeader question={t.zugang.step10Question} hint={t.zugang.step10Hint} />
 
@@ -885,7 +1031,7 @@ export function ZugangPage() {
             <div className="mb-5">
               <p className="text-[14px] text-[var(--color-text)] mb-1">{t.zugang.openChannelsQuestion}</p>
               <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.zugang.openChannelsHint}</p>
-              <AccessChannelPicker selected={openChannels} onChange={setOpenChannels} hideLabel />
+              <FitFilterPanel hiddenUnmarked={countHiddenUnmarked(favoriteResources.map(subjectOfResource), fitFilter)} />
             </div>
 
             {/* "Brücke faellt als eigener Schritt weg, wandert in
@@ -983,10 +1129,9 @@ export function ZugangPage() {
 
             {favoriteResources.length > 0 && (
               <div className="mb-4">
-                <EnergyLevelFilter value={energyFilter} onChange={setEnergyFilter} />
                 <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.accessWheel.favoriteResources}</p>
                 <div className="flex flex-wrap gap-2">
-                  {energyExactMatch(favoriteResources, energyFilter).map((r) => (
+                  {filterByFit(favoriteResources, subjectOfResource, fitFilter).map((r) => (
                     <button key={r.id} onClick={() => setAction(r.title)} className="px-3.5 py-2 rounded-full text-[14px]" style={{ background: action === r.title ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: action === r.title ? 'var(--color-surface)' : 'var(--color-text)' }}>
                       {r.title}
                     </button>
@@ -1025,7 +1170,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 10 && !saved && (
+        {shownStep === 10 && !saved && (
           <div>
             <h1 className="text-[20px] text-center mb-5">{t.zugang.step11Title2}</h1>
             <div className="flex flex-col gap-2 mb-6 text-[13px] text-[var(--color-text-muted)]">
@@ -1087,7 +1232,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {step === 10 && saved && (
+        {shownStep === 10 && saved && (
           <div className="flex flex-col items-center justify-center text-center gap-5 py-6 animate-in">
             <span className="text-[48px]">🌱</span>
             <div>
@@ -1108,7 +1253,7 @@ export function ZugangPage() {
         )}
       </div>
 
-      {!saved && step !== 10 && !(step === 5 && selfSufficient === 'nein') && (
+      {!saved && !inBranch && step !== 10 && !(step === 5 && selfSufficient === 'nein') && (
         <Button fullWidth onClick={goNext} className="mt-6">
           {t.companion.pickerContinue}
         </Button>

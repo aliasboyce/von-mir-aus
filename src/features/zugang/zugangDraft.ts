@@ -29,6 +29,9 @@ export interface ZugangDraft {
   connection: string[];
   action: string;
   reflection: string;
+  /** where the person is in the fork after perceiving (see ZugangBranch) */
+  branch?: 'choose' | 'regulate' | 'need' | null;
+  intent?: 'regulate' | 'act' | null;
   /** "Materialien"-Auftrag, Section 40 — lets ZugangPage tell apart
    * "I just stepped out to a connected page a moment ago" (silently
    * resume, no interruption) from "this draft is from a while back"

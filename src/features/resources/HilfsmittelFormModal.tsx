@@ -5,6 +5,8 @@ import type { NeedDirection } from '../../data/types';
 import { useSettings } from '../../state/SettingsContext';
 import { HILFSMITTEL_MAIN, subtypesFor } from '../../content/hilfsmittelCategories';
 import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
+import { FitProfileFields } from '../../components/shared/FitProfileFields';
+import type { FitProfile } from '../../content/fitCriteria';
 import type { EnergyLevel } from '../../content/energyLevels';
 import { RefreshCw } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
@@ -76,6 +78,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
   const [inNetwork, setInNetwork] = useState<boolean>(() => resource?.inNetwork ?? networkRepo.getAll().some((e) => e.linkedResourceId === resource?.id));
   const [linkedNeeds, setLinkedNeeds] = useState<NeedDirection[]>(resource?.linkedNeeds ?? []);
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | undefined>(resource?.energyLevel);
+  const [fit, setFit] = useState<FitProfile | undefined>(resource?.fit);
 
   function handleSave() {
     if (!title.trim()) return;
@@ -89,6 +92,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
       favorite: resource?.favorite ?? false,
       accessChannels,
       energyLevel,
+      fit,
       linkedNeeds: linkedNeeds.length > 0 ? linkedNeeds : undefined,
       inNetwork,
       createdAt: resource?.createdAt ?? new Date().toISOString(),
@@ -165,6 +169,8 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
           <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.energy.fieldHint}</p>
           <EnergyLevelPicker value={energyLevel} onChange={setEnergyLevel} />
         </div>
+
+        <FitProfileFields value={fit} onChange={setFit} />
 
         <NeedsMultiPicker selected={linkedNeeds} onChange={setLinkedNeeds} />
 

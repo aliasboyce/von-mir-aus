@@ -16,6 +16,8 @@ import { createId } from '../../services/storage/repository';
 import type { Resource, ResourceCategory } from '../../data/types';
 import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
+import { FitSummary } from '../../components/shared/FitSummary';
+import { subjectOfResource } from '../../content/fitCriteria';
 
 interface ResourceDetailModalProps {
   resource: Resource | null;
@@ -94,6 +96,8 @@ export function ResourceDetailModal({
         {resource.image && (
           <PhotoBackground src={resource.image} className="w-full h-40 rounded-[var(--radius-lg)] bg-cover bg-center bg-[var(--color-surface-muted)]" />
         )}
+
+        <FitSummary subject={subjectOfResource(resource)} />
 
         {/* "Es soll den Button geben 'Skill starten'"-Auftrag — opens the
          * run page (count-up timer without an end + the step list),

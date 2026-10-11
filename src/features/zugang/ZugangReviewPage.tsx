@@ -127,6 +127,9 @@ export function ZugangReviewPage() {
                       {e.endedVia === 'bridge' && bridge && (
                         <span className="text-[var(--color-primary)]"> · {t.zugang.endedViaBridge.replace('{bridge}', bridge.title)}</span>
                       )}
+                      {e.endedVia === 'regulate' && (
+                        <span className="text-[var(--color-primary)]"> · {t.zugang.endedViaRegulate}</span>
+                      )}
                       {e.endedVia === 'safetynet' && (
                         <span className="text-[var(--color-primary)]"> · {t.zugang.endedViaSafetyNet}</span>
                       )}
@@ -175,6 +178,9 @@ export function ZugangReviewPage() {
               <p className="text-[13px] text-[var(--color-primary)] text-center -mt-3">
                 {t.zugang.endedViaBridge.replace('{bridge}', allBridges.find((b) => b.id === viewing.bridgeId)?.title ?? '')}
               </p>
+            )}
+            {viewing.endedVia === 'regulate' && (
+              <p className="text-[13px] text-[var(--color-primary)] text-center -mt-3">{t.zugang.endedViaRegulate}</p>
             )}
             {viewing.endedVia === 'safetynet' && (
               <p className="text-[13px] text-[var(--color-primary)] text-center -mt-3">{t.zugang.endedViaSafetyNet}</p>

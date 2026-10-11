@@ -13,7 +13,8 @@ import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlide
 import { AROUSAL_BANDS, bandForValue, polyvagalZoneForValue } from '../polyvagal/arousalBands';
 import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
-import type { SkillUse } from '../../data/types';
+import type { SkillUse, StepExtras } from '../../data/types';
+import { StepExtrasView } from './StepExtras';
 
 function formatTime(total: number): string {
   const m = Math.floor(total / 60);
@@ -63,11 +64,12 @@ export function SkillketteRunPage() {
       { stage: kette.stufeMittel, color: '#e8a83d', title: t.resources.skillketteStufeMittelTitle, range: '40–70 %', labels: [t.resources.skillketteAktionSensorik, t.resources.skillketteAktionKognitiv] },
       { stage: kette.stufeNiedrig, color: '#6fbf73', title: t.resources.skillketteStufeNiedrigTitle, range: '0–40 %', labels: [t.resources.skillketteAktionKomfort, t.resources.skillketteAktionAchtsamkeit] },
     ];
-    const out: { skillId: string; title: string; schritte: string[]; description?: string; stageTitle: string; stageRange: string; ziel?: string; dauer?: string; color: string; actionLabel: string }[] = [];
+    const out: { extras?: StepExtras; hilfsmittelIds?: string[]; skillId: string; title: string; schritte: string[]; description?: string; stageTitle: string; stageRange: string; ziel?: string; dauer?: string; color: string; actionLabel: string }[] = [];
     stages.forEach((s) => {
       [s.stage.aktion1SkillId, s.stage.aktion2SkillId].forEach((sid, idx) => {
+        const extras = idx === 0 ? s.stage.aktion1Extras : s.stage.aktion2Extras;
         const skill = sid ? resourcesRepo.getById(sid) : undefined;
-        if (skill) out.push({ skillId: skill.id, title: skill.title, schritte: skill.skillDetails?.schritte ?? [], description: skill.description, stageTitle: s.title, stageRange: s.range, ziel: s.stage.ziel, dauer: s.stage.dauer, color: s.color, actionLabel: s.labels[idx] });
+        if (skill) out.push({ extras, hilfsmittelIds: skill.skillDetails?.relatedHilfsmittelIds, skillId: skill.id, title: skill.title, schritte: skill.skillDetails?.schritte ?? [], description: skill.description, stageTitle: s.title, stageRange: s.range, ziel: s.stage.ziel, dauer: s.stage.dauer, color: s.color, actionLabel: s.labels[idx] });
       });
     });
     return out;
@@ -240,6 +242,7 @@ export function SkillketteRunPage() {
                               ) : (
                                 s.description && <p className="text-[13.5px] text-[var(--color-text)] leading-relaxed mb-3 whitespace-pre-line">{s.description}</p>
                               )}
+                              <div className="mb-3"><StepExtrasView extras={s.extras} skillHilfsmittelIds={s.hilfsmittelIds} /></div>
                               {s.dauer && <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.resources.skillketteDauerLabel}: {s.dauer}</p>}
                               <div className="rounded-[var(--radius-md)] p-3 mb-3" style={{ background: 'var(--color-surface-muted)' }}>
                                 <p className="text-[12px] text-[var(--color-text-muted)] mb-2">{t.skillRun.chainMidCheck}</p>

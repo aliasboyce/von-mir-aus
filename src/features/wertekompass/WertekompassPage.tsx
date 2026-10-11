@@ -10,7 +10,6 @@ import { valueSnapshot, totalPassesWithValues, manualPriorities, togglePriority,
 import { ValuesRadarChart } from './ValuesRadarChart';
 import { ValueCardModal } from './ValueCardModal';
 import { ValueDiscoveryCards } from './ValueDiscoveryCards';
-import { AccessDomainsSection } from './AccessDomainsSection';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
 
 /**
@@ -218,7 +217,12 @@ export function WertekompassPage() {
               </Card>
             )}
 
-            <AccessDomainsSection />
+            <Link to="/entdecken/zugangskanaele" className="block mb-6">
+              <Card interactive>
+                <p className="text-[14px] font-medium text-[var(--color-text)]">{t.zugangskanaele.page.title}</p>
+                <p className="text-[12px] text-[var(--color-text-faint)] mt-0.5">{t.zugangskanaele.page.subtitle}</p>
+              </Card>
+            </Link>
           </>
         )}
 

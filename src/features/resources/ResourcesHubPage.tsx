@@ -6,6 +6,9 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import { useT } from '../../i18n';
 import { resourcesRepo } from './resourcesRepo';
 import { RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
+import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { FitResults, useFitRows } from './FitResults';
+import { countHiddenUnmarked } from '../../content/fitCriteria';
 
 /**
  * "Ressourcen-Unterteilung nochmal neu"-Auftrag — /entdecken/ressourcen
@@ -20,6 +23,8 @@ import { RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
 export function ResourcesHubPage() {
   const t = useT();
   const [searchParams] = useSearchParams();
+  const fitRows = useFitRows();
+  const hiddenUnmarked = [fitRows.all.ketten, fitRows.all.skills, fitRows.all.hilfsmittel, fitRows.all.orte].reduce((n, rows) => n + countHiddenUnmarked(rows.map((r) => r.subject), fitRows.filter), 0);
   // "Links mit ?open= gingen seit dem Umbau ins Leere" — eight places in the
   // app (favorites, recently used, network, needs compass, safety plan, ...)
   // still link to /entdecken/ressourcen?open=<id>. This page is only the hub
@@ -43,6 +48,9 @@ export function ResourcesHubPage() {
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1">{t.resources.hubTitle}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.resources.hubSubtitle}</p>
+
+        <FitFilterPanel hiddenUnmarked={hiddenUnmarked} />
+        <FitResults />
 
         <ReorderableTiles section="ressourcen-hub" tiles={tiles} />
       </div>

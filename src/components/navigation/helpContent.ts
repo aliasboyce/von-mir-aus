@@ -4,7 +4,7 @@ export type HelpKey =
   | 'timer' | 'garten' | 'mediLog' | 'bruecken' | 'bridgeDetail' | 'sicherheit' | 'sicherheitsnetz'
   | 'kontakte' | 'sicherheitsplan' | 'tagebuch' | 'einstellungen' | 'wesenInhalte' | 'favoriten'
   | 'wesenAblenkung' | 'wesenOrientierung' | 'wesenMitteilungen'
-  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf';
+  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf' | 'zugangskanaele';
 
 interface HelpEntry {
   title: string;
@@ -14,6 +14,12 @@ interface HelpEntry {
 }
 
 export const HELP_CONTENT: Record<HelpKey, HelpEntry> = {
+  zugangskanaele: {
+    title: 'Zugangskanäle',
+    titleEn: 'Access channels',
+    body: 'Hier sagst du, was gerade vorhanden ist: über welche der zehn Wege (Denken, Erinnerung, Fühlen, Körper, Sinne, Aufmerksamkeit, Bewegung, Anfangen, Beziehung, Ort & Zeit) du gerade an etwas herankommst. Drei Stufen — „Ja“, „Eher schwer“, „Gerade nicht“ — und das Netz zeigt dir dein Bild. Der Vorschlag aus deinem Zustand ist nur eine Tendenz. Was du hier einstellst, gilt als Filter „Was geht gerade?“ in Skills, Skillketten und Hilfsmitteln. Mit „Zustandsaufnahme speichern“ hältst du fest, wie das Netz zu einem Zeitpunkt aussah, und kannst es später übernehmen oder vergleichen.',
+    bodyEn: 'Here you say what is available right now: through which of the ten routes (thinking, memory, feeling, body, senses, attention, movement, starting, relationship, place & time) you can reach something at the moment. Three levels — "Yes", "Rather hard", "Not right now" — and the net shows your picture. The suggestion from your state is only a tendency. What you set here acts as the "What works right now?" filter in skills, skill chains and aids. "Save a state snapshot" keeps how the net looked at one moment so you can take it over or compare it later.',
+  },
   home: {
     title: 'Startseite',
     titleEn: 'Home',
@@ -29,14 +35,14 @@ export const HELP_CONTENT: Record<HelpKey, HelpEntry> = {
   entdecken: {
     title: 'Entdecken',
     titleEn: 'Explore',
-    body: 'Eine Übersicht über die Werkzeuge der App. Mit „Anpassen“ kannst du Seiten anpinnen (dann stehen sie ganz oben) oder archivieren (dann liegen sie grau ganz unten) — so bleibt sichtbar, was du wirklich nutzt. Du musst nichts davon nutzen; wähle das, was gerade zu dir passt.',
-    bodyEn: 'An overview of the app\'s tools. With "Customize" you can pin pages (they then sit at the very top) or archive them (they then sit greyed at the very bottom) — so what you really use stays visible. You do not have to use any of it; pick what fits right now.',
+    body: 'Die Karte zeigt alles auf einen Blick: die fünf Hauptbereiche der App in Farbe (Wo bin ich? · Mich regulieren · Mich verbinden · Mich sichern · Zurückschauen) und getrennt davon die Zusätze. Tippe einen Kreis an, um zum Bereich zu springen. Unter „Liste“ findest du die bisherige Übersicht. Mit „Anpassen“ kannst du Seiten anpinnen (dann stehen sie ganz oben) oder archivieren (dann liegen sie grau ganz unten) — so bleibt sichtbar, was du wirklich nutzt. Du musst nichts davon nutzen; wähle das, was gerade zu dir passt.',
+    bodyEn: 'The map shows everything at a glance: the five main areas of the app in colour (Where am I? · Regulate · Connect · Secure · Look back) and, apart from them, the add-ons. Tap a circle to jump to that area. Under "List" you find the previous overview. With "Customize" you can pin pages (they then sit at the very top) or archive them (they then sit greyed at the very bottom) — so what you really use stays visible. You do not have to use any of it; pick what fits right now.',
   },
   ressourcen: {
     title: 'Ressourcen',
     titleEn: 'Resources',
-    body: 'Hier sammelst du, was dir in schwierigen Momenten Halt gibt: Hilfsmittel (Dinge, nach Sinnen und Funktion geordnet), Skills (Fähigkeiten, die du übst) und gespeicherte Quellen. Jeder Eintrag kann angeben, wie viel Energie er braucht, zu welchem Bedürfnis und welchem Anspannungsbereich er passt und ob er im Netzwerk erscheinen soll. Bei einem Skill findest du „Skill starten“ mit Anleitung und Timer.',
-    bodyEn: 'Here you collect what holds you in hard moments: tools (things, sorted by senses and function), skills (abilities you practice) and saved sources. Each entry can state how much energy it needs, which need and tension range it fits, and whether it should appear in the network. For a skill you will find "Start skill" with instructions and timer.',
+    body: 'Hier sammelst du, was dir in schwierigen Momenten Halt gibt: Hilfsmittel (Dinge, nach Sinnen und Funktion geordnet), Skills (Fähigkeiten, die du übst) und gespeicherte Quellen. Jeder Eintrag kann angeben, wie viel Energie und Zeit er mindestens braucht, was er innen (Gefühle, Erinnerung, Denken) und außen (Menschen, Ort, Raum, Hilfsmittel) voraussetzt und wie viel Einsatz er kostet — dazu, zu welchem Bedürfnis und Anspannungsbereich er passt und ob er im Netzwerk erscheinen soll. Mit „Was geht gerade?“ stellst du ein, was jetzt da ist, und siehst nur, was damit machbar ist. Bei Skillketten kannst du zu jedem Schritt bestehende Hilfsmittel, Helfer und Quellen hinzufügen. Bei einem Skill findest du „Skill starten“ mit Anleitung und Timer.',
+    bodyEn: 'Here you collect what holds you in hard moments: tools (things, sorted by senses and function), skills (abilities you practice) and saved sources. Each entry can state how much energy and time it needs at least, what it requires inside (feelings, memory, thinking) and outside (people, place, space, tools) and how much effort it costs — plus which need and tension range it fits and whether it should appear in the network. With "What works right now?" you set what is available now and only see what is doable with it. In skill chains you can add existing tools, helpers and sources to every step. For a skill you will find "Start skill" with instructions and timer.',
   },
   zugangsrad: {
     title: 'Zugangsrad',
@@ -47,8 +53,8 @@ export const HELP_CONTENT: Record<HelpKey, HelpEntry> = {
   zugang: {
     title: 'Zugang',
     titleEn: 'Access',
-    body: 'Ein geführter, tieferer Weg für Momente, in denen der Zugang zu dir selbst gerade schwierig ist: Körper, Zustand, Gefühl, Bedürfnis, Hindernis, Brücke, Handlung — Schritt für Schritt, mit dem Wesen an deiner Seite. „Ich weiß nicht" ist an jeder Stelle eine vollwertige Antwort.',
-    bodyEn: '"Access" is a deeper, guided path for moments when access to yourself feels difficult right now: body, state, feeling, need, obstacle, bridge, action — one step at a time, with the companion alongside you. "I don\'t know" is a valid answer at every single step.',
+    body: 'Ein geführter, tieferer Weg für Momente, in denen der Zugang zu dir selbst gerade schwierig ist: Körper, Zustand, Gefühl — dann die Abzweigung: den Zustand ändern (Skills, Skillketten) oder, wenn er passt, Bedürfnis, Hindernis, Brücke, Handlung — Schritt für Schritt, mit dem Wesen an deiner Seite. Beim Körper und bei Gefühlen schreibst du zuerst selbst auf, was da ist; Auswahlen gibt es erst danach. „Ich weiß nicht" ist an jeder Stelle eine vollwertige Antwort.',
+    bodyEn: '"Access" is a deeper, guided path for moments when access to yourself feels difficult right now: body, state, feeling — then a fork: change the state (skills, skill chains) or, if it fits, need, obstacle, bridge, action — one step at a time. For body and feelings you first write down yourself what is there; options come only afterwards, with the companion alongside you. "I don\'t know" is a valid answer at every single step.',
   },
   zugangRueckblick: {
     title: 'Zugang — Rückblick',

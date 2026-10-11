@@ -11,6 +11,7 @@ import { skillkettenRepo } from './skillkettenRepo';
 import { resourcesRepo } from './resourcesRepo';
 import { RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
 import type { Skillkette, SkillketteStage } from '../../data/types';
+import { StepExtrasEditor, loadStepExtraOptions } from './StepExtras';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -59,6 +60,7 @@ export function SkillketteFormPage() {
   const existing = id ? skillkettenRepo.getById(id) : null;
   const [draft, setDraft] = useState<Skillkette>(() => existing ?? blankSkillkette());
 
+  const [extraOptions] = useState(() => loadStepExtraOptions());
   const skills = resourcesRepo.getAll().filter((r) => RESOURCE_CATEGORY_TO_GROUP[r.category] === 'faehigkeiten');
 
   function setStage(key: 'stufeHoch' | 'stufeMittel' | 'stufeNiedrig', patch: Partial<SkillketteStage>) {
@@ -134,6 +136,7 @@ export function SkillketteFormPage() {
                       ))}
                     </select>
                   </Field>
+                  <StepExtrasEditor value={draft[stage.key].aktion1Extras} onChange={(v) => setStage(stage.key, { aktion1Extras: v })} options={extraOptions} />
                   <Field label={stage.aktion2Label}>
                     <select className="input" value={draft[stage.key].aktion2SkillId ?? ''} onChange={(e) => setStage(stage.key, { aktion2SkillId: e.target.value || undefined })}>
                       <option value="">{t.resources.skillketteSkillAuswahlPlaceholder}</option>
@@ -144,6 +147,7 @@ export function SkillketteFormPage() {
                       ))}
                     </select>
                   </Field>
+                  <StepExtrasEditor value={draft[stage.key].aktion2Extras} onChange={(v) => setStage(stage.key, { aktion2Extras: v })} options={extraOptions} />
                   <Field label={t.resources.skillketteDauerLabel}>
                     <input className="input" value={draft[stage.key].dauer ?? ''} onChange={(e) => setStage(stage.key, { dauer: e.target.value })} />
                   </Field>

@@ -6,6 +6,8 @@
  * sync, sharing…) get added later, extend the types here first.
  */
 
+import type { FitProfile } from '../content/fitCriteria';
+
 // ---------------------------------------------------------------------------
 // Inner Weather
 // ---------------------------------------------------------------------------
@@ -368,6 +370,10 @@ export interface Resource {
    * need a second, overlapping energy concept on top of that. 1 =
    * fast nichts da, 2 = wenig, 3 = mittel, 4 = viel (siehe content/energyLevels.ts). */
   energyLevel?: 1 | 2 | 3 | 4;
+  /** "Was geht gerade?" — what this needs: minimum time, inner/outer access, effort.
+   * Optional; see content/fitCriteria.ts. Together with energyLevel this is what the
+   * filter in the library and on the Ressourcen start page matches against. */
+  fit?: FitProfile;
   note?: string;
   link?: string;
   tags: string[];
@@ -475,10 +481,24 @@ export interface SkillUse {
   note?: string;
 }
 
+/**
+ * "Zu jedem Schritt Hilfsmittel, Helfer oder Quellen hinzufuegen"-Auftrag —
+ * references to things that already exist (never copies): Hilfsmittel/Orte are
+ * Resource ids, Helfer are network entry ids, Quellen are Bookmark ids.
+ */
+export interface StepExtras {
+  hilfsmittelIds?: string[];
+  helperIds?: string[];
+  bookmarkIds?: string[];
+}
+
 export interface SkillketteStage {
   ziel?: string;
   aktion1SkillId?: string;
   aktion2SkillId?: string;
+  /** extras for the first / second action of this stage */
+  aktion1Extras?: StepExtras;
+  aktion2Extras?: StepExtras;
   dauer?: string;
 }
 
@@ -1254,7 +1274,7 @@ export interface ZugangEntry {
    * step that was, so patterns of where passes tend to break off
    * become visible over time instead of vanishing the moment someone
    * navigates away. */
-  endedVia?: 'complete' | 'bridge' | 'safetynet' | 'abandoned';
+  endedVia?: 'complete' | 'bridge' | 'safetynet' | 'abandoned' | 'regulate';
   stoppedAtStep?: number;
   /** "Verbinden" brief, Section 14 — never framed as success/failure.
    * What made access harder this time, and what might have helped —

@@ -7,6 +7,7 @@ import { networkRepo } from '../features/safetyNet/networkRepo';
 import { networkCategoryFor } from '../features/safetyNet/networkResourceSync';
 import { SEED_SKILL_ZONES } from '../content/seedSkillZones';
 import { LEGACY_HILFSMITTEL_CATEGORY } from '../content/hilfsmittelCategories';
+import { SEED_SKILL_FIT, seedFitFor } from '../content/seedSkillFit';
 
 /**
  * One-time data migrations that must run once at app start, whatever
@@ -147,6 +148,40 @@ function migrateSeedSkillZones() {
   seedZonesV4.set(true);
 }
 
+const seedFitV2 = createKeyValueStore<boolean>('migration-seed-skill-fit-v2', false);
+
+const LEGACY_INNER: Record<string, string> = { gefuehle: 'fuehlen', erinnerung: 'erinnerung', denken: 'denken' };
+const LEGACY_OUTER: Record<string, string> = { menschen: 'beziehung', ort: 'ort_zeit', raum: 'ort_zeit' };
+
+/** "Was geht gerade?": (1) an earlier version stored "inner/outer" needs inside `fit`;
+ * those are now the Zugangskanäle, so they are carried over into accessChannels
+ * (only where none are set) and removed from `fit`. (2) The starter skills get
+ * their starting markings (Energie, Zeit, Aufwand, Zugangskanäle) — once, and only
+ * into fields that are still empty, so nothing the person entered is overwritten. */
+function migrateSeedSkillFit() {
+  if (seedFitV2.get()) return;
+  resourcesRepo.getAll().forEach((r) => {
+    const raw = (r.fit ?? {}) as { minutes?: number; effort?: 1 | 2 | 3; inner?: string[]; outer?: string[] };
+    if (!raw.inner && !raw.outer) return;
+    const legacy = [...(raw.inner ?? []).map((n) => LEGACY_INNER[n]), ...(raw.outer ?? []).map((n) => LEGACY_OUTER[n])].filter(Boolean);
+    const fit = { ...(raw.minutes !== undefined ? { minutes: raw.minutes } : {}), ...(raw.effort !== undefined ? { effort: raw.effort } : {}) };
+    const channels = (r.accessChannels?.length ?? 0) > 0 ? r.accessChannels : (Array.from(new Set(legacy)) as typeof r.accessChannels);
+    resourcesRepo.save({ ...r, fit: Object.keys(fit).length > 0 ? fit : undefined, accessChannels: channels });
+  });
+  Object.keys(SEED_SKILL_FIT).forEach((id) => {
+    const r = resourcesRepo.getById(id);
+    const seed = seedFitFor(id);
+    if (!r || !seed) return;
+    resourcesRepo.save({
+      ...r,
+      energyLevel: r.energyLevel ?? seed.energyLevel,
+      fit: r.fit ?? seed.fit,
+      accessChannels: (r.accessChannels?.length ?? 0) > 0 ? r.accessChannels : seed.accessChannels,
+    });
+  });
+  seedFitV2.set(true);
+}
+
 export function runStartupMigrations() {
   ensureResourcesReady();
   migrateEnergyScale();
@@ -155,4 +190,5 @@ export function runStartupMigrations() {
   migrateNetworkRoles();
   migrateSeedItemsToSkills();
   migrateSeedSkillZones();
+  migrateSeedSkillFit();
 }

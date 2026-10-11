@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy } from 'lucide-react';
+import { ExploreMap } from './ExploreMap';
+import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { ReorderableTiles, type TileCustomization } from '../../components/navigation/ReorderableTiles';
@@ -32,6 +33,23 @@ interface Tile {
 export function ExplorePage() {
   const t = useT();
   const [customizing, setCustomizing] = useState(false);
+  // Karte (the mind map) is the default way in; Liste is the previous tile
+  // view with pin/archive. The choice is remembered per device.
+  const [view, setViewState] = useState<'map' | 'list'>(() => {
+    try {
+      return localStorage.getItem('innerpath:explore-view') === 'list' ? 'list' : 'map';
+    } catch {
+      return 'map';
+    }
+  });
+  function setView(v: 'map' | 'list') {
+    setViewState(v);
+    try {
+      localStorage.setItem('innerpath:explore-view', v);
+    } catch {
+      // not remembered — fine
+    }
+  }
   const [pins, setPins] = useState<string[]>(() => getPins());
   const [archived, setArchived] = useState<string[]>(() => getArchived());
   const customization: TileCustomization = {
@@ -78,7 +96,10 @@ export function ExplorePage() {
     { key: 'wochenrueckblick', to: '/wochenrueckblick', icon: CalendarCheck, title: t.weeklyReview.title, subtitle: t.weeklyReview.subtitle, color: 'var(--color-accent-sky)' },
   ];
 
-  const accessTiles: Tile[] = [{ key: 'zugangLink', to: '/zugang', icon: KeyRound, title: t.zugang.navLabel, subtitle: t.zugang.homeSubtitle, color: 'var(--color-primary)' }];
+  const accessTiles: Tile[] = [
+    { key: 'zugangLink', to: '/zugang', icon: KeyRound, title: t.zugang.navLabel, subtitle: t.zugang.homeSubtitle, color: 'var(--color-primary)' },
+    { key: 'zugangskanaele', to: '/entdecken/zugangskanaele', icon: Network, title: t.zugangskanaele.page.title, subtitle: t.zugangskanaele.page.subtitle, color: 'var(--color-primary)' },
+  ];
   const thoughtActionTiles: Tile[] = [
     { key: 'loslassen', to: '/entdecken/loslassen', icon: Feather, title: t.letGo.title, subtitle: t.letGo.subtitle, color: 'var(--color-accent-sky)' },
   ];
@@ -127,7 +148,25 @@ export function ExplorePage() {
         <h1 className="text-[24px]">{t.nav.explore}</h1>
         <HelpButton helpKey="entdecken" />
       </div>
-      <p className="text-[14px] text-[var(--color-text-muted)] mb-2">{t.resources.subtitle}</p>
+      <p className="text-[14px] text-[var(--color-text-muted)] mb-3">{t.resources.subtitle}</p>
+      <div className="flex gap-1 p-1 rounded-full mb-4" style={{ background: 'var(--color-surface-muted)' }} role="group" aria-label={t.nav.explore}>
+        {(['map', 'list'] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => setView(v)}
+            aria-pressed={view === v}
+            className="flex-1 rounded-full py-1.5 text-[13px] transition-colors"
+            style={{ background: view === v ? 'var(--color-surface)' : 'transparent', color: view === v ? 'var(--color-text)' : 'var(--color-text-faint)', boxShadow: view === v ? 'var(--shadow-sm)' : undefined }}
+          >
+            {v === 'map' ? t.explore.viewMap : t.explore.viewList}
+          </button>
+        ))}
+      </div>
+      {view === 'map' ? (
+        <ExploreMap />
+      ) : (
+      <>
       <div className="flex items-center justify-between gap-3 mb-3">
         <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed flex-1">{customizing ? t.explore.customizeHint : ''}</p>
         <button onClick={() => setCustomizing((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] flex-shrink-0">
@@ -189,6 +228,8 @@ export function ExplorePage() {
             <ReorderableTiles key={`arch-${versionKey}`} section="entdecken-archiv" tiles={archivedTiles} customization={customization} hideReorder />
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   );

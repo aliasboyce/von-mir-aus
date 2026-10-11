@@ -16,6 +16,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-zugangskanaele-karte',
+    date: '2026',
+    items: [
+      'Neu: Seite „Zugangskanäle – Was ist gerade vorhanden?“. Du sagst für zehn Wege (Denken, Fühlen, Körper, Sinne, Bewegung …), was gerade geht – das Netz zeigt dein Bild. Zustandsaufnahmen kannst du speichern, später übernehmen und mit dem Jetzt vergleichen. Was du einstellst, gilt als Filter in Skills, Skillketten und Hilfsmitteln.',
+      'Zugang: Du benennst zuerst selbst, was du im Körper wahrnimmst und fühlst – erst danach kommen Auswahlen (zuerst ohne Farben, dann auf Wunsch mit den Farben der Nervensystem-Zustände).',
+      'Zugang hat jetzt eine Abzweigung: „Meinen Zustand ändern“ (passende Skills und Skillketten, eingeschränkt durch „Was geht gerade?“) oder „Mein Zustand passt“ (Bedürfnis, Wert, Brücken). Beim Start kannst du wählen: „Ich will mich regulieren“ oder „Ich will etwas tun“.',
+      'Unten gibt es nur noch Jetzt, Sicherheit und Entdecken. Zugang und Brücken starten auf „Jetzt“, alles findest du in Entdecken – dort als Karte mit den fünf Hauptbereichen in Farbe und den Zusätzen getrennt (die bisherige Liste gibt es weiter).',
+    ],
+    itemsEn: [
+      'New: page "Access channels – What is available right now?". For ten routes (thinking, feeling, body, senses, movement …) you say what works now – the net shows your picture. You can save state snapshots, take them over later and compare. What you set acts as the filter in skills, skill chains and tools.',
+      'Access: you first name in your own words what you notice in the body and what you feel – only then come options (first without colours, then on request with the nervous-system colours).',
+      'Access now has a fork: "Change my state" (matching skills and skill chains, narrowed by "What works right now?") or "My state fits" (need, value, bridges). At the start you can choose: "I want to regulate" or "I want to do something".',
+      'The bottom bar now only has Now, Safety and Explore. Access and bridges start from "Now", everything is in Explore – there as a map with the five main areas in colour and the add-ons separate (the previous list is still there).',
+    ],
+  },
+  {
+    id: '2026-was-geht-gerade',
+    date: '2026',
+    items: [
+      'Neu: „Was geht gerade?“ — auf der Ressourcen-Startseite, bei Skills, Skillketten, Hilfsmitteln und im Zugang. Du stellst ein, was gerade da ist (Energie, Zeit, Zugangskanäle, Aufwand) und siehst nur, was damit machbar ist.',
+      'Die Energie-Stufen sind jetzt lebendig: kleine Wellen-Kugeln, die je Stufe anders schwingen, damit du hineinfühlen kannst. Mit „Animation reduzieren“ stehen sie still.',
+      'Beim Erstellen von Skills, Hilfsmitteln und Orten gibst du an, wie viel Zeit mindestens nötig ist und über welche Zugangskanäle es wirkt. Die Starter-Skills sind schon vormarkiert.',
+      'Skillketten: Zu jedem Schritt kannst du bestehende Hilfsmittel, Helfer und gespeicherte Quellen hinzufügen. Zeit, Energie und Bedarf der Kette werden aus ihren Schritten berechnet.',
+    ],
+    itemsEn: [
+      'New: "What works right now?" — on the Resources start page, in skills, skill chains, tools and Access. You set what is available right now (energy, time, access channels, effort) and only see what is doable with it.',
+      'The energy levels are alive now: small wave orbs that move differently per level, so you can feel into them. With "Reduce motion" they stand still.',
+      'When creating skills, tools and places you state the minimum time needed and through which access channels it works. The starter skills are already marked.',
+      'Skill chains: add existing tools, helpers and saved sources to every step. Time, energy and needs of the chain are calculated from its steps.',
+    ],
+  },
+  {
     id: '2026-fahrplan-zustand',
     date: '2026',
     items: [

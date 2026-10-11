@@ -740,3 +740,73 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .pop-in { animation: none; }
 }
+
+/* "Energie zum Reinfühlen" — EnergyOrb: liquid whose height, swell and tempo
+ * follow the energy level (see components/shared/EnergyOrb.tsx). The wave
+ * pattern repeats every 48 units, so sliding by exactly one period loops
+ * without a visible seam. */
+.eo {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  animation: eo-breathe var(--eo-dur, 5s) ease-in-out infinite;
+}
+.eo-svg {
+  display: block;
+  overflow: visible;
+}
+.eo-wave {
+  animation: eo-slide var(--eo-dur, 5s) linear infinite;
+}
+.eo-wave-back {
+  animation-duration: calc(var(--eo-dur, 5s) * 1.7);
+  animation-direction: reverse;
+}
+.eo-spark {
+  opacity: 0;
+  animation: eo-spark 2.4s ease-in infinite;
+}
+.eo-spark-2 {
+  animation-delay: 0.8s;
+}
+.eo-spark-3 {
+  animation-delay: 1.6s;
+}
+.eo-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid var(--color-primary);
+  pointer-events: none;
+  animation: eo-ripple 0.9s ease-out 1 forwards;
+}
+@keyframes eo-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(-48px); }
+}
+@keyframes eo-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+@keyframes eo-spark {
+  0% { transform: translateY(0); opacity: 0; }
+  20% { opacity: 0.9; }
+  100% { transform: translateY(-20px); opacity: 0; }
+}
+@keyframes eo-ripple {
+  from { transform: scale(0.8); opacity: 0.6; }
+  to { transform: scale(1.5); opacity: 0; }
+}
+[data-reduce-motion='true'] .eo,
+[data-reduce-motion='true'] .eo-wave,
+[data-reduce-motion='true'] .eo-spark {
+  animation: none !important;
+}
+[data-reduce-motion='true'] .eo-spark,
+[data-reduce-motion='true'] .eo-ripple {
+  display: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .eo, .eo-wave, .eo-spark { animation: none !important; }
+  .eo-spark, .eo-ripple { display: none !important; }
+}

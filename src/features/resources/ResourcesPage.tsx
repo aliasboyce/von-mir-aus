@@ -45,9 +45,12 @@ import { ZoneRoadmap } from './ZoneRoadmap';
 import { NEED_META } from '../innerWeather/weatherMeta';
 import type { NeedDirection } from '../../data/types';
 import { HILFSMITTEL_MAIN, subtypesFor, customOrteSubStore, type SubType } from '../../content/hilfsmittelCategories';
-import { EnergyLevelFilter, energyExactMatch } from '../../components/shared/EnergyLevelFilter';
 import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
-import type { EnergyLevel } from '../../content/energyLevels';
+import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { FitProfileFields } from '../../components/shared/FitProfileFields';
+import { countHiddenUnmarked, filterByFit, isFitFilterActive, subjectOfResource } from '../../content/fitCriteria';
+import { chainFitSubject } from './chainFit';
+import { useFitFilter } from '../../state/fitFilterStore';
 
 seedResourcesIfEmpty();
 migrateResourceAccessChannelsIfNeeded();
@@ -105,7 +108,7 @@ export function ResourcesPage() {
   const [addingSub, setAddingSub] = useState(false);
   const [newSubName, setNewSubName] = useState('');
   const [, bumpSubs] = useState(0);
-  const [energyFilter, setEnergyFilter] = useState<EnergyLevel | null>(null);
+  const { filter: fitFilter } = useFitFilter();
   const [items, setItems] = useState<Resource[]>(() => resourcesRepo.getAll());
   const [editing, setEditing] = useState<Resource | null>(null);
   // "Das Hinzufuegen-Feld soll nur bei Skills immer so aufgebaut
@@ -195,15 +198,24 @@ export function ResourcesPage() {
   const filtered = useMemo(() => {
     const byCategory = filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter);
     const bySub = subFilter && typeScope === 'hilfsmittel' ? byCategory.filter((r) => r.subcategory === subFilter) : byCategory;
-    const list = energyExactMatch(bySub, energyFilter);
+    const list = filterByFit(bySub, subjectOfResource, fitFilter);
     if (!zoneFilter) return list;
     // "Geordnet fuer den jeweiligen Anspannungsbereich" — items explicitly
     // tagged for this zone come first, untagged ones after them.
     const rank = (r: Resource) => ((r.skillDetails?.zoneIds ?? r.hilfsmittelDetails?.zoneIds)?.includes(zoneFilter) ? 0 : 1);
     return [...list].sort((a, b) => rank(a) - rank(b));
-  }, [inTypeScope, filter, subFilter, typeScope, energyFilter, zoneFilter]);
+  }, [inTypeScope, filter, subFilter, typeScope, fitFilter, zoneFilter]);
+  const hiddenUnmarked = useMemo(() => {
+    const byCategory = filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter);
+    const bySub = subFilter && typeScope === 'hilfsmittel' ? byCategory.filter((r) => r.subcategory === subFilter) : byCategory;
+    return countHiddenUnmarked(bySub.map(subjectOfResource), fitFilter);
+  }, [inTypeScope, filter, subFilter, typeScope, fitFilter]);
   const zoneBand = zoneFilter ? AROUSAL_BANDS.find((b) => b.id === zoneFilter) : undefined;
-  const zoneKetten = zoneFilter && typeScope === 'skills' ? skillkettenForZone(zoneFilter) : [];
+  const zoneKetten = useMemo(() => {
+    if (!zoneFilter || typeScope !== 'skills') return [];
+    const byId = new Map(items.map((r) => [r.id, r]));
+    return filterByFit(skillkettenForZone(zoneFilter), (k) => chainFitSubject(k, byId), fitFilter);
+  }, [zoneFilter, typeScope, items, fitFilter]);
 
   function refresh() {
     setItems(resourcesRepo.getAll());
@@ -681,10 +693,10 @@ export function ResourcesPage() {
           </div>
         </div>
 
-        <EnergyLevelFilter value={energyFilter} onChange={setEnergyFilter} />
+        <FitFilterPanel hiddenUnmarked={hiddenUnmarked} />
 
         {filtered.length === 0 ? (
-          <EmptyState title={t.resources.empty} />
+          <EmptyState title={isFitFilterActive(fitFilter) ? t.fit.noResults : t.resources.empty} action={isFitFilterActive(fitFilter) ? <p className="text-[12.5px] text-[var(--color-text-faint)] max-w-[280px]">{t.fit.noResultsHint}</p> : undefined} />
         ) : (
           <div className="grid grid-cols-2 gap-3 mb-4">
             {filtered.map((resource) => (
@@ -873,6 +885,7 @@ export function ResourcesPage() {
               <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.energy.fieldHint}</p>
               <EnergyLevelPicker value={editing.energyLevel} onChange={(v) => setEditing({ ...editing, energyLevel: v })} />
             </Field>
+            <FitProfileFields value={editing.fit} onChange={(v) => setEditing({ ...editing, fit: v })} />
             <Field label={t.resources.categoryLabel}>
               <select
                 className="input"

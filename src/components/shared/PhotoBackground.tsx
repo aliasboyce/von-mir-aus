@@ -39,7 +39,8 @@ export function PhotoBackground({
   const [status, setStatus] = useState<'loading' | 'ok' | 'fallback-loading' | 'fallback-ok' | 'failed'>('loading');
   const fallbackSrc = toFallbackSeed(src);
   // switched off in Settings: no request at all, straight to the calm colour field
-  const blocked = isRemoteImage(src) && !useRemoteImagesAllowed();
+  const remoteAllowed = useRemoteImagesAllowed();
+  const blocked = isRemoteImage(src) && !remoteAllowed;
 
   useEffect(() => {
     if (blocked) {

@@ -41,6 +41,7 @@ import { CompanionAboutPage } from './features/settings/CompanionAboutPage';
 import { SystemMapPage } from './features/systemMap/SystemMapPage';
 import { SourceLibraryPage } from './features/sources/SourceLibraryPage';
 import { NeedsCompassPage } from './features/accessWheel/NeedsCompassPage';
+import { ZugangskanaelePage } from './features/zugangskanaele/ZugangskanaelePage';
 import { BookmarksPage } from './features/bookmarks/BookmarksPage';
 import { FavoritesPage } from './features/favorites/FavoritesPage';
 import { WeeklyReviewPage } from './features/diary/WeeklyReviewPage';
@@ -96,7 +97,7 @@ function App() {
                 <Route path="/entdecken/ressourcen/skill-start/:id" element={<SkillRunPage />} />
                 <Route path="/entdecken/ressourcen/:type" element={<ResourcesPage />} />
                 {/* Zugangsrad retired per explicit audit decision — its
-                 * sliders now live inside Wertekompass (AccessDomainsSection). */}
+                 * sliders now live on the Zugangskanäle page. */}
                 <Route path="/zugang" element={<ZugangPage />} />
                 <Route path="/zugang/rueckblick" element={<ZugangReviewPage />} />
                 <Route path="/einstellungen/wesen-inhalte" element={<CompanionContentPage />} />
@@ -105,6 +106,7 @@ function App() {
                 <Route path="/kalender" element={<CalendarPage />} />
                 <Route path="/kalender/uebersicht" element={<CalendarOverviewPage />} />
                 <Route path="/quellen" element={<SourceLibraryPage />} />
+                <Route path="/entdecken/zugangskanaele" element={<ZugangskanaelePage />} />
                 <Route path="/entdecken/beduerfnis-kompass" element={<NeedsCompassPage />} />
                 <Route path="/entdecken/tageskurve" element={<PolyvagalPage />} />
                 <Route path="/entdecken/tageskurve/entwicklung" element={<MeineEntwicklungPage />} />

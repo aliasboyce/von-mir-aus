@@ -20,6 +20,10 @@ export function CompanionSpeechProvider({ children }: { children: ReactNode }) {
   const counter = useRef(0);
   const { settings } = useSettings();
 
+  // Set during render (it only assigns a module variable) so lines picked by
+  // children on first mount already use the right language — a child's effect
+  // runs before this component's own effect.
+  setCompanionLanguage(settings.language === 'en' ? 'en' : 'de');
   useEffect(() => {
     setCompanionLanguage(settings.language === 'en' ? 'en' : 'de');
   }, [settings.language]);

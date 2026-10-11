@@ -19,7 +19,7 @@ export function SafetyHubPage() {
         <h1 className="text-[24px]">{t.nav.safety}</h1>
         <HelpButton helpKey="sicherheit" />
       </div>
-      <p className="text-[14px] text-[var(--color-text-muted)] mb-6">Dein privater, geschützter Bereich.</p>
+      <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.safetyHub.subtitle}</p>
 
       <ReorderableTiles section="sicherheit" tiles={tiles} />
     </div>

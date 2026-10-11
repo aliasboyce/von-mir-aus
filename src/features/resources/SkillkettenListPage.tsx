@@ -5,10 +5,21 @@ import { HelpButton } from '../../components/navigation/HelpButton';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
 import { skillkettenRepo } from './skillkettenRepo';
+import { resourcesRepo } from './resourcesRepo';
+import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { FitSummary } from '../../components/shared/FitSummary';
+import { countHiddenUnmarked, filterByFit, isFitFilterActive } from '../../content/fitCriteria';
+import { useFitFilter } from '../../state/fitFilterStore';
+import { chainFitSubject } from './chainFit';
 
 export function SkillkettenListPage() {
   const t = useT();
-  const ketten = skillkettenRepo.getAll().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const { filter } = useFitFilter();
+  const all = skillkettenRepo.getAll().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const byId = new Map(resourcesRepo.getAll().map((r) => [r.id, r]));
+  const subjectOf = (k: (typeof all)[number]) => chainFitSubject(k, byId);
+  const ketten = filterByFit(all, subjectOf, filter);
+  const hidden = countHiddenUnmarked(all.map(subjectOf), filter);
 
   return (
     <div className="animate-in">
@@ -24,8 +35,10 @@ export function SkillkettenListPage() {
           </Button>
         </Link>
 
+        {all.length > 0 && <FitFilterPanel hiddenUnmarked={hidden} />}
+
         {ketten.length === 0 ? (
-          <p className="text-[13px] text-[var(--color-text-faint)]">{t.resources.skillkettenEmptyState}</p>
+          <p className="text-[13px] text-[var(--color-text-faint)]">{isFitFilterActive(filter) && all.length > 0 ? `${t.fit.noResults} ${t.fit.noResultsHint}` : t.resources.skillkettenEmptyState}</p>
         ) : (
           <div className="flex flex-col gap-2.5">
             {ketten.map((k) => (
@@ -39,6 +52,7 @@ export function SkillkettenListPage() {
                 <div className="min-w-0">
                   <p className="text-[14px] text-[var(--color-text)]">{k.title}</p>
                   {k.subtitle && <p className="text-[12px] text-[var(--color-text-muted)] truncate">{k.subtitle}</p>}
+                  <div className="mt-1"><FitSummary subject={subjectOf(k)} /></div>
                 </div>
               </Link>
             ))}

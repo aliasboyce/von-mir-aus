@@ -48,6 +48,9 @@ export const ALL_STORAGE_KEYS: string[] = [
   'vocab-collections',
   'zugang-entries',
   'zugang-draft',
+  'channel-snapshots',
+  'skillketten',
+  'explore-view',
   'wertekompass-priorities',
   'wertekompass-value-cards',
   'adopted-bridge-impulses',
@@ -86,4 +89,10 @@ export function resetAllAppData(): void {
   // Also remove by the known-key list directly, in case the namespacing
   // convention ever changes — belt and suspenders for a destructive action.
   ALL_STORAGE_KEYS.forEach((key) => window.localStorage.removeItem(`${NAMESPACE}:${key}`));
+  // the session-only "Was geht gerade?" filter
+  try {
+    window.sessionStorage.removeItem(`${NAMESPACE}:fit-filter-session`);
+  } catch {
+    // no session storage — nothing to clear
+  }
 }

@@ -1,5 +1,6 @@
 import { ENERGY_LEVELS, type EnergyLevel } from '../../content/energyLevels';
 import { useSettings } from '../../state/SettingsContext';
+import { EnergyOrb } from './EnergyOrb';
 
 /**
  * The four energy levels as a vertical list, each with its icon, name
@@ -25,11 +26,13 @@ export function EnergyLevelPicker({ value, onChange }: { value?: EnergyLevel; on
             className="text-left rounded-[var(--radius-md)] border px-3 py-2.5"
             style={{ borderColor: active ? 'var(--color-primary)' : 'var(--color-border)', background: active ? 'var(--color-primary-soft)' : 'var(--color-surface)' }}
           >
-            <span className="flex items-center gap-2">
-              <span className="text-[13px]" aria-hidden="true">{e.icon}</span>
-              <span className="text-[13.5px] font-medium text-[var(--color-text)]">{info.label}</span>
+            <span className="flex items-start gap-3">
+              <EnergyOrb level={e.level} size={46} active={active} />
+              <span className="min-w-0">
+                <span className="block text-[13.5px] font-medium text-[var(--color-text)]">{info.label}</span>
+                <span className="block text-[12px] text-[var(--color-text-muted)] leading-relaxed mt-0.5">{info.feel}</span>
+              </span>
             </span>
-            <span className="block text-[12px] text-[var(--color-text-muted)] leading-relaxed mt-1">{info.feel}</span>
           </button>
         );
       })}

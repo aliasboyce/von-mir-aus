@@ -5,7 +5,10 @@ import { HelpButton } from '../../components/navigation/HelpButton';
 import { useT } from '../../i18n';
 import { skillkettenRepo } from './skillkettenRepo';
 import { resourcesRepo } from './resourcesRepo';
-import type { SkillketteStage } from '../../data/types';
+import type { SkillketteStage, StepExtras } from '../../data/types';
+import { StepExtrasView } from './StepExtras';
+import { FitSummary } from '../../components/shared/FitSummary';
+import { chainFitSubject } from './chainFit';
 
 /**
  * "Bei den Skillketten werden dann Skills mit noetigen Hilfsmitteln
@@ -44,7 +47,7 @@ export function SkillketteDetailPage() {
     { stage: kette.stufeNiedrig, icon: '🧘', title: t.resources.skillketteStufeNiedrigTitle, range: '0–40 %', color: '#6fbf73', aktion1Label: t.resources.skillketteAktionKomfort, aktion2Label: t.resources.skillketteAktionAchtsamkeit },
   ];
 
-  function renderAction(label: string, skillId?: string) {
+  function renderAction(label: string, skillId?: string, extras?: StepExtras) {
     const skill = skillId ? skillById.get(skillId) : undefined;
     return (
       <div className="mb-2">
@@ -52,14 +55,7 @@ export function SkillketteDetailPage() {
         {skill ? (
           <>
             <p className="text-[13px] text-[var(--color-text)] font-medium">{skill.title}</p>
-            {skill.skillDetails?.relatedHilfsmittelIds?.map((hid) => {
-              const h = skillById.get(hid);
-              return h ? (
-                <p key={hid} className="text-[12px] text-[var(--color-text-muted)]">
-                  🛠️ {t.resources.skillketteDetailHilfsmittelLabel}: {h.title}
-                </p>
-              ) : null;
-            })}
+            <StepExtrasView extras={extras} skillHilfsmittelIds={skill.skillDetails?.relatedHilfsmittelIds} />
           </>
         ) : (
           <p className="text-[13px] text-[var(--color-text-faint)] italic">{t.resources.skillketteDetailSkillEmpty}</p>
@@ -76,6 +72,11 @@ export function SkillketteDetailPage() {
           <h1 className="text-[24px]">{kette.title}</h1>
         </div>
         {kette.subtitle && <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{kette.subtitle}</p>}
+
+        <div className="mb-4">
+          <FitSummary subject={chainFitSubject(kette, skillById)} />
+          <p className="text-[11px] text-[var(--color-text-faint)] mt-1.5">{t.fit.chainDerived}</p>
+        </div>
 
         {/* "Skillkette starten" — same idea as 'Skill starten', but for the whole chain */}
         <button
@@ -109,8 +110,8 @@ export function SkillketteDetailPage() {
                 {t.resources.skillketteAnspannung}: {s.range}
               </p>
               {s.stage.ziel && <p className="text-[13px] text-[var(--color-text)] mb-2 italic">{s.stage.ziel}</p>}
-              {renderAction(s.aktion1Label, s.stage.aktion1SkillId)}
-              {renderAction(s.aktion2Label, s.stage.aktion2SkillId)}
+              {renderAction(s.aktion1Label, s.stage.aktion1SkillId, s.stage.aktion1Extras)}
+              {renderAction(s.aktion2Label, s.stage.aktion2SkillId, s.stage.aktion2Extras)}
               {s.stage.dauer && (
                 <p className="text-[12px] text-[var(--color-text-faint)] mt-1">
                   {t.resources.skillketteDauerLabel}: {s.stage.dauer}
