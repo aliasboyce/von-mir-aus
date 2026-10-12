@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { TopBar } from '../../components/navigation/TopBar';
+import { HelpButton } from '../../components/navigation/HelpButton';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { networkRepo } from '../safetyNet/networkRepo';
@@ -49,7 +50,7 @@ export function CalendarOverviewPage() {
 
   return (
     <div className="animate-in">
-      <TopBar />
+      <TopBar action={<HelpButton helpKey="kalender" />} />
       <div className="px-5 pb-12">
         <h1 className="text-[24px] mb-1">{t.calendar.overviewTitle}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-5">{t.calendar.overviewSubtitle}</p>

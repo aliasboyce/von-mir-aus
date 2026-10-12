@@ -183,25 +183,25 @@ export function ExplorePage() {
           <ReorderableTiles key={`pin-${versionKey}`} section="entdecken-angepinnt" tiles={pinnedTiles} customization={customization} />
         </div>
       )}
-      <p className="text-[13px] text-[var(--color-text-faint)] mb-3 leading-relaxed">{t.explore.groupsIntro}</p>
+      <p className="text-[13px] text-[var(--color-text-muted)] mb-8 leading-relaxed rounded-[var(--radius-lg)] px-4 py-3.5" style={{ background: 'var(--color-surface-muted)' }}>{t.explore.groupsIntro}</p>
 
-      <p className="text-[15px] font-medium text-[var(--color-text)] mb-0.5 mt-1">🔎 {t.explore.groupErforschen}</p>
-      <p className="text-[12px] text-[var(--color-text-faint)] mb-5 leading-relaxed">{t.explore.groupErforschenHint}</p>
+      <h2 className="text-[20px] text-[var(--color-text)] mb-1.5 mt-2">🔎 {t.explore.groupErforschen}</h2>
+      <p className="text-[13.5px] text-[var(--color-text-muted)] mb-7 leading-relaxed">{t.explore.groupErforschenHint}</p>
       {erforschenGroups.map((g) => (
-        <div key={g.section} className="mb-5">
-          <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{g.label}</p>
+        <div key={g.section} className="mb-8">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-primary)] mb-3 pl-2.5" style={{ borderLeft: '3px solid var(--color-primary)' }}>{g.label}</p>
           {hide(g.tiles).length > 0 && <ReorderableTiles key={`${g.section}-${versionKey}`} section={g.section} tiles={hide(g.tiles)} customization={customization} />}
         </div>
       ))}
-      <Link to="/quellen" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-1 mb-1">
+      <Link to="/quellen" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-1 mb-2">
         📚 {t.explore.sourceLibraryLink} →
       </Link>
 
-      <p className="text-[15px] font-medium text-[var(--color-text)] mb-0.5 mt-8">👣 {t.explore.groupTun}</p>
-      <p className="text-[12px] text-[var(--color-text-faint)] mb-5 leading-relaxed">{t.explore.groupTunHint}</p>
+      <h2 className="text-[20px] text-[var(--color-text)] mb-1.5 mt-14 pt-8" style={{ borderTop: '1px solid var(--color-border)' }}>👣 {t.explore.groupTun}</h2>
+      <p className="text-[13.5px] text-[var(--color-text-muted)] mb-7 leading-relaxed">{t.explore.groupTunHint}</p>
       {tunGroups.map((g) => (
-        <div key={g.section} className="mb-5">
-          <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{g.label}</p>
+        <div key={g.section} className="mb-8">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-primary)] mb-3 pl-2.5" style={{ borderLeft: '3px solid var(--color-primary)' }}>{g.label}</p>
           {hide(g.tiles).length > 0 && <ReorderableTiles key={`${g.section}-${versionKey}`} section={g.section} tiles={hide(g.tiles)} customization={customization} />}
         </div>
       ))}

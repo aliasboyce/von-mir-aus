@@ -4,6 +4,12 @@ import { Modal } from '../ui/Modal';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { HELP_CONTENT, type HelpKey } from './helpContent';
+import { MarkdownLite } from '../shared/MarkdownLite';
+
+/** A heading line is always its own block, so a `### Titel` directly followed by text on the next line still renders as heading + paragraph. */
+function spaced(text: string): string {
+  return text.replace(/^(#{1,3} .*)\n(?!\n)/gm, '$1\n\n');
+}
 
 interface HelpButtonProps {
   helpKey: HelpKey;
@@ -43,9 +49,7 @@ export function HelpButton({ helpKey, className }: HelpButtonProps) {
         <HelpCircle size={19} />
       </button>
       <Modal open={open} onClose={() => setOpen(false)} title={isEn ? content.titleEn : content.title}>
-        <p className="text-[14px] text-[var(--color-text)] leading-relaxed whitespace-pre-line">
-          {isEn ? content.bodyEn : content.body}
-        </p>
+        <MarkdownLite text={spaced(isEn ? content.bodyEn : content.body)} />
       </Modal>
     </>
   );

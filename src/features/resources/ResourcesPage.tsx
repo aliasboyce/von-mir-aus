@@ -14,9 +14,8 @@ import { Button } from '../../components/ui/Button';
 import { ImageSuggestionCarousel } from '../../components/shared/ImageSuggestionCarousel';
 import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { TopBar } from '../../components/navigation/TopBar';
-import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
 import { DiscoverResourcesModal } from './DiscoverResourcesModal';
-import { RESOURCES_BRIDGES_LINES } from '../../components/companion/companionLines';
+import { BridgeVsResourceInfo } from '../../components/shared/BridgeVsResourceInfo';
 import { useT } from '../../i18n';
 import { resizeImageFile } from '../../services/imageResize';
 import { ImageCropModal } from '../../components/shared/ImageCropModal';
@@ -361,7 +360,7 @@ export function ResourcesPage() {
   return (
     <div className="animate-in">
       <div className="no-print">
-        <TopBar action={<HelpButton helpKey="ressourcen" />} />
+        <TopBar action={<HelpButton helpKey={typeScope ?? 'ressourcen'} />} />
         <div className="px-5 pb-6">
           <div className="flex items-start justify-between mb-1">
             <h1 className="text-[24px]">{typeScope === 'skills' ? t.resources.skillsTitle : typeScope === 'hilfsmittel' ? t.resources.hilfsmittelTitle : typeScope === 'orte' ? t.resources.orteTitle : typeScope === 'aktivitaeten' ? t.resources.aktivitaetenTitle : t.resources.title}</h1>
@@ -963,10 +962,7 @@ export function ResourcesPage() {
       </Modal>
 
       <Modal open={showInfo} onClose={() => setShowInfo(false)} title={t.bridges.whatsTheDifference}>
-        <div className="flex items-start gap-3">
-          <InlineCompanionNote />
-          <p className="text-[14px] text-[var(--color-text)] flex-1">{RESOURCES_BRIDGES_LINES.distinction}</p>
-        </div>
+        <BridgeVsResourceInfo />
       </Modal>
 
       <DiscoverResourcesModal

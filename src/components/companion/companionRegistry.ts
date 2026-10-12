@@ -105,9 +105,9 @@ export const COMPANION_LINES: CompanionLine[] = [
   { id: 'iw-6', text: 'Danke, dass du kurz bei dir warst.', textEn: 'Thanks for taking a moment for yourself.', category: 'feedback', page: '/inneres-wetter', trigger: 'speichern' },
 
   // ---- Brücken ----
-  { id: 'br-1', text: 'Level 1 ist genauso gültig wie Level 4.', textEn: 'Level 1 counts just as much as level 4.', category: 'erklaerung', page: '/bruecken', trigger: 'erstes_oeffnen' },
-  { id: 'br-8', text: 'Eine Brücke bringt dich von hier zu etwas, das dir hilft — nicht sofort, nur ein Stück.', textEn: 'A bridge gets you from here to something that helps — not all at once, just a bit closer.', category: 'erklaerung', page: '/bruecken', trigger: 'leerlauf' },
-  { id: 'br-9', text: 'Manche Tage reicht Level 1. Das ist kein Rückschritt.', textEn: 'Some days, level 1 is enough. That\'s not a setback.', category: 'beruhigend', page: '*', trigger: 'leerlauf' },
+  { id: 'br-1', text: 'Schritt 1 ist genauso gültig wie der letzte Schritt.', textEn: 'Step 1 counts just as much as the last step.', category: 'erklaerung', page: '/bruecken', trigger: 'erstes_oeffnen' },
+  { id: 'br-8', text: 'Eine Brücke führt dich in kleinen Schritten zu einem Wert, der dir wichtig ist — nicht sofort, nur ein Stück.', textEn: 'A bridge leads you in small steps to a value that matters to you — not all at once, just a bit closer.', category: 'erklaerung', page: '/bruecken', trigger: 'leerlauf' },
+  { id: 'br-9', text: 'Manche Tage reicht Schritt 1. Das ist kein Rückschritt.', textEn: 'Some days, step 1 is enough. That\'s not a setback.', category: 'beruhigend', page: '*', trigger: 'leerlauf' },
   { id: 'br-10', text: 'Du darfst auch mal eine Brücke gar nicht nutzen — sie wartet trotzdem.', textEn: 'It\'s fine to skip a bridge sometimes too — it\'ll still be here.', category: 'beruhigend', page: '*', trigger: 'leerlauf' },
   { id: 'br-11', text: 'Schau mal, ob eine deiner Brücken gerade zu deinem heutigen Zustand passt.', textEn: 'See if one of your bridges fits how you\'re feeling today.', category: 'tipp', page: '/bruecken', trigger: 'leerlauf' },
   { id: 'br-timer-1', text: 'Okay. Mehr musst du gerade nicht schaffen.', textEn: 'Okay. That\'s all you need to manage right now.', category: 'beruhigend', page: '*', trigger: 'timer_start' },
@@ -155,8 +155,8 @@ export const COMPANION_LINES: CompanionLine[] = [
   { id: 'garden-tag-5', text: 'Du baust dir gerade etwas auf.', textEn: "You're building yourself something here.", category: 'ermutigung', page: '/entdecken/garten', trigger: 'garden_tag' },
   { id: 'garden-meilenstein-3', text: 'Schau, wie viel hier schon gewachsen ist.', textEn: 'Look how much has already grown here.', category: 'positiv', page: '*', trigger: 'garden_meilenstein' },
   { id: 'br-2', text: 'Wähle das, was sich gerade richtig anfühlt, nicht das, was am meisten bringt.', textEn: 'Pick whatever feels right now, not whatever seems most impressive.', category: 'tipp', page: '/bruecken', trigger: 'bruecke_auswahl' },
-  { id: 'br-3', text: 'Du kannst jederzeit ein anderes Level wählen.', textEn: 'You can pick a different level anytime.', category: 'anleitung', page: '/bruecken', trigger: 'bruecke_auswahl' },
-  { id: 'br-4', text: 'Eine Brücke ist ein kleiner Schritt, kein Sprung.', textEn: 'A bridge is a small step, not a leap.', category: 'erklaerung', page: '/bruecken', trigger: 'eintrag_erstellen' },
+  { id: 'br-3', text: 'Du kannst jederzeit einen anderen Schritt wählen.', textEn: 'You can pick a different step anytime.', category: 'anleitung', page: '/bruecken', trigger: 'bruecke_auswahl' },
+  { id: 'br-4', text: 'Fang mit dem allerkleinsten Schritt an. Die größeren dürfen später kommen.', textEn: 'Start with the very smallest step. The bigger ones can come later.', category: 'erklaerung', page: '/bruecken', trigger: 'eintrag_erstellen' },
   { id: 'br-6', text: 'Deine Brücke darf sich verändern, so wie du dich veränderst.', textEn: 'Your bridge is allowed to change, just like you do.', category: 'ermutigung', page: '/bruecken', trigger: 'eintrag_bearbeiten' },
   { id: 'br-7', text: 'Änderung gespeichert.', textEn: 'Change saved.', category: 'feedback', page: '/bruecken', trigger: 'eintrag_bearbeiten' },
   { id: 'br-5', text: 'Deine Brücke ist gespeichert.', textEn: 'Your bridge is saved.', category: 'feedback', page: '/bruecken', trigger: 'speichern' },
@@ -168,7 +168,7 @@ export const COMPANION_LINES: CompanionLine[] = [
   // ---- Ressourcen ----
   {
     id: 'res-1',
-    text: 'Ressourcen sind Dinge, die dir selbst Halt geben. Brücken sind kleine Schritte, die dich von hier zu etwas anderem hinführen — zu dir, zu deinem Körper, zu anderen oder nach draußen.', textEn: 'Resources are things that give you steadiness. Bridges are small steps that lead you from here to something else — to yourself, your body, other people, or the outside world.',
+    text: 'Ressourcen sind einzelne Dinge, die dir helfen — Skills, Hilfsmittel, Orte, Aktivitäten, Menschen. Eine Brücke verbindet mehrere davon zu einem Weg in kleinen Schritten zu einem Wert, der dir wichtig ist.', textEn: 'Resources are single things that help you — skills, tools, places, activities, people. A bridge connects several of them into a path of small steps toward a value that matters to you.',
     category: 'erklaerung',
     page: '/entdecken/ressourcen',
     trigger: 'erstes_oeffnen',

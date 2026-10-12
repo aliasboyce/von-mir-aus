@@ -48,23 +48,27 @@ export function ExploreMap() {
 
   return (
     <div className="explore-map overflow-x-clip">
-      <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mb-5">{t.explore.mapHint}</p>
+      <p className="relative z-10 text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mb-12">{t.explore.mapHint}</p>
 
       {/* the neutral centre */}
       <div className="flex flex-col items-center mb-5">
-        <div
-          className="map-breathe w-[132px] h-[132px] rounded-full flex items-center justify-center text-center"
-          style={{
-            background: 'radial-gradient(circle at 50% 42%, var(--color-surface) 0%, var(--color-surface-muted) 100%)',
-            border: '1px solid var(--color-border)',
-            boxShadow: '0 0 0 14px color-mix(in srgb, var(--color-surface-muted) 55%, transparent), 0 0 0 30px color-mix(in srgb, var(--color-surface-muted) 28%, transparent)',
-          }}
-        >
-          <span className="text-[17px] font-medium text-[var(--color-text)]" style={{ fontFamily: 'var(--font-display, inherit)' }}>
-            {t.explore.mapCentre}
-          </span>
+        <div className="relative w-[132px] h-[132px] z-0">
+          {/* soft rings that drift outwards — a quiet pulse, kept well clear of the text above */}
+          <span aria-hidden="true" className="map-ripple absolute inset-0 rounded-full" />
+          <span aria-hidden="true" className="map-ripple map-ripple--late absolute inset-0 rounded-full" />
+          <div
+            className="map-pulse relative w-full h-full rounded-full flex items-center justify-center text-center"
+            style={{
+              background: 'radial-gradient(circle at 50% 42%, var(--color-surface) 0%, var(--color-surface-muted) 100%)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <span className="text-[17px] font-medium text-[var(--color-text)]" style={{ fontFamily: 'var(--font-display, inherit)' }}>
+              {t.explore.mapCentre}
+            </span>
+          </div>
         </div>
-        <div className="flex flex-wrap justify-center gap-2 mt-9" role="group" aria-label={t.explore.mapTitle}>
+        <div className="flex flex-wrap justify-center gap-2 mt-12" role="group" aria-label={t.explore.mapTitle}>
           {jumps.map((j) => (
             <button
               key={j.id}

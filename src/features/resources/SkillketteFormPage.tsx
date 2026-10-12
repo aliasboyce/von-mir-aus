@@ -84,7 +84,7 @@ export function SkillketteFormPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="ressourcen" />} />
+      <TopBar action={<HelpButton helpKey="skillketten" />} />
       <div className="px-5 pb-10">
         <h1 className="text-[24px] mb-4">{existing ? draft.title || t.resources.skillketteFormTitle : t.resources.skillketteFormTitleNew}</h1>
 

@@ -324,7 +324,9 @@ export function DiaryPage() {
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1">{t.diary.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.diary.subtitle}</p>
-        <CompulsionAwarenessNote />
+        <div className="mb-4">
+          <CompulsionAwarenessNote />
+        </div>
 
         <div className="flex gap-2 mb-4">
           <Chip selected={view === 'entries'} onClick={() => setView('entries')}>

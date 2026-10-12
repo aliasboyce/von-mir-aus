@@ -3,7 +3,7 @@ import { goBack } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Heart, Plus, Compass, FileDown, ChevronLeft, Info, ChevronDown } from 'lucide-react';
+import { Heart, Plus, Compass, FileDown, ChevronLeft, ChevronDown } from 'lucide-react';
 import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
@@ -24,8 +24,7 @@ import { DiscoverBridgesModal } from './DiscoverBridgesModal';
 import { RecentlyUsedRow } from '../../components/shared/RecentlyUsedRow';
 import { BridgeHeroIllustration } from './BridgeHeroIllustration';
 import { createId } from '../../services/storage/repository';
-import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
-import { RESOURCES_BRIDGES_LINES } from '../../components/companion/companionLines';
+import { BridgeVsResourceInfo } from '../../components/shared/BridgeVsResourceInfo';
 import { suggestedImage } from '../../services/suggestedImages';
 import type { Bridge } from '../../data/types';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
@@ -137,9 +136,6 @@ export function BridgesPage() {
           <h1 className="text-[24px]">{t.bridges.title}</h1>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setInfoOpen(true)} aria-label={t.bridges.infoAbout} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)]">
-            <Info size={18} className="text-[var(--color-text-muted)]" />
-          </button>
           <HelpButton helpKey="bruecken" />
           {bridges.length > 0 && (
             <button
@@ -152,14 +148,16 @@ export function BridgesPage() {
           )}
         </div>
       </div>
-      <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.bridges.subtitle}</p>
-      <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mb-3">{t.bridges.concept}</p>
-      <button
-        onClick={() => setShowInfo(true)}
-        className="text-[12px] text-[var(--color-primary)] underline underline-offset-2 mb-4"
-      >
-        {t.bridges.whatsTheDifference}
-      </button>
+      <p className="text-[15px] text-[var(--color-text)] mb-3">{t.bridges.subtitle}</p>
+      <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mb-4">{t.bridges.concept}</p>
+      <div className="flex flex-col items-start gap-2.5 mb-6">
+        <button onClick={() => setShowInfo(true)} className="text-[13px] text-[var(--color-primary)] underline underline-offset-2 text-left">
+          {t.bridges.whatsTheDifference}
+        </button>
+        <button onClick={() => setInfoOpen(true)} className="text-[13px] text-[var(--color-primary)] underline underline-offset-2 text-left">
+          {t.bridges.infoAbout}
+        </button>
+      </div>
 
       <div className="mb-5">
         <BridgeHeroIllustration />
@@ -280,10 +278,7 @@ export function BridgesPage() {
       </div>
 
       <Modal open={showInfo} onClose={() => setShowInfo(false)} title={t.bridges.whatsTheDifference}>
-        <div className="flex items-start gap-3">
-          <InlineCompanionNote />
-          <p className="text-[14px] text-[var(--color-text)] flex-1">{RESOURCES_BRIDGES_LINES.distinction}</p>
-        </div>
+        <BridgeVsResourceInfo />
       </Modal>
 
       <BridgeFormModal open={!!creating} bridge={creating} onClose={() => setCreating(null)} onSave={saveNew} title={t.bridges.newBridge} />

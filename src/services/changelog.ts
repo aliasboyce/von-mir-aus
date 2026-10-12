@@ -16,6 +16,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-bruecken-beispiel-abstaende',
+    date: '2026',
+    items: [
+      'Brücken: Beim Erstellen findest du ganz oben ein genau erklärtes Beispiel (Wert „Natur“, fünf Schritte mit Ort, Aktivität, Hilfsmittel, Skill und Person) und kannst es als Vorlage übernehmen. Die Brücken-Impulse sind jetzt fertige Brücken statt einzelner Übungen.',
+      'Alle ?-Hilfetexte, die Erklärung „Was unterscheidet Brücken von Ressourcen?“ und „Nicht sicher, was gerade passt?“ sind auf den aktuellen Stand gebracht – mit Überschriften und kurzen Absätzen.',
+      'Mehr Luft überall: Ein Fehler hat bisher fast alle Abstände zwischen Überschriften und Texten verschluckt. Jetzt stehen Texte auf allen Seiten ruhiger untereinander. Startseite ohne Lieblingsbrücke, Datum mit mehr Abstand, Entdecken-Liste übersichtlicher, der Mittelpunkt der Karte pulsiert.',
+    ],
+    itemsEn: [
+      'Bridges: when creating one you find a precisely explained example at the very top (value "Nature", five steps with place, activity, tool, skill and person) and can use it as a template. The bridge impulses are now ready-made bridges instead of single exercises.',
+      'All ? help texts, the explanation "What is the difference between bridges and resources?" and "Not sure what fits right now?" are up to date – with headings and short paragraphs.',
+      'More air everywhere: a bug had swallowed almost all spacing between headings and texts. Texts now sit calmly one under another on every page. Home without favourite bridge, date with more space, Explore list clearer, the centre of the map pulses.',
+    ],
+  },
+  {
     id: '2026-ressourcen-orte-aktivitaeten',
     date: '2026',
     items: [

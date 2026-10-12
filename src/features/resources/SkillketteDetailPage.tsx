@@ -66,7 +66,7 @@ export function SkillketteDetailPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="ressourcen" />} />
+      <TopBar action={<HelpButton helpKey="skillketten" />} />
       <div className="px-5 pb-10">
         <div className="flex items-start justify-between mb-1">
           <h1 className="text-[24px]">{kette.title}</h1>

@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TodaySoFar } from './TodaySoFar';
 import { createPortal } from 'react-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { IntentPickerModal } from './IntentPickerModal';
-import { PhotoBackground } from '../../components/shared/PhotoBackground';
 import { Settings2, X, Info, LifeBuoy, HeartHandshake, Mail, Compass, Pill, CalendarDays } from 'lucide-react';
 import { dueUnopenedLetters, markLetterOpened } from '../briefAnMich/lettersRepo';
 import type { LetterToSelf } from '../briefAnMich/lettersRepo';
@@ -19,9 +18,7 @@ import { useT } from '../../i18n';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { useSettings } from '../../state/SettingsContext';
 import { weatherRepo } from '../innerWeather/weatherRepo';
-import { bridgesRepo } from '../bridges/bridgesRepo';
 import { getDueCustomReminders, dismissCustomReminder, type CustomReminder } from '../../services/customReminders';
-import { BRIDGE_CATEGORY_META } from '../bridges/bridgeMeta';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { getHomeContext, getBestEffortWeather } from './homeContext';
 import { pickHomeContextLine, pickCustomHomeLine } from './homeCompanionLines';
@@ -122,7 +119,6 @@ export function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const favoriteBridge = useMemo(() => bridgesRepo.getAll().find((b) => b.favorite), []);
 
   const hour = new Date().getHours();
   const greeting = t.home.hourlyGreetings[hour] ?? t.home.subtitle;
@@ -172,7 +168,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <p className="text-[15px] text-[var(--color-text-muted)] mb-5 max-w-[280px]">
+      <p className="text-[15px] text-[var(--color-text-muted)] mb-8 max-w-[280px] leading-relaxed">
         {t.home.subtitle}
       </p>
 
@@ -398,7 +394,7 @@ export function HomePage() {
               </Card>
             </Link>
           </div>
-          <button onClick={() => setShowIntentPicker(true)} className="text-[11px] text-[var(--color-primary)] mb-6 block mx-auto">
+          <button onClick={() => setShowIntentPicker(true)} className="text-[12.5px] text-[var(--color-primary)] mt-3 mb-6 block mx-auto">
             {t.home.intentPickerEntryCta}
           </button>
         </>
@@ -442,21 +438,6 @@ export function HomePage() {
         <>
           <AchievementSection />
         </>
-      )}
-
-      {!settings.nurJetztMode && favoriteBridge && (
-        <Link to={`/bruecken/${favoriteBridge.id}`} className="block">
-          <Card interactive className="flex items-center gap-4">
-            <PhotoBackground src={favoriteBridge.image} className="w-14 h-14 rounded-[var(--radius-md)] bg-cover bg-center flex-shrink-0" />
-            <div className="min-w-0">
-              <p className="text-[12px] text-[var(--color-text-faint)]">{t.home.resumeBridge}</p>
-              <p className="text-[15px] text-[var(--color-text)] truncate">{favoriteBridge.title}</p>
-              <p className="text-[13px] text-[var(--color-text-muted)]">
-                {BRIDGE_CATEGORY_META[favoriteBridge.category].label(t)}
-              </p>
-            </div>
-          </Card>
-        </Link>
       )}
 
       {aboutOpen && <AboutVonMirAusModal text={ABOUT_VON_MIR_AUS_TEXT} onClose={() => setAboutOpen(false)} />}

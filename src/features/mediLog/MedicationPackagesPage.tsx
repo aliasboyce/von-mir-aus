@@ -3,6 +3,7 @@ import { goBack } from '../../services/navigation';
 import { useNavigate } from 'react-router-dom';
 import { Plus, X, Camera, AlertTriangle } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
+import { HelpButton } from '../../components/navigation/HelpButton';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
@@ -42,7 +43,7 @@ export function MedicationPackagesPage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => goBack(navigate)} />
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="mediLog" />} />
       <div className="px-4 pb-8">
         <h1 className="text-[20px] font-semibold text-[var(--color-text)] mb-1">{t.medPackages.title}</h1>
         <p className="text-[13px] text-[var(--color-text-muted)] mb-4">{t.medPackages.subtitle}</p>

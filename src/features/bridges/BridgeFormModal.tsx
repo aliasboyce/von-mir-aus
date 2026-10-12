@@ -15,6 +15,7 @@ import { ConditionsPicker } from './ConditionsPicker';
 import { StepExtrasEditor, loadStepExtraOptions } from '../resources/StepExtras';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { indicatorsFor } from '../wertekompass/valueIndicators';
+import { BridgeExample } from './BridgeExample';
 import { bridgeNeeds, needsForValues, categoryForValues, resourcesForNeeds } from './bridgeValues';
 import type { Bridge, BridgeLevel } from '../../data/types';
 
@@ -93,6 +94,8 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
 
   if (!draft) return null;
   const currentDraft = draft;
+  const startsBlank = !bridge?.title?.trim();
+  const isBlank = !currentDraft.title.trim() && !(currentDraft.connectionTags ?? []).length && currentDraft.levels.every((l) => !l.title.trim());
   const values = currentDraft.connectionTags ?? [];
   const needs = currentDraft.linkedNeeds ?? [];
   const suggestedNeeds = needsForValues(values);
@@ -157,6 +160,10 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
           submit();
         }}
       >
+        <Fold title={b.exampleTitle} summary={b.exampleSummary} defaultOpen={startsBlank}>
+          <BridgeExample canApply={isBlank} onApply={(patch) => setDraft({ ...currentDraft, ...patch })} />
+        </Fold>
+
         <label className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{b.titleLabel}</span>
           <input autoFocus className="input" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} required />

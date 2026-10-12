@@ -23,7 +23,7 @@ export function SkillkettenListPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="ressourcen" />} />
+      <TopBar action={<HelpButton helpKey="skillketten" />} />
       <div className="px-5 pb-10">
         <h1 className="text-[24px] mb-1">{t.resources.skillkettenListTitle}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.resources.skillkettenListSubtitle}</p>

@@ -45,15 +45,15 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* NOTE: no `margin: 0` resets here. Tailwind's preflight already zeroes the margins of
+ * headings and paragraphs inside @layer base; an UNLAYERED `margin: 0` on h1–h4 / p would
+ * beat every layered utility (mt-*, mb-*) and silently cancel all vertical spacing set on
+ * those elements across the whole app — which is exactly what made stacked text lines
+ * look crammed together. */
 h1, h2, h3, h4 {
   font-family: var(--font-display);
   font-weight: 600;
   letter-spacing: -0.01em;
-  margin: 0;
-}
-
-p {
-  margin: 0;
 }
 
 button {
@@ -591,6 +591,9 @@ button {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
+[data-reduce-motion='true'] .map-ripple {
+  display: none !important;
+}
 [data-reduce-motion='true'] .ambient-fall {
   display: none !important;
 }
@@ -825,9 +828,21 @@ button {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
 }
+@keyframes map-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 18%, transparent), 0 0 18px 2px color-mix(in srgb, var(--color-primary) 10%, transparent); }
+  50% { transform: scale(1.06); box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-primary) 9%, transparent), 0 0 30px 6px color-mix(in srgb, var(--color-primary) 18%, transparent); }
+}
+@keyframes map-ripple {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.map-pulse { animation: map-pulse 3.6s ease-in-out infinite; }
+.map-ripple { border: 1.5px solid color-mix(in srgb, var(--color-primary) 40%, transparent); animation: map-ripple 3.6s ease-out infinite; }
+.map-ripple--late { animation-delay: 1.8s; }
 .map-breathe { animation: map-breathe 7s ease-in-out infinite; }
 .map-drift { animation: map-drift 16s ease-in-out infinite; }
 .map-float { animation: map-float 8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .map-breathe, .map-drift, .map-float { animation: none; }
+  .map-breathe, .map-drift, .map-float, .map-pulse { animation: none; }
+  .map-ripple { display: none; }
 }

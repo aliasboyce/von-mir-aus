@@ -195,9 +195,20 @@ Ich habe jetzt einfach bei mir angefangen.
  * page.
  */
 export const BRIDGES_INFO_TEXT = `
-# Was Brücken bedeuten und wie sie zur Grundidee hinter „Von mir aus" wurden
+# Die Idee hinter Brücken
 
 Eine Brücke verbindet deinen aktuellen Zustand mit etwas, das du eigentlich tun oder erleben möchtest.
+
+## So funktioniert es in der App
+
+• **Wert:** Du wählst, wohin die Brücke führen soll, zum Beispiel Natur, Freundschaft oder Kreativität.
+• **Schritte:** Du baust kleine Schritte dorthin. Der erste ist so klein, dass er auch an einem schweren Tag geht, jeder weitere ein Stück größer.
+• **Was einen Schritt trägt:** An jeden Schritt hängst du, was du schon in der App hast: einen Ort, eine Aktivität, einen hilfreichen Menschen, ein Hilfsmittel oder einen Skill.
+• **Du bleibst frei:** Du darfst auf jeder Stufe stehen bleiben. Ein Wert und ein Schritt reichen für eine erste Brücke.
+
+Ein ganz genaues Beispiel findest du ganz oben im Formular „Neue Brücke“.
+
+---
 
 ## Das Grundprinzip
 

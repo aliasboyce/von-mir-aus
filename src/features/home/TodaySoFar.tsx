@@ -42,7 +42,7 @@ export function TodaySoFar() {
   const date = now.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
   const time = now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
   return (
-    <Link to="/sicherheit/tagebuch?tab=review" className="block mb-4 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]" aria-label={t.todaySoFar.open}>
+    <Link to="/sicherheit/tagebuch?tab=review" className="block mt-1 mb-5 text-[12.5px] leading-relaxed text-[var(--color-text-muted)]" aria-label={t.todaySoFar.open}>
       <span className="text-[var(--color-text)]">{date}</span> · {time}
       {shown.length > 0 && <> · {shown.map((e) => e.text).join(' · ')}</>}
     </Link>

@@ -5,10 +5,11 @@ import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
 import { BRIDGE_IMPULSES, type BridgeImpulse } from '../../data/seed/bridgeImpulses.seed';
 import { bridgesRepo } from './bridgesRepo';
+import { resourcesRepo } from '../resources/resourcesRepo';
 import { valuesForLegacyCategory } from './bridgeValues';
 import { createId } from '../../services/storage/repository';
 import { getAdoptedBridgeImpulses, markBridgeImpulseAdopted } from '../../services/adoptedImpulsesStore';
-import type { Bridge } from '../../data/types';
+import type { Bridge, StepExtras } from '../../data/types';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
 interface DiscoverBridgesModalProps {
@@ -41,8 +42,23 @@ export function DiscoverBridgesModal({ open, onClose, onAdopted }: DiscoverBridg
   }
 
   function adopt() {
-    const { impulseId, ...rest } = current;
-    const bridge: Bridge = { ...rest, connectionTags: rest.connectionTags ?? valuesForLegacyCategory(rest.category), id: createId('bridge') };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { impulseId, whyThis, ...rest } = current;
+    // only attach what still exists in the person's own resources
+    const existing = new Set(resourcesRepo.getAll().map((r) => r.id));
+    const keep = (ids?: string[]) => (ids ?? []).filter((id) => existing.has(id));
+    const levels = rest.levels.map((l) => {
+      if (!l.extras) return l;
+      const x: StepExtras = {
+        skillIds: keep(l.extras.skillIds),
+        hilfsmittelIds: keep(l.extras.hilfsmittelIds),
+        ortIds: keep(l.extras.ortIds),
+        aktivitaetIds: keep(l.extras.aktivitaetIds),
+      };
+      const cleaned = Object.fromEntries(Object.entries(x).filter(([, v]) => (v as string[]).length > 0)) as StepExtras;
+      return { ...l, extras: Object.keys(cleaned).length > 0 ? cleaned : undefined };
+    });
+    const bridge: Bridge = { ...rest, levels, connectionTags: rest.connectionTags ?? valuesForLegacyCategory(rest.category), id: createId('bridge') };
     bridgesRepo.save(bridge);
     markBridgeImpulseAdopted(impulseId);
     setAdopted(true);
@@ -60,25 +76,41 @@ export function DiscoverBridgesModal({ open, onClose, onAdopted }: DiscoverBridg
       <div className="flex flex-col gap-4">
         <PhotoBackground src={current.image} className="h-32 rounded-[var(--radius-lg)] bg-cover bg-center" />
         <div>
-          <span className="inline-block text-[11px] font-medium bg-[var(--color-primary-soft)] text-[var(--color-primary)] rounded-full px-2.5 py-1 mb-2">
-            {valueLabels}
+          <span className="inline-block text-[11px] font-medium bg-[var(--color-primary-soft)] text-[var(--color-primary)] rounded-full px-2.5 py-1 mb-2.5">
+            {t.bridges.discoverValueLabel} {valueLabels}
           </span>
-          <h3 className="text-[17px] text-[var(--color-text)] mb-1">{current.title}</h3>
-          <p className="text-[13px] text-[var(--color-text-muted)]">{current.description}</p>
+          <h3 className="text-[18px] text-[var(--color-text)] mb-2">{current.title}</h3>
+          <p className="text-[13.5px] text-[var(--color-text)] leading-relaxed mb-2">{current.description}</p>
+          <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed">{current.whyThis}</p>
         </div>
-        <div className="flex flex-col gap-2">
-          {current.levels.map((lvl) => (
-            <div key={lvl.level} className="flex items-start gap-2 text-[13px]">
-              <span className="w-5 h-5 rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] flex items-center justify-center text-[11px] flex-shrink-0 mt-0.5">
-                {lvl.level}
-              </span>
-              <span>
-                <span className="text-[var(--color-text)]">{lvl.title}</span>
-                <span className="block text-[var(--color-text-muted)]">{lvl.description}</span>
-              </span>
-            </div>
-          ))}
+        <div>
+          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-text-faint)] mb-2.5">{t.bridges.discoverStepsLabel}</p>
+          <div className="flex flex-col gap-3">
+            {current.levels.map((lvl) => {
+              const extraTitles = [lvl.extras?.skillIds, lvl.extras?.hilfsmittelIds, lvl.extras?.ortIds, lvl.extras?.aktivitaetIds]
+                .flatMap((ids) => ids ?? [])
+                .map((id) => resourcesRepo.getById(id)?.title)
+                .filter((x): x is string => Boolean(x));
+              return (
+                <div key={lvl.level} className="flex items-start gap-3 text-[13px]">
+                  <span className="w-6 h-6 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex items-center justify-center text-[12px] font-medium flex-shrink-0 mt-0.5">
+                    {lvl.level}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[14px] font-medium text-[var(--color-text)]">{lvl.title}</span>
+                    <span className="block text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-0.5">{lvl.description}</span>
+                    {extraTitles.length > 0 && (
+                      <span className="block text-[12px] text-[var(--color-primary)] mt-1">
+                        {t.bridges.discoverStepWith} {extraTitles.join(' · ')}
+                      </span>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
+        {current.tip && <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)] px-3.5 py-3">💡 {current.tip}</p>}
         <div className="flex gap-2">
           <Button variant="secondary" icon={<Shuffle size={15} />} onClick={next}>
             {t.bridges.discoverAnother}

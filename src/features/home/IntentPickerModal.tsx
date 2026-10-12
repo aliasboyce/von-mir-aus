@@ -11,9 +11,9 @@ interface Intent {
 const INTENTS: Intent[] = [
   { emoji: '🫂', labelKey: 'auffangen' },
   { emoji: '🧭', labelKey: 'orientieren' },
-  { emoji: '👣', labelKey: 'handeln' },
   { emoji: '🧠', labelKey: 'verstehen' },
   { emoji: '🌿', labelKey: 'fuerMich' },
+  { emoji: '👣', labelKey: 'handeln' },
   { emoji: '🔎', labelKey: 'erforschen' },
   { emoji: '📖', labelKey: 'lernen' },
 ];
@@ -48,11 +48,13 @@ export function IntentPickerModal({ onClose, onOpenGrounding }: { onClose: () =>
         navigate('/zugang');
         return;
       case 'fuerMich':
-        navigate('/entdecken/garten');
+        navigate('/entdecken/ressourcen');
         return;
       case 'erforschen':
-      case 'lernen':
         navigate('/entdecken');
+        return;
+      case 'lernen':
+        navigate('/entdecken/nervensystem');
         return;
     }
   }
@@ -63,19 +65,26 @@ export function IntentPickerModal({ onClose, onOpenGrounding }: { onClose: () =>
         className="bg-[var(--color-surface)] rounded-t-[24px] sm:rounded-[24px] w-full sm:max-w-[420px] max-h-[85vh] overflow-y-auto p-5"
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-[18px] text-[var(--color-text)] mb-4">{t.home.intentPickerTitle}</p>
-        <div className="flex flex-col gap-2">
+        <h2 className="text-[20px] text-[var(--color-text)] mb-2">{t.home.intentPickerTitle}</h2>
+        <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mb-5">{t.home.intentPickerIntro}</p>
+        <div className="flex flex-col gap-2.5">
           {INTENTS.map((intent) => (
             <button
               key={intent.labelKey}
               onClick={() => go(intent.labelKey)}
-              className="flex items-center gap-3 px-4 py-3 rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)] text-left"
+              className="flex items-center gap-3 px-4 py-3.5 rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)] text-left"
             >
-              <span className="text-[20px] flex-shrink-0">{intent.emoji}</span>
-              <span className="text-[14px] text-[var(--color-text)]">{t.home.intentLabels[intent.labelKey]}</span>
+              <span className="text-[22px] flex-shrink-0">{intent.emoji}</span>
+              <span className="min-w-0">
+                <span className="block text-[15px] text-[var(--color-text)]">{t.home.intentLabels[intent.labelKey]}</span>
+                <span className="block text-[12.5px] leading-snug text-[var(--color-text-muted)] mt-0.5">{t.home.intentHints[intent.labelKey]}</span>
+              </span>
             </button>
           ))}
         </div>
+        <button onClick={onClose} className="mt-4 w-full text-center text-[13px] text-[var(--color-text-muted)] py-2">
+          {t.home.intentPickerNone}
+        </button>
       </div>
     </div>,
     document.body
