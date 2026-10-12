@@ -810,3 +810,24 @@ button {
   .eo, .eo-wave, .eo-spark { animation: none !important; }
   .eo-spark, .eo-ripple { display: none !important; }
 }
+
+/* Entdecken-Karte: ganz langsame, weiche Bewegung (Atmen, Treiben, Schweben).
+ * Alle drei enden im Grundzustand und stehen bei „Bewegung reduzieren" still. */
+@keyframes map-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+@keyframes map-drift {
+  0%, 100% { transform: translate(0, 0); opacity: 1; }
+  50% { transform: translate(8px, -6px); opacity: 0.8; }
+}
+@keyframes map-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.map-breathe { animation: map-breathe 7s ease-in-out infinite; }
+.map-drift { animation: map-drift 16s ease-in-out infinite; }
+.map-float { animation: map-float 8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .map-breathe, .map-drift, .map-float { animation: none; }
+}

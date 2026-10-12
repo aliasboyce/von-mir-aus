@@ -17,6 +17,7 @@ import { BookmarksPrintView } from './BookmarksPrintView';
 import { useSettings } from '../../state/SettingsContext';
 import { createId } from '../../services/storage/repository';
 import type { Bookmark } from '../../data/types';
+import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
 
 type FilterValue = 'all' | string;
 
@@ -293,6 +294,10 @@ export function BookmarksPage() {
                 onChange={(e) => setEditing({ ...editing, note: e.target.value })}
               />
             </label>
+            <NeedsMultiPicker
+              selected={editing.linkedNeeds ?? []}
+              onChange={(v) => setEditing({ ...editing, linkedNeeds: v.length > 0 ? v : undefined })}
+            />
             <Button type="submit" fullWidth>
               {t.common.save}
             </Button>

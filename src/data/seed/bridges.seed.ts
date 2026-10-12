@@ -14,7 +14,8 @@ export const DEMO_BRIDGES: Bridge[] = [
   {
     id: 'bridge_natur',
     title: '10 Minuten Natur',
-    category: 'gedanken_werte_intra',
+    category: 'natur_inter',
+    connectionTags: ['Natur', 'Tageslicht', 'Bewegung'],
     image: img('Natur Spaziergang Baum'),
     description: 'Eine kleine Brücke in die Natur. Wähle das Level, das sich gerade richtig für dich anfühlt.',
     levels: [
@@ -31,12 +32,13 @@ export const DEMO_BRIDGES: Bridge[] = [
     id: 'bridge_atem',
     title: 'Zum Atem zurückkehren',
     category: 'koerper_intra',
+    connectionTags: ['Erholung', 'Schlaf'],
     image: img('Atem atmen Wind'),
     description: 'Der Atem ist immer da — eine Brücke, die dich sanft in den Körper zurückholt.',
     levels: [
       { level: 1, title: 'Einmal bewusst durchatmen', description: 'Ein einzelner Atemzug, ohne Zählen, ohne Technik.' },
-      { level: 2, title: 'Ein paar tiefe Atemzüge', description: 'Ein paar Atemzüge tief in die Nase — kein Zählen nötig, nur spüren.' },
-      { level: 3, title: 'Ruhiger, gezählter Atem', description: 'Wenn es guttut: 4 Sekunden ein, kurze Pause, 4 Sekunden aus. Jederzeit abbrechbar.' },
+      { level: 2, title: 'Ein paar tiefe Atemzüge', description: 'Ein paar Atemzüge tief in die Nase — kein Zählen nötig, nur spüren.', extras: { skillIds: ['res_skill_36_bauchatmung'] } },
+      { level: 3, title: 'Ruhiger, gezählter Atem', description: 'Wenn es guttut: 4 Sekunden ein, kurze Pause, 4 Sekunden aus. Jederzeit abbrechbar.', extras: { skillIds: ['res_skill_box_atmung'] } },
       { level: 4, title: 'Längere Atemreise', description: 'Für einige Minuten dem eigenen Atem folgen, ohne ihn zu verändern.' },
     ],
     tip: 'Wenn Zählen sich eng oder kontrollierend anfühlt, lass es weg — einfach nur den Atem zu bemerken reicht vollkommen.',
@@ -47,6 +49,7 @@ export const DEMO_BRIDGES: Bridge[] = [
     id: 'bridge_kontakt',
     title: 'Anrufen & Sprechen',
     category: 'menschen_inter',
+    connectionTags: ['soziale Verbindung', 'Freundschaft'],
     image: img('Anruf Telefon Kontakt'),
     description: 'Ein kleiner Schritt zurück zu anderen Menschen — in deinem eigenen Tempo.',
     levels: [
@@ -63,6 +66,7 @@ export const DEMO_BRIDGES: Bridge[] = [
     id: 'bridge_musik',
     title: 'Musik & Klang',
     category: 'koerper_intra',
+    connectionTags: ['Erholung', 'Kreativität'],
     image: img('Musik Lied Playlist'),
     description: 'Klang kann helfen, wieder im Körper anzukommen.',
     levels: [
@@ -78,7 +82,8 @@ export const DEMO_BRIDGES: Bridge[] = [
   {
     id: 'bridge_notiz',
     title: 'Etwas aufschreiben',
-    category: 'natur_inter',
+    category: 'gedanken_werte_intra',
+    connectionTags: ['Identität', 'Kreativität'],
     image: img('Schreiben Notiz Tagebuch'),
     description: 'Worte finden, ohne sie sofort teilen zu müssen.',
     levels: [
@@ -106,6 +111,7 @@ export const DEMO_BRIDGES: Bridge[] = [
     id: 'bridge_salamander_blick',
     title: 'Der Salamander-Blick',
     category: 'koerper_intra',
+    connectionTags: ['Erholung'],
     image: img('Augen Blick Orientierung'),
     description: 'Kopf ruhig halten, Augen weit zur Seite bewegen, bis sich Gähnen oder Schlucken einstellt — löst innere Erstarrung.',
     levels: [{ level: 1, title: 'Einmal probieren', description: 'Kopf geradeaus halten. Nur die Augen ganz nach rechts bewegen und einige Atemzüge dort verweilen, bis sich Gähnen oder Schlucken einstellt. Dann zur anderen Seite.', energyLevel: 1 }],
@@ -118,6 +124,7 @@ export const DEMO_BRIDGES: Bridge[] = [
     id: 'bridge_schulterkreisen',
     title: 'Schulterkreisen (Fixierter Blick)',
     category: 'koerper_intra',
+    connectionTags: ['Erholung', 'Bewegung'],
     image: img('Bewegung Dehnung Koerper'),
     description: 'Augen fixiert, Schultern in Bewegung — entkoppelt die im Freeze verriegelte Augen-Nacken-Einheit.',
     levels: [
@@ -137,6 +144,7 @@ export const DEMO_BRIDGES: Bridge[] = [
     id: 'bridge_isometrischer_zug',
     title: 'Isometrischer Hand-Zug',
     category: 'koerper_intra',
+    connectionTags: ['Bewegung', 'Erholung'],
     image: img('Hand Beruhigung Halt'),
     description: 'Blockierte Energie durch einen kurzen, erfolgreichen „Kraftakt" entladen — ohne jede Bewegung nach außen.',
     levels: [

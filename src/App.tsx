@@ -38,7 +38,6 @@ import { ZugangPage } from './features/zugang/ZugangPage';
 import { ZugangReviewPage } from './features/zugang/ZugangReviewPage';
 import { CompanionContentPage } from './components/companion/CompanionContentPage';
 import { CompanionAboutPage } from './features/settings/CompanionAboutPage';
-import { SystemMapPage } from './features/systemMap/SystemMapPage';
 import { SourceLibraryPage } from './features/sources/SourceLibraryPage';
 import { NeedsCompassPage } from './features/accessWheel/NeedsCompassPage';
 import { ZugangskanaelePage } from './features/zugangskanaele/ZugangskanaelePage';
@@ -102,7 +101,7 @@ function App() {
                 <Route path="/zugang/rueckblick" element={<ZugangReviewPage />} />
                 <Route path="/einstellungen/wesen-inhalte" element={<CompanionContentPage />} />
                 <Route path="/einstellungen/wesen-info" element={<CompanionAboutPage />} />
-                <Route path="/system-karte" element={<SystemMapPage />} />
+                <Route path="/system-karte" element={<Navigate to="/entdecken" replace />} />
                 <Route path="/kalender" element={<CalendarPage />} />
                 <Route path="/kalender/uebersicht" element={<CalendarOverviewPage />} />
                 <Route path="/quellen" element={<SourceLibraryPage />} />

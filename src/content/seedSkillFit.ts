@@ -35,6 +35,9 @@ export const SEED_SKILL_FIT: Record<string, SeedFit> = {
   res_skill_self_holding: { e: 1, m: 5, a: 1, c: ['sinne', 'koerper_innen'] },
   res_skill_voo_atem: { e: 2, m: 5, a: 1, c: ['koerper_innen', 'sinne', 'aufmerksamkeit'] },
   res_skill_shaking: { e: 3, m: 5, a: 2, c: ['bewegung', 'koerper_innen'] },
+  res_skill_gewichtsdecke: { e: 1, m: 10, a: 1, c: ['koerper_innen', 'sinne'] },
+  res_skill_eiskaltes_wasser: { e: 2, m: 1, a: 1, c: ['koerper_innen', 'sinne'] },
+  res_skill_bilaterale_stimulation: { e: 1, m: 5, a: 1, c: ['bewegung', 'koerper_innen', 'sinne'] },
   res_skill_tipp: { e: 3, m: 5, a: 2, c: ['sinne', 'bewegung', 'koerper_innen'] },
   // Orientierung & Erdung
   res_skill_54321: { e: 2, m: 5, a: 1, c: ['sinne', 'aufmerksamkeit'] },

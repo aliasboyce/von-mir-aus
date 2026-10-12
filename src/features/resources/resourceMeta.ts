@@ -39,6 +39,7 @@ export const RESOURCE_CATEGORY_ORDER: ResourceCategory[] = [
   'apps',
   'buecher',
   'orte',
+  'aktivitaeten',
   'achtsamkeit',
   'stresstoleranz',
   'emotionsregulation',
@@ -130,4 +131,5 @@ export const RESOURCE_CATEGORY_TO_GROUP: Partial<Record<ResourceCategory, Resour
   wissen: 'hilfsmittel',
   orte: 'orte_gruppe',
   natur: 'orte_gruppe',
+  aktivitaeten: 'aktivitaeten',
 };

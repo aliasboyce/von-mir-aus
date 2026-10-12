@@ -1,4 +1,4 @@
-import type { NeedDirection, Resource } from '../data/types';
+import type { Bookmark, NeedDirection, Resource } from '../data/types';
 import { RESOURCE_CATEGORY_TO_GROUP } from '../features/resources/resourceMeta';
 
 /**
@@ -15,18 +15,18 @@ import { RESOURCE_CATEGORY_TO_GROUP } from '../features/resources/resourceMeta';
 export const NEED_DEFAULT_CATEGORIES: Record<NeedDirection, { hilfsmittel: string[]; skills: string[] }> = {
   koerperliche_versorgung: { hilfsmittel: ['gustatorisch', 'komfort', 'strukturell'], skills: [] },
   schlaf: { hilfsmittel: ['komfort', 'olfaktorisch', 'auditiv'], skills: ['achtsamkeit'] },
-  bewegung: { hilfsmittel: ['motorisch'], skills: [] },
+  bewegung: { hilfsmittel: ['motorisch', 'aktivitaeten'], skills: [] },
   sicherheit: { hilfsmittel: ['komfort', 'haptisch', 'olfaktorisch'], skills: ['stresstoleranz'] },
-  verbindung: { hilfsmittel: ['orte'], skills: ['zwischenmenschlich'] },
+  verbindung: { hilfsmittel: ['orte', 'aktivitaeten'], skills: ['zwischenmenschlich'] },
   zugehoerigkeit: { hilfsmittel: ['orte'], skills: ['zwischenmenschlich'] },
   autonomie: { hilfsmittel: ['strukturell'], skills: ['zwischenmenschlich', 'mittelweg'] },
   orientierung: { hilfsmittel: ['strukturell', 'kognitiv', 'visuell'], skills: ['achtsamkeit'] },
-  ruhe: { hilfsmittel: ['auditiv', 'olfaktorisch', 'komfort', 'haptisch'], skills: ['achtsamkeit', 'stresstoleranz'] },
-  ausdruck: { hilfsmittel: ['kognitiv', 'motorisch', 'auditiv'], skills: ['emotionsregulation'] },
+  ruhe: { hilfsmittel: ['auditiv', 'olfaktorisch', 'komfort', 'haptisch', 'orte'], skills: ['achtsamkeit', 'stresstoleranz'] },
+  ausdruck: { hilfsmittel: ['kognitiv', 'motorisch', 'auditiv', 'aktivitaeten'], skills: ['emotionsregulation'] },
   wertschaetzung: { hilfsmittel: ['kognitiv'], skills: ['zwischenmenschlich'] },
-  freude: { hilfsmittel: ['auditiv', 'gustatorisch', 'visuell', 'motorisch'], skills: ['emotionsregulation'] },
+  freude: { hilfsmittel: ['auditiv', 'gustatorisch', 'visuell', 'motorisch', 'aktivitaeten'], skills: ['emotionsregulation'] },
   sinn: { hilfsmittel: ['kognitiv', 'orte'], skills: ['mittelweg', 'achtsamkeit'] },
-  selbstwirksamkeit: { hilfsmittel: ['strukturell', 'motorisch'], skills: ['emotionsregulation'] },
+  selbstwirksamkeit: { hilfsmittel: ['strukturell', 'motorisch', 'aktivitaeten'], skills: ['emotionsregulation'] },
   koerperliche_unversehrtheit: { hilfsmittel: ['komfort', 'haptisch'], skills: ['stresstoleranz'] },
 };
 
@@ -35,4 +35,18 @@ export function resourceFitsNeed(r: Resource, need: NeedDirection): boolean {
   const isSkill = RESOURCE_CATEGORY_TO_GROUP[r.category] === 'faehigkeiten';
   const defaults = NEED_DEFAULT_CATEGORIES[need];
   return (isSkill ? defaults.skills : defaults.hilfsmittel).includes(r.category);
+}
+
+/** Rough default for sources the person has not tagged themselves, by the category's name. */
+const BOOKMARK_NEED_DEFAULTS: { match: RegExp; needs: NeedDirection[] }[] = [
+  { match: /anlaufstell|hilfsangebot|krise/i, needs: ['sicherheit', 'koerperliche_unversehrtheit', 'verbindung', 'zugehoerigkeit'] },
+  { match: /fachlich|wissen|verstehen/i, needs: ['orientierung', 'sinn', 'autonomie', 'selbstwirksamkeit'] },
+  { match: /übung|uebung/i, needs: ['ruhe', 'schlaf', 'bewegung', 'ausdruck'] },
+  { match: /inspiration/i, needs: ['freude', 'sinn', 'wertschaetzung', 'ausdruck'] },
+];
+
+/** A source fits a need when tagged for it; untagged ones fall back to their category's name. */
+export function bookmarkFitsNeed(b: Bookmark, need: NeedDirection, categoryLabel: string): boolean {
+  if (b.linkedNeeds && b.linkedNeeds.length > 0) return b.linkedNeeds.includes(need);
+  return BOOKMARK_NEED_DEFAULTS.some((d) => d.match.test(categoryLabel) && d.needs.includes(need));
 }

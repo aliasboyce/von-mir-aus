@@ -99,9 +99,7 @@ export function WeeklyReviewPage() {
           : null;
 
     const savedMeds = savedMedicationsRepo.getAll();
-    const mediLogEntries = settings.dailyReviewShowMediLog === false
-      ? []
-      : mediLogRepo.getAll().filter((e) => e.status !== 'skipped' && new Date(e.takenAt).getTime() >= cutoff);
+    const mediLogEntries = mediLogRepo.getAll().filter((e) => e.status !== 'skipped' && new Date(e.takenAt).getTime() >= cutoff);
     const byMedName = new Map<string, typeof mediLogEntries>();
     mediLogEntries.forEach((e) => {
       const key = e.name.trim().toLowerCase();
@@ -140,7 +138,7 @@ export function WeeklyReviewPage() {
       checkIns, zoneCounts, resourceUses, bridgeUses, resourceNames, bridgeNames, helpfulYes,
       diaryEntries, achievements, momentOfWeek, mediLogWeekly, zugangCount, zugangEntriesThisWeek, accessGapEntriesThisWeek, gardenThisWeek, totalActivity,
     };
-  }, [settings.dailyReviewShowMediLog, DAYS]);
+  }, [DAYS]);
 
   const maxZoneCount = Math.max(...POLYVAGAL_ZONE_ORDER.map((z) => stats.zoneCounts[z]), 1);
   // "In den letzten Tagen warst du am haeufigsten im Bereich ... ist

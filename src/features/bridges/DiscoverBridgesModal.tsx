@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
 import { BRIDGE_IMPULSES, type BridgeImpulse } from '../../data/seed/bridgeImpulses.seed';
 import { bridgesRepo } from './bridgesRepo';
-import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from './bridgeMeta';
+import { valuesForLegacyCategory } from './bridgeValues';
 import { createId } from '../../services/storage/repository';
 import { getAdoptedBridgeImpulses, markBridgeImpulseAdopted } from '../../services/adoptedImpulsesStore';
 import type { Bridge } from '../../data/types';
@@ -42,7 +42,7 @@ export function DiscoverBridgesModal({ open, onClose, onAdopted }: DiscoverBridg
 
   function adopt() {
     const { impulseId, ...rest } = current;
-    const bridge: Bridge = { ...rest, id: createId('bridge') };
+    const bridge: Bridge = { ...rest, connectionTags: rest.connectionTags ?? valuesForLegacyCategory(rest.category), id: createId('bridge') };
     bridgesRepo.save(bridge);
     markBridgeImpulseAdopted(impulseId);
     setAdopted(true);
@@ -53,12 +53,7 @@ export function DiscoverBridgesModal({ open, onClose, onAdopted }: DiscoverBridg
     }, 1200);
   }
 
-  // Defensive fallback: if a category value ever doesn't exist in
-  // BRIDGE_CATEGORY_META (e.g. new content shipped before this file
-  // was updated), fall back to the first known category rather than
-  // crashing the whole modal — the exact failure mode found and fixed
-  // during the "Bruecken-Kategorien neu ordnen"-Auftrag.
-  const CategoryMeta = BRIDGE_CATEGORY_META[current.category] ?? BRIDGE_CATEGORY_META[BRIDGE_CATEGORY_ORDER[0]];
+  const valueLabels = (current.connectionTags ?? valuesForLegacyCategory(current.category)).join(' · ');
 
   return (
     <Modal open={open} onClose={onClose} title={t.bridges.discoverTitle} subtitle={t.bridges.discoverSubtitle}>
@@ -66,7 +61,7 @@ export function DiscoverBridgesModal({ open, onClose, onAdopted }: DiscoverBridg
         <PhotoBackground src={current.image} className="h-32 rounded-[var(--radius-lg)] bg-cover bg-center" />
         <div>
           <span className="inline-block text-[11px] font-medium bg-[var(--color-primary-soft)] text-[var(--color-primary)] rounded-full px-2.5 py-1 mb-2">
-            {CategoryMeta.label(t)}
+            {valueLabels}
           </span>
           <h3 className="text-[17px] text-[var(--color-text)] mb-1">{current.title}</h3>
           <p className="text-[13px] text-[var(--color-text-muted)]">{current.description}</p>

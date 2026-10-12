@@ -42,7 +42,7 @@ const TOUR_PATHS = [
   '/helfermodus',
   '/',
   '/',
-  '/system-karte',
+  '/entdecken',
   '/quellen',
   '/einstellungen',
 ];

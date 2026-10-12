@@ -8,6 +8,10 @@ import { networkCategoryFor } from '../features/safetyNet/networkResourceSync';
 import { SEED_SKILL_ZONES } from '../content/seedSkillZones';
 import { LEGACY_HILFSMITTEL_CATEGORY } from '../content/hilfsmittelCategories';
 import { SEED_SKILL_FIT, seedFitFor } from '../content/seedSkillFit';
+import { ensureUmstaendeSeeded, type UmstandOption } from '../features/bridges/conditions';
+import { DEMO_BRIDGES } from '../data/seed/bridges.seed';
+import { STARTER_AKTIVITAETEN } from '../data/seed/resources.seed';
+import { valuesForLegacyCategory } from '../features/bridges/bridgeValues';
 
 /**
  * One-time data migrations that must run once at app start, whatever
@@ -182,6 +186,59 @@ function migrateSeedSkillFit() {
   seedFitV2.set(true);
 }
 
+const umstaendeV2 = createKeyValueStore<boolean>('migration-umstaende-global-v2', false);
+
+/** Umstände are one global saved list now (no longer resources under Orte). The earlier,
+ * short-lived Orte → "Umstände & Bedingungen" entries are carried over into that list with
+ * the SAME key a bridge stored for them (old condition id, or the resource id), then removed
+ * from the Orte so nothing appears twice. */
+function migrateUmstaendeToGlobalList() {
+  if (umstaendeV2.get()) return;
+  const old = resourcesRepo.getAll().filter((r) => r.category === 'orte' && r.subcategory === 'umstaende');
+  const extra: UmstandOption[] = old.map((r) => ({
+    key: r.id.startsWith('res_umstand_') ? r.id.slice('res_umstand_'.length) : r.id,
+    label: r.title,
+    emoji: '🧩',
+  }));
+  ensureUmstaendeSeeded(extra);
+  old.forEach((r) => resourcesRepo.remove(r.id));
+  umstaendeV2.set(true);
+}
+
+const aktivitaetenV1 = createKeyValueStore<boolean>('migration-seed-aktivitaeten-v1', false);
+
+/** Aktivitäten & Beschäftigung is a new kind of resource — a few gentle starters, added once. */
+function seedAktivitaeten() {
+  if (aktivitaetenV1.get()) return;
+  STARTER_AKTIVITAETEN.forEach((a) => {
+    if (!resourcesRepo.getById(a.id)) resourcesRepo.save(a);
+  });
+  aktivitaetenV1.set(true);
+}
+
+const bridgeValuesV1 = createKeyValueStore<boolean>('migration-bridge-values-v1', false);
+
+/** Bridges lead toward values / Lebensrichtungen now (the category tabs are gone). Older bridges that
+ * only know a category get the values that category most likely stood for; the starter bridges get
+ * their own values and the resources on their steps. Anything already set is left alone. */
+function migrateBridgeValues() {
+  if (bridgeValuesV1.get()) return;
+  const demo = new Map(DEMO_BRIDGES.map((b) => [b.id, b]));
+  bridgesRepo.getAll().forEach((b) => {
+    const d = demo.get(b.id);
+    let next = b;
+    if (!b.connectionTags || b.connectionTags.length === 0) {
+      const tags = d?.connectionTags ?? valuesForLegacyCategory(b.category);
+      next = { ...next, connectionTags: tags, category: d && !b.isCustom ? d.category : next.category };
+    }
+    if (d && !b.isCustom) {
+      next = { ...next, levels: next.levels.map((l, i) => (l.extras || !d.levels[i]?.extras ? l : { ...l, extras: d.levels[i].extras })) };
+    }
+    if (next !== b) bridgesRepo.save(next);
+  });
+  bridgeValuesV1.set(true);
+}
+
 export function runStartupMigrations() {
   ensureResourcesReady();
   migrateEnergyScale();
@@ -191,4 +248,7 @@ export function runStartupMigrations() {
   migrateSeedItemsToSkills();
   migrateSeedSkillZones();
   migrateSeedSkillFit();
+  migrateUmstaendeToGlobalList();
+  seedAktivitaeten();
+  migrateBridgeValues();
 }

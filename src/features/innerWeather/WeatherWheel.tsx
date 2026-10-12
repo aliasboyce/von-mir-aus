@@ -50,6 +50,11 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
   const [rotation, setRotation] = useState(() => -(selectedIndex >= 0 ? selectedIndex : 0) * stepDeg);
   const dragState = useRef<{ startAngle: number; startRotation: number; lastAngle: number; moved: boolean } | null>(null);
   const wheelRef = useRef<HTMLDivElement>(null);
+  // After a drag, the browser still fires a "click" on whatever element
+  // the pointer was released over — which used to confirm that condition
+  // and advance the check-in before anything was chosen. A gesture that
+  // moved therefore swallows the click that directly follows it.
+  const suppressClick = useRef(false);
   // "Wetter-Rad ist auf kleinen Handys zu breit"-Fund — the wheel is laid
   // out at a fixed 360px (all its items are positioned in px). On phones
   // narrower than ~400px that pushed the whole page sideways (60px on a
@@ -107,6 +112,8 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
       dragState.current = null;
       setDragging(false);
       if (wasMoved) {
+        suppressClick.current = true;
+        window.setTimeout(() => { suppressClick.current = false; }, 120);
         setRotation((r) => {
           snapToNearest(r);
           return r;
@@ -115,7 +122,9 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
     }
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
     return () => {
+      window.removeEventListener('pointercancel', onUp);
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
@@ -131,6 +140,7 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
   }
 
   function confirm(condition: WeatherCondition) {
+    if (suppressClick.current) return;
     const idx = WEATHER_ORDER.indexOf(condition);
     setRotation(-idx * stepDeg);
     setFramed(condition);
@@ -176,6 +186,9 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
             left: CENTER,
             top: CENTER,
             transform: 'translate(-50%, -50%)',
+            // above the rotating ring, which otherwise sits on top of it and
+            // swallows taps meant for the centre
+            zIndex: 3,
           }}
         >
           <span className="text-[22px]">{WEATHER_META[framed].emoji}</span>

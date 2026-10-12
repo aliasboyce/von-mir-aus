@@ -33,6 +33,7 @@ import { skillkettenForZone } from './skillketteZone';
 import { AROUSAL_BANDS } from '../polyvagal/arousalBands';
 import { buildResourcePdf } from './resourcePdf';
 import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
+import { ConditionsPicker } from '../bridges/ConditionsPicker';
 import { HilfsmittelFormModal } from './HilfsmittelFormModal';
 import { ResourcePrintView } from './ResourcePrintView';
 import { RecentlyUsedRow } from '../../components/shared/RecentlyUsedRow';
@@ -44,7 +45,7 @@ import { skillModality, isCrisisZone } from '../../content/skillModality';
 import { ZoneRoadmap } from './ZoneRoadmap';
 import { NEED_META } from '../innerWeather/weatherMeta';
 import type { NeedDirection } from '../../data/types';
-import { HILFSMITTEL_MAIN, subtypesFor, customOrteSubStore, type SubType } from '../../content/hilfsmittelCategories';
+import { HILFSMITTEL_MAIN, subtypesFor, customSubStoreFor, type SubType } from '../../content/hilfsmittelCategories';
 import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
 import { FitProfileFields } from '../../components/shared/FitProfileFields';
@@ -82,7 +83,10 @@ export function ResourcesPage() {
   const navigate = useNavigate();
   const skillkettenCount = skillkettenRepo.getAll().length;
   const { type: typeParam } = useParams<{ type?: string }>();
-  const typeScope: 'hilfsmittel' | 'skills' | null = typeParam === 'skills' ? 'skills' : typeParam === 'hilfsmittel' ? 'hilfsmittel' : null;
+  const typeScope: 'hilfsmittel' | 'skills' | 'orte' | 'aktivitaeten' | null =
+    typeParam === 'skills' || typeParam === 'hilfsmittel' || typeParam === 'orte' || typeParam === 'aktivitaeten' ? typeParam : null;
+  // Orte and Aktivitäten share the Hilfsmittel form/list machinery but each holds exactly one category.
+  const subScope: 'orte' | 'aktivitaeten' | null = typeScope === 'orte' || typeScope === 'aktivitaeten' ? typeScope : null;
   const [searchParams, setSearchParams] = useSearchParams();
   // "Ab dem Fruehwarnbereich soll die App zu den passenden Skills
   // verweisen"-Auftrag — a deep link like .../skills?category=stresstoleranz
@@ -172,7 +176,10 @@ export function ResourcesPage() {
       base = base.filter((r) => {
         const group = RESOURCE_CATEGORY_TO_GROUP[r.category] ?? customGroupById.get(r.category);
         const isSkill = group === 'faehigkeiten';
-        return typeScope === 'skills' ? isSkill : !isSkill;
+        if (typeScope === 'skills') return isSkill;
+        if (typeScope === 'orte') return r.category === 'orte' || customGroupById.get(r.category) === 'orte_gruppe';
+        if (typeScope === 'aktivitaeten') return r.category === 'aktivitaeten' || customGroupById.get(r.category) === 'aktivitaeten';
+        return !isSkill && r.category !== 'orte' && r.category !== 'aktivitaeten' && customGroupById.get(r.category) !== 'orte_gruppe' && customGroupById.get(r.category) !== 'aktivitaeten';
       });
     }
     if (needFilter) base = base.filter((r) => resourceFitsNeed(r, needFilter));
@@ -197,7 +204,7 @@ export function ResourcesPage() {
   }, [items, typeScope, customCategories, zoneFilter, needFilter]);
   const filtered = useMemo(() => {
     const byCategory = filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter);
-    const bySub = subFilter && typeScope === 'hilfsmittel' ? byCategory.filter((r) => r.subcategory === subFilter) : byCategory;
+    const bySub = subFilter && (typeScope === 'hilfsmittel' || subScope) ? byCategory.filter((r) => r.subcategory === subFilter) : byCategory;
     const list = filterByFit(bySub, subjectOfResource, fitFilter);
     if (!zoneFilter) return list;
     // "Geordnet fuer den jeweiligen Anspannungsbereich" — items explicitly
@@ -207,7 +214,7 @@ export function ResourcesPage() {
   }, [inTypeScope, filter, subFilter, typeScope, fitFilter, zoneFilter]);
   const hiddenUnmarked = useMemo(() => {
     const byCategory = filter === 'all' ? inTypeScope : inTypeScope.filter((r) => r.category === filter);
-    const bySub = subFilter && typeScope === 'hilfsmittel' ? byCategory.filter((r) => r.subcategory === subFilter) : byCategory;
+    const bySub = subFilter && (typeScope === 'hilfsmittel' || subScope) ? byCategory.filter((r) => r.subcategory === subFilter) : byCategory;
     return countHiddenUnmarked(bySub.map(subjectOfResource), fitFilter);
   }, [inTypeScope, filter, subFilter, typeScope, fitFilter]);
   const zoneBand = zoneFilter ? AROUSAL_BANDS.find((b) => b.id === zoneFilter) : undefined;
@@ -227,7 +234,7 @@ export function ResourcesPage() {
       setSkillModalOpen(true);
       return;
     }
-    if (typeScope === 'hilfsmittel') {
+    if (typeScope === 'hilfsmittel' || subScope) {
       setEditing(null);
       setHilfsmittelModalOpen(true);
       return;
@@ -266,7 +273,7 @@ export function ResourcesPage() {
       setSkillModalOpen(true);
       return;
     }
-    if (typeScope === 'hilfsmittel') {
+    if (typeScope === 'hilfsmittel' || subScope) {
       setEditing(resource);
       setHilfsmittelModalOpen(true);
       return;
@@ -357,10 +364,10 @@ export function ResourcesPage() {
         <TopBar action={<HelpButton helpKey="ressourcen" />} />
         <div className="px-5 pb-6">
           <div className="flex items-start justify-between mb-1">
-            <h1 className="text-[24px]">{typeScope === 'skills' ? t.resources.skillsTitle : typeScope === 'hilfsmittel' ? t.resources.hilfsmittelTitle : t.resources.title}</h1>
+            <h1 className="text-[24px]">{typeScope === 'skills' ? t.resources.skillsTitle : typeScope === 'hilfsmittel' ? t.resources.hilfsmittelTitle : typeScope === 'orte' ? t.resources.orteTitle : typeScope === 'aktivitaeten' ? t.resources.aktivitaetenTitle : t.resources.title}</h1>
           </div>
           <p className="text-[14px] text-[var(--color-text-muted)] mb-1">
-            {typeScope === 'skills' ? t.resources.skillsSubtitle : typeScope === 'hilfsmittel' ? t.resources.hilfsmittelSubtitle : t.resources.subtitle}
+            {typeScope === 'skills' ? t.resources.skillsSubtitle : typeScope === 'hilfsmittel' ? t.resources.hilfsmittelSubtitle : typeScope === 'orte' ? t.resources.orteSubtitle : typeScope === 'aktivitaeten' ? t.resources.aktivitaetenSubtitle : t.resources.subtitle}
           </p>
           {typeScope === 'skills' && (
             <div className="rounded-[var(--radius-lg)] p-4 mb-4 mt-2" style={{ background: 'var(--color-surface-muted)' }}>
@@ -507,7 +514,7 @@ export function ResourcesPage() {
           </div>
         ) : (
           <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-2">
-            {typeScope === 'hilfsmittel' ? t.resources.hilfsmittelFormTitleNew : t.resources.addNew}
+            {typeScope === 'hilfsmittel' ? t.resources.hilfsmittelFormTitleNew : typeScope === 'orte' ? t.resources.orteFormTitleNew : typeScope === 'aktivitaeten' ? t.resources.aktivitaetenFormTitleNew : t.resources.addNew}
           </Button>
         )}
         {!typeScope && <p className="text-[12px] text-[var(--color-text-faint)] italic mb-4 leading-relaxed">{t.resources.thoughtStarterHint}</p>}
@@ -538,8 +545,9 @@ export function ResourcesPage() {
               {t.common.all}
             </Chip>
           </div>
-          {typeScope === 'hilfsmittel' && (
+          {(typeScope === 'hilfsmittel' || subScope) && (
             <div className="mb-3">
+              {typeScope === 'hilfsmittel' && (
               <div className="flex flex-wrap gap-2">
                 {HILFSMITTEL_MAIN.map((c) => (
                   <Chip key={c} selected={filter === c} onClick={() => { setFilter(c); setSubFilter(null); setAddingSub(false); }}>
@@ -552,22 +560,23 @@ export function ResourcesPage() {
                   </Chip>
                 ))}
               </div>
+              )}
               {/* second row: the sub-categories of the chosen category */}
-              {filter !== 'all' && subtypesFor(filter).length > 0 && (
+              {(subScope ?? filter) !== 'all' && subtypesFor(subScope ?? filter).length > 0 && (
                 <div className="mt-3 pl-3 animate-in" style={{ borderLeft: '2px solid var(--color-border)' }}>
                   <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">{t.resources.subcategoriesLabel}</p>
                   <div className="flex flex-wrap gap-2 items-center">
-                    {subtypesFor(filter).map((s) => (
+                    {subtypesFor(subScope ?? filter).map((s) => (
                       <Chip key={s.id} selected={subFilter === s.id} onClick={() => setSubFilter(subFilter === s.id ? null : s.id)}>
                         {settings.language === 'en' ? s.en : s.de}
                       </Chip>
                     ))}
-                    {filter === 'orte' && !addingSub && (
+                    {customSubStoreFor(subScope ?? filter) && !addingSub && (
                       <Chip onClick={() => setAddingSub(true)} icon={<Plus size={14} />}>
                         {t.resources.addOwnSubcategory}
                       </Chip>
                     )}
-                    {filter === 'orte' && addingSub && (
+                    {customSubStoreFor(subScope ?? filter) && addingSub && (
                       <span className="flex items-center gap-1.5">
                         <input autoFocus className="input" style={{ width: 150 }} placeholder={t.resources.subcategoryPlaceholder} value={newSubName} onChange={(e) => setNewSubName(e.target.value)} />
                         <button
@@ -576,7 +585,8 @@ export function ResourcesPage() {
                             const name = newSubName.trim();
                             if (!name) return;
                             const created: SubType = { id: `own_${Date.now().toString(36)}`, de: name, en: name };
-                            customOrteSubStore.set([...customOrteSubStore.get(), created]);
+                            const store = customSubStoreFor(subScope ?? filter);
+                            store?.set([...store.get(), created]);
                             setNewSubName('');
                             setAddingSub(false);
                             setSubFilter(created.id);
@@ -592,7 +602,7 @@ export function ResourcesPage() {
               )}
             </div>
           )}
-          {typeScope !== 'hilfsmittel' && RESOURCE_CATEGORY_GROUP_ORDER.filter((g) => !typeScope || (typeScope === 'skills') === (g === 'faehigkeiten')).map((group) => {
+          {typeScope !== 'hilfsmittel' && !subScope && RESOURCE_CATEGORY_GROUP_ORDER.filter((g) => !typeScope || (typeScope === 'skills') === (g === 'faehigkeiten')).map((group) => {
             const meta = RESOURCE_CATEGORY_GROUP_META[group];
             const builtIns = RESOURCE_CATEGORY_ORDER.filter((c) => RESOURCE_CATEGORY_TO_GROUP[c] === group);
             const customs = customCategories.filter((c) => c.group === group);
@@ -642,6 +652,7 @@ export function ResourcesPage() {
           {typeScope === 'skills' && customCategories.some((c) => !c.group) && (
             <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5 mt-1">{t.resources.myOwnSkillsLabel}</p>
           )}
+          {!subScope && (
           <div className="flex flex-wrap gap-2 items-center">
             {typeScope === undefined &&
               RESOURCE_CATEGORY_ORDER.filter((c) => !RESOURCE_CATEGORY_TO_GROUP[c]).map((c) => (
@@ -691,6 +702,7 @@ export function ResourcesPage() {
               </div>
             )}
           </div>
+          )}
         </div>
 
         <FitFilterPanel hiddenUnmarked={hiddenUnmarked} />
@@ -827,6 +839,7 @@ export function ResourcesPage() {
           setEditing(null);
         }}
         onSave={saveHilfsmittel}
+        kind={subScope ?? 'hilfsmittel'}
       />
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t.resources.addNew}>
@@ -933,6 +946,11 @@ export function ResourcesPage() {
             <AccessChannelPicker
               selected={editing.accessChannels ?? []}
               onChange={(ids) => setEditing({ ...editing, accessChannels: ids })}
+            />
+
+            <ConditionsPicker
+              selected={editing.umstaende ?? []}
+              onChange={(ids) => setEditing({ ...editing, umstaende: ids.length > 0 ? ids : undefined })}
             />
 
             <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed">{t.resources.favoriteToNetworkHint}</p>

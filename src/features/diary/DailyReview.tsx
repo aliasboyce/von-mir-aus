@@ -55,11 +55,6 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
     await deliverPdf(bytes, safeFilename(`rueckblick-${day}`, 'rueckblick'), title);
   }
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const showWeather = settings.dailyReviewShowWeather !== false;
-  const showPolyvagal = settings.dailyReviewShowPolyvagal !== false;
-  const showTension = settings.dailyReviewShowTension !== false;
-  const showMediLog = settings.dailyReviewShowMediLog !== false;
-  const showAchievements = settings.dailyReviewShowAchievements !== false;
 
   const achievementCategoryId = useMemo(
     () => diaryCategoriesStore.getAll().find((c) => c.label === ACHIEVEMENT_CATEGORY_LABEL)?.id,
@@ -81,11 +76,11 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
   );
 
   const days = useMemo(() => {
-    const weather = showWeather ? weatherRepo.getAll() : [];
-    const polyvagal = showPolyvagal ? polyvagalRepo.getAll() : [];
-    const tension = showTension ? tensionRepo.getAll() : [];
-    const mediLog = showMediLog ? mediLogRepo.getAll().filter((e) => e.status !== 'skipped') : [];
-    const achievements = showAchievements ? achievementEntries : [];
+    const weather = weatherRepo.getAll();
+    const polyvagal = polyvagalRepo.getAll();
+    const tension = tensionRepo.getAll();
+    const mediLog = mediLogRepo.getAll().filter((e) => e.status !== 'skipped');
+    const achievements = achievementEntries;
 
     // Priority: long-term usage — the previous version filtered every
     // one of the six full arrays once per displayed day (up to 30
@@ -136,7 +131,7 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
         letters: letByDay.get(day) ?? [],
         garden: gardenByDay.get(day) ?? [],
       }));
-  }, [generalEntries, achievementEntries, showWeather, showPolyvagal, showTension, showMediLog, showAchievements]);
+  }, [generalEntries, achievementEntries]);
 
   if (days.length === 0) {
     return <EmptyState title={t.diary.reviewEmpty} />;

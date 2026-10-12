@@ -7,14 +7,15 @@ import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Heart, Lightbulb, Pencil, NotebookPen, Check, Trash2, Timer as TimerIcon, Link2, FileDown } from 'lucide-react';
+import { ArrowLeft, Heart, Lightbulb, Pencil, NotebookPen, Check, Trash2, Timer as TimerIcon, Link2, FileDown, ChevronDown } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { bridgesRepo, migrateBridgeCategoriesIfNeeded, migrateBridgeAccessChannelsIfNeeded, addMissingDemoBridges } from './bridgesRepo';
 import { zugangRepo } from '../zugang/zugangRepo';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
-import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from './bridgeMeta';
+import { bridgeNeeds } from './bridgeValues';
+import { StepExtrasView } from '../resources/StepExtras';
 import { BridgeFormModal } from './BridgeFormModal';
 import { AccessGapModal } from '../zugang/AccessGapModal';
 import { finalizeZugangDraft, clearZugangDraft } from '../zugang/zugangDraft';
@@ -32,7 +33,7 @@ import { diaryRepo } from '../diary/diaryRepo';
 import { createId } from '../../services/storage/repository';
 import type { Bridge } from '../../data/types';
 import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
-import { CONDITIONS } from './conditions';
+import { umstandLabel } from './conditions';
 
 migrateBridgeCategoriesIfNeeded();
 migrateBridgeAccessChannelsIfNeeded();
@@ -160,8 +161,10 @@ export function BridgeDetailPage() {
     const payload = {
       title: bridge.title,
       description: bridge.description,
-      categoryLabel: (BRIDGE_CATEGORY_META[bridge.category] ?? BRIDGE_CATEGORY_META[BRIDGE_CATEGORY_ORDER[0]]).label(t),
-      levels: bridge.levels,
+      connectionTags: bridge.connectionTags,
+      linkedNeeds: bridge.linkedNeeds,
+      reflection: bridge.reflection,
+      levels: bridge.levels.map(({ level, title, description, energyLevel }) => ({ level, title, description, energyLevel })),
       tip: bridge.tip,
     };
     const url = `${window.location.origin}/bruecken/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
@@ -218,7 +221,7 @@ export function BridgeDetailPage() {
     setTimeout(() => setSavedToDiary(false), 1800);
   }
 
-  const CategoryMeta = BRIDGE_CATEGORY_META[bridge.category] ?? BRIDGE_CATEGORY_META[BRIDGE_CATEGORY_ORDER[0]];
+  const allNeeds = bridgeNeeds(bridge);
   const activeLevel = bridge.levels.find((l) => l.level === Math.max(...selectedLevels, bridge.levels[0]?.level ?? 1)) ?? bridge.levels[0];
 
   return (
@@ -272,11 +275,6 @@ export function BridgeDetailPage() {
             </button>
           </div>
         </div>
-        <div className="relative px-5 pb-3">
-          <span className="inline-block text-[12px] font-medium bg-white/90 text-[var(--color-primary)] rounded-full px-3 py-1 mb-2">
-            {CategoryMeta.label(t)}
-          </span>
-        </div>
       </PhotoBackground>
 
       <div className="px-5 -mt-1 pb-6">
@@ -307,32 +305,41 @@ export function BridgeDetailPage() {
           </div>
         )}
 
-        {((bridge.linkedNeeds && bridge.linkedNeeds.length > 0) || (bridge.linkedObstacles && bridge.linkedObstacles.length > 0)) && (
-          <div className="mb-5 flex flex-col gap-2">
-            {bridge.linkedNeeds && bridge.linkedNeeds.length > 0 && (
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">🤍 {t.zugang.step6Title}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {bridge.linkedNeeds.map((n) => (
-                    <span key={n} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-                      {n}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {bridge.linkedObstacles && bridge.linkedObstacles.length > 0 && (
-              <div>
-                <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">🚧 {t.zugang.step7Title}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {bridge.linkedObstacles.map((o) => (
-                    <span key={o} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
-                      {o}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+        {bridge.reflection && (
+          <div className="rounded-[var(--radius-lg)] p-3.5 mb-4" style={{ background: 'var(--color-primary-soft)' }}>
+            <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">{t.bridges.reflectionLabel}</p>
+            <p className="text-[14px] text-[var(--color-text)] leading-relaxed hand-note">{bridge.reflection}</p>
+          </div>
+        )}
+
+        {allNeeds.length > 0 && (
+          <details className="group mb-4 rounded-[var(--radius-lg)] border border-[var(--color-border)] px-3.5 py-2.5">
+            <summary className="cursor-pointer list-none flex items-center justify-between gap-3 text-[13px] text-[var(--color-text)]">
+              <span>
+                🤍 {t.zugang.step6Title} <span className="text-[var(--color-text-faint)]">· {allNeeds.length}</span>
+              </span>
+              <ChevronDown size={16} className="text-[var(--color-text-faint)] transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="flex flex-wrap gap-1.5 mt-2.5">
+              {allNeeds.map((n) => (
+                <span key={n} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+                  {n}
+                </span>
+              ))}
+            </div>
+          </details>
+        )}
+
+        {bridge.linkedObstacles && bridge.linkedObstacles.length > 0 && (
+          <div className="mb-5">
+            <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">🚧 {t.zugang.step7Title}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {bridge.linkedObstacles.map((o) => (
+                <span key={o} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
+                  {o}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 
@@ -341,7 +348,7 @@ export function BridgeDetailPage() {
             <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">{t.bridges.conditionsLabel}</p>
             <div className="flex flex-wrap gap-1.5">
               {bridge.conditions.map((id) => {
-                const c = CONDITIONS.find((x) => x.id === id);
+                const c = umstandLabel(id);
                 if (!c) return null;
                 return (
                   <span key={id} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
@@ -394,20 +401,22 @@ export function BridgeDetailPage() {
           {bridge.levels.map((lvl) => {
             const active = selectedLevels.includes(lvl.level);
             return (
-              <button
+              <div
                 key={lvl.level}
+                className={[
+                  'relative rounded-[var(--radius-lg)] border transition-all duration-200',
+                  active ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] scale-[1.01]' : 'border-[var(--color-border)] bg-[var(--color-surface)]',
+                ].join(' ')}
+              >
+              <button
+                type="button"
                 onClick={() => {
                   setSelectedLevels((prev) => (prev.includes(lvl.level) ? prev.filter((l) => l !== lvl.level) : [...prev, lvl.level]));
                   logActivity('bridge', bridge.title, bridge.id);
                   say(pickLine({ page: '/bruecken', trigger: 'bruecke_auswahl' }));
                 }}
                 aria-pressed={active}
-                className={[
-                  'relative text-left rounded-[var(--radius-lg)] border p-4 flex items-start gap-3 transition-all duration-200',
-                  active
-                    ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] scale-[1.01]'
-                    : 'border-[var(--color-border)] bg-[var(--color-surface)]',
-                ].join(' ')}
+                className="w-full text-left p-4 flex items-start gap-3"
               >
                 <span
                   className={[
@@ -431,6 +440,12 @@ export function BridgeDetailPage() {
                   )}
                 </span>
               </button>
+              {lvl.extras && (
+                <div className="px-4 pb-3 -mt-1 pl-[3.75rem]">
+                  <StepExtrasView extras={lvl.extras} />
+                </div>
+              )}
+              </div>
             );
           })}
         </div>
@@ -504,7 +519,6 @@ export function BridgeDetailPage() {
 
       <BridgePrintView
         bridges={printingBridge ? [bridge] : []}
-        categoryLabel={(catId) => BRIDGE_CATEGORY_META[catId as keyof typeof BRIDGE_CATEGORY_META]?.label(t) ?? catId}
       />
 
       <BridgeFormModal

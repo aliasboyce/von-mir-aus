@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { goBack } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Heart, Plus, Tag, Compass, FileDown, ChevronLeft, Info } from 'lucide-react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Heart, Plus, Compass, FileDown, ChevronLeft, Info, ChevronDown } from 'lucide-react';
 import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
@@ -12,7 +12,9 @@ import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { bridgesRepo, seedBridgesIfEmpty, patchKnownDemoContentIssues, migrateBridgeCategoriesIfNeeded, migrateBridgeAccessChannelsIfNeeded, addMissingDemoBridges } from './bridgesRepo';
-import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from './bridgeMeta';
+import { bridgeMatchesValue, bridgeMatchesNeed, bridgeNeeds } from './bridgeValues';
+import { manualPriorities } from '../wertekompass/wertekompassData';
+import { CONNECTION_ITEMS_DE, NEED_CATEGORY_GROUPS } from '../zugang/zugangContent';
 import { BridgeFormModal } from './BridgeFormModal';
 import { AboutVonMirAusModal } from '../../components/shared/AboutVonMirAusModal';
 import { BRIDGES_INFO_TEXT } from '../../content/aboutContent';
@@ -21,12 +23,11 @@ import { BridgePrintView } from './BridgePrintView';
 import { DiscoverBridgesModal } from './DiscoverBridgesModal';
 import { RecentlyUsedRow } from '../../components/shared/RecentlyUsedRow';
 import { BridgeHeroIllustration } from './BridgeHeroIllustration';
-import { createCustomCategoryStore } from '../../services/customCategories';
 import { createId } from '../../services/storage/repository';
 import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
 import { RESOURCES_BRIDGES_LINES } from '../../components/companion/companionLines';
 import { suggestedImage } from '../../services/suggestedImages';
-import type { Bridge, BridgeCategory } from '../../data/types';
+import type { Bridge } from '../../data/types';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
 seedBridgesIfEmpty();
@@ -35,14 +36,15 @@ patchKnownDemoContentIssues();
 migrateBridgeCategoriesIfNeeded();
 migrateBridgeAccessChannelsIfNeeded();
 
-const customCategoryStore = createCustomCategoryStore('bridge-custom-categories');
-
-function emptyBridge(category: BridgeCategory): Bridge {
+function emptyBridge(value: string | null, need: string | null): Bridge {
   return {
     id: createId('bridge'),
     title: '',
-    category,
-    image: suggestedImage('', category),
+    // the old grouping category is derived from the values on save; this is only the starting point
+    category: 'gedanken_werte_intra',
+    connectionTags: value ? [value] : [],
+    linkedNeeds: need ? [need] : [],
+    image: suggestedImage('', 'gedanken_werte_intra'),
     description: '',
     levels: [
       { level: 1, title: '', description: '' },
@@ -59,7 +61,18 @@ export function BridgesPage() {
   const say = useCompanionSay();
   const location = useLocation();
   const navigate = useNavigate();
-  const [category, setCategory] = useState<BridgeCategory>('koerper_intra');
+  const [searchParams, setSearchParams] = useSearchParams();
+  // "Anhand davon … später richtig gefiltert und angezeigt, wenn man auswählt, in Richtung
+  // welchem Bedürfnis, welchem Wert man sich wieder mehr bewegen möchte." — ?wert= / ?beduerfnis=
+  // lets other pages (Wertekompass, Bedürfnis-Kompass) open the list already filtered.
+  const value = searchParams.get('wert');
+  const need = searchParams.get('beduerfnis');
+  function setFilter(key: 'wert' | 'beduerfnis', v: string | null) {
+    const next = new URLSearchParams(searchParams);
+    if (v) next.set(key, v);
+    else next.delete(key);
+    setSearchParams(next, { replace: true });
+  }
   const [infoOpen, setInfoOpen] = useState(false);
   const [bridges, setBridges] = useState<Bridge[]>(() => bridgesRepo.getAll());
   const [printingAllBridges, setPrintingAllBridges] = useState(false);
@@ -74,33 +87,32 @@ export function BridgesPage() {
     setPrintingAllBridges(true);
     setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
   }
-  const [customCategories, setCustomCategories] = useState(() => customCategoryStore.getAll());
-  const [addingCategory, setAddingCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
   const [creating, setCreating] = useState<Bridge | null>(null);
   const [justBuilt, setJustBuilt] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(false);
 
-  const filtered = useMemo(() => bridges.filter((b) => (b.categories ?? [b.category]).includes(category)), [bridges, category]);
+  const filtered = useMemo(
+    () => bridges.filter((br) => (!value || bridgeMatchesValue(br, value)) && (!need || bridgeMatchesNeed(br, need))),
+    [bridges, value, need],
+  );
 
-  function categoryLabel(cat: BridgeCategory): string {
-    if (BRIDGE_CATEGORY_META[cat]) return BRIDGE_CATEGORY_META[cat].label(t);
-    return customCategories.find((c) => c.id === cat)?.label ?? cat;
-  }
+  // values to filter by: the person's own priorities first, then everything bridges already lead to
+  const valueChips = useMemo(() => {
+    const used = new Map<string, number>();
+    bridges.forEach((br) => (br.connectionTags ?? []).forEach((v) => used.set(v, (used.get(v) ?? 0) + 1)));
+    const prio = manualPriorities().filter((v) => CONNECTION_ITEMS_DE.includes(v));
+    const rest = Array.from(used.keys()).filter((v) => !prio.includes(v)).sort((a, b2) => (used.get(b2) ?? 0) - (used.get(a) ?? 0));
+    return [...prio, ...rest].map((v) => ({ value: v, count: used.get(v) ?? 0 }));
+  }, [bridges]);
 
-  function addCategory() {
-    const name = newCategoryName.trim();
-    if (!name) return;
-    const created = customCategoryStore.add(name);
-    setCustomCategories(customCategoryStore.getAll());
-    setCategory(created.id);
-    setNewCategoryName('');
-    setAddingCategory(false);
-  }
+  const needGroups = useMemo(() => {
+    const all = new Set(bridges.flatMap((br) => bridgeNeeds(br)));
+    return NEED_CATEGORY_GROUPS.map((g) => ({ ...g, items: g.items.filter((n) => all.has(n)) })).filter((g) => g.items.length > 0);
+  }, [bridges]);
 
   function openNew() {
-    setCreating(emptyBridge(category));
+    setCreating(emptyBridge(value, need));
   }
 
   function saveNew(bridge: Bridge) {
@@ -110,11 +122,6 @@ export function BridgesPage() {
     setJustBuilt(bridge.title);
     say(pickLine({ page: '/bruecken', trigger: 'speichern' }), { joy: true });
   }
-
-  const allCategoryChips = [
-    ...BRIDGE_CATEGORY_ORDER.map((c) => ({ id: c, label: categoryLabel(c), icon: BRIDGE_CATEGORY_META[c].icon })),
-    ...customCategories.map((c) => ({ id: c.id, label: c.label, icon: Tag })),
-  ];
 
   return (
     <div className="animate-in">
@@ -172,36 +179,60 @@ export function BridgesPage() {
 
       <RecentlyUsedRow type="bridge" hrefFor={(id) => `/bruecken/${id}`} />
 
-      <div className="chip-row no-scrollbar mb-5 -mx-5 px-5">
-        {allCategoryChips.map(({ id, label, icon: Icon }) => (
-          <Chip key={id} selected={category === id} onClick={() => setCategory(id)} icon={<Icon size={15} />}>
-            {label}
+      <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.bridges.filterValueTitle}</p>
+      <div className="chip-row no-scrollbar mb-3 -mx-5 px-5">
+        <Chip selected={!value} onClick={() => setFilter('wert', null)}>
+          {t.bridges.filterAll}
+        </Chip>
+        {valueChips.map((vc) => (
+          <Chip key={vc.value} selected={value === vc.value} onClick={() => setFilter('wert', value === vc.value ? null : vc.value)}>
+            {vc.value}
+            {vc.count > 0 && <span className="opacity-60"> · {vc.count}</span>}
           </Chip>
         ))}
-        {!addingCategory ? (
-          <Chip onClick={() => setAddingCategory(true)} icon={<Plus size={15} />}>
-            {t.bridges.newCategory}
-          </Chip>
-        ) : (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <input
-              autoFocus
-              className="input"
-              style={{ width: 140 }}
-              placeholder={t.bridges.newCategoryPlaceholder}
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && addCategory()}
-            />
-            <button onClick={addCategory} className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0">
-              <Plus size={15} />
-            </button>
-          </div>
-        )}
       </div>
+      {needGroups.length > 0 && (
+        <details className="group mb-5 rounded-[var(--radius-lg)] border border-[var(--color-border)] px-3.5 py-2.5" open={!!need}>
+          <summary className="cursor-pointer list-none flex items-center justify-between gap-3 text-[13px] text-[var(--color-text)]">
+            <span>
+              {t.bridges.filterNeedTitle}
+              {need && <span className="text-[var(--color-primary)]"> · {need}</span>}
+            </span>
+            <ChevronDown size={16} className="text-[var(--color-text-faint)] transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-3 flex flex-col gap-3">
+            {needGroups.map((g) => (
+              <div key={g.id}>
+                <p className="text-[11.5px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">
+                  {g.emoji} {g.label}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {g.items.map((n) => (
+                    <Chip key={n} selected={need === n} onClick={() => setFilter('beduerfnis', need === n ? null : n)}>
+                      {n}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {need && (
+              <button type="button" onClick={() => setFilter('beduerfnis', null)} className="text-[12.5px] text-[var(--color-primary)] self-start">
+                {t.bridges.filterClear}
+              </button>
+            )}
+          </div>
+        </details>
+      )}
 
       {filtered.length === 0 ? (
-        <EmptyState title={t.bridges.empty} />
+        <div className="mb-4">
+          <EmptyState title={value || need ? t.bridges.emptyFiltered : t.bridges.empty} />
+          {(value || need) && (
+            <Button fullWidth variant="secondary" icon={<Plus size={16} />} onClick={openNew} className="mt-3">
+              {t.bridges.newBridgeFor.replace('{what}', [value, need].filter(Boolean).join(' · '))}
+            </Button>
+          )}
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 mb-4">
           {filtered.map((bridge, i) => (
@@ -229,7 +260,7 @@ export function BridgesPage() {
               <div className="p-3">
                 <p className="text-[14px] text-[var(--color-text)] leading-snug mb-1 line-clamp-2">{bridge.title}</p>
                 <p className="text-[11px] text-[var(--color-text-faint)]">
-                  {t.bridges.level} {bridge.levels.length}
+                  {bridge.levels.length} {bridge.levels.length === 1 ? t.bridges.stepOne : t.bridges.stepMany}
                 </p>
                 {bridge.connectionTags && bridge.connectionTags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1.5">
@@ -271,7 +302,6 @@ export function BridgesPage() {
 
       <BridgePrintView
         bridges={printingAllBridges ? bridges : []}
-        categoryLabel={(catId) => BRIDGE_CATEGORY_META[catId as keyof typeof BRIDGE_CATEGORY_META]?.label(t) ?? catId}
         title={t.bridges.exportAllTitle}
       />
     </div>

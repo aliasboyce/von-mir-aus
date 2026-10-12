@@ -12,7 +12,7 @@ export function chainSteps(kette: Skillkette): { skillId: string; extras?: StepE
 }
 
 export function stepHasExtras(e?: StepExtras): boolean {
-  return !!e && ((e.hilfsmittelIds?.length ?? 0) + (e.helperIds?.length ?? 0) + (e.bookmarkIds?.length ?? 0) > 0);
+  return !!e && ((e.hilfsmittelIds?.length ?? 0) + (e.ortIds?.length ?? 0) + (e.aktivitaetIds?.length ?? 0) + (e.helperIds?.length ?? 0) + (e.bookmarkIds?.length ?? 0) > 0);
 }
 
 /** What a Skillkette asks for — computed from its skills and the extras added to its steps. */

@@ -21,9 +21,9 @@ import { networkRepo } from '../safetyNet/networkRepo';
 import { useNetworkCategories } from '../safetyNet/useNetworkCategories';
 import { getIcon } from '../../components/icons/networkIcons';
 import { bridgesRepo, migrateBridgeCategoriesIfNeeded, migrateBridgeAccessChannelsIfNeeded } from '../bridges/bridgesRepo';
-import { BRIDGE_CATEGORY_META } from '../bridges/bridgeMeta';
+import { bridgeNeeds } from '../bridges/bridgeValues';
 import { resourcesRepo } from '../resources/resourcesRepo';
-import type { NeedDirection, HelpsWith, BridgeCategory } from '../../data/types';
+import type { NeedDirection, HelpsWith } from '../../data/types';
 
 /**
  * Bridges the abstract "Bedürfnis" to concrete parts of the network and to
@@ -50,23 +50,6 @@ const NEED_TO_HELPS: Record<NeedDirection, HelpsWith[]> = {
   koerperliche_unversehrtheit: ['krise', 'vorbeugung'],
 };
 
-const NEED_TO_BRIDGE_CATEGORY: Record<NeedDirection, BridgeCategory> = {
-  koerperliche_versorgung: 'koerper_intra',
-  schlaf: 'koerper_intra',
-  bewegung: 'koerper_intra',
-  sicherheit: 'koerper_intra',
-  verbindung: 'menschen_inter',
-  zugehoerigkeit: 'gemeinschaft_inter',
-  autonomie: 'gedanken_werte_intra',
-  orientierung: 'gedanken_werte_intra',
-  ruhe: 'koerper_intra',
-  ausdruck: 'gedanken_werte_intra',
-  wertschaetzung: 'menschen_inter',
-  freude: 'gefuehle_intra',
-  sinn: 'gedanken_werte_intra',
-  selbstwirksamkeit: 'gedanken_werte_intra',
-  koerperliche_unversehrtheit: 'koerper_intra',
-};
 
 migrateBridgeCategoriesIfNeeded();
 migrateBridgeAccessChannelsIfNeeded();
@@ -96,7 +79,8 @@ export function NeedsCompassPage() {
     const gfkWords = NEED_DIRECTION_TO_GFK[need] ?? [];
     return bridgesRepo
       .getAll()
-      .filter((b) => b.category === NEED_TO_BRIDGE_CATEGORY[need] || (b.linkedNeeds ?? []).some((n) => gfkWords.includes(n)));
+      // a bridge fits when it addresses one of the need's words — its own or those of the values it leads to
+      .filter((b) => bridgeNeeds(b).some((n) => gfkWords.includes(n)));
   }, [need]);
 
   // Resources have no need-based tagging (their categories are about
@@ -310,7 +294,7 @@ export function NeedsCompassPage() {
                         <div className="min-w-0">
                           <p className="text-[14px] text-[var(--color-text)] truncate">{bridge.title}</p>
                           <p className="text-[12px] text-[var(--color-text-muted)]">
-                            {BRIDGE_CATEGORY_META[bridge.category]?.label(t)}
+                            {(bridge.connectionTags ?? []).slice(0, 3).join(' · ')}
                           </p>
                         </div>
                       </Card>

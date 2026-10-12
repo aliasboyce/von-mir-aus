@@ -147,7 +147,7 @@ export function ZugangReviewPage() {
                     {bridge && (
                       <Row
                         label={t.zugang.step8Title}
-                        value={bridge.title + (e.bridgeLevels && e.bridgeLevels.length > 0 ? ` (Level ${e.bridgeLevels.join(', ')})` : '') + (e.bridgeTimerUsed ? ` · ${t.zugang.timerUsedLabel}` : '')}
+                        value={bridge.title + (e.bridgeLevels && e.bridgeLevels.length > 0 ? ` (${t.bridges.level} ${e.bridgeLevels.join(', ')})` : '') + (e.bridgeTimerUsed ? ` · ${t.zugang.timerUsedLabel}` : '')}
                       />
                     )}
                     {e.action && <Row label={t.zugang.step10Title} value={e.action} />}

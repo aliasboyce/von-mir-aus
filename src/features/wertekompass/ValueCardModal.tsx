@@ -46,8 +46,7 @@ export function ValueCardModal({ value, onClose }: { value: string; onClose: () 
     { id: 'noticedThrough', type: 'question', label: t.wertekompass.cardNoticedLabel, placeholder: t.wertekompass.cardNoticedPlaceholder },
     { id: 'obstacles', type: 'question', label: t.wertekompass.cardObstaclesLabel, placeholder: t.wertekompass.cardObstaclesPlaceholder },
     { id: 'smallPossibilities', type: 'question', label: t.wertekompass.cardTodayLabel, placeholder: t.wertekompass.cardTodayPlaceholder },
-    ...(matchingBridges.length > 0
-      ? [
+    ...[
           {
             id: 'matchingBridges',
             type: 'custom' as const,
@@ -64,11 +63,13 @@ export function ValueCardModal({ value, onClose }: { value: string; onClose: () 
                     </Link>
                   ))}
                 </div>
+                <Link to={`/bruecken?wert=${encodeURIComponent(value)}`} className="inline-block text-[13px] text-[var(--color-primary)] mt-2.5">
+                  {matchingBridges.length > 0 ? t.wertekompass.cardAllBridges : t.wertekompass.cardBuildBridge} →
+                </Link>
               </div>
             ),
           },
-        ]
-      : []),
+        ],
     { id: 'hint', type: 'intro', introText: t.wertekompass.cardNoWrongHint },
   ];
 

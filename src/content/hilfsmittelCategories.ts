@@ -13,7 +13,12 @@ import { createKeyValueStore } from '../services/storage/keyValueStore';
  * Wissen / Texte / Buecher / Apps -> Kognitiv (all of them are about
  * taking something in and thinking with it).
  */
-export const HILFSMITTEL_MAIN = ['visuell', 'auditiv', 'olfaktorisch', 'gustatorisch', 'haptisch', 'kognitiv', 'motorisch', 'komfort', 'strukturell', 'orte'] as const;
+export const HILFSMITTEL_MAIN = ['visuell', 'auditiv', 'olfaktorisch', 'gustatorisch', 'haptisch', 'kognitiv', 'motorisch', 'komfort', 'strukturell'] as const;
+
+/** Orte & Umgebung and Aktivitäten & Beschäftigung have their own pages now — Hilfsmittel are
+ * "things you can touch". Both keep a sub-category row of their own. */
+export const ORTE_CATEGORY = 'orte';
+export const AKTIVITAETEN_CATEGORY = 'aktivitaeten';
 
 export interface SubType {
   id: string;
@@ -36,6 +41,14 @@ export const HILFSMITTEL_SUBTYPES: Record<string, SubType[]> = {
     { id: 'besondere_umgebung', de: 'Besondere Umgebung', en: 'Special surroundings' },
     { id: 'platz', de: 'Platz', en: 'Spot' },
   ],
+  aktivitaeten: [
+    { id: 'bewegung', de: 'Bewegung', en: 'Movement' },
+    { id: 'kreativ', de: 'Kreativ', en: 'Creative' },
+    { id: 'ruhe', de: 'Ruhe & Erholung', en: 'Rest & recovery' },
+    { id: 'alltag', de: 'Alltag & Haushalt', en: 'Everyday & home' },
+    { id: 'zusammen', de: 'Mit anderen', en: 'With others' },
+    { id: 'lernen', de: 'Lernen & Denken', en: 'Learning & thinking' },
+  ],
 };
 
 /** Old standalone categories -> where they live now. */
@@ -52,15 +65,22 @@ export const LEGACY_HILFSMITTEL_CATEGORY: Record<string, { category: string; sub
 
 /** The person's own extra sub-categories for Orte ("+ eigene Kategorien"). */
 export const customOrteSubStore = createKeyValueStore<SubType[]>('hilfsmittel-orte-subcategories', []);
+export const customAktivitaetenSubStore = createKeyValueStore<SubType[]>('hilfsmittel-aktivitaeten-subcategories', []);
+
+/** The store holding the person's own sub-categories for a category (only Orte and Aktivitäten have them). */
+export function customSubStoreFor(category: string) {
+  return category === 'orte' ? customOrteSubStore : category === 'aktivitaeten' ? customAktivitaetenSubStore : null;
+}
 
 export function subtypesFor(category: string): SubType[] {
   const base = HILFSMITTEL_SUBTYPES[category] ?? [];
-  return category === 'orte' ? [...base, ...customOrteSubStore.get()] : base;
+  const custom = customSubStoreFor(category);
+  return custom ? [...base, ...custom.get()] : base;
 }
 
 export function subtypeLabel(id: string | undefined, lang: 'de' | 'en'): string | undefined {
   if (!id) return undefined;
-  const all = [...Object.values(HILFSMITTEL_SUBTYPES).flat(), ...customOrteSubStore.get()];
+  const all = [...Object.values(HILFSMITTEL_SUBTYPES).flat(), ...customOrteSubStore.get(), ...customAktivitaetenSubStore.get()];
   const hit = all.find((s) => s.id === id);
   return hit ? (lang === 'en' ? hit.en : hit.de) : id;
 }

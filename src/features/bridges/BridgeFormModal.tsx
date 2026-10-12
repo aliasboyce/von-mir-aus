@@ -1,25 +1,55 @@
-import { useRef, useState } from 'react';
-import { Plus, Upload, Tag, RefreshCw } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { Plus, Upload, RefreshCw, ChevronDown } from 'lucide-react';
 import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
 import { Modal } from '../../components/ui/Modal';
 import { ImageSuggestionCarousel } from '../../components/shared/ImageSuggestionCarousel';
 import { Button } from '../../components/ui/Button';
-import { Chip } from '../../components/ui/Chip';
 import { useT } from '../../i18n';
 import { resizeImageFile } from '../../services/imageResize';
 import { ImageCropModal } from '../../components/shared/ImageCropModal';
 import { suggestedImageOptions } from '../../services/suggestedImages';
-import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER, BRIDGE_CATEGORY_GROUPS_ORDER, BRIDGE_CATEGORY_GROUP_META } from './bridgeMeta';
-import { createCustomCategoryStore } from '../../services/customCategories';
 import { CONNECTION_ITEMS_DE, NEED_CATEGORY_GROUPS, OBSTACLES_DE } from '../zugang/zugangContent';
 import { getCustomSuggestions, addCustomSuggestion } from '../zugang/zugangSuggestions';
-
-const ALL_NEEDS_DE = NEED_CATEGORY_GROUPS.flatMap((g) => g.items);
 import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { ConditionsPicker } from './ConditionsPicker';
-import type { Bridge, BridgeCategory } from '../../data/types';
+import { StepExtrasEditor, loadStepExtraOptions } from '../resources/StepExtras';
+import { resourcesRepo } from '../resources/resourcesRepo';
+import { indicatorsFor } from '../wertekompass/valueIndicators';
+import { bridgeNeeds, needsForValues, categoryForValues, resourcesForNeeds } from './bridgeValues';
+import type { Bridge, BridgeLevel } from '../../data/types';
 
-const customCategoryStore = createCustomCategoryStore('bridge-custom-categories');
+function PickChip({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className="px-3 py-2 rounded-full text-[13px] leading-tight"
+      style={{
+        background: selected ? 'var(--color-primary)' : 'var(--color-surface-muted)',
+        color: selected ? 'var(--color-surface)' : 'var(--color-text)',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** A folded section: summary line always visible, content on tap. */
+function Fold({ title, summary, defaultOpen = false, children }: { title: string; summary?: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  return (
+    <details open={defaultOpen} className="group rounded-[var(--radius-lg)] border border-[var(--color-border)] px-3.5 py-3">
+      <summary className="cursor-pointer list-none flex items-center justify-between gap-3">
+        <span className="min-w-0">
+          <span className="block text-[14px] font-medium text-[var(--color-text)]">{title}</span>
+          {summary && <span className="block text-[12px] text-[var(--color-text-faint)] mt-0.5 truncate">{summary}</span>}
+        </span>
+        <ChevronDown size={18} className="text-[var(--color-text-faint)] flex-shrink-0 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="mt-3 flex flex-col gap-4">{children}</div>
+    </details>
+  );
+}
 
 interface BridgeFormModalProps {
   open: boolean;
@@ -32,21 +62,28 @@ interface BridgeFormModalProps {
 /** Create AND edit share this exact form — a bridge passed in with existing
  * data is edited in place; save always writes the full object back, so
  * anything already linking to this bridge by id (diary entries, safety
- * plan) keeps working unchanged since the id never changes. */
+ * plan) keeps working unchanged since the id never changes.
+ *
+ * Order follows the idea of a bridge: WHERE does it lead (Wert / Lebensrichtung,
+ * with guiding questions) → what is behind it (Bedürfnisse, folded) → the
+ * SCHRITTE, each with the resources that carry it → everything else, folded. */
 export function BridgeFormModal({ open, bridge, onClose, onSave, title }: BridgeFormModalProps) {
   const t = useT();
+  const b = t.bridges;
   const [draft, setDraft] = useState<Bridge | null>(bridge);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [imageSuggestions, setImageSuggestions] = useState<string[]>(() =>
     suggestedImageOptions(bridge?.title ?? '', bridge?.category ?? 'sonstiges'),
   );
-  const [customCategories, setCustomCategories] = useState(() => customCategoryStore.getAll());
-  const [addingCategory, setAddingCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
   const [customObstacles, setCustomObstacles] = useState(() => getCustomSuggestions('obstacle'));
   const [addingObstacle, setAddingObstacle] = useState(false);
   const [newObstacleName, setNewObstacleName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // only existing things can be attached to a step — read again whenever the form opens
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const extraOptions = useMemo(() => loadStepExtraOptions(), [open]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const allResources = useMemo(() => resourcesRepo.getAll(), [open]);
 
   // Re-sync when a different bridge is opened (or the modal re-opens for "new").
   if (bridge?.id !== draft?.id && open) {
@@ -55,40 +92,20 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
   }
 
   if (!draft) return null;
-
-  // "Mehrere Kategorien gleichzeitig auswaehlbar"-Auftrag
   const currentDraft = draft;
-  const selectedCategories = currentDraft.categories ?? [currentDraft.category];
-  function toggleCategory(id: string) {
-    const next = selectedCategories.includes(id) ? selectedCategories.filter((c) => c !== id) : [...selectedCategories, id];
-    if (next.length === 0) return; // always keep at least one selected
-    const primary: BridgeCategory = next[0];
-    setDraft({ ...currentDraft, categories: next, category: primary });
-  }
+  const values = currentDraft.connectionTags ?? [];
+  const needs = currentDraft.linkedNeeds ?? [];
+  const suggestedNeeds = needsForValues(values);
+  const suggestions = resourcesForNeeds(bridgeNeeds(currentDraft), allResources).map((x) => ({ id: x.resource.id, title: x.resource.title, kind: x.kind }));
+  const ideas = Array.from(new Set(values.flatMap((v) => indicatorsFor(v)?.indicators ?? []))).slice(0, 6);
 
-  function categoryLabel(cat: BridgeCategory): string {
-    if (BRIDGE_CATEGORY_META[cat]) return BRIDGE_CATEGORY_META[cat].label(t);
-    return customCategories.find((c) => c.id === cat)?.label ?? cat;
-  }
-
-  const allCategoryChips = [
-    ...BRIDGE_CATEGORY_ORDER.map((c) => ({ id: c as BridgeCategory, label: categoryLabel(c), icon: BRIDGE_CATEGORY_META[c].icon })),
-    ...customCategories.map((c) => ({ id: c.id as BridgeCategory, label: c.label, icon: Tag })),
-  ];
-
-  function addCategory() {
-    const name = newCategoryName.trim();
-    if (!name || !draft) return;
-    const created = customCategoryStore.add(name);
-    setCustomCategories(customCategoryStore.getAll());
-    setDraft({ ...draft, category: created.id });
-    setNewCategoryName('');
-    setAddingCategory(false);
+  function toggleIn(list: string[], v: string): string[] {
+    return list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
   }
 
   function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !draft) return;
+    if (!file) return;
     resizeImageFile(file, 1200)
       .then((dataUrl) => setCropSrc(dataUrl))
       .catch(() => {
@@ -96,338 +113,238 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
       });
   }
 
-  function updateLevel(index: number, patch: Partial<{ title: string; description: string; energyLevel: 1 | 2 | 3 | 4 | undefined }>) {
-    if (!draft) return;
-    const levels = draft.levels.map((l, i) => (i === index ? { ...l, ...patch } : l));
-    setDraft({ ...draft, levels });
+  function updateStep(index: number, patch: Partial<BridgeLevel>) {
+    const levels = currentDraft.levels.map((l, i) => (i === index ? { ...l, ...patch } : l));
+    setDraft({ ...currentDraft, levels });
   }
 
-  function addLevel() {
-    // A generous ceiling, not a tight technical cap — a bridge with a
-    // very long staircase of small steps is a legitimate way to build
-    // one, and there was no documented reason for the much lower limit
-    // this used to have. Kept as SOME upper bound purely so the level
-    // list in the UI stays scrollable/manageable rather than unbounded.
-    if (!draft || draft.levels.length >= 12) return;
-    setDraft({ ...draft, levels: [...draft.levels, { level: draft.levels.length + 1, title: '', description: '' }] });
+  function addStep(titleText = '') {
+    // A generous ceiling, not a tight technical cap — a long staircase of small steps is a
+    // legitimate way to build a bridge. Some upper bound just keeps the list manageable.
+    if (currentDraft.levels.length >= 12) return;
+    setDraft({ ...currentDraft, levels: [...currentDraft.levels, { level: currentDraft.levels.length + 1, title: titleText, description: '' }] });
   }
 
-  function removeLevel(index: number) {
-    if (!draft || draft.levels.length <= 1) return;
-    setDraft({ ...draft, levels: draft.levels.filter((_, i) => i !== index) });
+  function applyIdea(text: string) {
+    const emptyIndex = currentDraft.levels.findIndex((l) => !l.title.trim());
+    if (emptyIndex >= 0) updateStep(emptyIndex, { title: text });
+    else addStep(text);
+  }
+
+  function removeStep(index: number) {
+    if (currentDraft.levels.length <= 1) return;
+    setDraft({ ...currentDraft, levels: currentDraft.levels.filter((_, i) => i !== index) });
   }
 
   function submit() {
-    if (!draft || !draft.title.trim()) return;
-    const cleanedLevels = draft.levels.filter((l) => l.title.trim());
-    if (cleanedLevels.length === 0) return;
-    onSave({ ...draft, levels: cleanedLevels.map((l, i) => ({ ...l, level: i + 1 })) });
+    if (!currentDraft.title.trim()) return;
+    const cleanedSteps = currentDraft.levels.filter((l) => l.title.trim());
+    if (cleanedSteps.length === 0) return;
+    onSave({
+      ...currentDraft,
+      // the old grouping category stays on the record for older places, derived from the values
+      category: values.length > 0 ? categoryForValues(values, currentDraft.category) : currentDraft.category,
+      levels: cleanedSteps.map((l, i) => ({ ...l, level: i + 1 })),
+    });
   }
 
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <form
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-5"
         onSubmit={(e) => {
           e.preventDefault();
           submit();
         }}
       >
         <label className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.bridges.titleLabel}</span>
-          <input
-            autoFocus
-            className="input"
-            value={draft.title}
-            onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-            required
-          />
+          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{b.titleLabel}</span>
+          <input autoFocus className="input" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} required />
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.resources.categoryLabel}</span>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.bridges.multiCategoryHint}</p>
-          {BRIDGE_CATEGORY_GROUPS_ORDER.map((groupId) => (
-            <div key={groupId} className="mb-1">
-              <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">
-                {BRIDGE_CATEGORY_GROUP_META[groupId].label(t)}
-              </p>
+          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.resources.descriptionLabel}</span>
+          <textarea className="input" rows={2} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
+        </label>
+
+        {/* 1 — where does it lead */}
+        <section className="flex flex-col gap-2.5">
+          <div>
+            <h3 className="text-[16px] text-[var(--color-text)]">{b.connectionTagsLabel}</h3>
+            <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mt-0.5">{b.connectionTagsHint}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {CONNECTION_ITEMS_DE.map((v) => (
+              <PickChip key={v} selected={values.includes(v)} onClick={() => setDraft({ ...draft, connectionTags: toggleIn(values, v) })}>
+                {v}
+              </PickChip>
+            ))}
+          </div>
+          <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-primary-soft)' }}>
+            <p className="text-[12.5px] font-medium text-[var(--color-text)] mb-1.5">{b.guideTitle}</p>
+            <ul className="text-[13px] text-[var(--color-text-muted)] leading-relaxed list-disc pl-4 mb-2.5">
+              <li>{b.guideValue1}</li>
+              <li>{b.guideValue2}</li>
+              <li>{b.guideValue3}</li>
+            </ul>
+            <textarea className="input" rows={3} placeholder={b.reflectionPlaceholder} aria-label={b.reflectionLabel} value={draft.reflection ?? ''} onChange={(e) => setDraft({ ...draft, reflection: e.target.value })} />
+          </div>
+        </section>
+
+        {/* 2 — which needs are behind it (folded: there are many) */}
+        <Fold
+          title={b.linkedNeedsLabel}
+          summary={needs.length > 0 ? needs.join(', ') : suggestedNeeds.length > 0 ? b.needsFromValues.replace('{n}', String(suggestedNeeds.length)) : b.needsNone}
+        >
+          <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed -mt-1">{b.linkedNeedsHint}</p>
+          {suggestedNeeds.length > 0 && (
+            <div>
+              <p className="text-[12.5px] font-medium text-[var(--color-text)] mb-1.5">{b.needsSuggested}</p>
               <div className="flex flex-wrap gap-2">
-                {allCategoryChips
-                  .filter(({ id }) => BRIDGE_CATEGORY_META[id]?.group === groupId)
-                  .map(({ id, label, icon: Icon }) => (
-                    <Chip key={id} type="button" selected={selectedCategories.includes(id)} onClick={() => toggleCategory(id)} icon={<Icon size={14} />}>
-                      {label}
-                    </Chip>
-                  ))}
+                {suggestedNeeds.map((n) => (
+                  <PickChip key={n} selected={needs.includes(n)} onClick={() => setDraft({ ...draft, linkedNeeds: toggleIn(needs, n) })}>
+                    {n}
+                  </PickChip>
+                ))}
               </div>
             </div>
-          ))}
-          <div className="flex flex-wrap gap-2">
-            {allCategoryChips
-              .filter(({ id }) => !BRIDGE_CATEGORY_META[id])
-              .map(({ id, label, icon: Icon }) => (
-                <Chip key={id} type="button" selected={selectedCategories.includes(id)} onClick={() => toggleCategory(id)} icon={<Icon size={14} />}>
-                  {label}
-                </Chip>
-              ))}
-            {!addingCategory ? (
-              <Chip type="button" onClick={() => setAddingCategory(true)} icon={<Plus size={14} />}>
-                {t.bridges.newCategory}
-              </Chip>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <input
-                  autoFocus
-                  className="input"
-                  style={{ width: 140 }}
-                  placeholder={t.bridges.newCategoryPlaceholder}
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCategory())}
-                />
-                <button
-                  type="button"
-                  onClick={addCategory}
-                  className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0"
-                >
-                  <Plus size={15} />
-                </button>
+          )}
+          <div className="flex flex-col gap-2">
+            <p className="text-[12.5px] font-medium text-[var(--color-text)]">{b.needsAll}</p>
+            {NEED_CATEGORY_GROUPS.map((g) => {
+              const chosen = g.items.filter((n) => needs.includes(n)).length;
+              return (
+                <details key={g.id} className="rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2">
+                  <summary className="cursor-pointer list-none text-[13px] text-[var(--color-text)] flex items-center gap-2">
+                    <span aria-hidden="true">{g.emoji}</span>
+                    {g.label}
+                    {chosen > 0 && <span className="text-[11.5px] text-[var(--color-primary)]">· {chosen}</span>}
+                  </summary>
+                  <div className="flex flex-wrap gap-2 mt-2.5">
+                    {g.items.map((n) => (
+                      <PickChip key={n} selected={needs.includes(n)} onClick={() => setDraft({ ...draft, linkedNeeds: toggleIn(needs, n) })}>
+                        {n}
+                      </PickChip>
+                    ))}
+                  </div>
+                </details>
+              );
+            })}
+          </div>
+        </Fold>
+
+        {/* 3 — the steps, each with its resources */}
+        <section className="flex flex-col gap-3">
+          <div>
+            <h3 className="text-[16px] text-[var(--color-text)]">{b.levelsLabel}</h3>
+            <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mt-0.5">{b.stepsHint}</p>
+          </div>
+          {ideas.length > 0 && (
+            <div>
+              <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{b.stepIdeas}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {ideas.map((idea) => (
+                  <button key={idea} type="button" onClick={() => applyIdea(idea)} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12.5px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] text-left">
+                    <Plus size={11} className="flex-shrink-0" /> {idea}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
+          )}
+          <div className="flex flex-col gap-2.5">
+            {draft.levels.map((level, i) => (
+              <div key={i} className="flex flex-col gap-2 border border-[var(--color-border)] rounded-[var(--radius-lg)] p-3.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center text-[13px] text-[var(--color-text-muted)] flex-shrink-0">{i + 1}</span>
+                  <input className="input" placeholder={b.levelTitlePlaceholder} value={level.title} onChange={(e) => updateStep(i, { title: e.target.value })} />
+                  {draft.levels.length > 1 && (
+                    <button type="button" onClick={() => removeStep(i)} aria-label={t.common.delete} className="text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 p-1 text-[18px] leading-none">
+                      ×
+                    </button>
+                  )}
+                </div>
+                <input className="input" placeholder={b.levelDescriptionPlaceholder} value={level.description} onChange={(e) => updateStep(i, { description: e.target.value })} />
+                <StepExtrasEditor value={level.extras} onChange={(v) => updateStep(i, { extras: v })} options={extraOptions} withSkills suggestions={suggestions} />
+                <div>
+                  <span className="block text-[11.5px] text-[var(--color-text-faint)] mb-1">{b.levelEnergyLabel}</span>
+                  <EnergyLevelPicker value={level.energyLevel} onChange={(v) => updateStep(i, { energyLevel: v })} />
+                </div>
+              </div>
+            ))}
           </div>
-        </label>
+          {draft.levels.length < 12 && (
+            <button type="button" onClick={() => addStep()} className="flex items-center gap-1.5 text-[14px] text-[var(--color-primary)]">
+              <Plus size={15} /> {b.addLevel}
+            </button>
+          )}
+        </section>
 
-        <label className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.bridges.connectionTagsLabel}</span>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.bridges.connectionTagsHint}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {CONNECTION_ITEMS_DE.map((v) => {
-              const selected = (draft.connectionTags ?? []).includes(v);
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() =>
-                    setDraft({
-                      ...draft,
-                      connectionTags: selected
-                        ? (draft.connectionTags ?? []).filter((tag) => tag !== v)
-                        : [...(draft.connectionTags ?? []), v],
-                    })
-                  }
-                  className="px-2.5 py-1.5 rounded-full text-[12px]"
-                  style={{
-                    background: selected ? 'var(--color-primary)' : 'var(--color-surface-muted)',
-                    color: selected ? 'var(--color-surface)' : 'var(--color-text)',
-                  }}
-                >
+        {/* 4 — everything else, folded */}
+        <Fold title={b.moreTitle} summary={b.moreSummary}>
+          <div>
+            <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{b.linkedObstaclesLabel}</span>
+            <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{b.linkedObstaclesHint}</p>
+            <div className="flex flex-wrap gap-2">
+              {[...OBSTACLES_DE, ...customObstacles].map((v) => (
+                <PickChip key={v} selected={(draft.linkedObstacles ?? []).includes(v)} onClick={() => setDraft({ ...draft, linkedObstacles: toggleIn(draft.linkedObstacles ?? [], v) })}>
                   {v}
-                </button>
-              );
-            })}
-          </div>
-        </label>
-
-        <AccessChannelPicker
-          selected={draft.accessChannels ?? []}
-          onChange={(ids) => setDraft({ ...draft, accessChannels: ids })}
-        />
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.bridges.linkedNeedsLabel}</span>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.bridges.linkedNeedsHint}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {ALL_NEEDS_DE.map((v) => {
-              const selected = (draft.linkedNeeds ?? []).includes(v);
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() =>
-                    setDraft({
-                      ...draft,
-                      linkedNeeds: selected
-                        ? (draft.linkedNeeds ?? []).filter((tag) => tag !== v)
-                        : [...(draft.linkedNeeds ?? []), v],
-                    })
-                  }
-                  className="px-2.5 py-1.5 rounded-full text-[12px]"
-                  style={{
-                    background: selected ? 'var(--color-primary)' : 'var(--color-surface-muted)',
-                    color: selected ? 'var(--color-surface)' : 'var(--color-text)',
-                  }}
-                >
-                  {v}
-                </button>
-              );
-            })}
-          </div>
-        </label>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.bridges.linkedObstaclesLabel}</span>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.bridges.linkedObstaclesHint}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {[...OBSTACLES_DE, ...customObstacles].map((v) => {
-              const selected = (draft.linkedObstacles ?? []).includes(v);
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() =>
-                    setDraft({
-                      ...draft,
-                      linkedObstacles: selected
-                        ? (draft.linkedObstacles ?? []).filter((tag) => tag !== v)
-                        : [...(draft.linkedObstacles ?? []), v],
-                    })
-                  }
-                  className="px-2.5 py-1.5 rounded-full text-[12px]"
-                  style={{
-                    background: selected ? 'var(--color-primary)' : 'var(--color-surface-muted)',
-                    color: selected ? 'var(--color-surface)' : 'var(--color-text)',
-                  }}
-                >
-                  {v}
-                </button>
-              );
-            })}
-            {/* "Eigene Hindernisse ergaenzen, app-weit verfuegbar"-Auftrag
-             * — saved through the same shared custom-suggestions store
-             * Zugang's own obstacle step already uses, so anything
-             * added here shows up there too (and vice versa), instead
-             * of being a second, disconnected list. */}
-            {addingObstacle ? (
-              <div className="flex items-center gap-1">
+                </PickChip>
+              ))}
+              {/* Eigene Hindernisse ergänzen, app-weit verfügbar — saved through the shared
+               * custom-suggestions store Zugang's own obstacle step uses, too. */}
+              {addingObstacle ? (
                 <input
                   autoFocus
                   className="input"
-                  style={{ width: 140, padding: '6px 10px', fontSize: 12 }}
+                  style={{ width: 160, padding: '6px 10px', fontSize: 13 }}
                   value={newObstacleName}
                   onChange={(e) => setNewObstacleName(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && newObstacleName.trim()) {
-                      addCustomSuggestion('obstacle', newObstacleName.trim());
-                      setCustomObstacles(getCustomSuggestions('obstacle'));
-                      setDraft({ ...draft, linkedObstacles: [...(draft.linkedObstacles ?? []), newObstacleName.trim()] });
-                      setNewObstacleName('');
-                      setAddingObstacle(false);
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      (e.target as HTMLInputElement).blur();
                     }
                   }}
                   onBlur={() => {
-                    if (newObstacleName.trim()) {
-                      addCustomSuggestion('obstacle', newObstacleName.trim());
+                    const name = newObstacleName.trim();
+                    if (name) {
+                      addCustomSuggestion('obstacle', name);
                       setCustomObstacles(getCustomSuggestions('obstacle'));
-                      setDraft({ ...draft, linkedObstacles: [...(draft.linkedObstacles ?? []), newObstacleName.trim()] });
+                      setDraft({ ...draft, linkedObstacles: [...(draft.linkedObstacles ?? []), name] });
                     }
                     setNewObstacleName('');
                     setAddingObstacle(false);
                   }}
                 />
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setAddingObstacle(true)}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[12px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]"
-              >
-                <Plus size={12} /> {t.zugang.ownSuggestionCta}
-              </button>
-            )}
+              ) : (
+                <button type="button" onClick={() => setAddingObstacle(true)} className="flex items-center gap-1 px-3 py-2 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]">
+                  <Plus size={12} /> {t.zugang.ownSuggestionCta}
+                </button>
+              )}
+            </div>
           </div>
-        </label>
 
-        <ConditionsPicker
-          selected={draft.conditions ?? []}
-          onChange={(ids) => setDraft({ ...draft, conditions: ids })}
-        />
+          <ConditionsPicker selected={draft.conditions ?? []} onChange={(ids) => setDraft({ ...draft, conditions: ids })} />
 
-        <label className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">Bild</span>
-          <ImageSuggestionCarousel
-            images={imageSuggestions}
-            selected={draft.image}
-            onSelect={(url) => setDraft({ ...draft, image: url })}
-            ariaLabel={t.resources.pickThisImage}
-          />
-          <button
-            type="button"
-            onClick={() => setImageSuggestions(suggestedImageOptions(draft.title, draft.category))}
-            className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
-          >
-            <RefreshCw size={13} /> {t.resources.moreSuggestions}
-          </button>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-1"
-          >
-            <Upload size={14} /> {t.resources.uploadOwnImage}
-          </button>
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-        </label>
+          <AccessChannelPicker selected={draft.accessChannels ?? []} onChange={(ids) => setDraft({ ...draft, accessChannels: ids })} />
 
-        <label className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.resources.descriptionLabel}</span>
-          <textarea
-            className="input"
-            rows={2}
-            value={draft.description}
-            onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-          />
-        </label>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{`${b.tip} ${t.common.optional}`}</span>
+            <input className="input" value={draft.tip ?? ''} onChange={(e) => setDraft({ ...draft, tip: e.target.value })} />
+          </label>
 
-        <div>
-          <span className="text-[13px] font-medium text-[var(--color-text-muted)] mb-2 block">{t.bridges.levelsLabel}</span>
-          <div className="flex flex-col gap-2">
-            {draft.levels.map((level, i) => (
-              <div key={i} className="flex flex-col gap-1.5 border border-[var(--color-border)] rounded-[var(--radius-md)] p-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center text-[12px] text-[var(--color-text-muted)] flex-shrink-0">
-                    {i + 1}
-                  </span>
-                  <input
-                    className="input"
-                    placeholder={t.bridges.levelTitlePlaceholder}
-                    value={level.title}
-                    onChange={(e) => updateLevel(i, { title: e.target.value })}
-                  />
-                  {draft.levels.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeLevel(i)}
-                      aria-label={t.common.delete}
-                      className="text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 p-1"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-                <input
-                  className="input"
-                  placeholder={t.bridges.levelDescriptionPlaceholder}
-                  value={level.description}
-                  onChange={(e) => updateLevel(i, { description: e.target.value })}
-                />
-                <div className="mt-1">
-                  <span className="block text-[11px] text-[var(--color-text-faint)] mb-1">{t.bridges.levelEnergyLabel}</span>
-                  <EnergyLevelPicker value={level.energyLevel} onChange={(v) => updateLevel(i, { energyLevel: v })} />
-                </div>
-              </div>
-            ))}
-          </div>
-          {draft.levels.length < 4 && (
-            <button type="button" onClick={addLevel} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-2">
-              <Plus size={14} /> {t.bridges.addLevel}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{b.imageLabel}</span>
+            <ImageSuggestionCarousel images={imageSuggestions} selected={draft.image} onSelect={(url) => setDraft({ ...draft, image: url })} ariaLabel={t.resources.pickThisImage} />
+            <button type="button" onClick={() => setImageSuggestions(suggestedImageOptions(draft.title, draft.category))} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+              <RefreshCw size={13} /> {t.resources.moreSuggestions}
             </button>
-          )}
-        </div>
-
-        <label className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{`${t.bridges.tip} ${t.common.optional}`}</span>
-          <input className="input" value={draft.tip ?? ''} onChange={(e) => setDraft({ ...draft, tip: e.target.value })} />
-        </label>
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-1">
+              <Upload size={14} /> {t.resources.uploadOwnImage}
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+          </div>
+        </Fold>
 
         <Button type="submit" fullWidth data-sound="complete">
           {t.common.save}

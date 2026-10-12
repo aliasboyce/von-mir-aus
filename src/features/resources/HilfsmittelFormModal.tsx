@@ -3,7 +3,7 @@ import { networkRepo } from '../safetyNet/networkRepo';
 import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
 import type { NeedDirection } from '../../data/types';
 import { useSettings } from '../../state/SettingsContext';
-import { HILFSMITTEL_MAIN, subtypesFor } from '../../content/hilfsmittelCategories';
+import { HILFSMITTEL_MAIN, subtypesFor, ORTE_CATEGORY, AKTIVITAETEN_CATEGORY } from '../../content/hilfsmittelCategories';
 import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
 import { FitProfileFields } from '../../components/shared/FitProfileFields';
 import type { FitProfile } from '../../content/fitCriteria';
@@ -14,6 +14,7 @@ import { Button } from '../../components/ui/Button';
 import { ImageSuggestionCarousel } from '../../components/shared/ImageSuggestionCarousel';
 import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { ZonePicker } from '../../components/shared/ZonePicker';
+import { ConditionsPicker } from '../bridges/ConditionsPicker';
 import { useT } from '../../i18n';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { createId } from '../../services/storage/repository';
@@ -25,6 +26,8 @@ interface HilfsmittelFormModalProps {
   resource: Resource | null;
   onClose: () => void;
   onSave: (resource: Resource) => void;
+  /** Hilfsmittel (things you can touch), Orte & Umgebung or Aktivitäten & Beschäftigung — same form, own category. */
+  kind?: 'hilfsmittel' | 'orte' | 'aktivitaeten';
 }
 
 const HILFSMITTEL_CATEGORIES = [...HILFSMITTEL_MAIN] as string[];
@@ -52,15 +55,16 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  * initialized directly from the resource prop, no runtime reset
  * logic at all.
  */
-export function HilfsmittelFormModal({ open, resource, onClose, onSave }: HilfsmittelFormModalProps) {
+export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = 'hilfsmittel' }: HilfsmittelFormModalProps) {
   const t = useT();
   const { settings } = useSettings();
   const d = resource?.hilfsmittelDetails;
   const [title, setTitle] = useState(resource?.title ?? '');
-  const [category, setCategory] = useState<ResourceCategory>(resource?.category ?? 'haptisch');
+  const fixedCategory = kind === 'orte' ? ORTE_CATEGORY : kind === 'aktivitaeten' ? AKTIVITAETEN_CATEGORY : null;
+  const [category, setCategory] = useState<ResourceCategory>(resource?.category ?? fixedCategory ?? 'haptisch');
   const [subcategory, setSubcategory] = useState<string | undefined>(resource?.subcategory);
-  const [image, setImage] = useState(resource?.image ?? suggestedImage(resource?.title ?? '', resource?.category ?? 'haptisch'));
-  const [imageSuggestions, setImageSuggestions] = useState(() => suggestedImageOptions(resource?.title ?? '', resource?.category ?? 'haptisch'));
+  const [image, setImage] = useState(resource?.image ?? suggestedImage(resource?.title ?? '', resource?.category ?? fixedCategory ?? 'haptisch'));
+  const [imageSuggestions, setImageSuggestions] = useState(() => suggestedImageOptions(resource?.title ?? '', resource?.category ?? fixedCategory ?? 'haptisch'));
   const [subtitle, setSubtitle] = useState(d?.subtitle ?? '');
   const [beruhigungTrost, setBeruhigungTrost] = useState(d?.beruhigungTrost ?? '');
   const [fokusAblenkung, setFokusAblenkung] = useState(d?.fokusAblenkung ?? '');
@@ -79,6 +83,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
   const [linkedNeeds, setLinkedNeeds] = useState<NeedDirection[]>(resource?.linkedNeeds ?? []);
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | undefined>(resource?.energyLevel);
   const [fit, setFit] = useState<FitProfile | undefined>(resource?.fit);
+  const [umstaende, setUmstaende] = useState<string[]>(resource?.umstaende ?? []);
 
   function handleSave() {
     if (!title.trim()) return;
@@ -94,6 +99,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
       energyLevel,
       fit,
       linkedNeeds: linkedNeeds.length > 0 ? linkedNeeds : undefined,
+      umstaende: umstaende.length > 0 ? umstaende : undefined,
       inNetwork,
       createdAt: resource?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -116,7 +122,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={resource ? title || t.resources.hilfsmittelFormTitle : t.resources.hilfsmittelFormTitleNew}>
+    <Modal open={open} onClose={onClose} title={resource ? title || t.resources.hilfsmittelFormTitle : kind === 'orte' ? t.resources.orteFormTitleNew : kind === 'aktivitaeten' ? t.resources.aktivitaetenFormTitleNew : t.resources.hilfsmittelFormTitleNew}>
       <div className="flex flex-col gap-4 pb-2">
         <Field label={t.resources.hilfsmittelNameLabel}>
           <input autoFocus className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
@@ -126,6 +132,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
           <input className="input" placeholder={t.resources.hilfsmittelSubtitlePlaceholder} value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
         </Field>
 
+        {!fixedCategory && (
         <Field label={t.resources.categoryLabel}>
           <select className="input" value={category} onChange={(e) => { setCategory(e.target.value as ResourceCategory); setSubcategory(undefined); }}>
             {(HILFSMITTEL_CATEGORIES.includes(category) ? HILFSMITTEL_CATEGORIES : [...HILFSMITTEL_CATEGORIES, category]).map((c) => (
@@ -135,6 +142,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
             ))}
           </select>
         </Field>
+        )}
 
         {/* Medienart / Orts-Art as a sub-category of the chosen category:
          * Videos under Visuell, Musik under Auditiv, Wissen / Texte /
@@ -173,6 +181,8 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
         <FitProfileFields value={fit} onChange={setFit} />
 
         <NeedsMultiPicker selected={linkedNeeds} onChange={setLinkedNeeds} />
+
+        <ConditionsPicker selected={umstaende} onChange={setUmstaende} />
 
         {/* "Beim Erstellen abhaken, dass es im Netzwerk erscheinen soll" */}
         <label className="flex items-start gap-2.5 cursor-pointer">
@@ -228,6 +238,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
           </div>
         </div>
 
+        {kind === 'hilfsmittel' && (
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
           <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.hilfsmittelSection4Title}</p>
           <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.hilfsmittelSection4Hint}</p>
@@ -240,6 +251,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave }: Hilfsm
             </Field>
           </div>
         </div>
+        )}
 
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
           <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.hilfsmittelSection5Title}</p>

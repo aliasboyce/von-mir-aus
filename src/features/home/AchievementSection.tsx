@@ -1,12 +1,13 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { diaryRepo } from '../diary/diaryRepo';
 import { diaryCategoriesStore } from '../diary/diaryCategories';
 import { logActivity } from '../../services/activityLog';
 import { createId } from '../../services/storage/repository';
+import { localDayKey } from '../../services/groupByDay';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
-import { useSettings } from '../../state/SettingsContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { useT } from '../../i18n';
 
@@ -28,27 +29,32 @@ function getOrCreateAchievementCategoryId(): string {
 export function AchievementSection() {
   const t = useT();
   const say = useCompanionSay();
-  const { settings, updateSettings } = useSettings();
   const [text, setText] = useState('');
-  const [recent, setRecent] = useState<string[]>(() => {
+  // Only ever TODAY's entries are shown: the list starts empty every new day.
+  // Earlier days are not gone — they live on in the diary and in the Rück-
+  // blick (Tages-/Wochenrückblick), which read the same entries by date.
+  const [entries, setEntries] = useState<{ id: string; content: string; createdAt: string }[]>(() => {
     const catId = diaryCategoriesStore.getAll().find((c) => c.label === ACHIEVEMENT_CATEGORY_LABEL)?.id;
     if (!catId) return [];
     return diaryRepo
       .getAll()
       .filter((e) => e.categoryId === catId)
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      .slice(0, 3)
-      .map((e) => e.content);
+      .map((e) => ({ id: e.id, content: e.content, createdAt: e.createdAt }));
   });
+  const today = localDayKey(new Date().toISOString());
+  const recent = entries
+    .filter((e) => localDayKey(e.createdAt) === today)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   function save() {
     const trimmed = text.trim();
     if (!trimmed) return;
     const now = new Date().toISOString();
     const categoryId = getOrCreateAchievementCategoryId();
-    diaryRepo.save({ id: createId('diary'), createdAt: now, updatedAt: now, categoryId, content: trimmed });
+    const id = createId('diary');
+    diaryRepo.save({ id, createdAt: now, updatedAt: now, categoryId, content: trimmed });
     logActivity('checkin', trimmed);
-    setRecent((prev) => [trimmed, ...prev].slice(0, 3));
+    setEntries((prev) => [{ id, content: trimmed, createdAt: now }, ...prev]);
     setText('');
     say(pickLine({ page: '*', trigger: 'speichern' }), { joy: true });
   }
@@ -78,31 +84,22 @@ export function AchievementSection() {
       </div>
       {recent.length > 0 && (
         <div className="flex flex-col gap-1.5 mb-3">
-          {recent.map((r, i) => (
-            <p key={i} className="text-[13px] text-[var(--color-text-muted)] flex items-start gap-1.5">
+          {recent.map((r) => (
+            <p key={r.id} className="text-[13px] text-[var(--color-text-muted)] flex items-start gap-1.5">
               <span className="text-[var(--color-accent-clay)] flex-shrink-0" aria-hidden="true">
                 ♡
               </span>
-              {r}
+              {r.content}
             </p>
           ))}
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <span className="text-[12px] text-[var(--color-text-faint)]">{t.settings.dailyReviewAchievements}</span>
-        <button
-          role="switch"
-          aria-checked={settings.dailyReviewShowAchievements !== false}
-          onClick={() => updateSettings({ dailyReviewShowAchievements: !(settings.dailyReviewShowAchievements !== false) })}
-          className="w-9 h-5 rounded-full relative flex-shrink-0"
-          style={{ background: settings.dailyReviewShowAchievements !== false ? 'var(--color-primary)' : 'var(--color-border)' }}
-        >
-          <span
-            className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all"
-            style={{ left: settings.dailyReviewShowAchievements !== false ? 17 : 2 }}
-          />
-        </button>
-      </div>
+      <p className="text-[12px] text-[var(--color-text-faint)] mb-3 leading-relaxed">
+        {t.home.achievementDayHint}{' '}
+        <Link to="/sicherheit/tagebuch" className="underline text-[var(--color-primary)]">
+          {t.home.achievementReviewLink}
+        </Link>
+      </p>
     </div>
   );
 }

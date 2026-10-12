@@ -23,4 +23,7 @@ export const SEED_SKILL_ZONES: Record<string, string[]> = {
   res_skill_shaking: ['zone5', 'zone6'],
   res_waermequelle: ['zone4', 'zone5', 'zone6'],
   res_klavier: ['zone4', 'zone5'],
+  res_skill_gewichtsdecke: ['zone4', 'zone5', 'zone6'],
+  res_skill_eiskaltes_wasser: ['zone5', 'zone6'],
+  res_skill_bilaterale_stimulation: ['zone3', 'zone4', 'zone5', 'zone6'],
 };

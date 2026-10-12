@@ -16,6 +16,40 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-ressourcen-orte-aktivitaeten',
+    date: '2026',
+    items: [
+      'Ressourcen: Hilfsmittel sind Dinge zum Anfassen, Skills regulieren – dazu gibt es jetzt eigene Seiten „Orte & Umgebung“ (mit Natur, Ort, besondere Umgebung, Platz) und „Aktivitäten & Beschäftigung“, plus Personen aus deinem Netz. Alles davon lässt sich in den Schritten einer Brücke auswählen.',
+      'Umstände („genügend Schlaf gehabt“) wählst oder tippst du beim Erstellen und Bearbeiten von Skills, Hilfsmitteln, Orten und Aktivitäten. Was du tippst, wird gespeichert und steht überall wieder zur Auswahl – ohne eigene Seite.',
+      'Nach der Bedürfnis-Auswahl im Check-in landest du auf der Ressourcen-Übersicht: dort „Was geht gerade?“, darunter passend Skills, Hilfsmittel und Quellen.',
+      'Aufgeräumt: „Weitermachen“ ist von der Startseite weg, alle „… automatisch übernehmen“-Schalter sind weg (Rückblicke enthalten alles von selbst, getrennt vom Tagebuch), der Zugang-Link im Check-in ist weg, und das Wetter-Rad springt nicht mehr von allein weiter.',
+      'Tagebuch-Vorlagen sind nach „vorausschauend“ und „rückblickend“ sortiert – neu: Schematagebuch, DBT-Tageskarte und Verhaltensanalyse. Der Lauf mit dem Wesen reagiert sofort beim Antippen, ist am Laptop größer und füllt am Handy den ganzen Bildschirm.',
+    ],
+    itemsEn: [
+      'Resources: tools are things you can touch, skills regulate – now with their own pages "Places & surroundings" (nature, place, special surroundings, spot) and "Activities & occupation", plus people from your network. You can pick all of them in the steps of a bridge.',
+      'Circumstances ("had enough sleep") are chosen or typed when creating and editing skills, tools, places and activities. What you type is saved and selectable everywhere again – no page of its own.',
+      'After choosing a need in the check-in you land on the Resources overview: "What works right now?" there, then matching skills, tools and sources below.',
+      'Tidied up: "Continue" is gone from the start page, all "… take over automatically" switches are gone (reviews include everything by themselves, separate from the diary), the Access link in the check-in is gone, and the weather wheel no longer moves on by itself.',
+      'Diary templates are sorted into "looking ahead" and "looking back" – new: schema diary, DBT diary card and behavior analysis. The run with your companion reacts the moment you tap, is bigger on a laptop and fills the whole screen on a phone.',
+    ],
+  },
+  {
+    id: '2026-bruecken-werte-karte',
+    date: '2026',
+    items: [
+      'Brücken führen jetzt zu einem Wert oder einer Lebensrichtung (statt in Kategorien). Du wählst den Wert, bekommst Fragen zum Nachspüren – und die Bedürfnisse dahinter (einklappbar) schlägt die App vor. Gefiltert wird später nach Wert oder Bedürfnis; auch im Wertekompass führt ein Link direkt dorthin.',
+      '„Level“ heißt jetzt „Schritte“. Zu jedem Schritt kannst du bestehende Skills, Hilfsmittel, Helfer oder Quellen dazunehmen – die App schlägt passende vor, weil sie weiß, welche Ressource welches Bedürfnis erfüllt. Die Umstände („unter welchen Bedingungen“) findest du auch bei den Ressourcen unter Hilfsmittel → Orte → Umstände.',
+      'Entdecken: eine weiche, lebendige Karte mit allen Seiten, neutraler Mitte und den Zusätzen nach Zweck sortiert. „So hängt alles zusammen“ ist darin aufgegangen.',
+      '„Das habe ich geschafft“ zeigt nur den heutigen Tag, alles bleibt im Rückblick. Zugang: am Abzweig gibt es „Fertig“. Neue Starter-Skills: Gewichtsdecke, eiskaltes Wasser, bilaterale Stimulation.',
+    ],
+    itemsEn: [
+      'Bridges now lead to a value or life direction (instead of categories). You pick the value, get questions to feel into – and the app suggests the needs behind it (collapsible). Filtering is by value or need; the Values compass links straight there.',
+      '"Level" is now "Steps". For each step you can add existing skills, tools, helpers or sources – the app suggests matching ones because it knows which resource fulfils which need. The circumstances ("under which conditions") are also in Resources under Tools → Places → Circumstances.',
+      'Explore: a soft, living map with every page, a neutral centre and the add-ons sorted by purpose. "How it all connects" has merged into it.',
+      '"Things I managed" shows only today, everything stays in the review. Access: the fork now has "Done". New starter skills: weighted blanket, ice-cold water, bilateral stimulation.',
+    ],
+  },
+  {
     id: '2026-zugangskanaele-karte',
     date: '2026',
     items: [

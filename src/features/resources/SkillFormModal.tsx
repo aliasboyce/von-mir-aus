@@ -16,6 +16,7 @@ import { Button } from '../../components/ui/Button';
 import { ImageSuggestionCarousel } from '../../components/shared/ImageSuggestionCarousel';
 import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { ZonePicker } from '../../components/shared/ZonePicker';
+import { ConditionsPicker } from '../bridges/ConditionsPicker';
 import { useT } from '../../i18n';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { createId } from '../../services/storage/repository';
@@ -82,6 +83,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
   const [accessChannels, setAccessChannels] = useState<AccessChannel[]>(resource?.accessChannels ?? []);
   const [inNetwork, setInNetwork] = useState<boolean>(() => resource?.inNetwork ?? networkRepo.getAll().some((e) => e.linkedResourceId === resource?.id));
   const [linkedNeeds, setLinkedNeeds] = useState<NeedDirection[]>(resource?.linkedNeeds ?? []);
+  const [umstaende, setUmstaende] = useState<string[]>(resource?.umstaende ?? []);
   // new skills start as 'koerper' (the safer default for crisis zones); an existing one keeps what it is
   const [modality, setModality] = useState<SkillModality>(resource ? skillModality(resource) : 'koerper');
   const [contextPhoto, setContextPhoto] = useState<string | undefined>(resource?.contextPhoto);
@@ -118,6 +120,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
       contextPhoto,
       contextVoice,
       linkedNeeds: linkedNeeds.length > 0 ? linkedNeeds : undefined,
+      umstaende: umstaende.length > 0 ? umstaende : undefined,
       inNetwork,
       createdAt: resource?.createdAt ?? new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -190,6 +193,8 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
         <FitProfileFields value={fit} onChange={setFit} />
 
         <NeedsMultiPicker selected={linkedNeeds} onChange={setLinkedNeeds} />
+
+        <ConditionsPicker selected={umstaende} onChange={setUmstaende} />
 
         {/* Kontext-Anker: photo + short voice note from a safe moment */}
         <div>

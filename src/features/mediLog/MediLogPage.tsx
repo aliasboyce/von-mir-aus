@@ -47,7 +47,7 @@ export function MediLogPage() {
   const t = useT();
   const navigate = useNavigate();
   const say = useCompanionSay();
-  const { settings, updateSettings } = useSettings();
+  const { settings } = useSettings();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
   const [entries, setEntries] = useState<MediLogEntry[]>(() =>
     mediLogRepo.getAll().sort((a, b) => b.takenAt.localeCompare(a.takenAt)),
@@ -82,12 +82,6 @@ export function MediLogPage() {
       updatedAt: now.toISOString(),
     };
     mediLogRepo.save(entry);
-    // A skipped dose is explicitly never handed to the diary as if it
-    // were taken — only actually-confirmed intakes qualify, matching the
-    // same rule the manual auto-transfer setting follows below.
-    if (settings.mediLogAutoDiary && entry.status !== 'skipped') {
-      autoTransferToDiary(entry);
-    }
     refresh();
   }
   const [chartFullscreen, setChartFullscreen] = useState(false);
@@ -181,11 +175,7 @@ export function MediLogPage() {
 
   function save() {
     if (!editing || !editing.name.trim()) return;
-    const isNew = !mediLogRepo.getAll().some((e) => e.id === editing.id);
     mediLogRepo.save({ ...editing, updatedAt: new Date().toISOString() });
-    if (isNew && settings.mediLogAutoDiary) {
-      autoTransferToDiary(editing);
-    }
     setEditing(null);
     refresh();
     say(pickLine({ page: '*', trigger: 'speichern' }));
@@ -225,26 +215,6 @@ export function MediLogPage() {
   // instances) — never re-triggered by a render or effect, so each
   // MediLogEntry only ever produces at most one automatic diary entry,
   // regardless of how many times the page re-renders afterward.
-  function autoTransferToDiary(entry: MediLogEntry) {
-    const dose = entry.doseValue != null ? `${entry.doseValue} ${entry.doseUnit ?? ''}`.trim() : entry.amount;
-    const parts = [entry.name, dose].filter(Boolean).join(' · ');
-    const timeLabel = new Date(entry.takenAt).toLocaleString(locale, {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    const text = [`Medi-Log: ${parts}`, timeLabel, entry.note].filter(Boolean).join('\n');
-    const now = new Date().toISOString();
-    diaryRepo.save({
-      id: createId('diary'),
-      createdAt: entry.takenAt,
-      updatedAt: now,
-      categoryId: DIARY_DEFAULT_CATEGORY_ID,
-      content: text,
-    });
-  }
-
   function remove(id: string) {
     if (!window.confirm(t.mediLog.confirmDelete)) return;
     mediLogRepo.remove(id);
@@ -458,22 +428,6 @@ export function MediLogPage() {
           >
             <Repeat size={14} />
             {t.mediLog.manageRecurring}
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between mb-5">
-          <span className="text-[13px] text-[var(--color-text-muted)]">{t.settings.dailyReviewMediLog}</span>
-          <button
-            role="switch"
-            aria-checked={settings.dailyReviewShowMediLog !== false}
-            onClick={() => updateSettings({ dailyReviewShowMediLog: !(settings.dailyReviewShowMediLog !== false) })}
-            className="w-10 h-6 rounded-full relative flex-shrink-0"
-            style={{ background: settings.dailyReviewShowMediLog !== false ? 'var(--color-primary)' : 'var(--color-border)' }}
-          >
-            <span
-              className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-              style={{ left: settings.dailyReviewShowMediLog !== false ? 18 : 2 }}
-            />
           </button>
         </div>
 
@@ -878,10 +832,7 @@ export function MediLogPage() {
         onClose={() => setRangeEntryOpen(false)}
         savedMeds={savedMeds}
         recurringMeds={recurring}
-        onSaved={(created) => {
-          if (settings.mediLogAutoDiary) {
-            created.forEach((entry) => autoTransferToDiary(entry));
-          }
+        onSaved={() => {
           refresh();
         }}
       />

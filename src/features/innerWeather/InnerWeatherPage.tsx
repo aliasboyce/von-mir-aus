@@ -60,7 +60,7 @@ export function InnerWeatherPage() {
   const t = useT();
   const say = useCompanionSay();
   const navigate = useNavigate();
-  const { settings, updateSettings } = useSettings();
+  const { settings } = useSettings();
   const [recentDraft] = useState(() => loadRecentInnerWeatherDraft());
   const [step, setStep] = useState<Step>(recentDraft?.step ?? 'select');
   const [condition, setCondition] = useState<WeatherCondition | null>(recentDraft?.condition ?? null);
@@ -153,7 +153,7 @@ export function InnerWeatherPage() {
       setStep('path');
     } else {
       clearInnerWeatherDraft();
-      navigate(`/entdecken/ressourcen/hilfsmittel?need=${n}`);
+      navigate(`/entdecken/ressourcen?need=${n}`);
     }
   }
 
@@ -164,7 +164,7 @@ export function InnerWeatherPage() {
 
   function leaveToResources() {
     clearInnerWeatherDraft();
-    navigate(`/entdecken/ressourcen/hilfsmittel${need ? `?need=${need}` : ''}`);
+    navigate(`/entdecken/ressourcen${need ? `?need=${need}` : ''}`);
   }
 
   function skipToDone() {
@@ -204,18 +204,6 @@ export function InnerWeatherPage() {
           </div>
         )}
       </div>
-
-      {step !== 'done' && (
-        <button
-          onClick={() => {
-            say(pickLine({ page: '/inneres-wetter', trigger: 'checkin_zu_zugang' }));
-            navigate('/zugang');
-          }}
-          className="text-[12px] text-[var(--color-text-faint)] underline mb-2 self-center"
-        >
-          {t.weather.stuckHereCta}
-        </button>
-      )}
 
       {step === 'select' && (
         <div className="animate-in flex-1">
@@ -268,22 +256,6 @@ export function InnerWeatherPage() {
           <Button fullWidth onClick={() => setStep('zone')}>
             {t.companion.pickerContinue}
           </Button>
-
-          <div className="flex items-center justify-between mt-4">
-            <span className="text-[12px] text-[var(--color-text-faint)]">{t.settings.dailyReviewWeather}</span>
-            <button
-              role="switch"
-              aria-checked={settings.dailyReviewShowWeather !== false}
-              onClick={() => updateSettings({ dailyReviewShowWeather: !(settings.dailyReviewShowWeather !== false) })}
-              className="w-9 h-5 rounded-full relative flex-shrink-0"
-              style={{ background: settings.dailyReviewShowWeather !== false ? 'var(--color-primary)' : 'var(--color-border)' }}
-            >
-              <span
-                className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all"
-                style={{ left: settings.dailyReviewShowWeather !== false ? 17 : 2 }}
-              />
-            </button>
-          </div>
         </div>
       )}
 
@@ -350,15 +322,6 @@ export function InnerWeatherPage() {
               </Card>
             ))}
           </div>
-          <button
-            onClick={() => {
-              say(pickLine({ page: '/inneres-wetter', trigger: 'checkin_zu_zugang' }));
-              navigate('/zugang');
-            }}
-            className="w-full text-center text-[14px] text-[var(--color-primary)] mt-4 py-2.5 rounded-[var(--radius-lg)] bg-[var(--color-primary-soft)]"
-          >
-            {t.weather.needUnsureCta}
-          </button>
           <button
             onClick={skipToDone}
             className="w-full text-center text-[14px] text-[var(--color-text-faint)] mt-2 py-2"

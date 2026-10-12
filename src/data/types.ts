@@ -243,6 +243,8 @@ export interface BridgeLevel {
    * can filter/pick a bridge level by how much capacity they have
    * right now, not just by intensity/depth. */
   energyLevel?: 1 | 2 | 3 | 4;
+  /** Resources attached to THIS step: Skills, Hilfsmittel, Helfer, Quellen — only existing ones. */
+  extras?: StepExtras;
 }
 
 export interface Bridge {
@@ -296,6 +298,9 @@ export interface Bridge {
    * Old stored values are migrated once via migrateAccessChannels()
    * in accessChannels.ts, never silently dropped. */
   accessChannels?: AccessChannel[];
+  /** "Warum ist mir das wichtig?" — the person's own words about the value / need this
+   * bridge leads toward (answers to the guiding questions in the form). */
+  reflection?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -341,6 +346,10 @@ export interface Resource {
   /** Sub-category inside a Hilfsmittel category (Videos under Visuell, Musik under Auditiv,
    * Natur/Ort/... under Orte) — see content/hilfsmittelCategories.ts. */
   subcategory?: string;
+  /** "Umstände": the circumstances under which this works ("genügend Schlaf gehabt").
+   * Keys into the one global, person-extendable list (features/bridges/conditions.ts),
+   * available on every kind of resource. */
+  umstaende?: string[];
   /** Needs this item helps with (set in the form); empty = default by category,
    * see content/needResources.ts. */
   linkedNeeds?: NeedDirection[];
@@ -487,7 +496,13 @@ export interface SkillUse {
  * Resource ids, Helfer are network entry ids, Quellen are Bookmark ids.
  */
 export interface StepExtras {
+  /** Skills (Resources of the skill categories) — used in Brücken-Schritten. */
+  skillIds?: string[];
   hilfsmittelIds?: string[];
+  /** Orte & Umgebung (Resources of the category 'orte') */
+  ortIds?: string[];
+  /** Aktivitäten & Beschäftigung (Resources of the category 'aktivitaeten') */
+  aktivitaetIds?: string[];
   helperIds?: string[];
   bookmarkIds?: string[];
 }
@@ -631,6 +646,9 @@ export interface Bookmark {
   /** references a BookmarkCategory id — categories are fully user-editable,
    * unlike Bridges/Resources' fixed-plus-custom split */
   categoryId: string;
+  /** Needs this source speaks to — so the Ressourcen page can show matching sources
+   * after the check-in. Empty = a rough default by category. */
+  linkedNeeds?: NeedDirection[];
   createdAt: string;
   updatedAt: string;
 }

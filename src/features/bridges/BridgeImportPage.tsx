@@ -10,12 +10,17 @@ import { useT } from '../../i18n';
 import { bridgesRepo } from './bridgesRepo';
 import { createId } from '../../services/storage/repository';
 import { suggestedImage } from '../../services/suggestedImages';
+import { CONNECTION_ITEMS_DE } from '../zugang/zugangContent';
+import { categoryForValues } from './bridgeValues';
 import type { BridgeLevel } from '../../data/types';
 
 interface SharedBridgePayload {
   title: string;
   description?: string;
   categoryLabel?: string;
+  connectionTags?: string[];
+  linkedNeeds?: string[];
+  reflection?: string;
   levels: BridgeLevel[];
   tip?: string;
 }
@@ -41,10 +46,14 @@ export function BridgeImportPage() {
 
   function accept() {
     if (!payload) return;
+    const values = (payload.connectionTags ?? []).filter((v) => typeof v === 'string' && CONNECTION_ITEMS_DE.includes(v));
     bridgesRepo.save({
       id: createId('bridge'),
       title: payload.title,
-      category: 'sonstiges',
+      category: categoryForValues(values, 'sonstiges'),
+      connectionTags: values.length > 0 ? values : undefined,
+      linkedNeeds: Array.isArray(payload.linkedNeeds) ? payload.linkedNeeds.filter((n) => typeof n === 'string').slice(0, 30) : undefined,
+      reflection: typeof payload.reflection === 'string' ? payload.reflection : undefined,
       // Same fix as ResourceImportPage.tsx: an empty string technically
       // satisfies the required `image: string` type but still renders
       // as a blank card — the exact functional bug the type change
@@ -55,7 +64,8 @@ export function BridgeImportPage() {
             .filter(Boolean)
             .join('\n')
         : (payload.description ?? ''),
-      levels: payload.levels,
+      // only the plain step content: resources attached to a step are ids on the sender's device
+      levels: payload.levels.map((l, i) => ({ level: i + 1, title: String(l.title ?? ''), description: String(l.description ?? ''), energyLevel: l.energyLevel })),
       tip: payload.tip,
       favorite: false,
       isCustom: true,
@@ -89,7 +99,7 @@ export function BridgeImportPage() {
               <div className="flex flex-col gap-2">
                 {payload.levels.map((l) => (
                   <p key={l.level} className="text-[13px] text-[var(--color-text-muted)]">
-                    Level {l.level} — {l.title}
+                    {t.bridges.level} {l.level} — {l.title}
                   </p>
                 ))}
               </div>

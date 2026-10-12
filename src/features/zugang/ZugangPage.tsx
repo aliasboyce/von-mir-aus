@@ -41,7 +41,7 @@ import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
-import { BRIDGE_CATEGORY_META, BRIDGE_CATEGORY_ORDER } from '../bridges/bridgeMeta';
+import { bridgeNeeds } from '../bridges/bridgeValues';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
@@ -322,6 +322,15 @@ export function ZugangPage() {
     say(pickLine({ page: '/zugang', trigger: 'speichern' }), { joy: true });
   }
 
+  /** "Fertig" at the fork: stop here, nothing more is asked. The perceiving so far is kept. */
+  function finishAtFork() {
+    setBranch(null);
+    setStep(10);
+    saveEntry('complete');
+    setSaved(true);
+    say(pickLine({ page: '/zugang', trigger: 'speichern' }), { joy: true });
+  }
+
   function finish() {
     saveEntry();
     setSaved(true);
@@ -420,8 +429,14 @@ export function ZugangPage() {
                 <span className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.intentActHint}</span>
               </button>
             </div>
-            <button type="button" onClick={() => setShowIntro(false)} className="text-[13px] text-[var(--color-text-faint)] underline mb-5">
-              {t.zugang.introOpenCta}
+            <button
+              type="button"
+              onClick={() => setShowIntro(false)}
+              className="w-full max-w-[320px] rounded-[var(--radius-lg)] border border-dashed px-4 py-3 text-left mb-5"
+              style={{ borderColor: 'var(--color-border)', background: 'transparent' }}
+            >
+              <span className="block text-[15px] text-[var(--color-text)]">{t.zugang.introOpenCta}</span>
+              <span className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.introOpenHint}</span>
             </button>
           </>
         )}
@@ -510,6 +525,7 @@ export function ZugangPage() {
               }
             }}
             onFinishRegulate={finishRegulate}
+            onFinish={finishAtFork}
           />
         )}
         {shownStep === 0 && (
@@ -1054,7 +1070,9 @@ export function ZugangPage() {
                   const scored = allBridges.map((b) => ({
                     bridge: b,
                     matches:
-                      [...(b.linkedNeeds ?? []), ...(b.linkedObstacles ?? [])].filter((x) => picked.has(x)).length +
+                      // needs the bridge stands for (its own plus those of its values), obstacles, and the values picked in Zugang
+                      [...bridgeNeeds(b), ...(b.linkedObstacles ?? [])].filter((x) => picked.has(x)).length +
+                      (b.connectionTags ?? []).filter((v) => connection.includes(v)).length +
                       (openChannels.length === 0 ? 0 : (b.accessChannels ?? []).filter((c) => openChannels.includes(c)).length),
                   }));
                   const matching = scored.filter((s) => s.matches > 0).sort((a, b) => b.matches - a.matches);
@@ -1069,7 +1087,7 @@ export function ZugangPage() {
                       <PhotoBackground src={b.image} className="w-11 h-11 rounded-[var(--radius-md)] bg-cover bg-center flex-shrink-0" />
                       <div className="min-w-0">
                         <p className="text-[14px] text-[var(--color-text)] truncate">{b.title}</p>
-                        <p className="text-[12px] text-[var(--color-text-muted)]">{BRIDGE_CATEGORY_META[b.category]?.label(t)}</p>
+                        <p className="text-[12px] text-[var(--color-text-muted)] truncate">{(b.connectionTags ?? []).slice(0, 3).join(' · ')}</p>
                       </div>
                     </button>
                   );
@@ -1084,28 +1102,12 @@ export function ZugangPage() {
                       )}
                       {rest.length > 0 && (
                         <>
-                          {matching.length > 0 && (
-                            <p className="text-[12px] text-[var(--color-text-faint)] mb-2">
-                              {t.zugang.moreBridgesLabel.replace('{count}', String(rest.length))}
-                            </p>
-                          )}
-                          <div className="flex flex-col gap-2">
-                            {BRIDGE_CATEGORY_ORDER.map((cat) => {
-                              const inCat = rest.filter((s) => s.bridge.category === cat);
-                              if (inCat.length === 0) return null;
-                              const meta = BRIDGE_CATEGORY_META[cat];
-                              return (
-                                <details key={cat} className="rounded-[var(--radius-lg)] border border-[var(--color-border)] px-3 py-2">
-                                  <summary className="text-[13px] text-[var(--color-text)] cursor-pointer list-none flex items-center gap-2">
-                                    <meta.icon size={14} className="text-[var(--color-text-faint)]" />
-                                    {meta.label(t)}
-                                    <span className="text-[var(--color-text-faint)]">({inCat.length})</span>
-                                  </summary>
-                                  <div className="flex flex-col gap-2.5 mt-2.5">{inCat.map((s) => renderBridgeRow(s.bridge))}</div>
-                                </details>
-                              );
-                            })}
-                          </div>
+                          <details className="rounded-[var(--radius-lg)] border border-[var(--color-border)] px-3 py-2">
+                            <summary className="text-[13px] text-[var(--color-text)] cursor-pointer list-none">
+                              {matching.length > 0 ? t.zugang.moreBridgesLabel.replace('{count}', String(rest.length)) : `${t.bridges.title} (${rest.length})`}
+                            </summary>
+                            <div className="flex flex-col gap-2.5 mt-2.5">{rest.map((s2) => renderBridgeRow(s2.bridge))}</div>
+                          </details>
                         </>
                       )}
                       {bridgeId && (

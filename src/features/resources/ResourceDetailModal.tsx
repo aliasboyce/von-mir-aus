@@ -18,6 +18,7 @@ import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 import { FitSummary } from '../../components/shared/FitSummary';
 import { subjectOfResource } from '../../content/fitCriteria';
+import { umstandLabel } from '../bridges/conditions';
 
 interface ResourceDetailModalProps {
   resource: Resource | null;
@@ -121,6 +122,22 @@ export function ResourceDetailModal({
           <HilfsmittelDetailsView details={resource.hilfsmittelDetails} description={resource.description} />
         ) : (
           resource.description && <p className="text-[14px] text-[var(--color-text)] leading-relaxed">{resource.description}</p>
+        )}
+
+        {resource.umstaende && resource.umstaende.length > 0 && (
+          <div className="mt-3">
+            <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">{t.bridges.conditionsLabel.replace(/^🧩\s*/, '')}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {resource.umstaende.map((key) => {
+                const u = umstandLabel(key);
+                return u ? (
+                  <span key={key} className="text-[12.5px] rounded-full px-2.5 py-1" style={{ background: 'var(--color-surface-muted)', color: 'var(--color-text)' }}>
+                    {u.emoji} {u.label}
+                  </span>
+                ) : null;
+              })}
+            </div>
+          </div>
         )}
 
         {resource.accessChannels && resource.accessChannels.length > 0 && (

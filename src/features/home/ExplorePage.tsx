@@ -184,18 +184,6 @@ export function ExplorePage() {
         </div>
       )}
       <p className="text-[13px] text-[var(--color-text-faint)] mb-3 leading-relaxed">{t.explore.groupsIntro}</p>
-      <Link
-        to="/system-karte"
-        className="flex items-center gap-3 mb-6 p-4 rounded-[var(--radius-lg)] border border-[var(--color-border)]"
-        style={{ background: 'var(--color-primary-soft)' }}
-      >
-        <span className="text-[32px] flex-shrink-0">🗺️</span>
-        <span className="flex-1">
-          <span className="block text-[16px] font-medium text-[var(--color-text)]">{t.explore.systemMapLink}</span>
-          <span className="block text-[12px] text-[var(--color-text-faint)]">{t.explore.systemMapHint}</span>
-        </span>
-        <span className="text-[18px] text-[var(--color-primary)]">→</span>
-      </Link>
 
       <p className="text-[15px] font-medium text-[var(--color-text)] mb-0.5 mt-1">🔎 {t.explore.groupErforschen}</p>
       <p className="text-[12px] text-[var(--color-text-faint)] mb-5 leading-relaxed">{t.explore.groupErforschenHint}</p>

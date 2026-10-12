@@ -663,88 +663,6 @@ export function SettingsPage() {
           )}
         </Card>
 
-        {/* ================= Tagebuch & automatische Übernahmen ================= */}
-        <SectionLabel>📝 {t.settings.diarySection}</SectionLabel>
-        <Card className="mb-3" padding="md">
-          <p className="text-[13px] font-medium text-[var(--color-text)] mb-1">{t.settings.dailyReviewSection}</p>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.dailyReviewHint}</p>
-
-          <div className="flex flex-col gap-4">
-            <div>
-              <ToggleRow
-                label={t.settings.dailyReviewPolyvagal}
-                checked={settings.dailyReviewShowPolyvagal !== false}
-                onChange={(v) => updateSettings({ dailyReviewShowPolyvagal: v })}
-              />
-              <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">{t.settings.dailyReviewPolyvagalHint}</p>
-            </div>
-            <div>
-              <ToggleRow
-                label={t.settings.dailyReviewMediLog}
-                checked={settings.dailyReviewShowMediLog !== false}
-                onChange={(v) => updateSettings({ dailyReviewShowMediLog: v })}
-              />
-              <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">{t.settings.dailyReviewMediLogHint}</p>
-            </div>
-            <div>
-              <ToggleRow
-                label={t.settings.dailyReviewWeather}
-                checked={settings.dailyReviewShowWeather !== false}
-                onChange={(v) => updateSettings({ dailyReviewShowWeather: v })}
-              />
-              <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">{t.settings.dailyReviewWeatherHint}</p>
-            </div>
-            <div>
-              <ToggleRow
-                label={t.settings.dailyReviewAchievements}
-                checked={settings.dailyReviewShowAchievements !== false}
-                onChange={(v) => updateSettings({ dailyReviewShowAchievements: v })}
-              />
-              <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">{t.settings.dailyReviewAchievementsHint}</p>
-            </div>
-            <div>
-              <ToggleRow
-                label={t.settings.dailyReviewTension}
-                checked={settings.dailyReviewShowTension !== false}
-                onChange={(v) => updateSettings({ dailyReviewShowTension: v })}
-              />
-              <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">{t.settings.dailyReviewTensionHint}</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="mb-6" padding="md">
-          <p className="text-[13px] font-medium text-[var(--color-text)] mb-1">{t.settings.autoEntriesSection}</p>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.autoEntriesSectionHint}</p>
-
-          <div className="flex flex-col gap-4">
-            <div>
-              <ToggleRow
-                label={t.polyvagal.autoAddSetting}
-                checked={!!settings.autoAddCurveToDiary}
-                onChange={(v) => updateSettings({ autoAddCurveToDiary: v })}
-              />
-              <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">{t.settings.autoAddCurveHint}</p>
-            </div>
-            <div>
-              <ToggleRow
-                label={t.mediLog.autoDiaryLabel}
-                checked={!!settings.mediLogAutoDiary}
-                onChange={(v) => updateSettings({ mediLogAutoDiary: v })}
-              />
-              <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">{t.mediLog.autoDiaryHint}</p>
-            </div>
-            <div>
-              <ToggleRow
-                label={t.tension.autoAddSetting}
-                checked={!!settings.autoAddTensionToDiary}
-                onChange={(v) => updateSettings({ autoAddTensionToDiary: v })}
-              />
-              <p className="text-[11px] text-[var(--color-text-faint)] mt-0.5">{t.tension.autoAddHint}</p>
-            </div>
-          </div>
-        </Card>
-
         {/* ================= Hilfe & Anleitung ================= */}
         <SectionLabel>💡 {t.settings.about}</SectionLabel>
         <Card padding="md" className="mb-3">
@@ -758,7 +676,7 @@ export function SettingsPage() {
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.showIntroAgainHint}</p>
         </Card>
 
-        <Link to="/system-karte" className="block mb-6">
+        <Link to="/entdecken" className="block mb-6">
           <Card padding="md">
             <div className="flex items-center gap-2.5">
               <Compass size={17} className="text-[var(--color-primary)]" />

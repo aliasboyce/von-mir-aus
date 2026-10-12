@@ -1,9 +1,23 @@
 import { isRemoteImage, useRemoteImagesAllowed } from '../../services/onlineImages';
-import type { Bridge } from '../../data/types';
+import type { Bridge, StepExtras } from '../../data/types';
+import { useT } from '../../i18n';
+import { resourcesRepo } from '../resources/resourcesRepo';
+import { networkRepo } from '../safetyNet/networkRepo';
+
+function extrasText(e?: StepExtras): string {
+  if (!e) return '';
+  const names = [
+    ...(e.skillIds ?? []).map((id) => resourcesRepo.getById(id)?.title),
+    ...(e.hilfsmittelIds ?? []).map((id) => resourcesRepo.getById(id)?.title),
+    ...(e.ortIds ?? []).map((id) => resourcesRepo.getById(id)?.title),
+    ...(e.aktivitaetIds ?? []).map((id) => resourcesRepo.getById(id)?.title),
+    ...(e.helperIds ?? []).map((id) => networkRepo.getById(id)?.name),
+  ].filter(Boolean);
+  return names.join(' · ');
+}
 
 interface BridgePrintViewProps {
   bridges: Bridge[];
-  categoryLabel: (category: string) => string;
   title?: string;
 }
 
@@ -11,7 +25,8 @@ interface BridgePrintViewProps {
  * Takes an array so the same component serves both single-bridge export
  * (an array of one) and export-all/selected from the list page — each
  * bridge gets its own page-break-protected block. */
-export function BridgePrintView({ bridges, categoryLabel, title }: BridgePrintViewProps) {
+export function BridgePrintView({ bridges, title }: BridgePrintViewProps) {
+  const t = useT();
   const remoteOk = useRemoteImagesAllowed();
   if (bridges.length === 0) return null;
   return (
@@ -27,6 +42,7 @@ export function BridgePrintView({ bridges, categoryLabel, title }: BridgePrintVi
             />
           )}
 
+          {(bridge.connectionTags ?? []).length > 0 && (
           <span
             style={{
               display: 'inline-block',
@@ -41,8 +57,9 @@ export function BridgePrintView({ bridges, categoryLabel, title }: BridgePrintVi
               marginBottom: 12,
             }}
           >
-            {categoryLabel(bridge.category)}
+            {(bridge.connectionTags ?? []).join(' · ')}
           </span>
+          )}
 
           <h2 style={{ fontSize: 26, fontWeight: 600, marginBottom: 16, lineHeight: 1.25 }}>{bridge.title}</h2>
 
@@ -54,9 +71,10 @@ export function BridgePrintView({ bridges, categoryLabel, title }: BridgePrintVi
             {bridge.levels.map((level) => (
               <div key={level.level} style={{ borderLeft: '3px solid #d8d8d8', paddingLeft: 14, breakInside: 'avoid' }}>
                 <p style={{ fontSize: 13, fontWeight: 600, color: '#555', marginBottom: 2 }}>
-                  Level {level.level} — {level.title}
+                  {t.bridges.level} {level.level} — {level.title}
                 </p>
                 <p style={{ fontSize: 14, lineHeight: 1.6, color: '#2a2a2a' }}>{level.description}</p>
+                {extrasText(level.extras) && <p style={{ fontSize: 12.5, lineHeight: 1.5, color: '#666', marginTop: 3 }}>{extrasText(level.extras)}</p>}
               </div>
             ))}
           </div>

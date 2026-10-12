@@ -13,7 +13,6 @@ import { LetterEnvelope } from '../briefAnMich/LetterEnvelope';
 import { CompanionDock } from '../../components/companion/CompanionDock';
 import { AboutVonMirAusModal } from '../../components/shared/AboutVonMirAusModal';
 import { ABOUT_VON_MIR_AUS_TEXT } from '../../content/aboutContent';
-import { ContinueSection } from './ContinueSection';
 import { AchievementSection } from './AchievementSection';
 import { Card } from '../../components/ui/Card';
 import { useT } from '../../i18n';
@@ -23,12 +22,6 @@ import { weatherRepo } from '../innerWeather/weatherRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import { getDueCustomReminders, dismissCustomReminder, type CustomReminder } from '../../services/customReminders';
 import { BRIDGE_CATEGORY_META } from '../bridges/bridgeMeta';
-import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
-import { tensionRepo } from '../polyvagal/tensionRepo';
-import { describeTensionDay } from '../polyvagal/describeTensionDay';
-import { describeDay } from '../polyvagal/describeDay';
-import { diaryRepo } from '../diary/diaryRepo';
-import { createId } from '../../services/storage/repository';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { getHomeContext, getBestEffortWeather } from './homeContext';
 import { pickHomeContextLine, pickCustomHomeLine } from './homeCompanionLines';
@@ -66,10 +59,6 @@ function reminderTimesFor(settings: { weatherReminderTimes?: string[]; weatherRe
   return ['09:00'];
 }
 
-function dateKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
 export function HomePage() {
   const t = useT();
   const say = useCompanionSay();
@@ -86,60 +75,6 @@ export function HomePage() {
   const { unread: unreadMail, prominent: prominentMail } = useMailbox();
   const dueLetters = dueUnopenedLetters();
   const [dueCustomReminders, setDueCustomReminders] = useState<CustomReminder[]>(() => getDueCustomReminders());
-
-  // Auto-add yesterday's day-curve summary to the diary once per day, if
-  // the person opted in — runs at most once per calendar day.
-  useEffect(() => {
-    if (!settings.autoAddCurveToDiary) return;
-    const today = dateKey(new Date());
-    if (settings.lastAutoCurveDiaryDate === today) return;
-
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yKey = dateKey(yesterday);
-    const yesterdayCheckIns = polyvagalRepo
-      .getAll()
-      .filter((c) => c.createdAt.slice(0, 10) === yKey);
-
-    if (yesterdayCheckIns.length > 0) {
-      const now = new Date().toISOString();
-      diaryRepo.save({
-        id: createId('diary'),
-        createdAt: now,
-        updatedAt: now,
-        content: `${t.polyvagal.todayChart}\n${describeDay(yesterdayCheckIns, t)}`,
-        polyvagalSnapshot: yesterdayCheckIns.map((c) => ({ zone: c.zone, createdAt: c.createdAt })),
-      });
-    }
-    updateSettings({ lastAutoCurveDiaryDate: today });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.autoAddCurveToDiary]);
-
-  // Same mechanism, entirely independent setting — the personal tension
-  // curve and the polyvagal day curve are separate records, so a person
-  // can opt each into the diary independently.
-  useEffect(() => {
-    if (!settings.autoAddTensionToDiary) return;
-    const today = dateKey(new Date());
-    if (settings.lastAutoTensionDiaryDate === today) return;
-
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yKey = dateKey(yesterday);
-    const yesterdayTension = tensionRepo.getAll().filter((e) => e.createdAt.slice(0, 10) === yKey);
-
-    if (yesterdayTension.length > 0) {
-      const now = new Date().toISOString();
-      diaryRepo.save({
-        id: createId('diary'),
-        createdAt: now,
-        updatedAt: now,
-        content: `${t.tension.title}\n${describeTensionDay(yesterdayTension, t)}`,
-      });
-    }
-    updateSettings({ lastAutoTensionDiaryDate: today });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.autoAddTensionToDiary]);
 
   // Contextual companion aside: time-of-day / weekend / (best-effort,
   // permission-gated) weather. Only ~45% of Home visits so it stays a
@@ -506,7 +441,6 @@ export function HomePage() {
       {!settings.nurJetztMode && (
         <>
           <AchievementSection />
-          <ContinueSection />
         </>
       )}
 

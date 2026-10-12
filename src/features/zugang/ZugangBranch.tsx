@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, GitBranch, Play, Wind, Compass } from 'lucide-react';
+import { Sparkles, GitBranch, Play, Wind, Compass, Check } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
@@ -34,12 +34,14 @@ export function ZugangBranch({
   intent,
   onChoose,
   onFinishRegulate,
+  onFinish,
 }: {
   mode: 'choose' | 'regulate';
   band: ArousalBand | null;
   intent: ZugangIntent;
   onChoose: (c: 'regulate' | 'need') => void;
   onFinishRegulate: () => void;
+  onFinish: () => void;
 }) {
   const t = useT();
   const b = t.zugang.branch;
@@ -82,6 +84,15 @@ export function ZugangBranch({
             </button>
           ))}
         </div>
+        <button type="button" onClick={onFinish} className="w-full text-left mt-3">
+          <Card className="flex gap-3 items-start">
+            <Check size={20} className="text-[var(--color-text-faint)] flex-shrink-0 mt-0.5" />
+            <span className="block">
+              <span className="block text-[15px] text-[var(--color-text)]">{b.doneTitle}</span>
+              <span className="block text-[12.5px] text-[var(--color-text-muted)] leading-snug mt-0.5">{b.doneText}</span>
+            </span>
+          </Card>
+        </button>
         <p className="text-[11.5px] text-[var(--color-text-faint)] mt-4 leading-relaxed">{b.freeChoice}</p>
       </div>
     );

@@ -30,3 +30,59 @@ export const CONDITIONS: Condition[] = [
   { id: 'abends', label: 'eher abends', labelEn: 'rather in the evening', emoji: '🌙' },
   { id: 'vorher-bewegung', label: 'vorher etwas Bewegung', labelEn: 'some movement first', emoji: '🏃' },
 ];
+
+// ---------------------------------------------------------------------
+// "Umstände": one global, person-extendable list ("genügend Schlaf gehabt",
+// "ruhiger Ort" …). No page of its own — the list is offered wherever
+// something is created or edited (Skills, Hilfsmittel, Orte, Aktivitäten,
+// Brücken): pick from it or type a new one, which is then saved here and
+// always selectable afterwards. Seeded once from CONDITIONS above.
+// ---------------------------------------------------------------------
+import { createKeyValueStore } from '../../services/storage/keyValueStore';
+import { createId } from '../../services/storage/repository';
+
+export interface UmstandOption {
+  key: string;
+  label: string;
+  emoji: string;
+}
+
+const umstaendeStore = createKeyValueStore<UmstandOption[]>('umstaende-list', []);
+
+/** What a bridge/resource stores for an Umstand: the old condition id for the seeded ones, else a generated key. */
+export function loadUmstaende(): UmstandOption[] {
+  return umstaendeStore.get();
+}
+
+/** Adds a typed Umstand (or returns the existing one with the same label). */
+export function addUmstand(label: string): UmstandOption {
+  const clean = label.trim();
+  const all = umstaendeStore.get();
+  const hit = all.find((u) => u.label.toLowerCase() === clean.toLowerCase());
+  if (hit) return hit;
+  const created: UmstandOption = { key: createId('umst'), label: clean, emoji: '🧩' };
+  umstaendeStore.set([...all, created]);
+  return created;
+}
+
+/** Seeds the list from the built-in conditions once; used by the startup migration. */
+export function ensureUmstaendeSeeded(extra: UmstandOption[] = []) {
+  const all = umstaendeStore.get();
+  const have = new Set(all.map((u) => u.key));
+  const add: UmstandOption[] = [];
+  CONDITIONS.forEach((c) => {
+    if (!have.has(c.id)) add.push({ key: c.id, label: c.label, emoji: c.emoji });
+  });
+  extra.forEach((u) => {
+    if (!have.has(u.key) && !add.some((x) => x.key === u.key)) add.push(u);
+  });
+  if (add.length > 0) umstaendeStore.set([...all, ...add]);
+}
+
+/** Label for a stored key — also for old entries whose Umstand is no longer in the list. */
+export function umstandLabel(key: string): UmstandOption | undefined {
+  const hit = loadUmstaende().find((u) => u.key === key);
+  if (hit) return hit;
+  const c = CONDITIONS.find((x) => x.id === key);
+  return c ? { key, label: c.label, emoji: c.emoji } : undefined;
+}

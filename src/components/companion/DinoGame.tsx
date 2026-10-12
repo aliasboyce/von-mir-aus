@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
@@ -23,7 +24,48 @@ import { LichtCompanion } from './LichtCompanion';
  */
 const highScoreStore = createKeyValueStore<number>('dino-game-highscore', 0);
 
-const GROUND_Y = 118;
+// "Lauf am Laptop groesser, am Handy ueber den ganzen Bildschirm"-Auftrag —
+// the world is always WORLD_W logical px wide (so speeds/obstacle spacing
+// feel identical everywhere); its height and the CSS scale vary with the
+// screen. GROUND_Y is therefore set from the current layout before every
+// frame instead of being a fixed 118.
+const WORLD_W = 320;
+const WORLD_MIN_H = 150;
+const GROUND_MARGIN = 32;
+let GROUND_Y = WORLD_MIN_H - GROUND_MARGIN;
+// A tap that comes slightly before landing still counts as the next jump.
+const JUMP_BUFFER_MS = 160;
+
+interface GameLayout {
+  /** CSS scale of the logical world */
+  S: number;
+  /** logical world height */
+  H: number;
+  /** backing-store multiplier for a crisp canvas */
+  k: number;
+  portrait: boolean;
+}
+
+function computeLayout(): GameLayout {
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 360;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 640;
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  const portrait = vh > vw * 0.9;
+  let S: number;
+  let H: number;
+  if (portrait) {
+    // phone: edge to edge, the world grows taller to fill the screen
+    S = vw / WORLD_W;
+    H = Math.max(WORLD_MIN_H, vh / S);
+  } else {
+    // laptop / landscape: as large as the window allows (title + scores
+    // need ~110px above/below)
+    S = Math.max(1, Math.min((vw * 0.94) / WORLD_W, (vh - 110) / WORLD_MIN_H));
+    H = WORLD_MIN_H;
+  }
+  const k = Math.min(4, Math.max(1, Math.ceil(S * dpr)));
+  return { S, H, k, portrait };
+}
 const COMPANION_X = 46;
 const COMPANION_SIZE = 34;
 // LichtCompanion's own "small" size is a fixed 76px — scaled down to
@@ -139,7 +181,21 @@ export function DinoGame({ onClose }: DinoGameProps) {
     sparkCount: 0,
     timeLeftMs: START_TIME_MS,
     landscapeOffset: 0,
+    jumpBufferedUntil: 0,
   });
+
+  const [layout, setLayout] = useState<GameLayout>(() => computeLayout());
+  const layoutRef = useRef(layout);
+  layoutRef.current = layout;
+  useEffect(() => {
+    const onResize = () => setLayout(computeLayout());
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, []);
 
   const [, forceRender] = useState(0);
   const [displayTimeMs, setDisplayTimeMs] = useState(START_TIME_MS);
@@ -156,9 +212,19 @@ export function DinoGame({ onClose }: DinoGameProps) {
       return;
     }
     if (s.gameOver) return;
-    if (!s.onGround) return;
+    if (!s.onGround) {
+      // tapped a hair too early — remember it, fire on landing
+      s.jumpBufferedUntil = performance.now() + JUMP_BUFFER_MS;
+      return;
+    }
+    doJump();
+  }
+
+  function doJump() {
+    const s = stateRef.current;
     s.velocityY = JUMP_VELOCITY;
     s.onGround = false;
+    s.jumpBufferedUntil = 0;
     // "Nur der Klick-Ton beim Springen, der Aufwach-Ton ist nervig"-
     // Auftrag — playCompanionSound('wake', ...) removed.
     playSound('click', settings);
@@ -212,8 +278,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const width = canvas.width;
-    const height = canvas.height;
+    const width = WORLD_W;
     function drawObstacle(o: Obstacle) {
       if (!ctx) return;
       const baseY = GROUND_Y - o.height;
@@ -378,6 +443,9 @@ export function DinoGame({ onClose }: DinoGameProps) {
       const dt = Math.min(48, ts - s.lastTs);
       s.lastTs = ts;
 
+      const { H: height, k } = layoutRef.current;
+      GROUND_Y = height - GROUND_MARGIN - (layoutRef.current.portrait ? 96 / layoutRef.current.S : 0);
+      ctx.setTransform(k, 0, 0, k, 0, 0);
       ctx.clearRect(0, 0, width, height);
       const landscapePos = landscapePosition(s.speed);
       drawLandscape(landscapePos, s.landscapeOffset);
@@ -408,6 +476,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
           s.companionY = 0;
           s.velocityY = 0;
           s.onGround = true;
+          if (s.jumpBufferedUntil > performance.now()) doJump();
         }
 
         // spawn obstacles
@@ -520,36 +589,77 @@ export function DinoGame({ onClose }: DinoGameProps) {
   }, [settings]);
 
   const s = stateRef.current;
+  const { S, H, k, portrait } = layout;
+  const groundNow = H - GROUND_MARGIN - (portrait ? 96 / S : 0);
+  const companionBaseY = groundNow - COMPANION_SIZE;
 
-  return (
-    <div className="fixed inset-0 z-[400] flex flex-col items-center justify-center bg-[var(--color-surface)]" onClick={jump}>
+  const footer = (
+    <>
+      <div className="flex items-center justify-center gap-4 text-[12px] text-[var(--color-text-faint)]">
+        <span>{t.dinoGame.scoreLabel.replace('{score}', String(displayScore))}</span>
+        <span>{t.dinoGame.highScoreLabel.replace('{score}', String(highScore))}</span>
+      </div>
+      <p className="mt-2 text-[12px] text-[var(--color-text-faint)] max-w-[260px] text-center mx-auto">{t.dinoGame.instructions}</p>
+    </>
+  );
+
+  // Rendered into document.body: the dock that launches the game sits inside a
+  // transformed container, which turns `position: fixed` into "fixed relative to
+  // the dock" — the game then only filled a small box instead of the screen.
+  return createPortal(
+    // onPointerDown instead of onClick: fires the moment the finger
+    // touches down, so the jump no longer waits for the finger to lift.
+    <div
+      className="fixed inset-0 z-[400] flex flex-col items-center justify-center bg-[var(--color-surface)] touch-none select-none"
+      onPointerDown={jump}
+    >
       <button
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           onClose();
         }}
         aria-label={t.common.close}
-        className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)]"
+        className="absolute right-5 w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] z-10"
         style={{ top: 'max(20px, env(safe-area-inset-top))' }}
       >
         <X size={18} />
       </button>
 
-      <p className="text-[13px] text-[var(--color-text-faint)] mb-2">{t.dinoGame.title}</p>
+      {!portrait && <p className="text-[13px] text-[var(--color-text-faint)] mb-2">{t.dinoGame.title}</p>}
 
-      <div className="relative">
-        <canvas ref={canvasRef} width={320} height={150} className="rounded-[var(--radius-lg)]" style={{ background: 'var(--color-surface-muted)' }} />
+      <div
+        className="relative overflow-hidden"
+        style={{
+          width: WORLD_W * S,
+          height: H * S,
+          background: 'var(--color-surface-muted)',
+          borderRadius: portrait ? 0 : 'var(--radius-lg)',
+        }}
+      >
         <div
-          ref={companionElRef}
-          className="absolute top-0 left-0 pointer-events-none"
-          style={{ width: 76, height: 76, transformOrigin: 'top left', transform: `translate(${COMPANION_X}px, ${GROUND_Y - COMPANION_SIZE}px) scale(${COMPANION_DISPLAY_SCALE})` }}
+          className="absolute top-0 left-0"
+          style={{ width: WORLD_W, height: H, transform: `scale(${S})`, transformOrigin: 'top left' }}
         >
-          <LichtCompanion size="small" sleepStateOverride={s.onGround ? 'awake' : undefined} />
+          <canvas
+            ref={canvasRef}
+            width={WORLD_W * k}
+            height={Math.round(H * k)}
+            style={{ width: WORLD_W, height: H, display: 'block' }}
+          />
+          <div
+            ref={companionElRef}
+            className="absolute top-0 left-0 pointer-events-none"
+            style={{ width: 76, height: 76, transformOrigin: 'top left', transform: `translate(${COMPANION_X}px, ${companionBaseY}px) scale(${COMPANION_DISPLAY_SCALE})` }}
+          >
+            <LichtCompanion size="small" sleepStateOverride={s.onGround ? 'awake' : undefined} />
+          </div>
         </div>
         {s.started && !gameOverUi && (
           <div
-            className="absolute top-2 right-2.5 text-[12px] tabular-nums px-2 py-0.5 rounded-full"
+            className="absolute top-3 text-[13px] tabular-nums px-2.5 py-1 rounded-full"
             style={{
+              right: portrait ? 64 : 16,
               background: 'var(--color-surface)',
               color: displayTimeMs < 5000 ? '#c1495c' : 'var(--color-text-muted)',
             }}
@@ -563,12 +673,13 @@ export function DinoGame({ onClose }: DinoGameProps) {
           </div>
         )}
         {gameOverUi && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[var(--color-surface)]/90 rounded-[var(--radius-lg)]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[var(--color-surface)]/90">
             <p className="text-[15px] text-[var(--color-text)]">
               {gameOverReason === 'timeout' ? t.dinoGame.timeUp : t.dinoGame.gameOver}
             </p>
             <p className="text-[13px] text-[var(--color-text-muted)]">{t.dinoGame.scoreLabel.replace('{score}', String(finalScore))}</p>
             <button
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 startRun();
@@ -579,15 +690,22 @@ export function DinoGame({ onClose }: DinoGameProps) {
             </button>
           </div>
         )}
+        {portrait && (
+          <>
+            <p className="absolute top-3 left-4 text-[13px] text-[var(--color-text-muted)] bg-[var(--color-surface)]/80 px-2.5 py-0.5 rounded-full" style={{ top: 'max(14px, env(safe-area-inset-top))' }}>
+              {t.dinoGame.title}
+            </p>
+            <div className="absolute left-0 right-0 bottom-0 pb-5 pt-3" style={{ height: 96 }}>
+              {footer}
+            </div>
+          </>
+        )}
       </div>
 
-      <div className="mt-3 flex items-center gap-4 text-[12px] text-[var(--color-text-faint)]">
-        <span>{t.dinoGame.scoreLabel.replace('{score}', String(displayScore))}</span>
-        <span>{t.dinoGame.highScoreLabel.replace('{score}', String(highScore))}</span>
-      </div>
-      <p className="mt-4 text-[12px] text-[var(--color-text-faint)] max-w-[260px] text-center">{t.dinoGame.instructions}</p>
+      {!portrait && <div className="mt-3">{footer}</div>}
 
       {checkInOpen && (
+        <div onPointerDown={(e) => e.stopPropagation()}>
         <UsageCheckInPrompt
           context="game"
           onContinue={() => setCheckInOpen(false)}
@@ -596,7 +714,9 @@ export function DinoGame({ onClose }: DinoGameProps) {
             onClose();
           }}
         />
+        </div>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
