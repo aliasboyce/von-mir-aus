@@ -4,6 +4,7 @@ import { GitBranch, Sparkles, Wrench, MapPin, Activity, BookMarked } from 'lucid
 import { useT } from '../../i18n';
 import { useFitFilter } from '../../state/fitFilterStore';
 import { FitSummary } from '../../components/shared/FitSummary';
+import { ResourceTile, ChainTile } from '../../components/shared/ItemTile';
 import { createCustomCategoryStore } from '../../services/customCategories';
 import { filterByFit, isFitFilterActive, subjectOfResource, type FitSubject } from '../../content/fitCriteria';
 import { skillkettenRepo } from './skillkettenRepo';
@@ -25,6 +26,8 @@ interface Row {
   subject: FitSubject;
   /** the resource behind the row (for need matching) */
   res?: Resource;
+  /** a skill chain row */
+  chain?: boolean;
 }
 
 /**
@@ -62,6 +65,7 @@ export function useFitRows() {
       title: k.title,
       to: `/entdecken/ressourcen/skillketten/${k.id}`,
       subject: chainFitSubject(k, byId),
+      chain: true,
     }));
     const pick = (rows: Row[]) => filterByFit(rows, (r) => r.subject, filter);
     return { filter, ketten: pick(ketten), skills: pick(skills), hilfsmittel: pick(hilfsmittel), orte: pick(orte), aktivitaeten: pick(aktivitaeten), all: { ketten, skills, hilfsmittel, orte, aktivitaeten } };
@@ -113,25 +117,28 @@ export function FitResults({ need }: { need?: NeedDirection | null }) {
             <div className="flex flex-col gap-1.5">
               {(expanded[g.key] || g.rows.length <= PREVIEW_COUNT ? g.rows : g.rows.slice(0, PREVIEW_COUNT)).map((row) => {
                 const external = g.key === 'quellen';
-                const inner = (
-                  <>
-                    <span className="block text-[14px] text-[var(--color-text)] mb-1">{row.title}</span>
-                    {!external && <FitSummary subject={row.subject} />}
-                  </>
-                );
-                const style = { background: 'var(--color-surface)', border: '1px solid var(--color-border)' };
-                const cls = 'px-3 py-2.5 rounded-[var(--radius-md)] block';
-                return external && /^https?:\/\//i.test(row.to) ? (
-                  <a key={row.id} href={row.to} target="_blank" rel="noopener noreferrer" className={cls} style={style}>
-                    {inner}
-                  </a>
-                ) : external ? (
-                  <Link key={row.id} to="/entdecken/lesezeichen" className={cls} style={style}>
-                    {inner}
-                  </Link>
-                ) : (
-                  <Link key={row.id} to={row.to} className={cls} style={style}>
-                    {inner}
+                if (external) {
+                  const isWeb = /^https?:\/\//i.test(row.to);
+                  const tile = (
+                    <div className="px-3 py-2.5 rounded-[var(--radius-md)] block" style={{ background: 'color-mix(in srgb, var(--color-surface) 90%, #9a7bc4 8%)', border: '1px solid #9a7bc455' }}>
+                      <span className="block text-[10.5px] uppercase tracking-wide mb-0.5" style={{ color: '#9a7bc4' }}>🔖 {g.title}</span>
+                      <span className="block text-[14px] text-[var(--color-text)]">{row.title}</span>
+                    </div>
+                  );
+                  return isWeb ? (
+                    <a key={row.id} href={row.to} target="_blank" rel="noopener noreferrer">{tile}</a>
+                  ) : (
+                    <Link key={row.id} to="/entdecken/lesezeichen">{tile}</Link>
+                  );
+                }
+                const extra = <FitSummary subject={row.subject} />;
+                return (
+                  <Link key={row.id} to={row.to} className="block">
+                    {row.res ? (
+                      <ResourceTile resource={row.res} extra={extra} />
+                    ) : (
+                      <ChainTile chain={{ title: row.title }} extra={extra} />
+                    )}
                   </Link>
                 );
               })}

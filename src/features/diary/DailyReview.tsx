@@ -1,3 +1,6 @@
+import { ItemTile, ResourceTile, BridgeTile } from '../../components/shared/ItemTile';
+import { resourcesRepo } from '../resources/resourcesRepo';
+import { bridgesRepo } from '../bridges/bridgesRepo';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
@@ -217,9 +220,17 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
           {(activities.length > 0 || zugangCount > 0 || garden.length > 0) && (
             <div className="mb-3">
               <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{t.reviewSummary.pdfUsedTitle}</p>
-              {activities.map((a) => (
-                <p key={a.id} className="text-[13px] text-[var(--color-text)]">• {a.label}</p>
-              ))}
+              <div className="flex flex-col gap-1.5 mb-1">
+                {activities.map((a) => {
+                  const res = a.type === 'resource' && a.refId ? resourcesRepo.getById(a.refId) : undefined;
+                  const br = a.type === 'bridge' && a.refId ? bridgesRepo.getById(a.refId) : undefined;
+                  if (res) return <ResourceTile key={a.id} resource={res} compact />;
+                  if (br) return <BridgeTile key={a.id} bridge={br} compact />;
+                  if (a.type === 'grounding') return <ItemTile key={a.id} color="#6fbf73" emoji="🧭" title={a.label} compact />;
+                  const meta = a.type === 'contact' ? { c: '#4a6fa5', e: '🤝' } : { c: '#9a948a', e: '✨' };
+                  return <ItemTile key={a.id} color={meta.c} emoji={meta.e} title={a.label} compact />;
+                })}
+              </div>
               {zugangCount > 0 && <p className="text-[13px] text-[var(--color-text)]">• {t.reviewSummary.pdfZugangTitle}: {t.reviewSummary.pdfZugangCount.replace('{n}', String(zugangCount))}</p>}
               {garden.map((g) => (
                 <p key={g} className="text-[13px] text-[var(--color-text)]">• {t.reviewSummary.pdfGardenTitle}: {g}</p>

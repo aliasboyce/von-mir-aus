@@ -129,7 +129,7 @@ export function HomePage() {
   // reminder / custom reminders that also show as cards below.
   const liveEntries: LiveEntry[] = [
     ...(!settings.nurJetztMode && dueLetters.length > 0
-      ? [{ key: 'letter', kind: 'letter' as const, title: t.postfach.letterTitle, text: t.briefAnMich.arrivedBanner, actionLabel: t.briefAnMich.tapToOpen, onAction: () => setOpenLetter(dueLetters[0]) }]
+      ? [{ key: 'letter', kind: 'letter' as const, title: t.postfach.letterTitle, text: dueLetters[0].fromName ? t.briefAnMich.arrivedFromBanner.replace('{name}', dueLetters[0].fromName) : t.briefAnMich.arrivedBanner, actionLabel: t.briefAnMich.tapToOpen, onAction: () => setOpenLetter(dueLetters[0]) }]
       : []),
     ...(showReminder
       ? [{ key: 'checkin', kind: 'checkin' as const, title: t.postfach.checkInTitle, text: t.home.reminderBanner, actionLabel: t.home.checkInCta, actionTo: '/inneres-wetter', onDismiss: () => setReminderDismissed(true) }]
@@ -250,7 +250,7 @@ export function HomePage() {
         <Card padding="md" className="mb-6 flex items-center gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
           <Mail size={20} className="text-[var(--color-accent-clay)] flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-[13px] text-[var(--color-text)]">{t.briefAnMich.arrivedBanner}</p>
+            <p className="text-[13px] text-[var(--color-text)]">{dueLetters[0].fromName ? t.briefAnMich.arrivedFromBanner.replace('{name}', dueLetters[0].fromName) : t.briefAnMich.arrivedBanner}</p>
           </div>
           <button onClick={() => setOpenLetter(dueLetters[0])} className="text-[13px] text-[var(--color-primary)] flex-shrink-0">
             {t.briefAnMich.tapToOpen}

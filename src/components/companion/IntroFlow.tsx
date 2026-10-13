@@ -7,6 +7,7 @@ import { LICHTWESEN } from './lichtwesen';
 import { useSettings } from '../../state/SettingsContext';
 import { Button } from '../ui/Button';
 import { useT } from '../../i18n';
+import { tourIndexStore } from './tourData';
 
 interface IntroSlide {
   text: string;
@@ -53,6 +54,7 @@ export function IntroFlow() {
       // overlay (rendered by AppShell once tourActive is set), landing on
       // Home first. The actual first check-in happens once the tour
       // finishes or is closed (see AppShell).
+      tourIndexStore.set(0);
       updateSettings({ introSeen: true, tourActive: true });
       navigate('/');
       return;

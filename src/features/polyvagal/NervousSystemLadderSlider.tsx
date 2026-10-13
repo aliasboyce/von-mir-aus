@@ -1,3 +1,5 @@
+import { ResourceTile } from '../../components/shared/ItemTile';
+import { resourcesRepo } from '../resources/resourcesRepo';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
@@ -529,7 +531,22 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
             </div>
             <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-4">{zoneT.label} · {zoneT.sublabel}</p>
             <div className="flex flex-col gap-2">
-              {band.exercises.map((ex) => (
+              {band.exercises.map((ex) => {
+                const res = resourcesRepo.getById(ex.resourceId);
+                if (res) {
+                  return (
+                    <ResourceTile
+                      key={ex.resourceId}
+                      resource={{ ...res, title: ex.exerciseName }}
+                      onClick={() => {
+                        setExercisePickerOpen(false);
+                        navigate(`/entdecken/ressourcen/skills?open=${ex.resourceId}`);
+                      }}
+                      trailing={<span className="pr-2" style={{ color: band.color }}>→</span>}
+                    />
+                  );
+                }
+                return (
                 <button
                   key={ex.resourceId}
                   onClick={() => {
@@ -542,7 +559,8 @@ export function NervousSystemLadderSlider({ onSelect, selectedState, value: cont
                   {ex.exerciseName}
                   <span style={{ color: band.color }}>→</span>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>,

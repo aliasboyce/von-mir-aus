@@ -653,7 +653,7 @@ export interface Bookmark {
   updatedAt: string;
 }
 
-export type ActivityType = 'resource' | 'bridge' | 'contact' | 'checkin';
+export type ActivityType = 'resource' | 'bridge' | 'contact' | 'checkin' | 'grounding';
 
 /**
  * A lightweight, shared log of "I used/did this" moments — the single
@@ -963,6 +963,8 @@ export interface UserSettings {
   brainState: BrainState;
   /** "Hilfsmittel in den Weg legen": the Wesen shows one of the person's own Ressourcen on the start page now and then. On unless switched off. */
   resourceNudgeEnabled?: boolean;
+  /** The Wesen now and then offers a 10-second smuggle ("Los") while the app is open. On unless switched off. */
+  schmuggelPopupEnabled?: boolean;
   /** Audit follow-up, "Nur jetzt" — a session-scoped, deliberately NOT
    * auto-persisted-forever mode (see HomePage.tsx) that hides
    * backward-looking content on the home screen. Off by default, and

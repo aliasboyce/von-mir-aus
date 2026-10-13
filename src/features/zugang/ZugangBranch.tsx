@@ -1,3 +1,4 @@
+import { ResourceTile, ChainTile } from '../../components/shared/ItemTile';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles, GitBranch, Play, Wind, Compass, Check } from 'lucide-react';
@@ -145,9 +146,12 @@ export function ZugangBranch({
               <div className="flex flex-col gap-1.5">
                 {(showAll ? g.rows : g.rows.slice(0, SHOW_FIRST)).map((row) => (
                   <div key={row.id} className="flex items-stretch gap-1.5">
-                    <Link to={row.to} onClick={() => onTry?.(row.title)} className="flex-1 min-w-0 px-3 py-2.5 rounded-[var(--radius-md)] block" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-                      <span className="block text-[14px] text-[var(--color-text)] mb-1">{row.title}</span>
-                      <FitSummary subject={row.subject} />
+                    <Link to={row.to} onClick={() => onTry?.(row.title)} className="flex-1 min-w-0 block">
+                      {row.res ? (
+                        <ResourceTile resource={row.res} extra={<FitSummary subject={row.subject} />} />
+                      ) : (
+                        <ChainTile chain={{ title: row.title }} extra={<FitSummary subject={row.subject} />} />
+                      )}
                     </Link>
                     <Link to={g.start(row.id)} onClick={() => onTry?.(row.title)} aria-label={`${row.title} – ${b.start}`} className="px-3 rounded-[var(--radius-md)] flex items-center justify-center" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
                       <Play size={16} />

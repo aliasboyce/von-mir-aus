@@ -115,9 +115,9 @@ export function CalendarPage() {
     if (w) wishesRepo.save({ ...w, done: !w.done });
     refresh();
   }
-  function setIntent(id: string, intent: 'will' | 'soll') {
+  function cycleIntent(id: string) {
     const w = wishesRepo.getById(id);
-    if (w) wishesRepo.save({ ...w, intent: w.intent === intent ? undefined : intent });
+    if (w) wishesRepo.save({ ...w, intent: w.intent === undefined ? 'will' : w.intent === 'will' ? 'soll' : undefined });
     refresh();
   }
   function removeWish(id: string) {
@@ -256,27 +256,29 @@ export function CalendarPage() {
                 <span className="flex-1 text-[14px]" style={{ color: w.done ? 'var(--color-text-faint)' : 'var(--color-text)', opacity: w.done ? 0.75 : 1, textDecoration: w.done ? 'line-through' : 'none' }}>
                   {w.text}
                 </span>
+                {/* one single tag per entry: tap to cycle  –  will ich  →  soll ich  →  – */}
+                <button
+                  onClick={() => cycleIntent(w.id)}
+                  aria-label={t.calendar.intentCycleLabel}
+                  className="rounded-full px-2.5 py-0.5 text-[11px] border flex-shrink-0"
+                  style={
+                    w.intent === 'will'
+                      ? { background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }
+                      : w.intent === 'soll'
+                        ? { background: 'var(--color-surface)', borderColor: 'var(--color-accent-clay)', color: 'var(--color-accent-clay)' }
+                        : { borderColor: 'var(--color-border)', color: 'var(--color-text-faint)', borderStyle: 'dashed' }
+                  }
+                >
+                  {w.intent === 'will' ? t.calendar.intentWill : w.intent === 'soll' ? t.calendar.intentSoll : t.calendar.intentUnset}
+                </button>
                 <button onClick={() => removeWish(w.id)} aria-label={t.calendar.wishDelete} className="p-1 text-[var(--color-text-faint)]">
                   <X size={14} />
                 </button>
-                {/* will ich / soll ich — two small marks, tap again to clear */}
-                <div className="basis-full pl-[34px] flex gap-1.5 -mt-1">
-                  {(['will', 'soll'] as const).map((k) => (
-                    <button
-                      key={k}
-                      onClick={() => setIntent(w.id, k)}
-                      aria-pressed={w.intent === k}
-                      className="rounded-full px-2.5 py-0.5 text-[11px] border"
-                      style={w.intent === k ? { background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', color: 'var(--color-primary)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-faint)' }}
-                    >
-                      {k === 'will' ? t.calendar.intentWill : t.calendar.intentSoll}
-                    </button>
-                  ))}
-                </div>
               </div>
             ))}
           </div>
-          <div className="flex gap-1.5 mb-2">
+          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+            <span className="text-[11.5px] text-[var(--color-text-faint)]">{t.calendar.intentFormLabel}</span>
             {(['will', 'soll'] as const).map((k) => (
               <button
                 key={k}
@@ -295,6 +297,7 @@ export function CalendarPage() {
               {t.calendar.wishAdd}
             </button>
           </div>
+          <p className="text-[11px] text-[var(--color-text-faint)] mt-2.5 leading-relaxed">{t.calendar.intentExplain}</p>
         </div>
       </div>
 

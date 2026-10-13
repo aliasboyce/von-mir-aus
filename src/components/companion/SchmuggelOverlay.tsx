@@ -9,39 +9,45 @@ import { useSettings } from '../../state/SettingsContext';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { triggerHaptic } from '../../services/haptics';
 
-const SECONDS = 10;
+const DEFAULT_SECONDS = 10;
 
 /**
  * "10 Sekunden Schmuggel" — a crack in the wall of functioning. One random
  * activity, exactly ten seconds counted down, then the person may go on
  * functioning right away. Nothing is saved.
  */
-export function SchmuggelOverlay({ onClose }: { onClose: () => void }) {
+export function SchmuggelOverlay({ onClose, autoStart = false }: { onClose: () => void; autoStart?: boolean }) {
   const t = useT();
   useRegisterModalOpen(true);
   const { settings } = useSettings();
   const en = settings.language === 'en';
-  const [stage, setStage] = useState<'ready' | 'running' | 'done'>('ready');
-  const [left, setLeft] = useState(SECONDS);
   const [index, setIndex] = useState(() => Math.floor(Math.random() * SCHMUGGEL_ACTIVITIES.length));
+  const total = SCHMUGGEL_ACTIVITIES[index].seconds ?? DEFAULT_SECONDS;
+  const [stage, setStage] = useState<'ready' | 'running' | 'done'>(autoStart ? 'running' : 'ready');
+  const [left, setLeft] = useState(total);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => () => { if (timer.current) clearInterval(timer.current); }, []);
 
-  function pickNew() {
-    setIndex((prev) => {
-      let n = prev;
-      while (n === prev) n = Math.floor(Math.random() * SCHMUGGEL_ACTIVITIES.length);
-      return n;
-    });
+  // opened from the pop-up "Los": the countdown starts right away
+  useEffect(() => {
+    if (autoStart) start(total);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function pickNew(): number {
+    let n = index;
+    while (n === index && SCHMUGGEL_ACTIVITIES.length > 1) n = Math.floor(Math.random() * SCHMUGGEL_ACTIVITIES.length);
+    setIndex(n);
+    return SCHMUGGEL_ACTIVITIES[n].seconds ?? DEFAULT_SECONDS;
   }
 
-  function start() {
-    setLeft(SECONDS);
+  function start(seconds: number = total) {
+    setLeft(seconds);
     setStage('running');
     triggerHaptic('tap', settings);
     if (timer.current) clearInterval(timer.current);
-    let remaining = SECONDS;
+    let remaining = seconds;
     timer.current = setInterval(() => {
       remaining -= 1;
       setLeft(remaining);
@@ -54,14 +60,13 @@ export function SchmuggelOverlay({ onClose }: { onClose: () => void }) {
   }
 
   function again() {
-    pickNew();
-    start();
+    start(pickNew());
   }
 
   const act = SCHMUGGEL_ACTIVITIES[index];
   const text = en ? act.en : act.de;
   const title = en ? INFO_SCHMUGGEL.title.en : INFO_SCHMUGGEL.title.de;
-  const progress = (SECONDS - left) / SECONDS;
+  const progress = (total - left) / total;
   const R = 62;
   const C = 2 * Math.PI * R;
 
@@ -81,7 +86,7 @@ export function SchmuggelOverlay({ onClose }: { onClose: () => void }) {
         <div className="text-center animate-in flex flex-col items-center">
           <p className="text-[18px] text-[var(--color-text)] max-w-[290px] leading-relaxed mb-2">{en ? 'A small crack in the wall of functioning.' : 'Ein kleiner Riss in der Wand des Funktionierens.'}</p>
           <p className="text-[14px] text-[var(--color-text-muted)] max-w-[290px] leading-relaxed mb-8">{en ? 'Just 10 seconds of something completely different. Then you may carry on right away.' : 'Nur 10 Sekunden etwas ganz anderes. Danach darfst du sofort weiter funktionieren.'}</p>
-          <button onClick={start} data-testid="schmuggel-start" className="px-7 py-3 rounded-full text-[16px] bg-[var(--color-primary)] text-[var(--color-surface)]">
+          <button onClick={() => start()} data-testid="schmuggel-start" className="px-7 py-3 rounded-full text-[16px] bg-[var(--color-primary)] text-[var(--color-surface)]">
             {en ? 'Go' : 'Los'}
           </button>
         </div>
@@ -89,7 +94,7 @@ export function SchmuggelOverlay({ onClose }: { onClose: () => void }) {
 
       {stage === 'running' && (
         <div className="text-center flex flex-col items-center" aria-live="polite">
-          <p data-testid="schmuggel-activity" className="text-[24px] text-[var(--color-text)] max-w-[300px] leading-snug mb-8" style={{ fontFamily: 'var(--font-companion)', fontWeight: 600 }}>
+          <p data-testid="schmuggel-activity" className={`${text.length > 110 ? 'text-[18px]' : 'text-[24px]'} text-[var(--color-text)] max-w-[320px] leading-snug mb-8`} style={{ fontFamily: 'var(--font-companion)', fontWeight: 600 }}>
             {text}
           </p>
           <div className="relative flex items-center justify-center" style={{ width: 150, height: 150 }}>

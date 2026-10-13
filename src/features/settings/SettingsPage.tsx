@@ -6,7 +6,7 @@ import { GENTLE_HINTS } from '../../content/gentleHints';
 import { notifyHint, vibrationSupported } from '../../services/hintFeedback';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
-import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell, X, CalendarPlus } from 'lucide-react';
+import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell, X, CalendarPlus, ShieldCheck, ChevronRight } from 'lucide-react';
 import { getAllLichtwesen } from '../../components/companion/customLichtwesen';
 import { customLichtwesenRepo } from '../../components/companion/customLichtwesen';
 import type { LichtwesenConfig } from '../../components/companion/lichtwesen';
@@ -401,6 +401,13 @@ export function SettingsPage() {
                 onChange={(v) => updateSettings({ resourceNudgeEnabled: v })}
               />
               <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mt-1.5 mb-3">{t.settings.resourceNudgeHint}</p>
+              <ToggleRow
+                icon={<Sparkles size={16} />}
+                label={t.settings.schmuggelPopup}
+                checked={settings.schmuggelPopupEnabled !== false}
+                onChange={(v) => updateSettings({ schmuggelPopupEnabled: v })}
+              />
+              <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mt-1.5 mb-3">{t.settings.schmuggelPopupHint}</p>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[13px] text-[var(--color-text-muted)]">{t.companion.changeCompanion}</p>
                 <button
@@ -765,9 +772,16 @@ export function SettingsPage() {
         <p className="text-[12px] text-[var(--color-text-faint)] mb-6 -mt-3 leading-relaxed">{t.settings.myDataDeleteAllPointer}</p>
 
         {/* ================= privacy note + danger zone ================= */}
-        <Card padding="md" className="mb-3">
-          <p className="text-[13px] text-[var(--color-text-muted)]">{t.settings.privacyHint}</p>
-        </Card>
+        <Link to="/einstellungen/datenschutz" className="block mb-3" data-testid="privacy-link">
+          <Card padding="md">
+            <div className="flex items-center gap-2.5">
+              <ShieldCheck size={17} className="text-[var(--color-primary)]" />
+              <p className="text-[14px] text-[var(--color-text)] flex-1">{t.settings.privacyOpenCta}</p>
+              <ChevronRight size={16} className="text-[var(--color-text-faint)]" />
+            </div>
+            <p className="text-[12.5px] text-[var(--color-text-muted)] mt-1.5 leading-relaxed">{t.settings.privacyHint}</p>
+          </Card>
+        </Link>
 
         <SectionLabel>⚠️ {t.settings.dangerZone}</SectionLabel>
         <Card padding="md" className="mb-6" style={{ borderColor: 'var(--color-danger)' }}>

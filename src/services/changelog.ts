@@ -16,6 +16,50 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-tour-zum-durchspielen',
+    date: '2026',
+    items: [
+      'Die Anleitung ist jetzt eine Tour zum Durchspielen: 43 Stationen, jede öffnet die echte Seite, erklärt wozu sie gut ist und gibt dir eine kleine Aufgabe – z. B. die erste Ressource anlegen, eine Brücke bauen, jemanden ins Netzwerk eintragen.',
+      'Die Tour merkt von selbst, wenn du etwas angelegt hast, und macht nach einem Neustart genau dort weiter, wo du warst. Sie wird einmal ganz durchgegangen; mit „Einklappen“ kannst du die Karte zur Seite schieben.',
+    ],
+    itemsEn: [
+      'The guide is now a tour to play through: 43 stations, each opens the real page, explains what it is good for and gives you a small task – e.g. add your first resource, build a bridge, enter someone in the network.',
+      'The tour notices by itself when you created something and continues exactly where you were after a restart. It is gone through once completely; with "Fold" you can push the card aside.',
+    ],
+  },
+  {
+    id: '2026-uebersicht-datenschutz-lebendig',
+    date: '2026',
+    items: [
+      '„Nicht sicher, was gerade passt?“ zeigt jetzt alles, was die App kann – nach „Was brauchst du gerade“ in Bereiche sortiert, jeder Eintrag zum Ausklappen mit Beschreibung und „Öffnen“.',
+      'Datenschutz: In den Einstellungen gibt es eine eigene Seite, die verständlich erklärt, wie die App mit deinen Daten umgeht (alles bleibt auf deinem Gerät, was online passiert, was beim Teilen zu beachten ist).',
+      'Skills, Aktivitäten, Ressourcen und Brücken erscheinen überall mit Farbe und Bild – auch in Zugang, Sicherheitsplan, Favoriten, Skillketten und im Rückblick.',
+      'Orientierung, die du durchgemacht hast, steht jetzt im Tagesrückblick. Im Kalender ist „will ich / soll ich“ klarer: ein Schildchen pro Eintrag. Der Funken-Ton im Lauf mit dem Wesen kommt schneller.',
+    ],
+    itemsEn: [
+      '"Not sure what fits right now?" now shows everything the app can do – sorted into "What do you need right now" areas, each entry expandable with a description and "Open".',
+      'Privacy: Settings has its own page that explains in plain words how the app handles your data (everything stays on your device, what happens online, what to keep in mind when sharing).',
+      'Skills, activities, resources and bridges now appear everywhere with colour and picture – also in Access, safety plan, favourites, skill chains and the review.',
+      'Orientation you went through now appears in the daily review. In the calendar "I want to / I should" is clearer: one tag per entry. The spark sound in the run with the companion is quicker.',
+    ],
+  },
+  {
+    id: '2026-briefe-teilen-schmuggel-popup',
+    date: '2026',
+    items: [
+      'Briefe an andere: Unter „Brief an mich“ kannst du jetzt einen Brief an jemanden schicken. Er steckt in einem Link oder einer Datei (ohne Server), die andere Person legt ihn in ihre App – und er geht bei ihr zu der Uhrzeit auf, die du eingestellt hast. Mit genauer Schritt-für-Schritt-Anleitung für beide Seiten.',
+      'Liebevoller Störsender: Bei „Okay, mach ich“ schließt sich nichts mehr – dein Wesen tanzt weiter („Juhu, wir tun jetzt …“), bis du auf „Weiter“ oder das Kreuz tippst.',
+      '10 Sekunden Schmuggel: Das Wesen fragt dich manchmal über den Tag („Los?“) – höchstens dreimal, zwischen 9 und 20 Uhr, in den Einstellungen abschaltbar.',
+      'Neue freche Texte für Störsender und Schmuggel (Tee, Sofa, Vögel, Decken-Burrito, T-Rex, Maulwurf …).',
+    ],
+    itemsEn: [
+      'Letters to others: under "Letter to myself" you can now send a letter to someone. It sits inside a link or file (no server), the other person puts it into their app – and it opens for them at the time you set. With a detailed step-by-step guide for both sides.',
+      'Loving interrupter: "Okay, doing it" no longer closes anything – your companion keeps dancing ("Yay, we are doing this now …") until you tap "Go on" or the cross.',
+      '10-second smuggle: the companion sometimes asks you during the day ("Go?") – at most three times, between 9 am and 8 pm, can be switched off in the settings.',
+      'New cheeky texts for interrupter and smuggle (tea, sofa, birds, blanket burrito, T-rex, mole …).',
+    ],
+  },
+  {
     id: '2026-schutzstrategien-kontakte-plakatwand',
     date: '2026',
     items: [

@@ -186,9 +186,9 @@ function scheduleSparkle(audioCtx: AudioContext) {
     const gain = audioCtx.createGain();
     osc.type = 'sine';
     osc.frequency.value = f;
-    const t = now + i * 0.045;
+    const t = now + i * 0.04;
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.02, t + 0.02);
+    gain.gain.linearRampToValueAtTime(i === 0 ? 0.03 : 0.022, t + 0.006);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
     osc.connect(gain);
     gain.connect(audioCtx.destination);

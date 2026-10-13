@@ -1,3 +1,4 @@
+import { ResourceTile } from '../../components/shared/ItemTile';
 import { Link } from 'react-router-dom';
 import { useT } from '../../i18n';
 import { buildRoadmap, valueForRoadmap } from './zoneRoadmap';
@@ -41,15 +42,15 @@ export function ZoneRoadmap({ zoneId, explicitValue }: { zoneId: string | null; 
           <p className="text-[13.5px] font-semibold text-[var(--color-text)] mb-2">{t.roadmap.planTitle}</p>
           <div className="flex flex-col gap-2 mb-3">
             {ifThen.map((x) => (
-              <Link key={x.id} to={resourceLink(x.resId)} className="block rounded-[var(--radius-md)] px-3 py-2.5" style={{ background: 'var(--color-primary-soft)' }}>
-                <span className="block text-[12.5px] text-[var(--color-text-muted)]">{t.roadmap.ifThen.replace('{sign}', x.sign)}</span>
-                <span className="block text-[14.5px] text-[var(--color-text)]">{resourcesRepo.getById(x.resId)!.title}</span>
+              <Link key={x.id} to={resourceLink(x.resId)} className="block">
+                <span className="block text-[12.5px] text-[var(--color-text-muted)] mb-1 px-1">{t.roadmap.ifThen.replace('{sign}', x.sign)}</span>
+                <ResourceTile resource={resourcesRepo.getById(x.resId)!} />
               </Link>
             ))}
             {chosen.map((id) => (
-              <Link key={id} to={resourceLink(id)} className="block rounded-[var(--radius-md)] px-3 py-2.5" style={{ background: 'var(--color-primary-soft)' }}>
-                <span className="block text-[12.5px] text-[var(--color-text-muted)]">{t.roadmap.fromPlan}</span>
-                <span className="block text-[14.5px] text-[var(--color-text)]">{resourcesRepo.getById(id)!.title}</span>
+              <Link key={id} to={resourceLink(id)} className="block">
+                <span className="block text-[12.5px] text-[var(--color-text-muted)] mb-1 px-1">{t.roadmap.fromPlan}</span>
+                <ResourceTile resource={resourcesRepo.getById(id)!} />
               </Link>
             ))}
           </div>
@@ -60,11 +61,15 @@ export function ZoneRoadmap({ zoneId, explicitValue }: { zoneId: string | null; 
           <p className="text-[13.5px] font-semibold text-[var(--color-text)] mb-2">{t.roadmap.title}</p>
           <div className="flex flex-col gap-2">
             {items.map((it) => (
-              <Link key={it.key} to={it.to} className="block rounded-[var(--radius-md)] px-3 py-2.5" style={{ background: 'var(--color-primary-soft)' }}>
-                <span className="block text-[12.5px] text-[var(--color-text-muted)]">{t.roadmap.line.replace('{v}', String(Math.round(value)))}</span>
-                <span className="block text-[14.5px] text-[var(--color-text)]">
-                  {it.title}, {it.before} → {it.after}
-                </span>
+              <Link key={it.key} to={it.to} className="block">
+                <span className="block text-[12.5px] text-[var(--color-text-muted)] mb-1 px-1">{t.roadmap.line.replace('{v}', String(Math.round(value)))}</span>
+                {resourcesRepo.getById(it.key) ? (
+                  <ResourceTile resource={resourcesRepo.getById(it.key)!} subtitle={`${it.before} → ${it.after}`} />
+                ) : (
+                  <span className="block text-[14.5px] text-[var(--color-text)]">
+                    {it.title}, {it.before} → {it.after}
+                  </span>
+                )}
               </Link>
             ))}
           </div>

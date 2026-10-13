@@ -104,3 +104,19 @@ export function buildDailyRemindersIcs(slots: { hour: number; minute: number; ti
   });
   return wrap(events, calName);
 }
+
+/** One reminder for a letter that arrives at `when` — rings in the phone's own calendar. */
+export function buildLetterArrivalIcs(when: Date, title: string, calName: string): string {
+  const stamp = utcStamp(new Date());
+  const end = new Date(when.getTime() + 5 * 60 * 1000);
+  return wrap([[
+    'BEGIN:VEVENT',
+    `UID:letter-${when.getTime()}@von-mir-aus`,
+    `DTSTAMP:${stamp}`,
+    `DTSTART:${local(when)}`,
+    `DTEND:${local(end)}`,
+    `SUMMARY:${esc(title)}`,
+    ...alarm(0, title),
+    'END:VEVENT',
+  ]], calName);
+}

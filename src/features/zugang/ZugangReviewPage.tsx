@@ -1,3 +1,5 @@
+import { resourcesRepo } from '../resources/resourcesRepo';
+import { ResourceTile, BridgeTile } from '../../components/shared/ItemTile';
 import { useState } from 'react';
 import { goBack } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -241,7 +243,15 @@ export function ZugangReviewPage() {
             )}
             {viewing.fitFilter && <DetailStep title={t.zugang.reviewGoingNow} emoji="🎚️" items={[fitText(viewing.fitFilter)]} />}
             {viewing.usedResources && viewing.usedResources.length > 0 && (
-              <DetailStep title={t.zugang.reviewUsedResources} emoji="🧰" items={viewing.usedResources.map((r) => r.title)} />
+              <div>
+                <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">🧰 {t.zugang.reviewUsedResources}</p>
+                <div className="flex flex-col gap-1.5">
+                  {viewing.usedResources.map((r) => {
+                    const res = resourcesRepo.getById(r.id);
+                    return res ? <ResourceTile key={r.id} resource={res} compact /> : <p key={r.id} className="text-[14px] text-[var(--color-text)]">{r.title}</p>;
+                  })}
+                </div>
+              </div>
             )}
             {viewing.harderFactors && viewing.harderFactors.length > 0 && (
               <DetailStep title={t.zugang.harderTitle} emoji="🌫️" items={viewing.harderFactors} />
@@ -253,11 +263,17 @@ export function ZugangReviewPage() {
               </div>
             )}
             {viewing.bridgeId && (
-              <DetailStep
-                title={t.zugang.step8Title}
-                emoji="🌉"
-                items={[allBridges.find((b) => b.id === viewing.bridgeId)?.title ?? '']}
-              />
+              (() => {
+                const br = allBridges.find((b) => b.id === viewing.bridgeId);
+                return br ? (
+                  <div>
+                    <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">🌉 {t.zugang.step8Title}</p>
+                    <BridgeTile bridge={br} compact />
+                  </div>
+                ) : (
+                  <DetailStep title={t.zugang.step8Title} emoji="🌉" items={['']} />
+                );
+              })()
             )}
             {viewing.bridgeLevels && viewing.bridgeLevels.length > 0 && (
               <p className="text-[13px] text-[var(--color-text-muted)] -mt-2">

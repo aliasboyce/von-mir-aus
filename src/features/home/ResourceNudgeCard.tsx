@@ -1,3 +1,4 @@
+import { ResourceTile } from '../../components/shared/ItemTile';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../components/ui/Card';
@@ -81,6 +82,9 @@ export function ResourceNudgeCard() {
         <InlineCompanionNote />
         <div className="flex-1 min-w-0">
           <p className="text-[14.5px] text-[var(--color-text)] leading-relaxed mb-2.5">{pick.text}</p>
+          <Link to={openPath} className="block mb-2.5" aria-hidden="true" tabIndex={-1}>
+            <ResourceTile resource={pick.resource} subtitle={pick.resource.description || undefined} compact />
+          </Link>
           <div className="flex flex-wrap items-center gap-2">
             <Link to={openPath} className="px-3.5 py-1.5 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)]">
               {isSkill ? (en ? 'Start' : 'Starten') : (en ? 'Look' : 'Ansehen')}

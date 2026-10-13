@@ -1,3 +1,4 @@
+import { ResourceTile, BridgeTile } from '../../components/shared/ItemTile';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Check, Play } from 'lucide-react';
@@ -74,23 +75,35 @@ export function ZugangUsePage() {
         <div className="flex flex-col gap-2.5 mb-6">
           {chosen.map((c) => {
             const done = opened.includes(c.id);
-            const exists = !!resourcesRepo.getById(c.id);
+            const res = resourcesRepo.getById(c.id);
+            const exists = !!res;
             return (
-              <Card key={c.id} className="flex items-center gap-3">
-                <span className="flex-1 min-w-0">
-                  <span className="block text-[15px] text-[var(--color-text)]">{c.title}</span>
-                  {done && (
-                    <span className="inline-flex items-center gap-1 text-[12px] text-[var(--color-primary)]">
-                      <Check size={12} /> {u.opened}
-                    </span>
+              <div key={c.id} className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  {res ? (
+                    <ResourceTile
+                      resource={res}
+                      onClick={exists ? () => openOne(c.id) : undefined}
+                      extra={
+                        done ? (
+                          <span className="inline-flex items-center gap-1 text-[12px] text-[var(--color-primary)]">
+                            <Check size={12} /> {u.opened}
+                          </span>
+                        ) : undefined
+                      }
+                    />
+                  ) : (
+                    <Card>
+                      <span className="block text-[15px] text-[var(--color-text)]">{c.title}</span>
+                    </Card>
                   )}
-                </span>
+                </div>
                 {exists && (
                   <Button size="sm" variant={done ? 'secondary' : 'primary'} onClick={() => openOne(c.id)}>
                     <Play size={14} /> {u.open}
                   </Button>
                 )}
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -183,10 +196,13 @@ export function ZugangAfterPage() {
         {((entry.usedResources?.length ?? 0) > 0 || bridge) && (
           <Card className="mb-5">
             <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">{a.used}</p>
-            {bridge && <p className="text-[14px] text-[var(--color-text)]">🌉 {bridge.title}</p>}
-            {entry.usedResources?.map((r) => (
-              <p key={r.id} className="text-[14px] text-[var(--color-text)]">• {r.title}</p>
-            ))}
+            <div className="flex flex-col gap-2">
+              {bridge && <BridgeTile bridge={bridge} compact />}
+              {entry.usedResources?.map((r) => {
+                const res = resourcesRepo.getById(r.id);
+                return res ? <ResourceTile key={r.id} resource={res} compact /> : <p key={r.id} className="text-[14px] text-[var(--color-text)]">• {r.title}</p>;
+              })}
+            </div>
           </Card>
         )}
 

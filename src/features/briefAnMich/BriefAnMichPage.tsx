@@ -11,6 +11,10 @@ import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { lettersRepo, addLetter, markLetterOpened, pendingLetters, openedLetters } from './lettersRepo';
 import { LetterEnvelope } from './LetterEnvelope';
+import { LetterGuide } from './LetterGuide';
+import { LetterShareComposer } from './LetterShareComposer';
+import { LetterReceivePanel } from './LetterReceive';
+import { Send, Inbox } from 'lucide-react';
 
 /**
  * Priority 18 — writing lives here; delivery (the companion surfacing a
@@ -25,6 +29,8 @@ export function BriefAnMichPage() {
   const { settings } = useSettings();
   const [, refresh] = useState(0);
   const [writing, setWriting] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [receiving, setReceiving] = useState(false);
   const [text, setText] = useState('');
   const [inReview, setInReview] = useState(false);
   const [date, setDate] = useState('');
@@ -56,9 +62,20 @@ export function BriefAnMichPage() {
         <h1 className="text-[24px] mb-1">{t.briefAnMich.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6 leading-relaxed">{t.briefAnMich.subtitle}</p>
 
-        <Button fullWidth variant="secondary" icon={<Plus size={17} />} onClick={() => setWriting(true)} className="mb-5">
+        <Button fullWidth variant="secondary" icon={<Plus size={17} />} onClick={() => setWriting(true)} className="mb-3">
           {t.briefAnMich.writeCta}
         </Button>
+        <div className="flex gap-2 mb-3">
+          <Button fullWidth variant="secondary" icon={<Send size={16} />} onClick={() => { setSharing(true); setReceiving(false); }} data-testid="letter-share-open">
+            {t.briefAnMich.shareCta}
+          </Button>
+          <Button fullWidth variant="secondary" icon={<Inbox size={16} />} onClick={() => { setReceiving(true); setSharing(false); }} data-testid="letter-receive-open">
+            {t.briefAnMich.receiveCta}
+          </Button>
+        </div>
+        <LetterGuide />
+        {sharing && <LetterShareComposer onClose={() => setSharing(false)} />}
+        {receiving && <LetterReceivePanel onClose={() => { setReceiving(false); bump(); }} />}
 
         {writing && (
           <Card className="mb-6 flex flex-col gap-3">
@@ -107,7 +124,7 @@ export function BriefAnMichPage() {
                     <Card key={l.id} className="flex items-center gap-3">
                       <Mail size={18} className="text-[var(--color-text-faint)] flex-shrink-0" />
                       <p className="text-[13px] text-[var(--color-text-muted)] flex-1">
-                        {t.briefAnMich.arrivesOn.replace(
+                        {(l.fromName ? t.briefAnMich.inTransitFrom.replace('{name}', l.fromName) : t.briefAnMich.arrivesOn).replace(
                           '{date}',
                           new Date(l.scheduledFor).toLocaleString(settings.language === 'de' ? 'de-DE' : 'en-US', {
                             day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -127,7 +144,10 @@ export function BriefAnMichPage() {
                     <button key={l.id} onClick={() => setOpenLetterId(l.id)} className="text-left w-full">
                       <Card interactive className="flex items-start gap-3">
                         <Mail size={18} className="text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
-                        <p className="text-[13px] text-[var(--color-text)] flex-1 line-clamp-2">{l.text}</p>
+                        <div className="flex-1 min-w-0">
+                          {l.fromName && <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-0.5">{t.briefAnMich.fromLine.replace('{name}', l.fromName)}</p>}
+                          <p className="text-[13px] text-[var(--color-text)] line-clamp-2">{l.text}</p>
+                        </div>
                       </Card>
                     </button>
                   ))}

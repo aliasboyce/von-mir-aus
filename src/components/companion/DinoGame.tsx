@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
-import { playSound } from '../../services/sounds';
+import { playSound, warmUpAudio } from '../../services/sounds';
 import { triggerHaptic } from '../../services/haptics';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
@@ -233,6 +233,8 @@ export function DinoGame({ onClose }: DinoGameProps) {
 
   function startRun() {
     const s = stateRef.current;
+    // tap = user gesture: get the audio context running now, so the first sparkle plays without a resume wait
+    warmUpAudio();
     s.running = true;
     s.started = true;
     s.gameOver = false;
@@ -520,7 +522,9 @@ export function DinoGame({ onClose }: DinoGameProps) {
           if (sp.collected) continue;
           const dx = sp.x - (COMPANION_X + COMPANION_SIZE / 2);
           const dy = sp.y - (GROUND_Y - COMPANION_SIZE / 2 + s.companionY);
-          if (Math.sqrt(dx * dx + dy * dy) < 20) {
+          // "Funken-Ton ist verzögert" — the old radius (20) only counted a spark once it
+          // sat almost in the middle of the Wesen, long after it visibly touched it.
+          if (Math.sqrt(dx * dx + dy * dy) < COMPANION_SIZE * 0.5 + 8) {
             sp.collected = true;
             s.sparkCount += 1;
             s.score += 15;

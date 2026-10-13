@@ -10,6 +10,10 @@ export interface LetterToSelf {
   scheduledFor: string;
   opened: boolean;
   openedAt?: string;
+  /** Set for letters that came from another person (imported via link or file). */
+  fromName?: string;
+  /** id of the shared letter — protects against importing the same one twice. */
+  externalId?: string;
 }
 
 export const lettersRepo = createRepository<LetterToSelf>('letters-to-self');

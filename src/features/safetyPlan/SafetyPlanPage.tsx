@@ -1,3 +1,4 @@
+import { ResourceTile } from '../../components/shared/ItemTile';
 import { useMemo, useState } from 'react';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -366,12 +367,13 @@ export function SafetyPlanPage() {
                         </div>
                         {/* the "dann" of the if-then plan */}
                         {linkedRes ? (
-                          <p className="ml-4 mt-0.5 text-[12.5px] flex items-center gap-1.5" style={{ color: tierColor.color }}>
-                            <span aria-hidden="true">→</span> {linkedRes.title}
-                            <button onClick={() => setWarningResource(w.id, undefined)} aria-label={t.common.remove} className="text-[var(--color-text-faint)] no-print">
-                              <X size={11} />
+                          <div className="ml-4 mt-1 flex items-center gap-1.5">
+                            <span aria-hidden="true" style={{ color: tierColor.color }}>→</span>
+                            <div className="flex-1 min-w-0"><ResourceTile resource={linkedRes} compact /></div>
+                            <button onClick={() => setWarningResource(w.id, undefined)} aria-label={t.common.remove} className="text-[var(--color-text-faint)] no-print p-1">
+                              <X size={12} />
                             </button>
-                          </p>
+                          </div>
                         ) : null}
                       </li>
                     );
@@ -434,7 +436,7 @@ export function SafetyPlanPage() {
                 <LinkedItemsPicker
                   title={t.safetyPlan.linkedResources}
                   linkedIds={linked.resourceIds}
-                  allItems={allResources.map((r) => ({ id: r.id, title: r.title, subtitle: r.description }))}
+                  allItems={allResources.map((r) => ({ id: r.id, title: r.title, subtitle: r.description, kind: 'resource' as const, category: r.category, image: r.image }))}
                   onChange={(ids) => updateLinked(tier, 'resourceIds', ids)}
                   onOpenItem={(id) => navigate(`/entdecken/ressourcen?open=${id}`)}
                   emptyHint={t.safetyPlan.linkedResourcesEmpty}
@@ -442,7 +444,7 @@ export function SafetyPlanPage() {
                 <LinkedItemsPicker
                   title={t.safetyPlan.linkedBridges}
                   linkedIds={linked.bridgeIds}
-                  allItems={allBridges.map((b) => ({ id: b.id, title: b.title, subtitle: b.description }))}
+                  allItems={allBridges.map((b) => ({ id: b.id, title: b.title, subtitle: b.description, kind: 'bridge' as const, category: b.category, image: b.image }))}
                   onChange={(ids) => updateLinked(tier, 'bridgeIds', ids)}
                   onOpenItem={(id) => navigate(`/bruecken/${id}`)}
                   emptyHint={t.safetyPlan.linkedBridgesEmpty}

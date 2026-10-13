@@ -19,6 +19,7 @@ import { FeelingsReferencePage } from './features/feelings/FeelingsReferencePage
 import { WertekompassPage } from './features/wertekompass/WertekompassPage';
 import { LetGoPage } from './features/letGo/LetGoPage';
 import { BriefAnMichPage } from './features/briefAnMich/BriefAnMichPage';
+import { LetterImportPage } from './features/briefAnMich/LetterImportPage';
 import { ExplorePage } from './features/home/ExplorePage';
 import { SafetyHubPage } from './features/home/SafetyHubPage';
 import { InnerWeatherPage } from './features/innerWeather/InnerWeatherPage';
@@ -39,6 +40,7 @@ import { ZugangReviewPage } from './features/zugang/ZugangReviewPage';
 import { ZugangUsePage, ZugangAfterPage } from './features/zugang/ZugangFollowUpPages';
 import { CompanionContentPage } from './components/companion/CompanionContentPage';
 import { CompanionAboutPage } from './features/settings/CompanionAboutPage';
+import { PrivacyPage } from './features/settings/PrivacyPage';
 import { SourceLibraryPage } from './features/sources/SourceLibraryPage';
 import { NeedsCompassPage } from './features/accessWheel/NeedsCompassPage';
 import { ZugangskanaelePage } from './features/zugangskanaele/ZugangskanaelePage';
@@ -85,6 +87,7 @@ function App() {
                 <Route path="/entdecken/wertekompass" element={<WertekompassPage />} />
                 <Route path="/entdecken/loslassen" element={<LetGoPage />} />
                 <Route path="/entdecken/brief-an-mich" element={<BriefAnMichPage />} />
+                <Route path="/brief/importieren" element={<LetterImportPage />} />
                 <Route path="/inneres-wetter" element={<InnerWeatherPage />} />
 
                 <Route path="/entdecken" element={<ExplorePage />} />
@@ -104,6 +107,7 @@ function App() {
                 <Route path="/zugang/danach/:entryId" element={<ZugangAfterPage />} />
                 <Route path="/einstellungen/wesen-inhalte" element={<CompanionContentPage />} />
                 <Route path="/einstellungen/wesen-info" element={<CompanionAboutPage />} />
+                <Route path="/einstellungen/datenschutz" element={<PrivacyPage />} />
                 <Route path="/system-karte" element={<Navigate to="/entdecken" replace />} />
                 <Route path="/kalender" element={<CalendarPage />} />
                 <Route path="/kalender/uebersicht" element={<CalendarOverviewPage />} />

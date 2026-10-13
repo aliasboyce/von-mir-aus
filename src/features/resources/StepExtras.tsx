@@ -1,3 +1,4 @@
+import { ResourceTile } from '../../components/shared/ItemTile';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Wrench, UserRound, BookMarked, X, Plus, Phone, Sparkles, MapPin, Activity } from 'lucide-react';
@@ -163,40 +164,28 @@ export function StepExtrasView({ extras, skillHilfsmittelIds = [] }: { extras?: 
   if (skillIds.length + hilfsmittelIds.length + ortIds.length + aktivitaetIds.length + helperIds.length + bookmarkIds.length === 0) return null;
 
   const chip = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12.5px] text-[var(--color-text)]';
+  const tileRows: { id: string; path: string }[] = [
+    ...skillIds.map((id) => ({ id, path: `/entdecken/ressourcen/skills?open=${id}` })),
+    ...hilfsmittelIds.map((id) => ({ id, path: `/entdecken/ressourcen/hilfsmittel?open=${id}` })),
+    ...ortIds.map((id) => ({ id, path: `/entdecken/ressourcen/orte?open=${id}` })),
+    ...aktivitaetIds.map((id) => ({ id, path: `/entdecken/ressourcen/aktivitaeten?open=${id}` })),
+  ];
   return (
-    <div className="flex flex-wrap gap-1.5 mt-1.5">
-      {skillIds.map((id) => {
-        const r = resourcesRepo.getById(id);
-        return r ? (
-          <Link key={`s-${id}`} to={`/entdecken/ressourcen/skills?open=${id}`} className={chip} style={chipStyle} title={f.stepSkill}>
-            <Sparkles size={12} className="text-[var(--color-text-faint)]" /> {r.title}
-          </Link>
-        ) : null;
-      })}
-      {hilfsmittelIds.map((id) => {
-        const r = resourcesRepo.getById(id);
-        return r ? (
-          <Link key={`h-${id}`} to={`/entdecken/ressourcen/hilfsmittel?open=${id}`} className={chip} style={chipStyle} title={f.stepHilfsmittel}>
-            <Wrench size={12} className="text-[var(--color-text-faint)]" /> {r.title}
-          </Link>
-        ) : null;
-      })}
-      {ortIds.map((id) => {
-        const r = resourcesRepo.getById(id);
-        return r ? (
-          <Link key={`o-${id}`} to={`/entdecken/ressourcen/orte?open=${id}`} className={chip} style={chipStyle} title={f.stepOrt}>
-            <MapPin size={12} className="text-[var(--color-text-faint)]" /> {r.title}
-          </Link>
-        ) : null;
-      })}
-      {aktivitaetIds.map((id) => {
-        const r = resourcesRepo.getById(id);
-        return r ? (
-          <Link key={`a-${id}`} to={`/entdecken/ressourcen/aktivitaeten?open=${id}`} className={chip} style={chipStyle} title={f.stepAktivitaet}>
-            <Activity size={12} className="text-[var(--color-text-faint)]" /> {r.title}
-          </Link>
-        ) : null;
-      })}
+    <div className="mt-1.5">
+      {/* skills, tools, places and activities: lively tiles with their colour and picture */}
+      {tileRows.length > 0 && (
+        <div className="flex flex-col gap-1.5 mb-1.5">
+          {tileRows.map((row) => {
+            const r = resourcesRepo.getById(row.id);
+            return r ? (
+              <Link key={`${row.path}`} to={row.path} className="block">
+                <ResourceTile resource={r} compact />
+              </Link>
+            ) : null;
+          })}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-1.5">
       {helperIds.map((id) => {
         const e = networkRepo.getById(id);
         return e ? (
@@ -226,6 +215,7 @@ export function StepExtrasView({ extras, skillHilfsmittelIds = [] }: { extras?: 
           </span>
         );
       })}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ArrowRight } from 'lucide-react';
 import { InlineCompanionNote } from './InlineCompanionNote';
@@ -8,6 +8,7 @@ import { getActiveGroundingSteps } from './groundingManagement';
 import { triggerHaptic } from '../../services/haptics';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { AfterGrounding } from './AfterGrounding';
+import { logActivity } from '../../services/activityLog';
 
 interface GroundingOverlayProps {
   onClose: () => void;
@@ -45,6 +46,14 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
   // after the last step: physical safety → bemerken → benennen → stoppen → somatischer Reiz
   const [afterOpen, setAfterOpen] = useState(false);
   const isLast = step === steps.length - 1;
+  // "Orientierung im Tagesrückblick": going through to the last step counts as done — logged once per run
+  const loggedRef = useRef(false);
+  useEffect(() => {
+    if (isLast && !loggedRef.current) {
+      loggedRef.current = true;
+      logActivity('grounding', isEn ? 'Grounding (orientation) done' : 'Orientierung durchgemacht');
+    }
+  }, [isLast, isEn]);
   const current = steps[step];
   const isBreathStep = 'isBreath' in current && current.isBreath === true;
   const showInput = current.hasInput;

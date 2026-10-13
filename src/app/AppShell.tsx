@@ -18,6 +18,7 @@ import { createKeyValueStore } from '../services/storage/keyValueStore';
  * be tangled into the same flag the tour itself watches. */
 const aboutSeenStore = createKeyValueStore<boolean>('about-vmA-seen', false);
 import { AppTourOverlay } from '../components/companion/AppTourOverlay';
+import { tourIndexStore } from '../components/companion/tourData';
 import { useSettings } from '../state/SettingsContext';
 import { useResolvedTheme } from '../state/ThemeEffect';
 import { useModalStack } from '../state/ModalStackContext';
@@ -33,6 +34,7 @@ import { GentleRemindersSync } from '../components/shared/GentleRemindersSync';
 import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
 import { playSound, warmUpAudio } from '../services/sounds';
 import { UsageCheckInPrompt } from '../components/companion/UsageCheckInPrompt';
+import { SchmuggelPopup } from '../components/companion/SchmuggelPopup';
 import { triggerHaptic } from '../services/haptics';
 
 /** Top-level section key used for per-page palette overrides — everything
@@ -260,7 +262,7 @@ export function AppShell() {
         className={settings.reduceMotion ? undefined : 'page-transition'}
         style={{
           paddingBottom: settings.tourActive
-            ? 'calc(220px + env(safe-area-inset-bottom))'
+            ? 'calc(var(--tour-card-h, 220px) + env(safe-area-inset-bottom))'
             : hideNav
               ? 0
               : 'calc(var(--nav-height) + env(safe-area-inset-bottom))',
@@ -289,13 +291,14 @@ export function AppShell() {
           <CompanionDock bottomOffset={hideNav ? 16 : 92} />
         </div>
       )}
+      <SchmuggelPopup />
       {!hideNav && <BottomNav />}
       {settings.tourActive && (
         <AppTourOverlay
-          onClose={() => updateSettings({ tourActive: false })}
           onFinish={() => {
+            tourIndexStore.set(0);
             updateSettings({ tourActive: false });
-            navigate('/inneres-wetter');
+            navigate('/');
           }}
         />
       )}

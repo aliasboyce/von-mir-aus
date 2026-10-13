@@ -1,7 +1,7 @@
+import { ResourceTile, BridgeTile } from '../../components/shared/ItemTile';
 import { useMemo, useState } from 'react';
 import { Button } from '../../components/ui/Button';
 import { FitSummary } from '../../components/shared/FitSummary';
-import { PhotoBackground } from '../../components/shared/PhotoBackground';
 import { useT } from '../../i18n';
 import { useFitFilter } from '../../state/fitFilterStore';
 import { availableChannels, filterByFit, isFitFilterActive, subjectOfResource } from '../../content/fitCriteria';
@@ -83,35 +83,28 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
   const resourceRow = (r: Resource, key: string) => {
     const on = usedResources.some((u) => u.id === r.id);
     return (
-      <button
+      <ResourceTile
         key={key}
-        type="button"
+        resource={r}
         onClick={() => toggleResource(r)}
-        aria-pressed={on}
-        className="text-left rounded-[var(--radius-md)] border px-3 py-2.5"
-        style={{ borderColor: on ? 'var(--color-primary)' : 'var(--color-border)', borderWidth: on ? 1.5 : 1, background: on ? 'var(--color-primary-soft)' : 'var(--color-surface)' }}
-      >
-        <span className="block text-[14px] text-[var(--color-text)] mb-1">{on ? '✓ ' : ''}{r.title}</span>
-        <FitSummary subject={subjectOfResource(r)} />
-      </button>
+        toggle
+        selected={on}
+        trailing={on ? <span className="text-[16px] text-[var(--color-primary)] pr-1" aria-hidden="true">✓</span> : undefined}
+        extra={<FitSummary subject={subjectOfResource(r)} />}
+      />
     );
   };
 
   const bridgeRow = (b: Bridge) => (
-    <button
+    <BridgeTile
       key={b.id}
-      type="button"
+      bridge={b}
       onClick={() => setBridgeId(bridgeId === b.id ? null : b.id)}
-      aria-pressed={bridgeId === b.id}
-      className="flex items-center gap-3 rounded-[var(--radius-lg)] border p-3 text-left"
-      style={{ borderColor: bridgeId === b.id ? 'var(--color-primary)' : 'var(--color-border)', borderWidth: bridgeId === b.id ? 1.5 : 1 }}
-    >
-      <PhotoBackground src={b.image} className="w-11 h-11 rounded-[var(--radius-md)] bg-cover bg-center flex-shrink-0" />
-      <div className="min-w-0">
-        <p className="text-[14px] text-[var(--color-text)] truncate">{b.title}</p>
-        <p className="text-[12px] text-[var(--color-text-muted)] truncate">{(b.connectionTags ?? []).slice(0, 3).join(' · ')}</p>
-      </div>
-    </button>
+      toggle
+      selected={bridgeId === b.id}
+      subtitle={(b.connectionTags ?? []).slice(0, 3).join(' · ') || undefined}
+      trailing={bridgeId === b.id ? <span className="text-[16px] text-[var(--color-primary)] pr-1" aria-hidden="true">✓</span> : undefined}
+    />
   );
 
   const visibleResources = showMore ? shown.slice(0, MAX) : shown.slice(0, FIRST);

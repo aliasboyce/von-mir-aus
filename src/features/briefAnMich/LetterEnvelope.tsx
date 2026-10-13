@@ -41,6 +41,7 @@ export function LetterEnvelope({ letter, alreadyOpen, onClose, onOpened }: Lette
           className="flex flex-col items-center gap-4"
         >
           <EnvelopeIllustration />
+          {letter.fromName && <span className="text-[15px] text-white">{t.briefAnMich.fromLine.replace('{name}', letter.fromName)}</span>}
           <span className="text-[14px] text-white/90">{t.briefAnMich.tapToOpen}</span>
         </button>
       ) : (
@@ -49,6 +50,9 @@ export function LetterEnvelope({ letter, alreadyOpen, onClose, onOpened }: Lette
           style={{ background: '#FBF6EA', animation: settings.reduceMotion ? undefined : 'letter-unfold 0.5s ease-out both' }}
           onClick={(e) => e.stopPropagation()}
         >
+          {letter.fromName && (
+            <p className="text-[12px] uppercase tracking-wide mb-3" style={{ color: '#8A8168' }}>{t.briefAnMich.fromLine.replace('{name}', letter.fromName)}</p>
+          )}
           <p
             className="text-[16px] leading-[1.8] whitespace-pre-wrap"
             style={{ fontFamily: 'var(--font-display)', color: '#3A3527' }}

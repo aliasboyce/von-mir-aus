@@ -702,8 +702,24 @@ You use the same values when you build a bridge.`,
   briefAnMich: {
     title: `Brief an mich`,
     titleEn: `Letter to myself`,
-    body: `Schreib einen Brief an dein zukünftiges Ich mit einem Datum. Das Wesen zeigt ihn dir zur passenden Zeit auf der Startseite.`,
-    bodyEn: `Write a letter to your future self with a date. The companion shows it to you at the right time on the home screen.`,
+    body: `### An dich selbst
+Schreib einen Brief an dein zukünftiges Ich mit einem Datum. Das Wesen zeigt ihn dir zur passenden Zeit auf der Startseite.
+
+### An jemand anderen
+Mit „Brief an jemanden schicken“ schreibst du einen Brief, der bei der anderen Person erst zu **deiner** gewählten Zeit aufgeht. Er steckt in einem Link oder einer Datei, die du selbst verschickst – ohne Server, ohne Konto.
+
+• Die andere Person fügt den Link unter „Brief erhalten“ ein oder wählt die Datei aus.
+• Der Brief wartet verschlossen unter „Unterwegs“ und geht zur Uhrzeit auf der Startseite auf.
+• Eine genaue Schritt-für-Schritt-Anleitung findest du auf der Seite unter „Genaue Anleitung ansehen“.`,
+    bodyEn: `### To yourself
+Write a letter to your future self with a date. The companion shows it to you at the right time on the home screen.
+
+### To someone else
+With "Send a letter to someone" you write a letter that only opens for the other person at **your** chosen time. It sits inside a link or a file that you send yourself – no server, no account.
+
+• The other person pastes the link under "Receive a letter" or chooses the file.
+• The letter waits sealed under "On its way" and opens at that time on the start page.
+• You find a detailed step-by-step guide on the page under "Show the detailed guide".`,
   },
   kalender: {
     title: `Kalender`,

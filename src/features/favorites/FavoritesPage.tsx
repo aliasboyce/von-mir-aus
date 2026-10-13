@@ -3,6 +3,7 @@ import { HelpButton } from '../../components/navigation/HelpButton';
 import { Library, GitBranch, Users, Star } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
+import { ResourceTile, BridgeTile } from '../../components/shared/ItemTile';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useT } from '../../i18n';
 import { resourcesRepo } from '../resources/resourcesRepo';
@@ -42,11 +43,8 @@ export function FavoritesPage() {
                 </p>
                 <div className="flex flex-col gap-2">
                   {favoriteResources.map((r) => (
-                    <Link key={r.id} to={`/entdecken/ressourcen?open=${r.id}`}>
-                      <Card interactive className="flex items-center gap-2.5">
-                        <Star size={14} className="text-[var(--color-primary)] flex-shrink-0" fill="currentColor" />
-                        <span className="text-[14px] text-[var(--color-text)] truncate">{r.title}</span>
-                      </Card>
+                    <Link key={r.id} to={`/entdecken/ressourcen?open=${r.id}`} className="block">
+                      <ResourceTile resource={r} trailing={<Star size={14} className="text-[var(--color-primary)] flex-shrink-0" fill="currentColor" />} />
                     </Link>
                   ))}
                 </div>
@@ -61,11 +59,8 @@ export function FavoritesPage() {
                 </p>
                 <div className="flex flex-col gap-2">
                   {favoriteBridges.map((b) => (
-                    <Link key={b.id} to={`/bruecken/${b.id}`}>
-                      <Card interactive className="flex items-center gap-2.5">
-                        <Star size={14} className="text-[var(--color-primary)] flex-shrink-0" fill="currentColor" />
-                        <span className="text-[14px] text-[var(--color-text)] truncate">{b.title}</span>
-                      </Card>
+                    <Link key={b.id} to={`/bruecken/${b.id}`} className="block">
+                      <BridgeTile bridge={b} trailing={<Star size={14} className="text-[var(--color-primary)] flex-shrink-0" fill="currentColor" />} />
                     </Link>
                   ))}
                 </div>

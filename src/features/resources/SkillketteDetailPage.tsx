@@ -1,3 +1,4 @@
+import { ResourceTile } from '../../components/shared/ItemTile';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ArrowDown, Pencil, Trash2 } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -54,7 +55,7 @@ export function SkillketteDetailPage() {
         <p className="text-[11px] text-[var(--color-text-faint)]">{label}</p>
         {skill ? (
           <>
-            <p className="text-[13px] text-[var(--color-text)] font-medium">{skill.title}</p>
+            <div className="mt-1 mb-1"><ResourceTile resource={skill} compact /></div>
             <StepExtrasView extras={extras} skillHilfsmittelIds={skill.skillDetails?.relatedHilfsmittelIds} />
           </>
         ) : (

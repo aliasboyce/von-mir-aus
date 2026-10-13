@@ -1,3 +1,4 @@
+import { ResourceTile, BridgeTile } from '../../components/shared/ItemTile';
 import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
@@ -10,6 +11,16 @@ interface LinkableItem {
   id: string;
   title: string;
   subtitle?: string;
+  /** resources and bridges are shown as lively tiles (colour + picture) */
+  kind?: 'resource' | 'bridge';
+  category?: string;
+  image?: string;
+}
+
+function itemTile(item: LinkableItem, extra: { subtitle?: string; compact?: boolean; selected?: boolean; trailing?: React.ReactNode }) {
+  if (item.kind === 'resource') return <ResourceTile resource={{ title: item.title, category: (item.category ?? 'sonstiges') as never, image: item.image ?? '' }} {...extra} />;
+  if (item.kind === 'bridge') return <BridgeTile bridge={{ title: item.title, category: (item.category ?? '') as never, image: item.image ?? '' }} {...extra} />;
+  return null;
 }
 
 interface LinkedItemsPickerProps {
@@ -58,6 +69,20 @@ export function LinkedItemsPicker({
       ) : (
         <div className="flex flex-col gap-2 mb-2.5">
           {linkedItems.map((item) => (
+            item.kind ? (
+              <div key={item.id} className="flex items-center gap-1.5">
+                <div className="flex-1 min-w-0" onClick={() => onOpenItem(item.id)}>
+                  {itemTile(item, { subtitle: item.subtitle, compact: true })}
+                </div>
+                <button
+                  onClick={() => toggle(item.id)}
+                  aria-label={t.common.delete}
+                  className="p-1.5 text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 no-print"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
             <Card key={item.id} interactive padding="none" className="flex items-center justify-between gap-2 p-3">
               <button onClick={() => onOpenItem(item.id)} className="flex-1 min-w-0 text-left">
                 <p className="text-[13px] text-[var(--color-text)] truncate">{item.title}</p>
@@ -71,6 +96,7 @@ export function LinkedItemsPicker({
                 <X size={14} />
               </button>
             </Card>
+            )
           ))}
         </div>
       )}
@@ -92,6 +118,15 @@ export function LinkedItemsPicker({
             {allItems.map((item) => {
               const isLinked = linkedIds.includes(item.id);
               const disabled = !isLinked && atLimit;
+              if (item.kind) {
+                return (
+                  <div key={item.id} style={{ opacity: disabled ? 0.4 : 1 }}>
+                    <button type="button" disabled={disabled} onClick={() => !disabled && toggle(item.id)} className="w-full text-left" aria-pressed={isLinked}>
+                      {itemTile(item, { subtitle: item.subtitle, compact: true, selected: isLinked, trailing: isLinked ? <span className="text-[var(--color-primary)] pr-1 text-[14px]" aria-hidden="true">✓</span> : undefined })}
+                    </button>
+                  </div>
+                );
+              }
               return (
                 <button
                   key={item.id}

@@ -1,3 +1,4 @@
+import { ResourceTile } from '../shared/ItemTile';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
@@ -200,7 +201,11 @@ export function AfterGrounding({ onClose }: { onClose: () => void }) {
           {own.length > 0 && (
             <div className="rounded-[var(--radius-lg)] p-3 mb-3" style={{ background: 'var(--color-surface-muted)' }}>
               <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{tx({ de: 'Aus deinen eigenen Dingen:', en: 'From your own things:' })}</p>
-              <p className="text-[13.5px] text-[var(--color-text)]">{own.map((r) => r.title).join(' · ')}</p>
+              <div className="flex flex-col gap-1.5">
+                {own.map((r) => (
+                  <ResourceTile key={r.id} resource={r} compact />
+                ))}
+              </div>
             </div>
           )}
           <Link to="/entdecken/ressourcen/skills" onClick={onClose} className="text-center text-[12.5px] text-[var(--color-primary)] underline underline-offset-2 mb-1">

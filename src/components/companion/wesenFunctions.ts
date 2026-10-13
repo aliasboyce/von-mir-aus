@@ -5,9 +5,13 @@
  * data so it can be extended later.
  */
 export interface Bi { de: string; en: string }
+/** A Störsender line; `doing` is what "wir tun jetzt …" then names while the Wesen dances. */
+export interface StoerLine extends Bi { doing?: Bi }
+/** A Schmuggel activity; `seconds` overrides the default 10. */
+export interface SchmuggelAct extends Bi { seconds?: number }
 
 /** Direct, warm invitations without a choice — the Wesen takes over the first step. */
-export const STOERSENDER_LINES: Bi[] = [
+export const STOERSENDER_LINES: StoerLine[] = [
   { de: 'Komm, lass mal rausgehen und kurz chillen jetzt.', en: "Come on, let's step outside and chill for a bit." },
   { de: 'Nee, jetzt trink wa erstmal nen Tee.', en: "Nah, first let's have a cup of tea." },
   { de: 'Mach ma langsam jez.', en: 'Easy now. Slow down a bit.' },
@@ -46,10 +50,35 @@ export const STOERSENDER_LINES: Bi[] = [
   { de: 'Mach das Licht ein bisschen weicher. Wir machen es uns gemütlich.', en: "Soften the light a little. Let's make it cosy." },
   { de: 'Ab ins Bad, Zähne putzen. Das schaffen wir zusammen.', en: "Off to the bathroom, brush your teeth. We'll do it together." },
   { de: 'Komm, wir gehen kurz raus und gucken Bäume an.', en: "Come on, let's go out and look at trees for a bit." },
+  {
+    de: 'Dringende Durchsage von deinem Körper: Deine Tastatur und dein Putzlappen vermissen dich nicht, wenn du jetzt mal kurz weg bist. Geh in die Küche. Koch Wasser. Mach Tee. Und wehe, du machst in der Wartezeit den Abwasch! Du starrst jetzt einfach diesem bescheuerten Wasserkocher beim Blubbern zu. Deal?',
+    en: "Urgent announcement from your body: your keyboard and your cleaning cloth will not miss you if you step away for a moment. Go to the kitchen. Boil water. Make tea. And don't you dare do the dishes while you wait! You just stare at that ridiculous kettle bubbling. Deal?",
+    doing: { de: 'Tee kochen und dem Wasserkocher beim Blubbern zusehen', en: 'make tea and watch the kettle bubble' },
+  },
+  {
+    de: 'Herzlichen Glückwunsch, du wurdest gerade von deinem eigenen Smartphone für fläzende Aktivitäten freigestellt. Geh zum Sofa. Lass dich wie ein nasser Sandsack draufplumpsen. Wenn dein innerer Antreiber meckert, sag ihm, die App hat es befohlen. Du liest jetzt eine Seite in deinem Buch – oder du starrst einfach nur Löcher in die Luft. Deine Entscheidung, du bist der Chef.',
+    en: "Congratulations, your own smartphone has just released you for lounging activities. Go to the sofa. Plop onto it like a wet sack. If your inner taskmaster complains, tell it the app ordered it. Now you read one page of your book – or you just stare at the air. Your decision, you're the boss.",
+    doing: { de: 'aufs Sofa plumpsen', en: 'plop onto the sofa' },
+  },
+  {
+    de: 'Wichtige Nachricht: Die Vögel draußen führen irgendwas im Schilde. Geh ans Fenster. Mach es auf. Atme die kalte Luft ein und beobachte die Lage da draußen für ein paar Minuten. Sobald du das Gefühl hast, die Tauben planen keine Weltherrschaft, darfst du wieder rein und weiterfunktionieren.',
+    en: "Important message: the birds outside are up to something. Go to the window. Open it. Breathe in the cold air and observe the situation out there for a few minutes. As soon as you feel the pigeons are not planning world domination, you may come back in and carry on functioning.",
+    doing: { de: 'die Vögel am Fenster beobachten', en: 'watch the birds at the window' },
+  },
+  {
+    de: 'Dein Autopilot läuft seit Stunden auf Anschlag. Zeit für das Burrito-Protokoll. Schnapp dir die dickste Decke, die du finden kannst, und wickle dich ein, bis du dich wie Fast-Food an der Tankstelle fühlst. Bleib so lange liegen, bis dir warm genug ist, um deinem inneren Sklaventreiber die Meinung zu sagen.',
+    en: "Your autopilot has been running flat out for hours. Time for the burrito protocol. Grab the thickest blanket you can find and wrap yourself up until you feel like fast food at a gas station. Stay put until you are warm enough to tell your inner slave driver what you think.",
+    doing: { de: 'uns in die Decke einwickeln – Burrito-Protokoll', en: 'wrap ourselves in a blanket – burrito protocol' },
+  },
+  {
+    de: 'Stopp! Es ist Zeit für eine völlig unproduktive, sinnlose Aktion, die niemandem außer dir nützt. Geh zu deinem Lieblingsgegenstand (oder Buch, Magazin). Fass ihn an. Blättere drin rum. Warum? Weil du es kannst und weil die Welt nicht untergeht, wenn du jetzt mal kurz egoistisch bist.',
+    en: "Stop! It is time for a completely unproductive, pointless action that benefits nobody but you. Go to your favourite object (or book, magazine). Touch it. Leaf through it. Why? Because you can, and because the world will not end if you are selfish for a moment.",
+    doing: { de: 'was völlig Unproduktives machen', en: 'do something completely unproductive' },
+  },
 ];
 
 /** Templates that use one of the person's own Ressourcen ({res}). */
-export const STOERSENDER_OWN: Bi[] = [
+export const STOERSENDER_OWN: StoerLine[] = [
   { de: 'Komm, nimm dir jetzt kurz „{res}“. Fünf Minuten, mehr nicht.', en: 'Come on, take “{res}” for a moment. Five minutes, no more.' },
   { de: 'Du hast doch „{res}“ – hol’s dir. Ich bleib hier.', en: 'You have “{res}” – go get it. I’ll stay here.' },
   { de: 'Nicht überlegen: „{res}“. Los.', en: 'Don’t think: “{res}”. Go.' },
@@ -59,7 +88,7 @@ export const STOERSENDER_OWN: Bi[] = [
 ];
 
 /** What to do for exactly ten seconds — a small crack in the wall of functioning. */
-export const SCHMUGGEL_ACTIVITIES: Bi[] = [
+export const SCHMUGGEL_ACTIVITIES: SchmuggelAct[] = [
   { de: 'Schüttel dich – ganz, von den Händen bis zu den Füßen!', en: 'Shake yourself – all over, from your hands to your feet!' },
   { de: 'Klatsch in die Hände – laut!', en: 'Clap your hands – loud!' },
   { de: 'Stampf mit den Füßen auf den Boden.', en: 'Stomp your feet on the floor.' },
@@ -97,6 +126,11 @@ export const SCHMUGGEL_ACTIVITIES: Bi[] = [
   { de: 'Flattere mit den Armen wie ein Vogel.', en: 'Flap your arms like a bird.' },
   { de: 'Sag ein Wort, das es nicht gibt.', en: 'Say a word that does not exist.' },
   { de: 'Dreh den Kopf langsam links, rechts – und schau dich wirklich um.', en: 'Turn your head slowly left, right – and really look around.' },
+  { seconds: 5, de: 'Egal, was du gerade tust: Reiß die Augen auf und starre für 5 Sekunden das unschuldigste Objekt im Raum an (z. B. deine Kaffeetasse oder die Wand), als wäre es das Faszinierendste auf Erden. Danach darfst du dich wieder wichtig fühlen und weiterschuften.', en: 'No matter what you are doing: open your eyes wide and stare for 5 seconds at the most innocent object in the room (your coffee cup, the wall), as if it were the most fascinating thing on earth. Afterwards you may feel important again and carry on grinding.' },
+  { seconds: 8, de: 'Zieh deine Ellenbogen ganz fest an den Körper, mach kleine Hände und bewege dich für 8 Sekunden wie ein gestresster T-Rex durch den Raum. Sieht bescheuert aus? Gut. Nervensystem irritiert. Mission erfüllt. Weitermachen.', en: 'Pull your elbows tight to your body, make tiny hands and move through the room like a stressed T-rex for 8 seconds. Looks ridiculous? Good. Nervous system confused. Mission accomplished. Carry on.' },
+  { seconds: 7, de: 'Achtung, dein Gehirn läuft heiß vor lauter Produktivität! Schüttle für genau 7 Sekunden deine rechte Hand aus, als hättest du klebrigen Honig an den Fingern. Nur die Hand. Der Rest bleibt in der Rüstung. Und … ab.', en: 'Attention, your brain is overheating from sheer productivity! Shake out your right hand for exactly 7 seconds as if you had sticky honey on your fingers. Only the hand. The rest stays in the armour. And … go.' },
+  { seconds: 10, de: 'Tu für 10 Sekunden so, als wärst du ein Geheimagent auf Mission. Fixiere eine Türklinke. Geh langsam darauf zu. Atme aus. Berühre sie. Okay, Gefahr vorbei, du bist wieder die normale, funktionierende Person. Danke für deinen Einsatz.', en: 'For 10 seconds pretend you are a secret agent on a mission. Fix your eyes on a door handle. Walk slowly towards it. Breathe out. Touch it. Okay, danger over, you are the normal, functioning person again. Thanks for your service.' },
+  { seconds: 5, de: 'Blinzele für 5 Sekunden so schnell du kannst, als wärst du ein Maulwurf, der gerade das erste Mal ans Tageslicht kommt. Schrecklich? Ja. Aber dein Blick ist nicht mehr eingefroren. Gern geschehen.', en: 'Blink as fast as you can for 5 seconds, like a mole seeing daylight for the first time. Awful? Yes. But your gaze is no longer frozen. You are welcome.' },
 ];
 
 /** "Hilfsmittel in den Weg": short lines that put one of the person's own things in front of them. */
