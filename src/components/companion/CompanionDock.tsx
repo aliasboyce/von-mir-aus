@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather, Footprints } from 'lucide-react';
+import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather, Footprints, Radio, Zap } from 'lucide-react';
 import { LichtCompanion } from './LichtCompanion';
 import { DistractionOverlay } from './DistractionOverlay';
 import { DinoGame } from './DinoGame';
 import { GroundingOverlay } from './GroundingOverlay';
 import { TooMuchModal } from './TooMuchModal';
+import { StoersenderOverlay } from './StoersenderOverlay';
+import { SchmuggelOverlay } from './SchmuggelOverlay';
 import { getAnyLichtwesen } from './customLichtwesen';
 import { useSettings } from '../../state/SettingsContext';
 import { useCompanionSpoken } from '../../state/CompanionSpeechContext';
@@ -131,6 +133,8 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
   const [dinoGameOpen, setDinoGameOpen] = useState(false);
   const [groundingOpen, setGroundingOpen] = useState(false);
   const [tooMuchOpen, setTooMuchOpen] = useState(false);
+  const [stoerOpen, setStoerOpen] = useState(false);
+  const [schmuggelOpen, setSchmuggelOpen] = useState(false);
   const dragStart = useRef<{ x: number; y: number; offsetX: number; offsetY: number; moved: boolean } | null>(null);
 
   const isSleeping = settings.brainState === 'sleeping';
@@ -309,6 +313,35 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     setTimeout(() => updateSettings({ brainState: 'sleeping' }), 850);
   }
 
+  /** "Liebevoller Störsender" and "10 Sekunden Schmuggel" — shared by the hero and the floating menu */
+  function renderExtraMenuItems() {
+    const en = settings.language === 'en';
+    return (
+      <>
+        <button
+          onClick={() => {
+            setMenuOpen(false);
+            setStoerOpen(true);
+          }}
+          className="companion-menu__item"
+        >
+          <Radio size={15} />
+          {en ? 'Loving interrupter' : 'Liebevoller Störsender'}
+        </button>
+        <button
+          onClick={() => {
+            setMenuOpen(false);
+            setSchmuggelOpen(true);
+          }}
+          className="companion-menu__item"
+        >
+          <Zap size={15} />
+          {en ? '10-second smuggle' : '10 Sekunden Schmuggel'}
+        </button>
+      </>
+    );
+  }
+
   if (!settings.brainEnabled) return null;
 
   const showTip = tip && !menuOpen;
@@ -396,6 +429,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
               <Feather size={15} />
               {t.companion.tooMuchCta}
             </button>
+            {renderExtraMenuItems()}
             <button onClick={toggleSleep} className="companion-menu__item">
               {isSleeping ? <Sun size={15} /> : <Moon size={15} />}
               {isSleeping ? t.companion.wake : t.companion.sleep}
@@ -419,6 +453,8 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         {dinoGameOpen && <DinoGame onClose={() => setDinoGameOpen(false)} />}
         {groundingOpen && <GroundingOverlay onClose={() => setGroundingOpen(false)} />}
         {tooMuchOpen && <TooMuchModal onClose={() => setTooMuchOpen(false)} />}
+        {stoerOpen && <StoersenderOverlay onClose={() => setStoerOpen(false)} />}
+        {schmuggelOpen && <SchmuggelOverlay onClose={() => setSchmuggelOpen(false)} />}
       </div>
     );
   }
@@ -507,6 +543,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
             <Feather size={15} />
             {t.companion.tooMuchCta}
           </button>
+          {renderExtraMenuItems()}
           <button onClick={toggleSleep} className="companion-menu__item">
             {isSleeping ? <Sun size={15} /> : <Moon size={15} />}
             {isSleeping ? t.companion.wake : t.companion.sleep}
@@ -542,6 +579,8 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         {dinoGameOpen && <DinoGame onClose={() => setDinoGameOpen(false)} />}
       {groundingOpen && <GroundingOverlay onClose={() => setGroundingOpen(false)} />}
       {tooMuchOpen && <TooMuchModal onClose={() => setTooMuchOpen(false)} />}
+      {stoerOpen && <StoersenderOverlay onClose={() => setStoerOpen(false)} />}
+      {schmuggelOpen && <SchmuggelOverlay onClose={() => setSchmuggelOpen(false)} />}
     </div>
   );
 }

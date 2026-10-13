@@ -2,6 +2,15 @@ import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { zugangRepo } from './zugangRepo';
 import { createId } from '../../services/storage/repository';
 import type { ZugangSurvivalState } from '../../data/types';
+import { getFitFilter } from '../../state/fitFilterStore';
+import { isFitFilterActive } from '../../content/fitCriteria';
+
+/** The "Was geht gerade?" filter as it is right now — only when something is set. */
+export function currentFitSnapshot() {
+  const f = getFitFilter();
+  if (!isFitFilterActive(f)) return undefined;
+  return { energy: f.energy, minutes: f.minutes, levels: f.levels, effort: f.effort };
+}
 
 /**
  * Priority 8 of the "Verbinden, Glätten" brief — a running Zugang pass
@@ -32,6 +41,10 @@ export interface ZugangDraft {
   /** where the person is in the fork after perceiving (see ZugangBranch) */
   branch?: 'choose' | 'regulate' | 'need' | null;
   intent?: 'regulate' | 'act' | null;
+  /** what was tried from the regulate door, and which Ressourcen are ticked for use */
+  regulateTried?: string[];
+  usedResources?: { id: string; title: string }[];
+  choice?: 'regulate' | 'need' | 'done';
   /** "Materialien"-Auftrag, Section 40 — lets ZugangPage tell apart
    * "I just stepped out to a connected page a moment ago" (silently
    * resume, no interruption) from "this draft is from a while back"
@@ -99,6 +112,10 @@ export function finalizeZugangDraft(
     connection: draft.connection,
     action: draft.action,
     reflection: draft.reflection.trim() || undefined,
+    fitFilter: currentFitSnapshot(),
+    choice: draft.choice,
+    regulateTried: draft.regulateTried && draft.regulateTried.length > 0 ? draft.regulateTried : undefined,
+    usedResources: draft.usedResources && draft.usedResources.length > 0 ? draft.usedResources : undefined,
     endedVia,
     stoppedAtStep: endedVia === 'abandoned' ? draft.step : undefined,
   });

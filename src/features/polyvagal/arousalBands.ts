@@ -273,10 +273,18 @@ export function bandsForBoundaries(boundaries: [number, number, number, number, 
   }));
 }
 
-/** Like bandForValue, but honours a personal calibration when given. */
-export function bandForValueCalibrated(v: number, boundaries?: [number, number, number, number, number]): ArousalBand {
-  const bands = boundaries ? bandsForBoundaries(boundaries) : AROUSAL_BANDS;
-  return bands.find((b) => v >= b.min && v <= b.max) ?? bands[0];
+/**
+ * Like bandForValue. The old 5-boundary personal calibration was made for
+ * the previous single-direction scale and is archived (the slider ignores
+ * it). Honouring it here made e.g. 12 % land in zone1 (green Erholung)
+ * instead of zone6 (blue Hypoarousal) in the Körperdetektiv, the
+ * reflection and the charts. So the boundaries argument is accepted for
+ * API compatibility but deliberately not applied: every place reads the
+ * same wrapping six bands the slider shows.
+ */
+export function bandForValueCalibrated(v: number, _boundaries?: [number, number, number, number, number]): ArousalBand {
+  void _boundaries;
+  return bandForValue(Math.max(0, Math.min(100, Math.round(v))));
 }
 
 /**

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TodaySoFar } from './TodaySoFar';
+import { ImportantContactsStrip } from './ImportantContactsStrip';
+import { ResourceNudgeCard } from './ResourceNudgeCard';
 import { createPortal } from 'react-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
@@ -209,6 +211,8 @@ export function HomePage() {
         </Link>
       </div>
 
+      <ImportantContactsStrip />
+
       {postfachOpen && <PostfachPanel live={liveEntries} />}
 
       {/* "Update-Nachricht soll auf der Startseite landen und bleiben,
@@ -344,6 +348,8 @@ export function HomePage() {
         <p className="text-[14px] text-[var(--color-text-muted)] mt-3">{t.companion.greetingHello}</p>
       </div>
 
+      <ResourceNudgeCard />
+
       {/* Check-In is now the single, unambiguous primary action right
        * after the companion — the brief's own feedback was that five
        * stacked entry points (fork x2, intent picker, check-in,
@@ -385,12 +391,14 @@ export function HomePage() {
               <Card interactive padding="md" className="text-center h-full flex flex-col items-center justify-center gap-0.5">
                 <span className="text-[16px]">🔎</span>
                 <p className="text-[12px] text-[var(--color-text)]">{t.home.forkUnderstandTitle}</p>
+                <p className="text-[10.5px] text-[var(--color-text-faint)] leading-snug">({t.home.forkUnderstandTag})</p>
               </Card>
             </Link>
             <Link to="/bruecken" className="flex-1">
               <Card interactive padding="md" className="text-center h-full flex flex-col items-center justify-center gap-0.5">
                 <span className="text-[16px]">👣</span>
                 <p className="text-[12px] text-[var(--color-text)]">{t.home.forkActTitle}</p>
+                <p className="text-[10.5px] text-[var(--color-text-faint)] leading-snug">({t.home.forkActTag})</p>
               </Card>
             </Link>
           </div>

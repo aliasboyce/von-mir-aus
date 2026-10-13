@@ -25,6 +25,9 @@ export interface ReflectionStep {
   /** Small note shown directly below this question's textarea (not a
    * separate step) — e.g. "there's no wrong answer here". */
   trailingHint?: string;
+  /** Question steps only: tappable ideas; tapping appends the idea to the answer. */
+  suggestions?: string[];
+  suggestionsLabel?: string;
 }
 
 export interface ReflectionModalProps {
@@ -47,6 +50,9 @@ export interface ReflectionModalProps {
   savedSummary?: { label: string; value: string }[] | null;
   savedNote?: string;
   editCta?: string;
+  /** Saves on every change (and shows a quiet "saved" note) instead of only on the Save button. */
+  autoSave?: boolean;
+  autoSaveNote?: string;
 }
 
 /**
@@ -71,6 +77,8 @@ export function ReflectionModal({
   savedSummary,
   savedNote,
   editCta,
+  autoSave,
+  autoSaveNote,
 }: ReflectionModalProps) {
   const t = useT();
   useRegisterModalOpen(true);
@@ -84,7 +92,13 @@ export function ReflectionModal({
   const isLast = stepIndex === steps.length - 1;
 
   function setValue(id: string, v: string) {
-    setValues((prev) => ({ ...prev, [id]: v }));
+    const next = { ...values, [id]: v };
+    setValues(next);
+    if (autoSave) {
+      onSave(next);
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 1500);
+    }
   }
 
   function handleSave() {
@@ -108,6 +122,31 @@ export function ReflectionModal({
           onChange={(e) => setValue(step.id, e.target.value)}
         />
         {step.trailingHint && <span className="text-[12px] text-[var(--color-text-faint)] leading-relaxed">{step.trailingHint}</span>}
+        {step.suggestions && step.suggestions.length > 0 && (
+          <div className="mt-1">
+            {step.suggestionsLabel && <span className="block text-[12px] text-[var(--color-text-faint)] mb-1.5">{step.suggestionsLabel}</span>}
+            <div className="flex flex-wrap gap-1.5">
+              {step.suggestions.map((sg) => {
+                const has = val.split('\n').includes(sg);
+                return (
+                  <button
+                    key={sg}
+                    type="button"
+                    disabled={has}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setValue(step.id, val.trim() ? `${val.replace(/\s+$/, '')}\n${sg}` : sg);
+                    }}
+                    className="px-2.5 py-1.5 rounded-full text-[12px] text-left"
+                    style={{ background: has ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', color: 'var(--color-text)', opacity: has ? 0.7 : 1 }}
+                  >
+                    {has ? '✓ ' : '+ '}{sg}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </label>
     );
   }
@@ -169,6 +208,12 @@ export function ReflectionModal({
           </button>
         </div>
 
+        {autoSave && !showSummary && (
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3 flex items-center gap-1.5" data-testid="autosave-note">
+            <Check size={12} className="text-[var(--color-primary)]" />
+            {saved ? t.common.saved : autoSaveNote}
+          </p>
+        )}
         {showSummary ? (
           <>
             <Card className="mb-4">

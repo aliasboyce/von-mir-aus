@@ -12,6 +12,9 @@ import { useSettings } from '../../state/SettingsContext';
 import { zugangRepo } from './zugangRepo';
 import { SURVIVAL_STATE_META, colorForFeelingWord } from './zugangContent';
 import { stateActionPatterns, stateLabel } from './zugangPatterns';
+import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
+import { availableChannels, timeLabel } from '../../content/fitCriteria';
+import type { AccessChannel } from '../../data/types';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import type { ZugangEntry } from '../../data/types';
 
@@ -32,7 +35,7 @@ export function ZugangReviewPage() {
   const [query, setQuery] = useState('');
   const filteredEntries = query.trim()
     ? entries.filter((e) => {
-        const haystack = [e.ichJetzt, e.action, e.reflection, ...e.body, ...e.feelings, ...e.need, ...e.obstacle, ...e.connection]
+        const haystack = [e.ichJetzt, e.action, e.reflection, e.whatMightHaveHelped, ...e.body, ...e.feelings, ...e.protectionStrategy, ...e.careWish, ...e.need, ...e.obstacle, ...e.connection, ...(e.harderFactors ?? []), ...(e.regulateTried ?? []), ...(e.usedResources ?? []).map((r) => r.title)]
           .join(' ')
           .toLowerCase();
         return haystack.includes(query.trim().toLowerCase());
@@ -44,6 +47,18 @@ export function ZugangReviewPage() {
   const allBridges = bridgesRepo.getAll();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
   const isEn = settings.language === 'en';
+  const outcomeText = (o: 'passte' | 'teils' | 'nicht') => (o === 'passte' ? t.zugang.outcomeGood : o === 'teils' ? t.zugang.outcomePartly : t.zugang.outcomeNotFit);
+  const fitText = (f: NonNullable<ZugangEntry['fitFilter']>) => {
+    const parts: string[] = [];
+    if (f.energy !== null) parts.push(`${t.fit.energyTitle} ${f.energy}`);
+    if (f.minutes !== null) parts.push(timeLabel(f.minutes, isEn ? 'en' : 'de'));
+    if (f.levels !== null) {
+      const open = availableChannels(f.levels);
+      parts.push(`${t.fit.channelsTitle}: ${t.fit.channelsSummary.replace('{n}', String(open.length))} (${open.map((c: AccessChannel) => ACCESS_CHANNEL_META[c].label(t)).join(', ')})`);
+    }
+    if (f.effort !== null) parts.push(`${t.fit.effortTitle} ${f.effort}`);
+    return parts.join(' · ');
+  };
 
   return (
     <div className="animate-in">
@@ -133,6 +148,9 @@ export function ZugangReviewPage() {
                       {e.endedVia === 'safetynet' && (
                         <span className="text-[var(--color-primary)]"> · {t.zugang.endedViaSafetyNet}</span>
                       )}
+                      {e.endedVia === 'resource' && (
+                        <span className="text-[var(--color-primary)]"> · {t.zugang.endedViaResource}</span>
+                      )}
                     </p>
                     {e.survivalState && (
                       <p className="text-[13px] text-[var(--color-text)] mb-1">
@@ -150,7 +168,9 @@ export function ZugangReviewPage() {
                         value={bridge.title + (e.bridgeLevels && e.bridgeLevels.length > 0 ? ` (${t.bridges.level} ${e.bridgeLevels.join(', ')})` : '') + (e.bridgeTimerUsed ? ` · ${t.zugang.timerUsedLabel}` : '')}
                       />
                     )}
+                    {e.usedResources && e.usedResources.length > 0 && <Row label={t.zugang.reviewUsedResources} value={e.usedResources.map((r) => r.title).join(', ')} />}
                     {e.action && <Row label={t.zugang.step10Title} value={e.action} />}
+                    {e.afterOutcome && <Row label={t.zugang.reviewAfter} value={outcomeText(e.afterOutcome)} />}
                     {e.reflection && (
                       <p className="text-[13px] text-[var(--color-text-muted)] italic mt-2 pt-2 border-t border-[var(--color-border)] leading-relaxed">
                         „{e.reflection}"
@@ -185,6 +205,9 @@ export function ZugangReviewPage() {
             {viewing.endedVia === 'safetynet' && (
               <p className="text-[13px] text-[var(--color-primary)] text-center -mt-3">{t.zugang.endedViaSafetyNet}</p>
             )}
+            {viewing.endedVia === 'resource' && (
+              <p className="text-[13px] text-[var(--color-primary)] text-center -mt-3">{t.zugang.endedViaResource}</p>
+            )}
 
             {viewing.ichJetzt && <DetailStep title={t.zugang.step0Title} emoji="📝" items={[viewing.ichJetzt]} />}
             <DetailStep title={t.zugang.step1Title} emoji="🫀" items={viewing.body} />
@@ -201,8 +224,25 @@ export function ZugangReviewPage() {
             <DetailStep title={t.zugang.step3Title} emoji="🤍" items={viewing.feelings} colorFor={colorForFeelingWord} />
             <DetailStep title={t.zugang.step4Title} emoji="🛡️" items={viewing.protectionStrategy} />
             <DetailStep title={t.zugang.step5Title} emoji="🫂" items={viewing.careWish} />
+            {viewing.selfSufficient && (
+              <DetailStep title={t.zugang.reviewSelfSufficient} emoji="🤲" items={[viewing.selfSufficient === 'ja' ? t.zugang.selfSufficientYesShort : t.zugang.selfSufficientNoShort]} />
+            )}
             <DetailStep title={t.zugang.step6Title} emoji="🌱" items={viewing.need} />
             <DetailStep title={t.zugang.step7Title} emoji="🚧" items={viewing.obstacle} />
+            {viewing.choice && (
+              <DetailStep
+                title={t.zugang.reviewChoiceLabel}
+                emoji="🔀"
+                items={[viewing.choice === 'regulate' ? t.zugang.choiceRegulate : viewing.choice === 'need' ? t.zugang.choiceNeed : t.zugang.choiceDone]}
+              />
+            )}
+            {viewing.regulateTried && viewing.regulateTried.length > 0 && (
+              <DetailStep title={t.zugang.reviewRegulateTried} emoji="🌬️" items={viewing.regulateTried} />
+            )}
+            {viewing.fitFilter && <DetailStep title={t.zugang.reviewGoingNow} emoji="🎚️" items={[fitText(viewing.fitFilter)]} />}
+            {viewing.usedResources && viewing.usedResources.length > 0 && (
+              <DetailStep title={t.zugang.reviewUsedResources} emoji="🧰" items={viewing.usedResources.map((r) => r.title)} />
+            )}
             {viewing.harderFactors && viewing.harderFactors.length > 0 && (
               <DetailStep title={t.zugang.harderTitle} emoji="🌫️" items={viewing.harderFactors} />
             )}
@@ -244,12 +284,18 @@ export function ZugangReviewPage() {
               </div>
             )}
             {viewing.action && <DetailStep title={t.zugang.step10Title} emoji="👣" items={[viewing.action]} />}
+            {viewing.afterOutcome && <DetailStep title={t.zugang.reviewAfter} emoji="🌤️" items={[outcomeText(viewing.afterOutcome)]} />}
 
             {viewing.reflection && (
               <div className="pt-3 border-t border-[var(--color-border)]">
                 <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">{t.zugang.reflectionLabel}</p>
                 <p className="text-[14px] text-[var(--color-text)] italic leading-relaxed">„{viewing.reflection}"</p>
               </div>
+            )}
+            {!viewing.reflectedAt && !viewing.reflection && (viewing.endedVia === 'bridge' || viewing.endedVia === 'resource') && (
+              <Link to={`/zugang/danach/${viewing.id}`} className="text-[13px] text-[var(--color-primary)] underline underline-offset-2">
+                {t.zugang.afterNowCta}
+              </Link>
             )}
           </div>
         )}

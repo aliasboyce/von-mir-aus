@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { goBack } from '../../services/navigation';
 import { useNavigate, Link } from 'react-router-dom';
-import { Moon, MessageCircle, Compass, Wand2, Bell, Settings2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Moon, MessageCircle, Compass, Wand2, Bell, Settings2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { useT } from '../../i18n';
@@ -23,6 +23,7 @@ export function CompanionAboutPage() {
   const items = [
     { icon: <MessageCircle size={18} />, title: t.companionAbout.messagesTitle, text: t.companionAbout.messagesText },
     { icon: <Compass size={18} />, title: t.companionAbout.helpTitle, text: t.companionAbout.helpText },
+    { icon: <Sparkles size={18} />, title: t.companionAbout.startTitle, text: t.companionAbout.startText },
     { icon: <Bell size={18} />, title: t.companionAbout.feedbackTitle, text: t.companionAbout.feedbackText },
     { icon: <Wand2 size={18} />, title: t.companionAbout.randomTitle, text: t.companionAbout.randomText },
     { icon: <Settings2 size={18} />, title: t.companionAbout.customizeTitle, text: t.companionAbout.customizeText },

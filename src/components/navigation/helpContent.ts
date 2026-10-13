@@ -301,7 +301,12 @@ For areas with little access you can jump straight to resources, bridges or cont
 ### Der Weg
 • **Körper:** Du schreibst zuerst selbst auf, was da ist. Auswahlen gibt es erst danach.
 • **Zustand und Gefühl:** Wie fühlt sich dein Nervensystem an, was fühlst du?
-• **Abzweigung:** Du kannst den Zustand ändern (Skills, Skillketten) oder, wenn es passt, weitergehen zu Bedürfnis, Hindernis, Brücke und Handlung.
+• **Schutzstrategie und Fürsorge:** Wie stellt dein System gerade Sicherheit her, und was würdest du dir von einem sicheren Menschen wünschen?
+• **Bedürfnis, Hindernis, Wert:** Was brauchst du, was steht im Weg, was ist dir wichtig?
+• **Abzweigung:** Jetzt entscheidest du: Du regulierst dich erst (Skills, Skillketten), um dir das Bedürfnis erfüllen zu können – oder der Zustand passt und du kümmerst dich gleich um Bedürfnis, Wert und Handeln.
+• **Was geht gerade?** Energie, Zeit, Zugangskanäle, Einsatz – nur, was du sagen magst.
+• **Passendes:** Du siehst Ressourcen und Brücken, die dazu passen. Entweder direkt zu den Ressourcen, oder eine Brücke nutzen, wenn du mehr Anleitung brauchst.
+• **Danach:** Dein Durchgang wird zuerst gespeichert. Erst wenn du die Ressourcen oder die Brücke genutzt hast, fragt die App – freiwillig –, wie es danach war. „Hat gerade nicht gepasst“ ist eine vollwertige Antwort.
 
 ### Freiheit
 „Ich weiß nicht“ ist an jeder Stelle eine vollwertige Antwort. „Das hilft gerade nicht“ geht immer. Du kannst aussteigen, ohne dass etwas verloren geht, und später weitermachen.`,
@@ -310,7 +315,12 @@ For areas with little access you can jump straight to resources, bridges or cont
 ### The path
 • **Body:** You first write down yourself what is there. Options only come afterwards.
 • **State and feeling:** How does your nervous system feel, what do you feel?
-• **Fork:** You can change the state (skills, skill chains) or, if it fits, go on to need, obstacle, bridge and action.
+• **Safety strategy and care:** How is your system creating safety right now, and what would you wish from someone you feel safe with?
+• **Need, obstacle, value:** What do you need, what is in the way, what matters to you?
+• **Fork:** Now you decide: regulate first (skills, skill chains) so you can meet the need – or the state fits and you take care of need, value and action right away.
+• **What is possible now?** Energy, time, access channels, effort – only what you want to say.
+• **What fits:** You see resources and bridges that match. Either straight to the resources, or use a bridge if you need more guidance.
+• **Afterwards:** Your pass is saved first. Only once you have used the resources or the bridge does the app ask – optionally – how it was afterwards. "Did not fit right now" is a full answer.
 
 ### Freedom
 "I don't know" is a valid answer at every step. "That does not help right now" is always possible. You can leave without losing anything and continue later.`,
@@ -320,7 +330,7 @@ For areas with little access you can jump straight to resources, bridges or cont
     titleEn: `Access: Review`,
     body: `Deine bisherigen Zugang-Durchgänge als persönliche Sammlung: was bei dir passiert, was hilft, welche Brücken funktionieren.
 
-Es ist kein technisches Protokoll, sondern etwas, das mit der Zeit wächst. Du kannst Einträge ansehen und löschen.`,
+Es ist kein technisches Protokoll, sondern etwas, das mit der Zeit wächst. Tippe einen Durchgang an: Du siehst jeden Schritt, alles, was du aufgeschrieben und angetippt hast, was du genutzt hast und – wenn du es ergänzt hast – wie es danach war. Fehlt das „Danach“ noch, kannst du es dort nachtragen.`,
     bodyEn: `Your past Access passes as a personal collection: what happens for you, what helps, which bridges work.
 
 It is not a technical log but something that grows over time. You can view and delete entries.`,

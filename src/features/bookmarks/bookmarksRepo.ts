@@ -49,7 +49,7 @@ const DEFAULT_SOURCES: DefaultSource[] = [
   {
     title: 'Krisendienste Bayern',
     url: 'https://krisendienste.bayern',
-    note: 'Kostenlose Krisenberatung rund um die Uhr für Menschen in psychischen Notlagen in Bayern und deren Angehörige. Telefon: 0800 655 3000.',
+    note: 'Kostenlose Krisenberatung rund um die Uhr für Menschen in psychischen Notlagen in Bayern und deren Angehörige. Telefon: 0800 655 3000 (kostenlos, Anrufe aus Bayern).',
     category: 'Anlaufstellen',
   },
   {

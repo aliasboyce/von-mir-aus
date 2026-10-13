@@ -18,7 +18,7 @@ import { RESOURCE_CATEGORY_TO_GROUP } from '../resources/resourceMeta';
  * Nothing here is a new list of its own: it only links the existing ones.
  */
 export const VALUE_NEEDS: Record<string, string[]> = {
-  Kreativität: ['Kreativität', 'Inspiration', 'Spiel'],
+  Kreativität: ['Kreativität', 'Ausdruck', 'Inspiration', 'Spiel'],
   Produktivität: ['Effektivität', 'Gelingen', 'Erfolg', 'Kompetenz spüren'],
   'soziale Verbindung': ['Kontakt', 'Zugehörigkeit', 'Austausch', 'Gemeinschaft'],
   'emotionale Verbindung': ['Nähe', 'Vertrauen', 'Offenheit', 'Wahrgenommen werden', 'Verständigung'],

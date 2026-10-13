@@ -16,6 +16,38 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-schutzstrategien-kontakte-plakatwand',
+    date: '2026',
+    items: [
+      'Schutzstrategien: aufgeteilt in „Alte“ und „Neue Schutzstrategien“ (mit Ideen für Alternativen zum Übernehmen). Alles, was du aufschreibst, wird sofort mit den Fragen gespeichert. Hindernisse: mehr Erklärung, Fragen, Beispiele, eigene Notizen – und unten ein Weg zu Mein Garten.',
+      'Sicherheitsplan: Das doppelte „Skill oder Hilfsmittel dazu“ ist weg. Das PDF übernimmt jetzt die Stufenfarben (Gelb/Orange/Rot).',
+      'Plakatwand-Übung: neu „Buchstabensalat“, „Wörter einzeln“ und „Dreh es um“ (3 Schritte).',
+      'Startseite: Deine wichtigen Kontakte sind sofort erreichbar – antippen ruft an. Hilfetelefone und Einstellungen auf aktuellen Stand geprüft.',
+    ],
+    itemsEn: [
+      'Protection strategies: split into "Old" and "New protection strategies" (with alternative ideas you can take over). Whatever you write is saved right away with the questions. Obstacles: more explanation, questions, examples, your own notes – and a way to My Garden at the bottom.',
+      'Safety plan: the duplicate "Add skill or tool" is gone. The PDF now carries the tier colours (yellow/orange/red).',
+      'Billboard exercise: new "Letter salad", "Words one by one" and "Turn it around" (3 steps).',
+      'Start page: your important contacts are reachable right away – tap to call. Helplines and settings checked and brought up to date.',
+    ],
+  },
+  {
+    id: '2026-zugang-umbau-wesen-starthilfe',
+    date: '2026',
+    items: [
+      'Zugang neu geordnet: Erst hinschauen (Körper, Zustand, Gefühl, Schutzstrategie, Fürsorge, Bedürfnis, Hindernis, Wert), dann entscheidest du: „Ich reguliere mich erst“ oder „Der Zustand passt“. Danach „Was geht gerade?“ und eine Seite mit passenden Ressourcen und Brücken – direkt zu den Ressourcen oder Brücke nutzen, wenn du mehr Anleitung brauchst. „Wie war es danach?“ kommt erst nach der Nutzung, und der Rückblick zeigt jetzt jeden Schritt.',
+      'Wesen: „Liebevoller Störsender“ (direkte Einladungen ohne Auswahl), „10 Sekunden Schmuggel“ (10 Sekunden etwas ganz anderes, danach darfst du sofort weiter funktionieren) und „Hilfsmittel in den Weg“ (eine deiner Ressourcen taucht über den Tag auf der Startseite auf). Alle mit Info-Knopf; der letzte ist in den Einstellungen abschaltbar.',
+      'Nach der Orientierung geht es weiter: körperliche Sicherheit (auch zu Reizen), bemerken, benennen, Stopp, ein körperlicher Reiz.',
+      'Neues Bedürfnis „Ausdruck“. Körperdetektiv: 12 % zeigt jetzt richtig blau/Hypoarousal. Startseite: „Verstehen (Zugang – Zustand und Handlung)“ und „Handeln (Ressourcen und Brücken)“.',
+    ],
+    itemsEn: [
+      'Access reordered: first look (body, state, feeling, protection strategy, care, need, obstacle, value), then you decide: "I regulate first" or "The state fits". Then "What is possible now?" and a page with matching resources and bridges – straight to resources, or use a bridge if you need more guidance. "How was it afterwards?" only comes after use, and the review now shows every step.',
+      'Companion: "Loving interrupter" (direct invitations without a choice), "10-second smuggle" (10 seconds of something completely different, then you may go on functioning right away) and "Putting tools in your way" (one of your resources shows up on the start page during the day). All with an info button; the last one can be switched off in the settings.',
+      'After grounding it goes on: physical safety (also about stimuli), notice, name, stop, one bodily stimulus.',
+      'New need "Expression". Body detective: 12 % now correctly shows blue/hypoarousal. Start page: "Understand (Access – state and action)" and "Act (Resources and bridges)".',
+    ],
+  },
+  {
     id: '2026-bruecken-beispiel-abstaende',
     date: '2026',
     items: [

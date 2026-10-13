@@ -32,6 +32,8 @@ export function ZugangBranch({
   mode,
   band,
   intent,
+  needWords = [],
+  onTry,
   onChoose,
   onFinishRegulate,
   onFinish,
@@ -39,6 +41,10 @@ export function ZugangBranch({
   mode: 'choose' | 'regulate';
   band: ArousalBand | null;
   intent: ZugangIntent;
+  /** the needs named before the fork — shown so the choice has its reason in view */
+  needWords?: string[];
+  /** a skill / Skillkette was started from the regulate door */
+  onTry?: (title: string) => void;
   onChoose: (c: 'regulate' | 'need') => void;
   onFinishRegulate: () => void;
   onFinish: () => void;
@@ -69,6 +75,7 @@ export function ZugangBranch({
       <div>
         <h2 className="text-[20px] mb-1.5">{b.title}</h2>
         {zoneLabel && <p className="text-[13px] text-[var(--color-text-muted)] mb-1">{b.nowIn.replace('{zone}', zoneLabel)}</p>}
+        {needWords.length > 0 && <p className="text-[13px] text-[var(--color-text)] mb-1.5">{t.zugang.branchNeedSummary.replace('{need}', needWords.slice(0, 4).join(', '))}</p>}
         <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mb-5">{b.intro}</p>
         <div className="flex flex-col gap-3">
           {doors.map((d) => (
@@ -138,11 +145,11 @@ export function ZugangBranch({
               <div className="flex flex-col gap-1.5">
                 {(showAll ? g.rows : g.rows.slice(0, SHOW_FIRST)).map((row) => (
                   <div key={row.id} className="flex items-stretch gap-1.5">
-                    <Link to={row.to} className="flex-1 min-w-0 px-3 py-2.5 rounded-[var(--radius-md)] block" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                    <Link to={row.to} onClick={() => onTry?.(row.title)} className="flex-1 min-w-0 px-3 py-2.5 rounded-[var(--radius-md)] block" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
                       <span className="block text-[14px] text-[var(--color-text)] mb-1">{row.title}</span>
                       <FitSummary subject={row.subject} />
                     </Link>
-                    <Link to={g.start(row.id)} aria-label={`${row.title} – ${b.start}`} className="px-3 rounded-[var(--radius-md)] flex items-center justify-center" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
+                    <Link to={g.start(row.id)} onClick={() => onTry?.(row.title)} aria-label={`${row.title} – ${b.start}`} className="px-3 rounded-[var(--radius-md)] flex items-center justify-center" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>
                       <Play size={16} />
                     </Link>
                   </div>

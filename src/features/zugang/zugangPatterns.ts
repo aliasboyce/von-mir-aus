@@ -33,7 +33,7 @@ export function stateActionPatterns(): StateActionPattern[] {
     const actionKey = e.action.trim().toLowerCase();
     const key = `${state}::${actionKey}`;
     const existing = map.get(key);
-    const hadHarder = !!(e.harderFactors && e.harderFactors.length > 0);
+    const hadHarder = !!(e.harderFactors && e.harderFactors.length > 0) || e.afterOutcome === 'nicht';
     if (existing) {
       existing.total += 1;
       if (hadHarder) existing.harderCount += 1;

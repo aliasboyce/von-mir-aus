@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { RESOURCE_CATEGORY_TO_GROUP } from '../resources/resourceMeta';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
@@ -124,12 +123,10 @@ export function SafetyPlanPage() {
     say(pickLine({ page: '/sicherheit/plan', trigger: 'speichern' }));
   }
 
-  const [linkingWarnId, setLinkingWarnId] = useState<string | null>(null);
   /** "Warnsignale lassen sich mit einem Skill oder Hilfsmittel verknuepfen" */
   function setWarningResource(id: string, resourceId: string | undefined) {
     if (!plan) return;
     persist({ ...plan, warningSignals: plan.warningSignals.map((w) => (w.id === id ? { ...w, resourceId } : w)) });
-    setLinkingWarnId(null);
   }
 
   function removeWarning(id: string) {
@@ -375,32 +372,7 @@ export function SafetyPlanPage() {
                               <X size={11} />
                             </button>
                           </p>
-                        ) : linkingWarnId === w.id ? (
-                          <select
-                            autoFocus
-                            className="input ml-4 mt-1 no-print"
-                            style={{ width: 'calc(100% - 16px)' }}
-                            defaultValue=""
-                            onChange={(e) => setWarningResource(w.id, e.target.value || undefined)}
-                            onBlur={() => setLinkingWarnId(null)}
-                          >
-                            <option value="">{t.safetyPlan.linkPick}</option>
-                            <optgroup label={t.safetyPlan.linkSkills}>
-                              {resourcesRepo.getAll().filter((r) => RESOURCE_CATEGORY_TO_GROUP[r.category] === 'faehigkeiten').map((r) => (
-                                <option key={r.id} value={r.id}>{r.title}</option>
-                              ))}
-                            </optgroup>
-                            <optgroup label={t.safetyPlan.linkTools}>
-                              {resourcesRepo.getAll().filter((r) => RESOURCE_CATEGORY_TO_GROUP[r.category] !== 'faehigkeiten').map((r) => (
-                                <option key={r.id} value={r.id}>{r.title}</option>
-                              ))}
-                            </optgroup>
-                          </select>
-                        ) : (
-                          <button onClick={() => setLinkingWarnId(w.id)} className="ml-4 mt-0.5 text-[12px] text-[var(--color-primary)] no-print">
-                            + {t.safetyPlan.linkAdd}
-                          </button>
-                        )}
+                        ) : null}
                       </li>
                     );
                   })}

@@ -28,8 +28,39 @@ import { Button } from '../../components/ui/Button';
  */
 type BillboardPhase = 'appear' | 'zooming' | 'observing';
 
-export function DefusionBillboardExercise({ thought }: { thought: string }) {
+/** Shuffles all letters of a sentence across the letter positions, keeping spaces/punctuation in place. */
+export function letterSalad(text: string): string {
+  const chars = [...text];
+  const idx = chars.map((c, i) => (/\p{L}/u.test(c) ? i : -1)).filter((i) => i >= 0);
+  if (idx.length < 3) return text;
+  let result = text;
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const letters = idx.map((i) => chars[i].toLowerCase());
+    for (let i = letters.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [letters[i], letters[j]] = [letters[j], letters[i]];
+    }
+    const out = [...chars];
+    idx.forEach((pos, k) => { out[pos] = letters[k]; });
+    const firstLetter = idx[0];
+    out[firstLetter] = out[firstLetter].toUpperCase();
+    result = out.join('');
+    if (result !== text) break;
+  }
+  return result;
+}
+
+type PlayMode = null | 'salad' | 'words' | 'flip';
+
+export function DefusionBillboardExercise({ thought, onUseAsReframe }: { thought: string; onUseAsReframe?: (text: string) => void }) {
   const t = useT();
+  const [play, setPlay] = useState<PlayMode>(null);
+  const [salad, setSalad] = useState(() => letterSalad(thought));
+  const [wordIdx, setWordIdx] = useState(0);
+  const [wordAnswers, setWordAnswers] = useState<string[]>([]);
+  const [flipStep, setFlipStep] = useState(0);
+  const [flipText, setFlipText] = useState('');
+  const words = thought.split(/\s+/).map((w) => w.replace(/^[\p{P}\p{S}]+|[\p{P}\p{S}]+$/gu, '')).filter(Boolean);
   const [phase, setPhase] = useState<BillboardPhase>('appear');
   const [zoomLevel, setZoomLevel] = useState(1);
   const [passing, setPassing] = useState(false);
@@ -78,11 +109,94 @@ export function DefusionBillboardExercise({ thought }: { thought: string }) {
           }}
         >
           <p className="text-[10px] text-[var(--color-text-faint)] mb-2">{t.glaubenssaetze.billboardFrameLabel}</p>
-          <p className="text-[13px] leading-relaxed text-[var(--color-text)]">{thought}</p>
+          <p className="text-[13px] leading-relaxed text-[var(--color-text)]" data-testid="billboard-text">{play === 'salad' ? salad : thought}</p>
         </div>
       </div>
 
-      {phase === 'appear' && (
+      {play === 'salad' && (
+        <div>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.glaubenssaetze.saladText}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => setSalad(letterSalad(thought))}>{t.glaubenssaetze.saladAgainCta}</Button>
+            <Button size="sm" variant="ghost" onClick={() => setPlay(null)}>{t.glaubenssaetze.playBackCta}</Button>
+          </div>
+        </div>
+      )}
+
+      {play === 'words' && (
+        <div>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.glaubenssaetze.wordsOneIntro}</p>
+          {wordIdx < words.length ? (
+            <>
+              <div className="rounded-[var(--radius-lg)] p-4 mb-3 text-center" style={{ background: 'var(--color-surface-muted)' }}>
+                <p className="text-[20px] text-[var(--color-primary)] mb-1" data-testid="word-current">{words[wordIdx]}</p>
+                <p className="text-[14px] text-[var(--color-text)]">{t.glaubenssaetze.wordsOneAsk.replace('{word}', words[wordIdx])}</p>
+              </div>
+              <textarea
+                className="input mb-3"
+                rows={2}
+                placeholder={t.glaubenssaetze.wordsOnePlaceholder}
+                value={wordAnswers[wordIdx] ?? ''}
+                onChange={(e) => setWordAnswers((a) => { const n = [...a]; n[wordIdx] = e.target.value; return n; })}
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" onClick={() => setWordIdx((i) => i + 1)}>{t.glaubenssaetze.wordsOneNextCta}</Button>
+                <Button size="sm" variant="ghost" onClick={() => setPlay(null)}>{t.glaubenssaetze.playBackCta}</Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-3">{t.glaubenssaetze.wordsOneDone}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="ghost" onClick={() => { setWordIdx(0); setWordAnswers([]); }}>{t.glaubenssaetze.billboardRestartCta}</Button>
+                <Button size="sm" variant="ghost" onClick={() => setPlay(null)}>{t.glaubenssaetze.playBackCta}</Button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {play === 'flip' && (
+        <div>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-1">{t.glaubenssaetze.flipIntro}</p>
+          <p className="text-[11px] text-[var(--color-text-faint)] leading-relaxed mb-3">{t.glaubenssaetze.flipSource}</p>
+          {flipStep < 2 ? (
+            <>
+              <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{flipStep === 0 ? t.glaubenssaetze.flipStep1 : t.glaubenssaetze.flipStep2}</p>
+              {flipStep === 1 && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2">{t.glaubenssaetze.flipStep2Hint}</p>}
+              <div className="flex flex-wrap gap-2 mb-3">
+                {[t.glaubenssaetze.flipAnswerYes, t.glaubenssaetze.flipAnswerNo, t.glaubenssaetze.flipAnswerUnsure].map((a) => (
+                  <Button key={a} size="sm" variant="secondary" onClick={() => setFlipStep((x) => x + 1)}>{a}</Button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{t.glaubenssaetze.flipStep3}</p>
+              <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2">{t.glaubenssaetze.flipStep3Hint}</p>
+              <p className="text-[12px] text-[var(--color-text-faint)] italic mb-2">{t.glaubenssaetze.flipExample}</p>
+              <textarea
+                className="input mb-3"
+                rows={2}
+                placeholder={t.glaubenssaetze.flipPlaceholder}
+                value={flipText}
+                onChange={(e) => setFlipText(e.target.value)}
+              />
+              {onUseAsReframe && (
+                <Button size="sm" className="mr-2" disabled={!flipText.trim()} onClick={() => onUseAsReframe(flipText.trim())}>
+                  {t.glaubenssaetze.flipUseCta}
+                </Button>
+              )}
+            </>
+          )}
+          <div className="flex gap-2">
+            {flipStep > 0 && <Button size="sm" variant="ghost" onClick={() => setFlipStep((x) => x - 1)}>{t.common.back}</Button>}
+            <Button size="sm" variant="ghost" onClick={() => setPlay(null)}>{t.glaubenssaetze.playBackCta}</Button>
+          </div>
+        </div>
+      )}
+
+      {play === null && phase === 'appear' && (
         <>
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.glaubenssaetze.billboardAppearText}</p>
           <Button size="sm" onClick={startZoomOut}>
@@ -91,11 +205,11 @@ export function DefusionBillboardExercise({ thought }: { thought: string }) {
         </>
       )}
 
-      {phase === 'zooming' && (
+      {play === null && phase === 'zooming' && (
         <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.glaubenssaetze.billboardZoomingText}</p>
       )}
 
-      {phase === 'observing' && (
+      {play === null && phase === 'observing' && (
         <>
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.glaubenssaetze.billboardObserveText}</p>
           <div className="flex flex-wrap gap-2">
@@ -113,6 +227,23 @@ export function DefusionBillboardExercise({ thought }: { thought: string }) {
             </Button>
           </div>
         </>
+      )}
+
+      {play === null && phase !== 'zooming' && (
+        <div className="mt-4 pt-3 border-t border-[var(--color-border)]">
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.glaubenssaetze.playTitle}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="secondary" onClick={() => { setSalad(letterSalad(thought)); setPlay('salad'); }}>
+              {t.glaubenssaetze.playSaladCta}
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => { setWordIdx(0); setWordAnswers([]); setPlay('words'); }}>
+              {t.glaubenssaetze.playWordsCta}
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => { setFlipStep(0); setFlipText(''); setPlay('flip'); }}>
+              {t.glaubenssaetze.playFlipCta}
+            </Button>
+          </div>
+        </div>
       )}
     </Card>
   );

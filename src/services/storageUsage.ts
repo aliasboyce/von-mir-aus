@@ -32,7 +32,10 @@ function categoryLabelFor(key: string): string {
   if (key.startsWith('glaubenssaetze')) return 'Denkmaschine';
   if (key.startsWith('sorgenfresser-worries')) return 'Loslassen';
   if (key.startsWith('letters-to-self')) return 'Briefe an mich';
-  if (key.startsWith('protection-reflections')) return 'Schutzstrategien-Notizen';
+  if (key.startsWith('protection-reflections') || key.startsWith('obstacle-reflections') || key.startsWith('selected-obstacles') || key.startsWith('dismissible-list')) return 'Schutzstrategien & Hindernisse';
+  if (key.startsWith('calendar')) return 'Kalender';
+  if (key.startsWith('skill') || key.startsWith('channel-snapshots') || key.startsWith('access-gap')) return 'Skills & Zugang';
+  if (key.startsWith('mailbox') || key.startsWith('gentle-') || key.startsWith('custom-reminders')) return 'Postfach & Erinnerungen';
   if (key.startsWith('custom-distraction') || key.startsWith('distraction') || key.startsWith('vocab')) return 'Wesen & Ablenkung';
   if (key.startsWith('custom-lichtwesen') || key.startsWith('companion') || key.startsWith('custom-theme')) return 'Wesen & Aussehen';
   if (key.startsWith('bookmarks')) return 'Lesezeichen';

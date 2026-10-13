@@ -7,6 +7,7 @@ import { useSettings } from '../../state/SettingsContext';
 import { getActiveGroundingSteps } from './groundingManagement';
 import { triggerHaptic } from '../../services/haptics';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
+import { AfterGrounding } from './AfterGrounding';
 
 interface GroundingOverlayProps {
   onClose: () => void;
@@ -41,6 +42,8 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [breathPhase, setBreathPhase] = useState<'in' | 'out'>('in');
   const [steps] = useState(() => getActiveGroundingSteps());
+  // after the last step: physical safety → bemerken → benennen → stoppen → somatischer Reiz
+  const [afterOpen, setAfterOpen] = useState(false);
   const isLast = step === steps.length - 1;
   const current = steps[step];
   const isBreathStep = 'isBreath' in current && current.isBreath === true;
@@ -90,6 +93,7 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
 
       <InlineCompanionNote />
 
+      {afterOpen ? <AfterGrounding onClose={onClose} /> : <>
       {step === 0 && <p className="text-[13px] text-[var(--color-text-faint)] mt-5 mb-1">{t.companion.groundingIntro}</p>}
 
       {isBreathStep ? (
@@ -146,9 +150,15 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
       </div>
 
       {isLast ? (
-        <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">
-          {t.common.close}
-        </button>
+        <div className="flex flex-col items-center gap-3">
+          <button onClick={() => setAfterOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">
+            {isEn ? 'What next?' : 'Wie geht es weiter?'}
+            <ArrowRight size={14} />
+          </button>
+          <button onClick={onClose} className="text-[13px] text-[var(--color-text-faint)] underline">
+            {t.common.close}
+          </button>
+        </div>
       ) : (
         <>
           <button
@@ -163,6 +173,7 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
           </button>
         </>
       )}
+      </>}
     </div>,
     document.body,
   );

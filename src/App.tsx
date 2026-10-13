@@ -36,6 +36,7 @@ import { CalendarOverviewPage } from './features/calendar/CalendarOverviewPage';
 // AccessWheelPage retired — see App.tsx route comment
 import { ZugangPage } from './features/zugang/ZugangPage';
 import { ZugangReviewPage } from './features/zugang/ZugangReviewPage';
+import { ZugangUsePage, ZugangAfterPage } from './features/zugang/ZugangFollowUpPages';
 import { CompanionContentPage } from './components/companion/CompanionContentPage';
 import { CompanionAboutPage } from './features/settings/CompanionAboutPage';
 import { SourceLibraryPage } from './features/sources/SourceLibraryPage';
@@ -99,6 +100,8 @@ function App() {
                  * sliders now live on the Zugangskanäle page. */}
                 <Route path="/zugang" element={<ZugangPage />} />
                 <Route path="/zugang/rueckblick" element={<ZugangReviewPage />} />
+                <Route path="/zugang/nutzen/:entryId" element={<ZugangUsePage />} />
+                <Route path="/zugang/danach/:entryId" element={<ZugangAfterPage />} />
                 <Route path="/einstellungen/wesen-inhalte" element={<CompanionContentPage />} />
                 <Route path="/einstellungen/wesen-info" element={<CompanionAboutPage />} />
                 <Route path="/system-karte" element={<Navigate to="/entdecken" replace />} />

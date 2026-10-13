@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { goBack as goBackSafe } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useNavigate, Link } from 'react-router-dom';
@@ -6,7 +6,9 @@ import { ChevronLeft, History } from 'lucide-react';
 import { ZugangStepHeader } from './ZugangStepHeader';
 import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
 import { ArousalModelExplainer } from '../polyvagal/ArousalModelExplainer';
-import { saveZugangDraft, loadZugangDraft, clearZugangDraft, isDraftRecent, finalizeZugangDraft } from './zugangDraft';
+import { saveZugangDraft, loadZugangDraft, clearZugangDraft, isDraftRecent, finalizeZugangDraft, currentFitSnapshot } from './zugangDraft';
+import { ZugangSuggestions } from './ZugangSuggestions';
+import { startFollowUp, getFollowUp, clearFollowUp } from './zugangFollowUp';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
@@ -32,7 +34,6 @@ import {
   NEED_CATEGORY_GROUPS,
   OBSTACLES_DE,
   CONNECTION_ITEMS_DE,
-  ACTION_EXAMPLES_DE,
 } from './zugangContent';
 import { PROTECTION_TO_NEEDS_DE } from './protectionToNeeds';
 import { findSimilarPastEntry } from './zugangPatterns';
@@ -40,19 +41,14 @@ import { AccessGapModal } from './AccessGapModal';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
-import { bridgesRepo } from '../bridges/bridgesRepo';
-import { bridgeNeeds } from '../bridges/bridgeValues';
-import { resourcesRepo } from '../resources/resourcesRepo';
-import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { useSettings } from '../../state/SettingsContext';
-import type { ZugangSurvivalState, Bridge } from '../../data/types';
+import type { ZugangSurvivalState, ZugangEntry } from '../../data/types';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
-import { availableChannels, countHiddenUnmarked, filterByFit, subjectOfResource } from '../../content/fitCriteria';
-import { useFitFilter } from '../../state/fitFilterStore';
-import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
-const STEP_COUNT = 11; // 0..10, see render switch below
+const STEP_COUNT = 12; // 0..11, see render switch below
+/** the last step: the short look back + save */
+const FINAL_STEP = 11;
 
 /**
  * The whole point of this page: not one more disconnected mini-tool,
@@ -88,6 +84,14 @@ export function ZugangPage() {
     return null;
   });
 
+  // a pass that was saved and then went on to Ressourcen / a Brücke, and was not
+  // reflected on yet (e.g. the phone's back button skipped the "danach" page)
+  const [pendingFollowUp, setPendingFollowUp] = useState<string | null>(() => {
+    const f = getFollowUp();
+    if (!f) return null;
+    const e = zugangRepo.getById(f.entryId);
+    return e && !e.reflectedAt ? f.entryId : null;
+  });
   const [step, setStep] = useState(recentDraft?.step ?? 0);
   const [showIntro, setShowIntro] = useState(!recentDraft);
   const [ichJetzt, setIchJetzt] = useState(recentDraft?.ichJetzt ?? '');
@@ -100,6 +104,11 @@ export function ZugangPage() {
   // Skillketten), 'need' (passed through, continue with the existing path).
   const [branch, setBranch] = useState<'choose' | 'regulate' | 'need' | null>(recentDraft?.branch ?? null);
   const [intent, setIntent] = useState<ZugangIntent>(recentDraft?.intent ?? null);
+  // what was decided at the fork, what was tried while regulating, and which
+  // Ressourcen are ticked for use — all saved with the pass
+  const [choice, setChoice] = useState<'regulate' | 'need' | 'done' | undefined>(recentDraft?.choice);
+  const [regulateTried, setRegulateTried] = useState<string[]>(recentDraft?.regulateTried ?? []);
+  const [usedResources, setUsedResources] = useState<{ id: string; title: string }[]>(recentDraft?.usedResources ?? []);
   const inBranch = branch === 'choose' || branch === 'regulate';
   const [survivalState, setSurvivalState] = useState<ZugangSurvivalState | null>(recentDraft?.survivalState ?? null);
   const [tensionValue, setTensionValue] = useState<number>(recentDraft?.tensionValue ?? 50);
@@ -128,8 +137,6 @@ export function ZugangPage() {
   // Now the same state as the Zugangskanäle page ("Was ist gerade
   // vorhanden?") and the shared "Was geht gerade?" filter, so what the
   // person says once counts everywhere (still session-only).
-  const { filter: fitFilter } = useFitFilter();
-  const openChannels = useMemo(() => availableChannels(fitFilter.levels), [fitFilter.levels]);
   const [connection, setConnection] = useState<string[]>(recentDraft?.connection ?? []);
   const [action, setAction] = useState(recentDraft?.action ?? '');
   const [reflection, setReflection] = useState(recentDraft?.reflection ?? '');
@@ -184,35 +191,18 @@ export function ZugangPage() {
     saveZugangDraft({
       step, ichJetzt, body, survivalState, tensionValue, feelings, protectionStrategy,
       careWish, selfSufficient, need, obstacle, bridgeId, connection, action, reflection, branch, intent,
+      choice, regulateTried, usedResources,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, ichJetzt, body, survivalState, tensionValue, feelings, protectionStrategy, careWish, selfSufficient, need, obstacle, bridgeId, connection, action, reflection, branch, intent, showIntro, saved]);
-
-  const allBridges = useMemo(() => bridgesRepo.getAll(), []);
-  const selectedBridge = useMemo(() => allBridges.find((b) => b.id === bridgeId), [allBridges, bridgeId]);
-  // "Persönliche Antwort entscheidet, nie eine Zone"-Fund — resources
-  // whose own accessChannels tags overlap with what the person just
-  // said feels open right now sort first. Never a filter — everything
-  // stays visible either way, this only reorders.
-  const favoriteResources = useMemo(() => {
-    const all = resourcesRepo.getAll().filter((r) => r.favorite);
-    const withScore = all.map((r) => ({
-      resource: r,
-      matches: openChannels.length === 0 ? 0 : (r.accessChannels ?? []).filter((c) => openChannels.includes(c)).length,
-    }));
-    withScore.sort((a, b) => b.matches - a.matches);
-    return withScore.slice(0, 4).map((s) => s.resource);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openChannels]);
-  const activityContacts = useMemo(() => networkRepo.getAll().filter((e) => e.category === 'person').slice(0, 4), []);
+  }, [step, ichJetzt, body, survivalState, tensionValue, feelings, protectionStrategy, careWish, selfSufficient, need, obstacle, bridgeId, connection, action, reflection, branch, intent, choice, regulateTried, usedResources, showIntro, saved]);
 
   function toggle(list: string[], setList: (v: string[]) => void, value: string) {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   }
 
   function goNext() {
-    // after perceiving (Körper, Zustand, Gefühl): the fork, once
-    if (step === 3 && branch === null) {
+    // after seeing what is there (Körper … Wert): the fork, once
+    if (step === 8 && branch === null) {
       setBranch('choose');
       return;
     }
@@ -226,6 +216,10 @@ export function ZugangPage() {
     }
     if (branch === 'choose') {
       setBranch(null);
+      return;
+    }
+    if (branch === 'need' && step === 9) {
+      setBranch('choose');
       return;
     }
     if (step === 0) {
@@ -275,24 +269,16 @@ export function ZugangPage() {
     navigate('/sicherheit/netzwerk');
   }
 
-  function goToBridge() {
-    // "Brücke: Beenden/Fortführen/Verwerfen" brief — no longer finalizes
-    // immediately. The draft (already being saved continuously by the
-    // effect below) stays alive, and BridgeDetailPage shows the actual
-    // three-way choice once the person is ready to leave the bridge —
-    // matching what the brief explicitly asks for instead of silently
-    // deciding "bridge = done" the moment the bridge opens.
-    navigate(`/bruecken/${bridgeId}?fromZugang=1`);
-  }
-
-  function saveEntry(endedVia: 'complete' | 'bridge' | 'safetynet' | 'abandoned' | 'regulate' = 'complete') {
+  function saveEntry(endedVia: 'complete' | 'bridge' | 'safetynet' | 'abandoned' | 'regulate' | 'resource' = 'complete', overrides: Partial<ZugangEntry> = {}): string {
     const now = new Date().toISOString();
+    const id = createId('zugang');
     zugangRepo.save({
-      id: createId('zugang'),
+      id,
       createdAt: now,
       ichJetzt: ichJetzt.trim() || undefined,
       body,
       survivalState: survivalState ?? undefined,
+      tensionValue: survivalState ? tensionValue : undefined,
       feelings,
       protectionStrategy,
       careWish,
@@ -305,19 +291,40 @@ export function ZugangPage() {
       reflection: reflection.trim() || undefined,
       harderFactors: harderFactors.length > 0 ? harderFactors : undefined,
       whatMightHaveHelped: whatMightHaveHelped.trim() || undefined,
+      fitFilter: currentFitSnapshot(),
+      choice,
+      regulateTried: regulateTried.length > 0 ? regulateTried : undefined,
+      usedResources: usedResources.length > 0 ? usedResources : undefined,
       endedVia,
       stoppedAtStep: endedVia === 'abandoned' ? step : undefined,
+      ...overrides,
     });
-    // The pass has genuinely concluded through one of its three real
-    // endings — nothing left to resume, so the draft is cleared here
-    // rather than lingering and offering a stale "Weitermachen" later.
+    // The pass has genuinely concluded through one of its real endings —
+    // nothing left to resume, so the draft is cleared here rather than
+    // lingering and offering a stale "Weitermachen" later.
     clearZugangDraft();
+    return id;
+  }
+
+  /** Door 1 on the suggestions page: save the pass, then open the chosen Ressourcen. */
+  function useChosenResources() {
+    const id = saveEntry('resource', { bridgeId: undefined });
+    startFollowUp(id);
+    navigate(`/zugang/nutzen/${id}`);
+  }
+
+  /** Door 2: save the pass, then go into the Brücke (more guidance). */
+  function useChosenBridge() {
+    if (!bridgeId) return;
+    const id = saveEntry('bridge', { usedResources: undefined });
+    startFollowUp(id);
+    navigate(`/bruecken/${bridgeId}?zugangEntry=${id}`);
   }
 
   function finishRegulate() {
     setBranch(null);
-    setStep(10);
-    saveEntry('regulate');
+    setStep(FINAL_STEP);
+    saveEntry('regulate', { choice: 'regulate' });
     setSaved(true);
     say(pickLine({ page: '/zugang', trigger: 'speichern' }), { joy: true });
   }
@@ -325,8 +332,8 @@ export function ZugangPage() {
   /** "Fertig" at the fork: stop here, nothing more is asked. The perceiving so far is kept. */
   function finishAtFork() {
     setBranch(null);
-    setStep(10);
-    saveEntry('complete');
+    setStep(FINAL_STEP);
+    saveEntry('complete', { choice: 'done' });
     setSaved(true);
     say(pickLine({ page: '/zugang', trigger: 'speichern' }), { joy: true });
   }
@@ -341,7 +348,7 @@ export function ZugangPage() {
   const stepLabels = [
     t.zugang.step0Title, t.zugang.step1Title, t.zugang.step2Title, t.zugang.step3Title,
     t.zugang.step4Title, t.zugang.step5Title, t.zugang.step6Title, t.zugang.step7Title,
-    t.zugang.step9Title, t.zugang.step10Title, t.zugang.step11Title,
+    t.zugang.step9Title, t.zugang.stepChannelsTitle, t.zugang.stepSuggestTitle, t.zugang.step11Title,
   ];
 
   if (showIntro) {
@@ -382,6 +389,9 @@ export function ZugangPage() {
                   setConnection(draft.connection);
                   setAction(draft.action);
                   setReflection(draft.reflection);
+                  setChoice(draft.choice);
+                  setRegulateTried(draft.regulateTried ?? []);
+                  setUsedResources(draft.usedResources ?? []);
                 }
                 setShowIntro(false);
               }}
@@ -439,6 +449,16 @@ export function ZugangPage() {
               <span className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.introOpenHint}</span>
             </button>
           </>
+        )}
+        {pendingFollowUp && (
+          <div className="w-full max-w-[320px] rounded-[var(--radius-lg)] p-4 mb-5 text-left" style={{ background: 'var(--color-primary-soft)' }}>
+            <p className="text-[14px] text-[var(--color-text)] mb-0.5">{t.zugang.after.pendingTitle}</p>
+            <p className="text-[12.5px] text-[var(--color-text-muted)] mb-3">{t.zugang.after.pendingText}</p>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => navigate(`/zugang/danach/${pendingFollowUp}`)}>{t.zugang.after.pendingAnswer}</Button>
+              <Button size="sm" variant="ghost" onClick={() => { clearFollowUp(); setPendingFollowUp(null); }}>{t.zugang.after.pendingDismiss}</Button>
+            </div>
+          </div>
         )}
         <Link to="/zugang/rueckblick" className="flex items-center justify-center gap-1.5 text-[13px] text-[var(--color-primary)]">
           <History size={14} /> {t.zugang.reviewCta}
@@ -517,11 +537,14 @@ export function ZugangPage() {
             mode={branch === 'regulate' ? 'regulate' : 'choose'}
             band={survivalState ? bandForValue(tensionValue) : null}
             intent={intent}
+            needWords={need}
+            onTry={(title) => setRegulateTried((list) => (list.includes(title) ? list : [...list, title]))}
             onChoose={(c) => {
+              setChoice(c);
               if (c === 'regulate') setBranch('regulate');
               else {
                 setBranch('need');
-                setStep(4);
+                setStep(9);
               }
             }}
             onFinishRegulate={finishRegulate}
@@ -1036,143 +1059,34 @@ export function ZugangPage() {
 
         {shownStep === 9 && (
           <div>
-            <ZugangStepHeader question={t.zugang.step10Question} hint={t.zugang.step10Hint} />
+            <ZugangStepHeader question={t.zugang.stepChannelsQuestion} hint={t.zugang.stepChannelsHint} />
+            {/* The person says what is open right now (or skips it —
+             * nothing is ever hidden, only fitted). The next page uses it. */}
+            <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.zugang.openChannelsHint}</p>
+            <FitFilterPanel defaultOpen />
+          </div>
+        )}
 
-            {/* "Starre Zone-Zuordnung ist doof — die Person soll selbst
-             * sagen, was gerade offen ist"-Fund — this replaces any
-             * idea of the app inferring "open channels" from the
-             * selected zone/state. The person answers directly, or
-             * skips it entirely; either way nothing below is ever
-             * hidden, only reordered. */}
-            <div className="mb-5">
-              <p className="text-[14px] text-[var(--color-text)] mb-1">{t.zugang.openChannelsQuestion}</p>
-              <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.zugang.openChannelsHint}</p>
-              <FitFilterPanel hiddenUnmarked={countHiddenUnmarked(favoriteResources.map(subjectOfResource), fitFilter)} />
-            </div>
-
-            {/* "Brücke faellt als eigener Schritt weg, wandert in
-             * Handlung"-Auftrag — same matching/category-grouped
-             * bridge picker that used to be its own step, now the
-             * first thing offered here: picking a bridge is itself
-             * one concrete way to answer "was fuehlt sich jetzt
-             * stimmig an", not a separate detour. Selecting one just
-             * sets bridgeId (shown via the summary card below) —
-             * doesn't force navigation away, the person can still
-             * pick a resource/contact/own action underneath instead
-             * or as well. */}
-            <div className="mb-5">
-              <p className="text-[14px] text-[var(--color-text)] mb-1">{t.zugang.handlungBridgeQuestion}</p>
-              {allBridges.length === 0 ? (
-                <p className="text-[13px] text-[var(--color-text-faint)]">{t.zugang.noBridgesYet}</p>
-              ) : (
-                (() => {
-                  const picked = new Set([...need, ...obstacle]);
-                  const scored = allBridges.map((b) => ({
-                    bridge: b,
-                    matches:
-                      // needs the bridge stands for (its own plus those of its values), obstacles, and the values picked in Zugang
-                      [...bridgeNeeds(b), ...(b.linkedObstacles ?? [])].filter((x) => picked.has(x)).length +
-                      (b.connectionTags ?? []).filter((v) => connection.includes(v)).length +
-                      (openChannels.length === 0 ? 0 : (b.accessChannels ?? []).filter((c) => openChannels.includes(c)).length),
-                  }));
-                  const matching = scored.filter((s) => s.matches > 0).sort((a, b) => b.matches - a.matches);
-                  const rest = scored.filter((s) => s.matches === 0);
-                  const renderBridgeRow = (b: Bridge) => (
-                    <button
-                      key={b.id}
-                      onClick={() => setBridgeId(bridgeId === b.id ? null : b.id)}
-                      className="flex items-center gap-3 rounded-[var(--radius-lg)] border p-3 text-left"
-                      style={{ borderColor: bridgeId === b.id ? 'var(--color-primary)' : 'var(--color-border)', borderWidth: bridgeId === b.id ? 1.5 : 1 }}
-                    >
-                      <PhotoBackground src={b.image} className="w-11 h-11 rounded-[var(--radius-md)] bg-cover bg-center flex-shrink-0" />
-                      <div className="min-w-0">
-                        <p className="text-[14px] text-[var(--color-text)] truncate">{b.title}</p>
-                        <p className="text-[12px] text-[var(--color-text-muted)] truncate">{(b.connectionTags ?? []).slice(0, 3).join(' · ')}</p>
-                      </div>
-                    </button>
-                  );
-                  return (
-                    <div className="mt-2">
-                      <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.zugang.handlungSavedBridgesLabel}</p>
-                      {matching.length > 0 && (
-                        <>
-                          <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.zugang.matchingBridgesLabel}</p>
-                          <div className="flex flex-col gap-2.5 mb-4">{matching.map((s) => renderBridgeRow(s.bridge))}</div>
-                        </>
-                      )}
-                      {rest.length > 0 && (
-                        <>
-                          <details className="rounded-[var(--radius-lg)] border border-[var(--color-border)] px-3 py-2">
-                            <summary className="text-[13px] text-[var(--color-text)] cursor-pointer list-none">
-                              {matching.length > 0 ? t.zugang.moreBridgesLabel.replace('{count}', String(rest.length)) : `${t.bridges.title} (${rest.length})`}
-                            </summary>
-                            <div className="flex flex-col gap-2.5 mt-2.5">{rest.map((s2) => renderBridgeRow(s2.bridge))}</div>
-                          </details>
-                        </>
-                      )}
-                      {bridgeId && (
-                        <button onClick={goToBridge} className="text-[13px] text-[var(--color-primary)] mt-3">
-                          {t.zugang.goToBridgeCta} →
-                        </button>
-                      )}
-                    </div>
-                  );
-                })()
-              )}
-            </div>
-
-            {selectedBridge && (
-              <Card className="mb-4" style={{ background: 'var(--color-primary-soft)' }}>
-                <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">{t.zugang.bridgeToActionLabel}</p>
-                <p className="text-[14px] text-[var(--color-text)] mb-2">🌉 {selectedBridge.title}</p>
-                <p className="text-[12px] text-[var(--color-text-muted)] leading-relaxed">{t.zugang.bridgeToActionHint}</p>
-              </Card>
-            )}
-
-            {favoriteResources.length > 0 && (
-              <div className="mb-4">
-                <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.accessWheel.favoriteResources}</p>
-                <div className="flex flex-wrap gap-2">
-                  {filterByFit(favoriteResources, subjectOfResource, fitFilter).map((r) => (
-                    <button key={r.id} onClick={() => setAction(r.title)} className="px-3.5 py-2 rounded-full text-[14px]" style={{ background: action === r.title ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: action === r.title ? 'var(--color-surface)' : 'var(--color-text)' }}>
-                      {r.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {activityContacts.length > 0 && (
-              <div className="mb-4">
-                <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.zugang.myContactsLabel}</p>
-                <div className="flex flex-wrap gap-2">
-                  {activityContacts.map((c) => (
-                    <button key={c.id} onClick={() => setAction(c.name)} className="px-3.5 py-2 rounded-full text-[14px]" style={{ background: action === c.name ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: action === c.name ? 'var(--color-surface)' : 'var(--color-text)' }}>
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div className="mb-2">
-              <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.zugang.actionExamplesLabel}</p>
-              <div className="flex flex-wrap gap-2">
-                {ACTION_EXAMPLES_DE.map((a) => (
-                  <button key={a} onClick={() => setAction(a)} className="px-3.5 py-2 rounded-full text-[14px]" style={{ background: action === a ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: action === a ? 'var(--color-surface)' : 'var(--color-text)' }}>
-                    {a}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <input
-              className="input mt-3"
-              placeholder={t.zugang.actionOwnPlaceholder}
-              value={action}
-              onChange={(e) => setAction(e.target.value)}
+        {shownStep === 10 && (
+          <div>
+            <ZugangStepHeader question={t.zugang.stepSuggestQuestion} hint={t.zugang.stepSuggestHint} />
+            <ZugangSuggestions
+              need={need}
+              obstacle={obstacle}
+              connection={connection}
+              bridgeId={bridgeId}
+              setBridgeId={setBridgeId}
+              usedResources={usedResources}
+              setUsedResources={setUsedResources}
+              action={action}
+              setAction={setAction}
+              onUseResources={useChosenResources}
+              onUseBridge={useChosenBridge}
             />
           </div>
         )}
 
-        {shownStep === 10 && !saved && (
+        {shownStep === FINAL_STEP && !saved && (
           <div>
             <h1 className="text-[20px] text-center mb-5">{t.zugang.step11Title2}</h1>
             <div className="flex flex-col gap-2 mb-6 text-[13px] text-[var(--color-text-muted)]">
@@ -1181,8 +1095,11 @@ export function ZugangPage() {
               {survivalState && <SummaryRow label={t.zugang.step2Title} value={isEnLang(settings) ? SURVIVAL_STATE_META[survivalState].labelEn : SURVIVAL_STATE_META[survivalState].label} />}
               {feelings.length > 0 && <SummaryRow label={t.zugang.step3Title} value={feelings.join(', ')} />}
               {protectionStrategy.length > 0 && <SummaryRow label={t.zugang.step4Title} value={protectionStrategy.join(', ')} />}
+              {careWish.length > 0 && <SummaryRow label={t.zugang.step5Title} value={careWish.join(', ')} />}
               {need.length > 0 && <SummaryRow label={t.zugang.step6Title} value={need.join(', ')} />}
               {obstacle.length > 0 && <SummaryRow label={t.zugang.step7Title} value={obstacle.join(', ')} />}
+              {connection.length > 0 && <SummaryRow label={t.zugang.step9Title} value={connection.join(', ')} />}
+              {regulateTried.length > 0 && <SummaryRow label={t.zugang.reviewRegulateTried} value={regulateTried.join(', ')} />}
               {action && <SummaryRow label={t.zugang.step10Title} value={action} />}
             </div>
             <label className="flex flex-col gap-1.5 mb-4">
@@ -1234,7 +1151,7 @@ export function ZugangPage() {
           </div>
         )}
 
-        {shownStep === 10 && saved && (
+        {shownStep === FINAL_STEP && saved && (
           <div className="flex flex-col items-center justify-center text-center gap-5 py-6 animate-in">
             <span className="text-[48px]">🌱</span>
             <div>
@@ -1255,7 +1172,7 @@ export function ZugangPage() {
         )}
       </div>
 
-      {!saved && !inBranch && step !== 10 && !(step === 5 && selfSufficient === 'nein') && (
+      {!saved && !inBranch && step !== FINAL_STEP && !(step === 5 && selfSufficient === 'nein') && (
         <Button fullWidth onClick={goNext} className="mt-6">
           {t.companion.pickerContinue}
         </Button>

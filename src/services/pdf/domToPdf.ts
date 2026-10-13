@@ -1,4 +1,4 @@
-import { PdfDoc, type RGB } from './pdfBuilder';
+import { PdfDoc, hexToRgb, type RGB } from './pdfBuilder';
 import { deliverPdf, safeFilename } from './pdfShare';
 
 /**
@@ -47,6 +47,34 @@ function walk(doc: PdfDoc, el: HTMLElement, base: { size: number; bold: boolean;
   const tag = el.tagName;
   if (tag === 'SVG' || tag === 'svg' || tag === 'IMG' || tag === 'SCRIPT' || tag === 'STYLE') return;
   const st = styleOf(el, base);
+
+  // Colour carry-over for views that want it: `data-pdf-stripe="#a,#b,#c"`
+  // draws a multi-colour stripe, `data-pdf-band="#hex"` draws a filled
+  // coloured band with the block's first <h2> in white, then the rest.
+  const stripe = el.dataset?.pdfStripe;
+  if (stripe) {
+    const colors = stripe.split(',').map((c) => hexToRgb(c.trim()));
+    doc.ensure(14);
+    const w = doc.contentWidth / colors.length;
+    colors.forEach((c, i) => doc.rect(doc.margin + i * w, doc.y, w, 6, { fill: c }));
+    doc.space(16);
+    return;
+  }
+  const band = el.dataset?.pdfBand;
+  if (band) {
+    const h2 = el.querySelector('h2');
+    const title = clean(h2?.textContent ?? null);
+    doc.ensure(60);
+    doc.space(6);
+    const color = hexToRgb(band);
+    doc.rect(doc.margin, doc.y, doc.contentWidth, 20, { fill: color });
+    doc.text(doc.margin + 8, doc.y + 4, title, { size: 12, bold: true, color: [255, 255, 255] });
+    doc.space(26);
+    el.childNodes.forEach((n) => {
+      if (n.nodeType === Node.ELEMENT_NODE && n !== h2) walk(doc, n as HTMLElement, st, indent + 4);
+    });
+    return;
+  }
 
   if (/^H[1-4]$/.test(tag)) {
     const text = clean(el.textContent);

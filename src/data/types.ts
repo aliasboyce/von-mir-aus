@@ -961,6 +961,8 @@ export interface UserSettings {
   soundsEnabled: boolean;
   brainEnabled: boolean;
   brainState: BrainState;
+  /** "Hilfsmittel in den Weg legen": the Wesen shows one of the person's own Ressourcen on the start page now and then. On unless switched off. */
+  resourceNudgeEnabled?: boolean;
   /** Audit follow-up, "Nur jetzt" — a session-scoped, deliberately NOT
    * auto-persisted-forever mode (see HomePage.tsx) that hides
    * backward-looking content on the home screen. Off by default, and
@@ -1292,8 +1294,26 @@ export interface ZugangEntry {
    * step that was, so patterns of where passes tend to break off
    * become visible over time instead of vanishing the moment someone
    * navigates away. */
-  endedVia?: 'complete' | 'bridge' | 'safetynet' | 'abandoned' | 'regulate';
+  endedVia?: 'complete' | 'bridge' | 'safetynet' | 'abandoned' | 'regulate' | 'resource';
   stoppedAtStep?: number;
+  /** "Was geht gerade?" as it was set at the end of the pass (Energie, Zeit,
+   * Zugangskanäle, Aufwand) — kept so the Rückblick can show it. */
+  fitFilter?: {
+    energy: number | null;
+    minutes: number | null;
+    levels: Partial<Record<AccessChannel, 0 | 1 | 2>> | null;
+    effort: number | null;
+  };
+  /** The fork after seeing what is there: erst regulieren, Zustand passt, or done for now. */
+  choice?: 'regulate' | 'need' | 'done';
+  /** Skills / Skillketten the person started from the regulate door (titles). */
+  regulateTried?: string[];
+  /** Ressourcen chosen for use after saving (snapshot of id + title). */
+  usedResources?: { id: string; title: string }[];
+  /** "Wie war es danach?" — answered after using the chosen Ressourcen / Brücke. */
+  afterOutcome?: 'passte' | 'teils' | 'nicht';
+  /** when the after-use reflection was saved */
+  reflectedAt?: string;
   /** "Verbinden" brief, Section 14 — never framed as success/failure.
    * What made access harder this time, and what might have helped —
    * an optional, gentle reflection, not an evaluation of the person. */

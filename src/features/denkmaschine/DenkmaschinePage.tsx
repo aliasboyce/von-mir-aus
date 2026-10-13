@@ -325,7 +325,7 @@ export function DenkmaschinePage() {
 
             {modalTab === 'uebungen' && (
               <>
-                <DefusionBillboardExercise thought={openNote.text} />
+                <DefusionBillboardExercise thought={openNote.text} onUseAsReframe={(text) => { setReframeDraft(text); setEditingReframe(true); setModalTab('neu'); }} />
                 <WordsExercise thought={openNote.text} />
                 <AnchorExercise />
               </>

@@ -223,6 +223,38 @@ export const PROTECTION_STRATEGIES_DE = [
   'mich zeigen, wie ich bin', 'Nähe zulassen',
 ];
 
+/** Items of PROTECTION_STRATEGIES_DE that are not "old patterns" but
+ * already friendly — on the reference page they live under "Neue
+ * Schutzstrategien" instead of "Alte". */
+export const PROTECTION_POSITIVE_DE = ['gerade keine besondere Strategie', 'einfach offen bleiben', 'mich zeigen, wie ich bin', 'Nähe zulassen'];
+
+/** "Neue Schutzstrategien" — friendlier ways to protect oneself. */
+export const NEW_PROTECTION_STRATEGIES_DE = [
+  'Pause machen', 'Nein sagen', 'Grenze setzen', 'um Hilfe bitten', 'kurz rausgehen',
+  'Reize reduzieren', 'Tempo rausnehmen', 'Bescheid sagen, dass ich Abstand brauche',
+  'orientieren (3 Dinge sehen)', 'Nähe dosieren', 'später antworten',
+  'mich bewegen statt erstarren',
+  ...PROTECTION_POSITIVE_DE.filter((p) => p !== 'gerade keine besondere Strategie'),
+];
+
+/** Suggested alternatives per old strategy (tapping inserts them into the note). */
+export const PROTECTION_ALTERNATIVES_DE: Record<string, string[]> = {
+  abschalten: ['kurze Pause einlegen', 'Reize reduzieren', 'Bescheid sagen, dass ich gerade nicht kann'],
+  'nichts mehr fühlen': ['ein kleiner Körperkontakt-Anker (Hand aufs Herz)', 'Gefühl nur kurz dosiert anschauen', 'jemandem sagen: „Ich spüre gerade wenig“'],
+  'Kontrolle zurückgewinnen': ['eine Sache wählen, die ich entscheiden darf', 'orientieren: 3 Dinge sehen', 'um Struktur bitten statt alles selbst zu halten'],
+  analysieren: ['erst einen Atemzug lang spüren, dann denken', 'eine Frage aufschreiben und liegen lassen', 'eine Person fragen, wie sie es sieht'],
+  'möglichst still werden': ['einen Satz sagen, der reicht', 'ein Zeichen vereinbaren', 'leise Bewegung statt Erstarren'],
+  Rückzug: ['Rückzug mit Ansage („Ich melde mich später“)', 'Ort mit weniger Reizen wählen', 'kleine Verbindung halten (Nachricht, Emoji)'],
+  'perfekt sein wollen': ['„gut genug“ als Maßstab festlegen', 'etwas bewusst unfertig lassen', 'Pause statt Nachbessern'],
+  'Handy/Serien als Ablenkung': ['Ablenkung bewusst wählen und begrenzen', 'danach kurz nachspüren', 'etwas mit den Händen tun'],
+  'sich klein machen': ['einen Bedarf klein, aber laut aussprechen', 'Haltung öffnen, Boden spüren', 'eine Grenze in einem Satz setzen'],
+  'alles kontrollieren': ['einen Teil abgeben', 'Plan B zulassen', 'einer Person eine Aufgabe überlassen'],
+  'sich anpassen': ['erst fragen: „Was brauche ich?“', 'später antworten', 'ein kleines Nein üben'],
+  'gefallen wollen': ['Bedarf aussprechen statt erraten', 'Nein sagen üben', 'jemanden wählen, bei dem es sicherer ist'],
+  dissoziieren: ['orientieren: Raum anschauen, Farben benennen', 'Füße spüren, Wärme/Kälte', 'Bescheid sagen und Kontakt halten'],
+};
+export const PROTECTION_ALTERNATIVES_GENERIC_DE = ['Pause machen', 'Nein sagen', 'um Hilfe bitten', 'Bescheid sagen, dass ich Abstand brauche', 'orientieren (3 Dinge sehen)'];
+
 /** Loose keyword hints suggesting a strategy might be worth turning
  * into a Garden counter — never automatic, always an offered question. */
 export const PROTECTION_GARDEN_SUGGESTIONS = ['rauchen', 'vermeiden', 'ablenkung', 'kontrollieren'];
@@ -284,8 +316,8 @@ export const NEED_CATEGORY_GROUPS: NeedCategoryGroup[] = [
   },
   {
     id: 'integritaet', label: 'Integrität / Stimmigkeit', labelEn: 'Integrity / Congruence', emoji: '🧭',
-    items: ['Authentizität', 'Einklang', 'Eindeutigkeit', 'Übereinstimmung mit eigenen Werten', 'Identität', 'Individualität'],
-    itemsEn: ['Authenticity', 'Alignment', 'Clarity of self', 'Congruence with own values', 'Identity', 'Individuality'],
+    items: ['Authentizität', 'Ausdruck', 'Einklang', 'Eindeutigkeit', 'Übereinstimmung mit eigenen Werten', 'Identität', 'Individualität'],
+    itemsEn: ['Authenticity', 'Expression', 'Alignment', 'Clarity of self', 'Congruence with own values', 'Identity', 'Individuality'],
   },
   {
     id: 'sicherheit', label: 'Sicherheit', labelEn: 'Security', emoji: '🛡️',

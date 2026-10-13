@@ -7,10 +7,11 @@ import { Card } from '../../components/ui/Card';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 import { useT } from '../../i18n';
-import { PROTECTION_STRATEGIES_DE, OBSTACLES_DE } from '../zugang/zugangContent';
+import { PROTECTION_STRATEGIES_DE, PROTECTION_POSITIVE_DE, NEW_PROTECTION_STRATEGIES_DE, OBSTACLES_DE } from '../zugang/zugangContent';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
-import { ProtectionReflectionModal } from './ProtectionReflectionModal';
-import { protectionReflectionFor } from './protectionReflectionRepo';
+import { ProtectionReflectionModal, NewProtectionModal, ObstacleReflectionModal } from './ProtectionReflectionModal';
+import { protectionReflectionFor, newProtectionReflectionFor, hasContent, obstacleReflectionFor, saveObstacleReflection } from './protectionReflectionRepo';
+import { Button } from '../../components/ui/Button';
 import { DismissibleCustomList } from '../../components/shared/DismissibleCustomList';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
 
@@ -29,6 +30,8 @@ export function ProtectionStrategiesReferencePage() {
   const t = useT();
   const navigate = useNavigate();
   const [openStrategy, setOpenStrategy] = useState<string | null>(null);
+  const [openNewStrategy, setOpenNewStrategy] = useState<string | null>(null);
+  const [openObstacle, setOpenObstacle] = useState<string | null>(null);
   const [showStrategyExplainer, setShowStrategyExplainer] = useState(false);
   const [showObstacleExplainer, setShowObstacleExplainer] = useState(false);
   const [, bump] = useState(0);
@@ -39,10 +42,17 @@ export function ProtectionStrategiesReferencePage() {
     return bridgesRepo.getAll().filter((b) => (b.linkedObstacles ?? []).some((o) => selectedObstacles.includes(o)));
   }, [selectedObstacles]);
 
-  function toggleObstacle(o: string) {
-    const next = selectedObstacles.includes(o) ? selectedObstacles.filter((x) => x !== o) : [...selectedObstacles, o];
+  function setObstacleApplies(o: string, applies: boolean) {
+    const has = selectedObstacles.includes(o);
+    if (has === applies) return;
+    const next = applies ? [...selectedObstacles, o] : selectedObstacles.filter((x) => x !== o);
     selectedObstaclesStore.set(next);
     setSelectedObstacles(next);
+  }
+
+  function hasObstacleNote(o: string): boolean {
+    const r = obstacleReflectionFor(o);
+    return !!r && !![r.how, r.when, r.small].some((v) => v && v.trim());
   }
 
   return (
@@ -88,8 +98,26 @@ export function ProtectionStrategiesReferencePage() {
           </div>
         )}
 
-        <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.tapToReflectLabel}</p>
-        <DismissibleCustomList listKey="schutzstrategien" builtins={PROTECTION_STRATEGIES_DE} onTapBuiltin={(s) => setOpenStrategy(s)} isMarked={(s) => !!protectionReflectionFor(s)} />
+        <h2 className="text-[19px] mb-1">{t.protectionRef.oldTitle}</h2>
+        <p className="text-[13px] text-[var(--color-text-muted)] mb-3 leading-relaxed">{t.protectionRef.oldSubtitle}</p>
+        <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.protectionRef.tapToReflectLabel}</p>
+        <DismissibleCustomList
+          listKey="schutzstrategien"
+          builtins={PROTECTION_STRATEGIES_DE.filter((s) => !PROTECTION_POSITIVE_DE.includes(s))}
+          onTapBuiltin={(s) => setOpenStrategy(s)}
+          isMarked={(s) => hasContent(protectionReflectionFor(s))}
+        />
+
+        <div className="mt-7 pt-6 border-t border-[var(--color-border)]">
+          <h2 className="text-[19px] mb-1">{t.protectionRef.newTitle}</h2>
+          <p className="text-[13px] text-[var(--color-text-muted)] mb-3 leading-relaxed">{t.protectionRef.newSubtitle}</p>
+          <DismissibleCustomList
+            listKey="neue-schutzstrategien"
+            builtins={NEW_PROTECTION_STRATEGIES_DE}
+            onTapBuiltin={(s) => setOpenNewStrategy(s)}
+            isMarked={(s) => hasContent(newProtectionReflectionFor(s))}
+          />
+        </div>
 
         <Link to="/entdecken/garten" className="text-[13px] text-[var(--color-primary)] mt-4 block">
           🌱 {t.protectionRef.gardenLink} →
@@ -98,6 +126,32 @@ export function ProtectionStrategiesReferencePage() {
         <div className="mt-8 pt-6 border-t border-[var(--color-border)]">
           <h2 className="text-[19px] mb-1">{t.protectionRef.obstaclesTitle}</h2>
           <p className="text-[14px] text-[var(--color-text-muted)] mb-4 leading-relaxed">{t.protectionRef.obstaclesSubtitle}</p>
+
+          <Card className="mb-4">
+            <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.obstaclesMoreTitle}</p>
+            <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{t.protectionRef.obstaclesMore1}</p>
+            <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{t.protectionRef.obstaclesMore2}</p>
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.protectionRef.obstaclesMore3}</p>
+          </Card>
+
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.obstaclesQuestionsTitle}</p>
+          <div className="flex flex-col gap-2 mb-4">
+            {t.protectionRef.obstaclesQuestions.map((q, i) => (
+              <div key={i} className="p-3 rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)]">
+                <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{q}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.obstaclesExamplesTitle}</p>
+          <div className="flex flex-col gap-2 mb-5">
+            {t.protectionRef.obstaclesExamples.map((ex, i) => (
+              <Card key={i}>
+                <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-1">🚧 {ex.obstacle}</p>
+                <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">🌉 {ex.help}</p>
+              </Card>
+            ))}
+          </div>
 
           <button onClick={() => setShowObstacleExplainer((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
             {showObstacleExplainer ? t.protectionRef.hideExplainerCta : t.protectionRef.showExplainerCta}
@@ -131,8 +185,8 @@ export function ProtectionStrategiesReferencePage() {
           <DismissibleCustomList
             listKey="hindernisse"
             builtins={OBSTACLES_DE}
-            onTapBuiltin={(o) => toggleObstacle(o)}
-            isMarked={(o) => selectedObstacles.includes(o)}
+            onTapBuiltin={(o) => setOpenObstacle(o)}
+            isMarked={(o) => selectedObstacles.includes(o) || hasObstacleNote(o)}
           />
 
           {matchingBridgesForObstacles.length > 0 ? (
@@ -156,8 +210,40 @@ export function ProtectionStrategiesReferencePage() {
           )}
         </div>
 
+        <Card className="mt-8" style={{ background: 'var(--color-primary-soft)' }}>
+          <p className="text-[16px] text-[var(--color-text)] mb-1.5">🌱 {t.protectionRef.gardenCtaTitle}</p>
+          <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-4">{t.protectionRef.gardenCtaText}</p>
+          <Button fullWidth onClick={() => navigate('/entdecken/garten')}>
+            {t.protectionRef.gardenCtaButton}
+          </Button>
+        </Card>
+
         <SourceNoteCard text={t.protectionRef.sourceNote} />
       </div>
+      {openNewStrategy && (
+        <NewProtectionModal
+          strategy={openNewStrategy}
+          onClose={() => {
+            setOpenNewStrategy(null);
+            bump((n) => n + 1);
+          }}
+        />
+      )}
+      {openObstacle && (
+        <ObstacleReflectionModal
+          obstacle={openObstacle}
+          applies={selectedObstacles.includes(openObstacle)}
+          initial={obstacleReflectionFor(openObstacle) ?? {}}
+          onChange={(v) => {
+            saveObstacleReflection(openObstacle, { how: v.how, when: v.when, small: v.small });
+            setObstacleApplies(openObstacle, v.applies);
+          }}
+          onClose={() => {
+            setOpenObstacle(null);
+            bump((n) => n + 1);
+          }}
+        />
+      )}
       {openStrategy && (
         <ProtectionReflectionModal
           strategy={openStrategy}

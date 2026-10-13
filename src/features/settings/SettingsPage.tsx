@@ -394,6 +394,13 @@ export function SettingsPage() {
           <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mt-1.5 mb-1">{t.companionAbout.sleepInlineReassurance}</p>
           {settings.brainEnabled && (
             <div className="pt-3 mt-1 border-t border-[var(--color-border)]">
+              <ToggleRow
+                icon={<Sparkles size={16} />}
+                label={t.settings.resourceNudge}
+                checked={settings.resourceNudgeEnabled !== false}
+                onChange={(v) => updateSettings({ resourceNudgeEnabled: v })}
+              />
+              <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mt-1.5 mb-3">{t.settings.resourceNudgeHint}</p>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[13px] text-[var(--color-text-muted)]">{t.companion.changeCompanion}</p>
                 <button

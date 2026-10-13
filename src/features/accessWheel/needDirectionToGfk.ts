@@ -24,7 +24,7 @@ export const NEED_DIRECTION_TO_GFK: Record<NeedDirection, string[]> = {
   ruhe: ['Erholung', 'Ausruhen', 'Ruhe', 'Leichtigkeit'],
   orientierung: ['Übersicht', 'Klarheit', 'Struktur', 'Ordnung'],
   bewegung: ['Bewegung', 'Kraft'],
-  ausdruck: ['Kreativität', 'Authentizität', 'Individualität'],
+  ausdruck: ['Ausdruck', 'Kreativität', 'Authentizität', 'Individualität'],
   wertschaetzung: ['Wertschätzung', 'Anerkennung', 'Respekt'],
   freude: ['Freude', 'Glück', 'Spiel', 'Humor'],
   sinn: ['Sinn', 'Bedeutung', 'Beitrag'],

@@ -43,6 +43,8 @@ export function BridgeDetailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const fromZugang = searchParams.get('fromZugang') === '1';
+  // new flow: the pass was already saved before the Brücke was opened; closing it leads to "Wie war es danach?"
+  const zugangEntryId = searchParams.get('zugangEntry');
   const [showZugangExitDialog, setShowZugangExitDialog] = useState(false);
   const t = useT();
   const { settings } = useSettings();
@@ -76,6 +78,12 @@ export function BridgeDetailPage() {
   const [savedToDiary, setSavedToDiary] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
   const [timerWasUsed, setTimerWasUsed] = useState(false);
+  function leaveToAfter() {
+    if (!zugangEntryId) return;
+    const e = zugangRepo.getById(zugangEntryId);
+    if (e) zugangRepo.save({ ...e, bridgeLevels: selectedLevels.length > 0 ? selectedLevels : e.bridgeLevels, bridgeTimerUsed: timerWasUsed || e.bridgeTimerUsed });
+    navigate(`/zugang/danach/${zugangEntryId}`, { replace: true });
+  }
   const [lastActivityId, setLastActivityId] = useState<string | null>(null);
   const [printingBridge, setPrintingBridge] = useState(false);
   const [diaryDraft, setDiaryDraft] = useState<string | null>(null);
@@ -240,7 +248,7 @@ export function BridgeDetailPage() {
         />
         <div className="relative flex items-center justify-between p-5">
           <button
-            onClick={() => (fromZugang ? setShowZugangExitDialog(true) : goBack(navigate))}
+            onClick={() => (zugangEntryId ? leaveToAfter() : fromZugang ? setShowZugangExitDialog(true) : goBack(navigate))}
             aria-label={t.common.back}
             className="w-10 h-10 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-text)]"
           >
