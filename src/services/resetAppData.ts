@@ -23,6 +23,8 @@ export const ALL_STORAGE_KEYS: string[] = [
   'resources',
   'resource-custom-categories',
   'medi-log-entries',
+  'park-notes',
+  'waiting-room',
   'activity-events',
   'diary-entries',
   'diary-custom-categories',

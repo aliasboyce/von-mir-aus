@@ -1,3 +1,6 @@
+import { InstallGuide } from '../../components/shared/InstallGuide';
+import { buildDate, feedbackTemplate, isIos, isStandalone } from '../../services/testSupport';
+import { CORE_COUNT, TOUR_STOPS, tourExtrasModeStore, tourIndexStore } from '../../components/companion/tourData';
 import { useEffect, useRef, useState } from 'react';
 import { buildDailyRemindersIcs } from '../../services/icsExport';
 import { deliverTextFile } from '../../services/fileShare';
@@ -81,6 +84,8 @@ export function SettingsPage() {
   const [customReminders, setCustomReminders] = useState<CustomReminder[]>(() => customRemindersRepo.getAll());
   const [addingReminder, setAddingReminder] = useState(false);
   const backupFileInputRef = useRef<HTMLInputElement>(null);
+  const [feedbackCopied, setFeedbackCopied] = useState(false);
+  const [installOpen, setInstallOpen] = useState(false);
   const [newReminderLabel, setNewReminderLabel] = useState('');
   const [newReminderTime, setNewReminderTime] = useState('18:00');
 
@@ -677,6 +682,55 @@ export function SettingsPage() {
           )}
         </Card>
 
+        {/* ================= Test-Version: Installieren & Rückmeldung ================= */}
+        <SectionLabel>🧪 {settings.language === 'en' ? 'Test version' : 'Test-Version'}</SectionLabel>
+        <Card padding="md" className="mb-3" data-testid="test-card">
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">
+            {settings.language === 'en' ? 'Version' : 'Version'}: {buildDate()}
+          </p>
+          {!isStandalone() && (
+            <p className="text-[13px] text-[var(--color-text)] leading-relaxed mt-2" data-testid="install-hint">
+              {settings.language === 'en'
+                ? isIos()
+                  ? 'Tip: tap the share symbol in Safari → "Add to Home Screen". Then the app opens like a normal app, and your data is kept more reliably. Without this, iPhones may clear data of rarely used websites.'
+                  : 'Tip: install the app via the browser menu ("Install app" / "Add to home screen"). Then it opens like a normal app and your data is kept more reliably.'
+                : isIos()
+                  ? 'Tipp: Tippe in Safari auf das Teilen-Symbol → „Zum Home-Bildschirm“. Dann öffnet sich die App wie eine normale App und deine Daten bleiben verlässlicher erhalten. Ohne das löscht das iPhone manchmal Daten von selten genutzten Webseiten.'
+                  : 'Tipp: Installiere die App über das Browser-Menü („App installieren“ / „Zum Startbildschirm hinzufügen“). Dann öffnet sie sich wie eine normale App und deine Daten bleiben verlässlicher erhalten.'}
+            </p>
+          )}
+          {!isStandalone() && (
+            <div className="mt-2">
+              <button type="button" onClick={() => setInstallOpen((v) => !v)} className="text-[13px] text-[var(--color-primary)] underline underline-offset-2" data-testid="install-toggle">
+                {settings.language === 'en' ? (installOpen ? 'Hide install guide' : 'Show install guide (iPhone, Android, computer)') : installOpen ? 'Installationsanleitung ausblenden' : 'Installationsanleitung zeigen (iPhone, Android, Computer)'}
+              </button>
+              {installOpen && <div className="mt-3"><InstallGuide /></div>}
+            </div>
+          )}
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-2">
+            {settings.language === 'en'
+              ? 'Your feedback is welcome: the button copies a short template (version and device type only, nothing personal). Paste it into a message and add what you noticed.'
+              : 'Deine Rückmeldung ist willkommen: Der Knopf kopiert eine kurze Vorlage (nur Version und Gerätetyp, nichts Persönliches). Füge sie in eine Nachricht ein und ergänze, was dir aufgefallen ist.'}
+          </p>
+          <button
+            type="button"
+            className="mt-3 py-2.5 px-4 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+            data-testid="feedback-copy"
+            onClick={async () => {
+              const text = feedbackTemplate(settings.language === 'en');
+              try {
+                await navigator.clipboard.writeText(text);
+                setFeedbackCopied(true);
+                setTimeout(() => setFeedbackCopied(false), 3000);
+              } catch {
+                window.prompt(settings.language === 'en' ? 'Copy this text:' : 'Diesen Text kopieren:', text);
+              }
+            }}
+          >
+            {feedbackCopied ? (settings.language === 'en' ? 'Copied ✓' : 'Kopiert ✓') : settings.language === 'en' ? 'Copy feedback template' : 'Rückmeldung-Vorlage kopieren'}
+          </button>
+        </Card>
+
         {/* ================= Hilfe & Anleitung ================= */}
         <SectionLabel>💡 {t.settings.about}</SectionLabel>
         <Card padding="md" className="mb-3">
@@ -688,6 +742,20 @@ export function SettingsPage() {
             {t.settings.showIntroAgain}
           </button>
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.showIntroAgainHint}</p>
+          <button
+            onClick={() => {
+              const i = tourIndexStore.get() ?? 0;
+              if (i < CORE_COUNT || i >= TOUR_STOPS.length) tourIndexStore.set(CORE_COUNT);
+              tourExtrasModeStore.set('try');
+              updateSettings({ tourActive: true });
+            }}
+            className="flex items-center gap-2.5 text-[14px] text-[var(--color-text)] w-full mt-4 pt-3 border-t border-[var(--color-border)]"
+            data-testid="tour-extras-start"
+          >
+            <Compass size={17} className="text-[var(--color-primary)]" />
+            {t.settings.tourExtrasCta}
+          </button>
+          <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.tourExtrasHint}</p>
         </Card>
 
         <Link to="/entdecken" className="block mb-6">

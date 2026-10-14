@@ -16,6 +16,34 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-installieren-startseite-ruhiger',
+    date: '2026',
+    items: [
+      'Gleich nach der Vorstellung des Wesens zeigt dir die App Schritt für Schritt, wie du sie auf den Startbildschirm holst – für iPhone/iPad, Android und Computer. Später findest du die Anleitung unter Einstellungen → Test-Version.',
+      'Die Startseite ist ruhiger: oben nur der Krisenmodus, dann das Wesen und „Kurz einchecken“. Es erscheint immer nur ein Hinweis auf einmal (der Rest wartet im Postfach), und Kalender, Parkbox, Medikament und Helfermodus stehen gemeinsam unter „Alltag“.',
+    ],
+    itemsEn: [
+      'Right after meeting your companion the app shows you step by step how to put it on your home screen – for iPhone/iPad, Android and computer. Later you find the guide under Settings → Test version.',
+      'The start page is calmer: only the crisis mode at the top, then the companion and "Quick check-in". Only one notice appears at a time (the rest waits in the Postfach), and calendar, parking box, medication and helper mode sit together under "Everyday".',
+    ],
+  },
+  {
+    id: '2026-parkbox-nurjetzt-kern',
+    date: '2026',
+    items: [
+      'Neu: „Verbindliche Parkbox & Wartezimmer“. Schreib Zettel, die in eine sichere Box fliegen – du bist für heute entlastet. Im Wartezimmer warten Ideen, Projekte und Wünsche auf einem festen Platz; mit „Einen Zeitraum zuordnen“ landen sie im Kalender.',
+      '„Nur jetzt“ ist jetzt wirklich minimal: sechs große Türen, nichts sonst. Skills, Ressourcen und Brücken gibt es als je drei kleine Vorschläge.',
+      'Die Anleitung zeigt zuerst nur den Kern (10 Schritte). Danach entscheidest du: Zusatzfunktionen erklärt bekommen, gleich ausprobieren oder später – jederzeit in den Einstellungen.',
+      'Briefe an andere Menschen sind klarer erklärt (3 Schritte, „So geht es jetzt weiter“), du kannst eine Kopie für dich behalten, und ein geöffneter Link geht nicht mehr verloren. Neu: Sicherungs-Erinnerung, Installations-Tipp und eine Rückmelde-Vorlage in den Einstellungen.',
+    ],
+    itemsEn: [
+      'New: "Binding Parking Box & Waiting Room". Write notes that fly into a safe box – you are relieved for today. In the waiting room ideas, projects and wishes wait in a fixed seat; "Assign a time period" puts them in the calendar.',
+      '"Only now" is now really minimal: six big doors, nothing else. Skills, resources and bridges come as three small suggestions each.',
+      'The guide first shows only the core (10 steps). Then you decide: have the extras explained, try them right away, or later – any time in the settings.',
+      'Letters to other people are explained more clearly (3 steps, "What happens now"), you can keep a copy for yourself, and an opened link is no longer lost. New: backup reminder, install tip and a feedback template in the settings.',
+    ],
+  },
+  {
     id: '2026-tour-zum-durchspielen',
     date: '2026',
     items: [

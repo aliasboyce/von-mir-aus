@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Compass, Shield, KeyRound, LifeBuoy } from 'lucide-react';
+import { Home, Compass, Shield, LifeBuoy } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 
@@ -38,8 +38,6 @@ export function BottomNav() {
 
   const nurJetztItems = [
     { to: '/', label: t.nav.home, icon: Home, end: true },
-    { to: '/inneres-wetter', label: t.home.checkInCta, icon: Compass, end: false },
-    { to: '/zugang', label: t.zugang.navLabel, icon: KeyRound, end: false },
     { to: '/krisenmodus', label: t.crisisMode.homeCta, icon: LifeBuoy, end: false },
   ];
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { TopBar } from '../../components/navigation/TopBar';
 import { useT } from '../../i18n';
+import { pendingLetterStore } from './lettersRepo';
 import { decodeLetter, type SharedLetterPayload } from './letterShare';
 import { LetterPreview, LetterReceivePanel } from './LetterReceive';
 import { goBack } from '../../services/navigation';
@@ -18,7 +19,7 @@ export function LetterImportPage() {
   useEffect(() => {
     let alive = true;
     if (!token) { setFailed(true); return; }
-    decodeLetter(token).then((p) => { if (!alive) return; if (p) setPayload(p); else setFailed(true); });
+    decodeLetter(token).then((p) => { if (!alive) return; if (p) setPayload(p); else { setFailed(true); pendingLetterStore.set(null); } });
     return () => { alive = false; };
   }, [token]);
 

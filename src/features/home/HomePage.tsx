@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { NurJetztHome } from '../nurJetzt/NurJetztHome';
+import { useEffect, useState, type ReactNode } from 'react';
 import { TodaySoFar } from './TodaySoFar';
 import { ImportantContactsStrip } from './ImportantContactsStrip';
 import { ResourceNudgeCard } from './ResourceNudgeCard';
@@ -7,8 +8,8 @@ import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { IntentPickerModal } from './IntentPickerModal';
-import { Settings2, X, Info, LifeBuoy, HeartHandshake, Mail, Compass, Pill, CalendarDays } from 'lucide-react';
-import { dueUnopenedLetters, markLetterOpened } from '../briefAnMich/lettersRepo';
+import { Settings2, X, Info, LifeBuoy, HeartHandshake, Mail, Compass, Pill, CalendarDays, Package } from 'lucide-react';
+import { dueUnopenedLetters, markLetterOpened, pendingLetterStore } from '../briefAnMich/lettersRepo';
 import type { LetterToSelf } from '../briefAnMich/lettersRepo';
 import { LetterEnvelope } from '../briefAnMich/LetterEnvelope';
 import { CompanionDock } from '../../components/companion/CompanionDock';
@@ -16,6 +17,9 @@ import { AboutVonMirAusModal } from '../../components/shared/AboutVonMirAusModal
 import { ABOUT_VON_MIR_AUS_TEXT } from '../../content/aboutContent';
 import { AchievementSection } from './AchievementSection';
 import { Card } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { downloadBackup } from '../../services/backup';
+import { backupReminderDue, snoozeBackupReminder } from '../../services/testSupport';
 import { useT } from '../../i18n';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { useSettings } from '../../state/SettingsContext';
@@ -73,6 +77,9 @@ export function HomePage() {
   const [postfachOpen, setPostfachOpen] = useState(false);
   const { unread: unreadMail, prominent: prominentMail } = useMailbox();
   const dueLetters = dueUnopenedLetters();
+  const pendingToken = pendingLetterStore.get();
+  const isEn = settings.language === 'en';
+  const [backupDue, setBackupDue] = useState(() => backupReminderDue());
   const [dueCustomReminders, setDueCustomReminders] = useState<CustomReminder[]>(() => getDueCustomReminders());
 
   // Contextual companion aside: time-of-day / weekend / (best-effort,
@@ -147,10 +154,118 @@ export function HomePage() {
   ];
   const postfachCount = liveEntries.length + unreadMail.length;
 
+  // "Nur jetzt": the whole start page shrinks to a few large doors
+  if (settings.nurJetztMode) return <NurJetztHome />;
+
+  // One calm notice at a time (the rest waits in the Postfach) — a start page that shows
+  // five pulsing cards at once overwhelms exactly the people it is for.
+  const notices: { key: string; node: ReactNode }[] = [];
+  if (dueLetters.length > 0) {
+    notices.push({
+      key: 'letter',
+      node: (
+        <Card padding="md" className="flex items-center gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }} data-testid="due-letter">
+          <Mail size={20} className="text-[var(--color-accent-clay)] flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-[13px] text-[var(--color-text)]">{dueLetters[0].fromName ? t.briefAnMich.arrivedFromBanner.replace('{name}', dueLetters[0].fromName) : t.briefAnMich.arrivedBanner}</p>
+          </div>
+          <button onClick={() => setOpenLetter(dueLetters[0])} className="text-[13px] text-[var(--color-primary)] flex-shrink-0">
+            {t.briefAnMich.tapToOpen}
+          </button>
+        </Card>
+      ),
+    });
+  }
+  if (pendingToken) {
+    notices.push({
+      key: 'pending',
+      node: (
+        <Card padding="md" className="flex items-center gap-3 animate-in" data-testid="pending-letter" style={{ borderColor: 'var(--color-primary)', borderWidth: 1.5 }}>
+          <Mail size={20} className="text-[var(--color-primary)] flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-[13px] text-[var(--color-text)]">{t.briefAnMich.pendingLetterTitle}</p>
+          </div>
+          <Link to={`/brief/importieren?d=${pendingToken}`} className="text-[13px] text-[var(--color-primary)] flex-shrink-0">
+            {t.briefAnMich.pendingLetterCta}
+          </Link>
+        </Card>
+      ),
+    });
+  }
+  prominentMail.forEach((m) =>
+    notices.push({
+      key: `mail-${m.id}`,
+      node: (
+        <Card padding="md" className="flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-medium text-[var(--color-text)] mb-0.5">{m.title}</p>
+            {m.text && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed whitespace-pre-line">{m.text}</p>}
+            {isFollowUpMail(m) && <FollowUpBody mail={m} />}
+            {isReviewMail(m) && <ReviewMailBody mail={m} />}
+            {m.actionKind === 'reload' && m.actionLabel && (
+              <button onClick={() => window.location.reload()} className="text-[13px] text-[var(--color-primary)] mt-1.5">
+                {m.actionLabel} →
+              </button>
+            )}
+            {m.actionKind === 'link' && m.actionTo && m.actionLabel && (
+              <Link to={m.actionTo} onClick={() => markMailRead(m.id)} className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5">
+                {m.actionLabel} →
+              </Link>
+            )}
+          </div>
+          <button onClick={() => markMailRead(m.id)} data-sound="close" aria-label={t.postfach.markRead} className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0">
+            <X size={16} />
+          </button>
+        </Card>
+      ),
+    }),
+  );
+  dueCustomReminders.forEach((r) =>
+    notices.push({
+      key: `custom-${r.id}`,
+      node: (
+        <Card padding="md" className="flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
+          <div className="flex-1">
+            <p className="text-[13px] text-[var(--color-text)]">{r.label}</p>
+          </div>
+          <button
+            onClick={() => {
+              dismissCustomReminder(r.id);
+              setDueCustomReminders((prev) => prev.filter((x) => x.id !== r.id));
+            }}
+            aria-label={t.home.reminderDismiss}
+            className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0"
+          >
+            <X size={16} />
+          </button>
+        </Card>
+      ),
+    }),
+  );
+  if (backupDue) {
+    notices.push({
+      key: 'backup',
+      node: (
+        <Card padding="md" className="animate-in" data-testid="backup-reminder">
+          <p className="text-[13.5px] text-[var(--color-text)] leading-relaxed">{isEn ? 'Would you like to make a backup? Everything you entered lives only on this device – a copy keeps it safe if the phone or browser is reset.' : 'Magst du eine Sicherung machen? Alles, was du eingetragen hast, liegt nur auf diesem Gerät – eine Kopie hält es sicher, falls Handy oder Browser mal zurückgesetzt werden.'}</p>
+          <div className="flex gap-2 mt-3">
+            <Button size="sm" onClick={() => { downloadBackup(); setBackupDue(false); }} data-testid="backup-reminder-do">{isEn ? 'Create backup' : 'Sicherung erstellen'}</Button>
+            <Button size="sm" variant="ghost" onClick={() => { snoozeBackupReminder(7); setBackupDue(false); }} data-testid="backup-reminder-later">{isEn ? 'Later' : 'Später'}</Button>
+          </div>
+        </Card>
+      ),
+    });
+  }
+  // letters first, then the rare backup reminder, then everything else
+  const rank = (k: string) => (k === 'letter' ? 0 : k === 'pending' ? 1 : k === 'backup' ? 2 : 3);
+  const shownNotices = settings.tourActive ? [] : [...notices].sort((x, y) => rank(x.key) - rank(y.key));
+
+  const chip = 'flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]';
+
   return (
-    <div className="px-5 pt-8 pb-6 animate-in relative">
+    <div className="px-5 pt-8 pb-6 animate-in relative" data-testid="home-page">
       <SkyAmbiance />
-      <div className="flex items-start justify-between mb-2">
+      <div className="flex items-start justify-between mb-4">
         <div>
           <p className="text-[15px] text-[var(--color-text-muted)]">{greeting}</p>
           <h1 className="text-[26px] mt-1 text-[var(--color-text)]" onClick={() => setAboutOpen(true)} role="button" tabIndex={0}>
@@ -170,149 +285,115 @@ export function HomePage() {
         </div>
       </div>
 
-      <p className="text-[15px] text-[var(--color-text-muted)] mb-8 max-w-[280px] leading-relaxed">
-        {t.home.subtitle}
-      </p>
-
-      <TodaySoFar />
-
-      {/* Punkt 1 — klein und ruhig gehalten, aber jederzeit ohne Suchen
-       * erreichbar. Bewusst VOR dem Wesen/Check-In platziert: wer diese
-       * beiden Wege braucht, sollte nicht erst an anderen Inhalten
-       * vorbei muessen. */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        <Link
-          to="/krisenmodus"
-          className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]"
-        >
-          <LifeBuoy size={15} />
-          {t.crisisMode.homeCta}
-        </Link>
-        <Link
-          to="/helfermodus"
-          className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]"
-        >
-          <HeartHandshake size={15} />
-          {t.helperMode.homeCta}
-        </Link>
-        <Link
-          to="/entdecken/medi-log"
-          className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]"
-        >
-          <Pill size={15} />
-          {t.home.mediLogCta}
-        </Link>
-        <Link
-          to="/kalender"
-          className="flex-1 min-w-[100px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]"
-        >
-          <CalendarDays size={15} />
-          {t.calendar.title}
-        </Link>
-      </div>
-
-      <ImportantContactsStrip />
+      {/* always within reach, small and calm */}
+      <Link to="/krisenmodus" className={`${chip} mb-4`}>
+        <LifeBuoy size={15} />
+        {t.crisisMode.homeCta}
+      </Link>
 
       {postfachOpen && <PostfachPanel live={liveEntries} />}
 
-      {/* "Update-Nachricht soll auf der Startseite landen und bleiben,
-       * bis man sie mit Kreuz schliesst" + "alles was vorne kommt soll
-       * aufleuchten und pulsieren" — unread prominent Postfach messages
-       * (update notices, appointment follow-ups, ...) show their full
-       * text right here, pulsing, until closed with the X (then they
-       * stay readable under Postfach > Frueher). */}
-      {!postfachOpen &&
-        prominentMail.map((m) => (
-          <Card key={m.id} padding="md" className="mb-6 flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium text-[var(--color-text)] mb-0.5">{m.title}</p>
-              {m.text && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed whitespace-pre-line">{m.text}</p>}
-              {isFollowUpMail(m) && <FollowUpBody mail={m} />}
-              {isReviewMail(m) && <ReviewMailBody mail={m} />}
-              {m.actionKind === 'reload' && m.actionLabel && (
-                <button onClick={() => window.location.reload()} className="text-[13px] text-[var(--color-primary)] mt-1.5">
-                  {m.actionLabel} →
-                </button>
-              )}
-              {m.actionKind === 'link' && m.actionTo && m.actionLabel && (
-                <Link to={m.actionTo} onClick={() => markMailRead(m.id)} className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5">
-                  {m.actionLabel} →
-                </Link>
-              )}
-            </div>
-            <button onClick={() => markMailRead(m.id)} data-sound="close" aria-label={t.postfach.markRead} className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0">
-              <X size={16} />
+      {/* at most one notice at a time; the rest waits in the Postfach */}
+      {!postfachOpen && shownNotices.length > 0 && (
+        <div className="mb-5" data-testid="home-notices">
+          <div key={shownNotices[0].key}>{shownNotices[0].node}</div>
+          {shownNotices.length > 1 && (
+            <button type="button" onClick={() => setPostfachOpen(true)} className="block mx-auto mt-2 text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2" data-testid="home-more-notices">
+              {isEn ? `${shownNotices.length - 1} more in the Postfach` : `${shownNotices.length - 1} weitere im Postfach`}
             </button>
+          )}
+        </div>
+      )}
+
+      <div className="flex flex-col items-center mb-5">
+        <CompanionDock variant="hero" />
+        <p className="text-[14px] text-[var(--color-text-muted)] mt-3">{t.companion.greetingHello}</p>
+      </div>
+
+      {/* Check-In: the single clear "start here" */}
+      <div className="relative mb-4">
+        <Link to="/inneres-wetter" className="block">
+          <Card
+            interactive
+            padding="lg"
+            className={`text-center${!settings.reduceMotion ? ' checkin-pulse' : ''}`}
+          >
+            <p className="text-[20px] text-[var(--color-text)] text-center">{t.home.checkInCta}</p>
+            {hasCheckedInToday() && (
+              <p className="text-[12px] text-[var(--color-text-faint)] text-center mt-1">{t.home.checkInDoneToday}</p>
+            )}
           </Card>
-        ))}
-
-      {!postfachOpen && !settings.nurJetztMode && dueLetters.length > 0 && (
-        <Card padding="md" className="mb-6 flex items-center gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
-          <Mail size={20} className="text-[var(--color-accent-clay)] flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-[13px] text-[var(--color-text)]">{dueLetters[0].fromName ? t.briefAnMich.arrivedFromBanner.replace('{name}', dueLetters[0].fromName) : t.briefAnMich.arrivedBanner}</p>
-          </div>
-          <button onClick={() => setOpenLetter(dueLetters[0])} className="text-[13px] text-[var(--color-primary)] flex-shrink-0">
-            {t.briefAnMich.tapToOpen}
-          </button>
-        </Card>
-      )}
-
-      {!postfachOpen && showReminder && (
-        <Card padding="md" className="mb-6 flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
-          <div className="flex-1">
-            <p className="text-[13px] text-[var(--color-text)]">{t.home.reminderBanner}</p>
-            <Link to="/inneres-wetter" className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5">
-              {t.home.checkInCta} →
-            </Link>
-          </div>
-          <button
-            onClick={() => setReminderDismissed(true)}
-            aria-label={t.home.reminderDismiss}
-            className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0"
-          >
-            <X size={16} />
-          </button>
-        </Card>
-      )}
-
-      {!postfachOpen && dueCustomReminders.map((r) => (
-        <Card key={r.id} padding="md" className="mb-6 flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
-          <div className="flex-1">
-            <p className="text-[13px] text-[var(--color-text)]">{r.label}</p>
-          </div>
-          <button
-            onClick={() => {
-              dismissCustomReminder(r.id);
-              setDueCustomReminders((prev) => prev.filter((x) => x.id !== r.id));
-            }}
-            aria-label={t.home.reminderDismiss}
-            className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0"
-          >
-            <X size={16} />
-          </button>
-        </Card>
-      ))}
-
-      {settings.nurJetztMode ? (
-        <Card padding="none" className="mb-4 animate-in flex items-center justify-between gap-3 px-3.5 py-2.5" style={{ background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', borderWidth: 1.5 }}>
-          <p className="text-[12px] text-[var(--color-text)] leading-snug flex-1">{t.home.nurJetztActiveTitle}</p>
-          <button
-            onClick={() => updateSettings({ nurJetztMode: false })}
-            className="text-[12px] text-[var(--color-primary)] font-medium flex-shrink-0"
-          >
-            {t.home.nurJetztExitCta}
-          </button>
-        </Card>
-      ) : (
+        </Link>
         <button
-          onClick={() => setShowNurJetztExplainer(true)}
-          className="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)] mb-5"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowWeatherExplainer(true);
+          }}
+          aria-label={t.weather.explainerCta}
+          className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-faint)] shadow-[var(--shadow-sm)]"
         >
-          <Compass size={15} className="flex-shrink-0" />
-          {t.home.nurJetztEntryCta}
+          <Info size={13} />
         </button>
-      )}
+      </div>
+
+      <p className="text-[11px] text-[var(--color-text-faint)] text-center mb-2">{t.home.forkOrLabel}</p>
+      <div className="flex gap-2 mb-2">
+        <Link to="/zugang" className="flex-1">
+          <Card interactive padding="md" className="text-center h-full flex flex-col items-center justify-center gap-0.5">
+            <span className="text-[16px]">🔎</span>
+            <p className="text-[12px] text-[var(--color-text)]">{t.home.forkUnderstandTitle}</p>
+            <p className="text-[10.5px] text-[var(--color-text-faint)] leading-snug">({t.home.forkUnderstandTag})</p>
+          </Card>
+        </Link>
+        <Link to="/bruecken" className="flex-1">
+          <Card interactive padding="md" className="text-center h-full flex flex-col items-center justify-center gap-0.5">
+            <span className="text-[16px]">👣</span>
+            <p className="text-[12px] text-[var(--color-text)]">{t.home.forkActTitle}</p>
+            <p className="text-[10.5px] text-[var(--color-text-faint)] leading-snug">({t.home.forkActTag})</p>
+          </Card>
+        </Link>
+      </div>
+      <button onClick={() => setShowIntentPicker(true)} className="text-[12.5px] text-[var(--color-primary)] mt-3 mb-6 block mx-auto">
+        {t.home.intentPickerEntryCta}
+      </button>
+
+      <ResourceNudgeCard />
+
+      <ImportantContactsStrip />
+
+      <TodaySoFar />
+
+      {/* everyday helpers, together in one calm place */}
+      <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{isEn ? 'Everyday' : 'Alltag'}</p>
+      <div className="grid grid-cols-2 gap-2 mb-6" data-testid="home-everyday">
+        <Link to="/kalender" className={chip}>
+          <CalendarDays size={15} />
+          {t.calendar.title}
+        </Link>
+        <Link to="/parkbox" className={chip} data-testid="home-parkbox">
+          <Package size={15} />
+          {isEn ? 'Parking box' : 'Parkbox'}
+        </Link>
+        <Link to="/entdecken/medi-log" className={chip}>
+          <Pill size={15} />
+          {t.home.mediLogCta}
+        </Link>
+        <Link to="/helfermodus" className={chip}>
+          <HeartHandshake size={15} />
+          {t.helperMode.homeCta}
+        </Link>
+      </div>
+
+      <AchievementSection />
+
+      <button
+        onClick={() => setShowNurJetztExplainer(true)}
+        className="flex items-center justify-center gap-2 mx-auto mt-4 text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2"
+        data-testid="nurjetzt-entry"
+      >
+        <Compass size={13} className="flex-shrink-0" />
+        {t.home.nurJetztEntryCta}
+      </button>
 
       {showNurJetztExplainer && createPortal(
         <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={() => setShowNurJetztExplainer(false)}>
@@ -343,89 +424,6 @@ export function HomePage() {
         document.body
       )}
 
-      <div className="flex flex-col items-center mb-6">
-        <CompanionDock variant="hero" />
-        <p className="text-[14px] text-[var(--color-text-muted)] mt-3">{t.companion.greetingHello}</p>
-      </div>
-
-      <ResourceNudgeCard />
-
-      {/* Check-In is now the single, unambiguous primary action right
-       * after the companion — the brief's own feedback was that five
-       * stacked entry points (fork x2, intent picker, check-in,
-       * grounding) left no clear "start here" for someone new. Everything
-       * else below is now visibly secondary to this one. */}
-      <div className="relative mb-4">
-        <Link to="/inneres-wetter" className="block">
-          <Card
-            interactive
-            padding="lg"
-            className={`text-center${!settings.reduceMotion ? ' checkin-pulse' : ''}`}
-          >
-            <p className="text-[20px] text-[var(--color-text)] text-center">{t.home.checkInCta}</p>
-            {hasCheckedInToday() && (
-              <p className="text-[12px] text-[var(--color-text-faint)] text-center mt-1">{t.home.checkInDoneToday}</p>
-            )}
-          </Card>
-        </Link>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowWeatherExplainer(true);
-          }}
-          aria-label={t.weather.explainerCta}
-          className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-faint)] shadow-[var(--shadow-sm)]"
-        >
-          <Info size={13} />
-        </button>
-      </div>
-
-      {/* "ChatGPT-Konzept" brief's fork, now visibly secondary (smaller
-       * padding, smaller icon/text, framed as "oder") rather than
-       * competing with the check-in for primary attention. */}
-      {!settings.nurJetztMode && (
-        <>
-          <p className="text-[11px] text-[var(--color-text-faint)] text-center mb-2">{t.home.forkOrLabel}</p>
-          <div className="flex gap-2 mb-2">
-            <Link to="/zugang" className="flex-1">
-              <Card interactive padding="md" className="text-center h-full flex flex-col items-center justify-center gap-0.5">
-                <span className="text-[16px]">🔎</span>
-                <p className="text-[12px] text-[var(--color-text)]">{t.home.forkUnderstandTitle}</p>
-                <p className="text-[10.5px] text-[var(--color-text-faint)] leading-snug">({t.home.forkUnderstandTag})</p>
-              </Card>
-            </Link>
-            <Link to="/bruecken" className="flex-1">
-              <Card interactive padding="md" className="text-center h-full flex flex-col items-center justify-center gap-0.5">
-                <span className="text-[16px]">👣</span>
-                <p className="text-[12px] text-[var(--color-text)]">{t.home.forkActTitle}</p>
-                <p className="text-[10.5px] text-[var(--color-text-faint)] leading-snug">({t.home.forkActTag})</p>
-              </Card>
-            </Link>
-          </div>
-          <button onClick={() => setShowIntentPicker(true)} className="text-[12.5px] text-[var(--color-primary)] mt-3 mb-6 block mx-auto">
-            {t.home.intentPickerEntryCta}
-          </button>
-        </>
-      )}
-
-      {settings.nurJetztMode && (
-        <Link to="/zugang" className="block mb-6">
-          <Card interactive padding="lg" className="text-center">
-            <p className="text-[20px] text-[var(--color-text)] text-center">{t.zugang.navLabel}</p>
-            <p className="text-[12px] text-[var(--color-text-faint)] text-center mt-1">{t.zugang.homeSubtitle}</p>
-          </Card>
-        </Link>
-      )}
-
-      {/* Priority 6 + 20/21 of the "Verbinden, glätten" brief — the
-       * explicitly requested "Ich bin gerade nicht richtig da"
-       * shortcut, now folded into the companion menu's "Hilf mir beim
-       * Orientieren" item instead of a separate standalone button here
-       * — both opened the exact same GroundingOverlay, which read as
-       * two different features doing the same thing. The companion's
-       * own menu (rendered right above via CompanionDock) already
-       * provides this. */}
-
       <WeatherExplainerModal open={showWeatherExplainer} onClose={() => setShowWeatherExplainer(false)} />
       {groundingOpen && <GroundingOverlay onClose={() => setGroundingOpen(false)} />}
       {showIntentPicker && (
@@ -440,12 +438,6 @@ export function HomePage() {
             markLetterOpened(openLetter.id);
           }}
         />
-      )}
-
-      {!settings.nurJetztMode && (
-        <>
-          <AchievementSection />
-        </>
       )}
 
       {aboutOpen && <AboutVonMirAusModal text={ABOUT_VON_MIR_AUS_TEXT} onClose={() => setAboutOpen(false)} />}

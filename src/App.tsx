@@ -1,3 +1,5 @@
+import { ParkboxPage } from './features/parkbox/ParkboxPage';
+import { NurJetztListPage } from './features/nurJetzt/NurJetztListPage';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from './app/ErrorBoundary';
 import { SettingsProvider } from './state/SettingsContext';
@@ -78,6 +80,8 @@ function App() {
               <Route element={<AppShell />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/krisenmodus" element={<CrisisModePage />} />
+                <Route path="/parkbox" element={<ParkboxPage />} />
+                <Route path="/nur-jetzt/:kind" element={<NurJetztListPage />} />
                 <Route path="/helfermodus" element={<HelperModePage />} />
                 <Route path="/entdecken/nervensystem" element={<NervousSystemReferencePage />} />
                 <Route path="/entdecken/koerper" element={<BodyAwarenessReferencePage />} />

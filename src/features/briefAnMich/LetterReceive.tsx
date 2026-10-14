@@ -7,6 +7,7 @@ import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { deliverTextFile } from '../../services/fileShare';
 import { buildLetterArrivalIcs } from '../../services/icsExport';
+import { pendingLetterStore } from './lettersRepo';
 import { decodeLetter, extractToken, parseLetterFile, importLetter, type SharedLetterPayload } from './letterShare';
 
 /** Preview of an incoming letter + "put into my app". The text itself stays sealed. */
@@ -37,7 +38,7 @@ export function LetterPreview({ payload, showIosHint = false }: { payload: Share
         <Button
           fullWidth
           data-testid="letter-accept"
-          onClick={() => setResult(importLetter(payload))}
+          onClick={() => { setResult(importLetter(payload)); pendingLetterStore.set(null); }}
         >
           {b.receiveAcceptCta}
         </Button>

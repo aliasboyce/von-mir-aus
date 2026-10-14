@@ -1,90 +1,77 @@
 /**
- * "Die Idee hinter 'Von mir aus'"-Auftrag — the person's own long-form
- * essay about why this app exists and what "von mir aus" means to
- * them, word-for-word as given. Shown once automatically after the
- * companion's own introduction on a person's very first visit, and
- * reachable any time afterward by tapping the "von mir aus" title on
- * the home screen. German-only — this is a deeply personal piece of
- * writing in the author's own voice; machine-translating it would
- * change what it is.
+ * "Die Idee hinter 'Von mir aus'" — the long-form essay about why this
+ * app exists and what "von mir aus" means. Written in a less personal,
+ * more universal voice (du/man instead of the author's own story).
+ * Shown once automatically after the companion's introduction on a
+ * person's very first visit, and reachable any time afterward by
+ * tapping the "von mir aus" title on the home screen. German-only —
+ * machine-translating it would change what it is.
  */
 export const ABOUT_VON_MIR_AUS_TEXT = `
 # Die Idee hinter „Von mir aus"
 
-Ich habe mich lange gefragt, was eigentlich mein scheiß Problem ist.
+Diese App ist aus einer Frage entstanden, die viele Menschen kennen: Warum komme ich im entscheidenden Moment nicht an das heran, was ich eigentlich weiß?
 
-Ich weiß mittlerweile unglaublich viel über mich selbst, über psychologische Modelle, Therapieansätze, Trauma und das Nervensystem. Ich kenne unzählige Skills auswendig – von Atemübungen und Vagusnerv-Regulation bis hin zu verschiedenen Therapiemethoden. Ich besitze Bücher, Hilfsmittel, Erfahrungen und eigentlich jede Menge Ressourcen. Vieles davon liegt direkt vor meiner Nase – und trotzdem kann ich im entscheidenden Moment nicht darauf zugreifen.
+Viele wissen sehr viel über sich selbst, über psychologische Modelle, Therapieansätze, Trauma und das Nervensystem. Sie kennen Skills, Atemübungen, Methoden, besitzen Bücher, Hilfsmittel und Erfahrungen. Vieles davon liegt direkt vor der Nase – und ist trotzdem gerade nicht erreichbar.
 
-Irgendwann wurde mir klar, dass mein Problem vielleicht gar nicht darin liegt, **zu wenig zu wissen**.
+Das Problem liegt dann oft gar nicht darin, **zu wenig zu wissen**.
 
 Sondern darin, dass Wissen, Ressourcen und Handlung nicht automatisch zugänglich sind.
-
-Und damit begann eine andere Art von Suche.
 
 ---
 
 ## Vom Wissen zum Zugang
 
-Ich wollte verstehen, was zwischen „Ich weiß, was mir helfen könnte" und „Ich kann es tatsächlich tun" passiert.
+Zwischen „Ich weiß, was mir helfen könnte" und „Ich kann es tatsächlich tun" liegt eine Lücke. Begriffe wie **Dissoziation, Interozeption, Selbstwirksamkeit, Co-Regulation, Zustandsabhängigkeit und Selbstkohärenz** beschreiben, was dort passiert.
 
-Dabei bin ich immer wieder bei Begriffen wie **Dissoziation, Interozeption, Selbstwirksamkeit, Co-Regulation, Handlungsexekutive, Zustandsabhängigkeit und Selbstkohärenz** gelandet.
+Der Zugang zu Denken, Fühlen, Körperwahrnehmung, Erinnerungen und Handlung ist nicht immer gleich. Er verändert sich mit dem Zustand, der Umgebung und dem Gefühl von Sicherheit.
 
-Je mehr ich darüber gelernt habe, desto deutlicher wurde ein Zusammenhang:
+Gerade bei komplexen Traumafolgen kann das besonders deutlich werden: Eine Ressource ist vorhanden und trotzdem kaum erreichbar. Ein Skill ist bekannt, aber der Zugang zu ihm funktioniert gerade nicht.
 
-Unser Zugang zu Denken, Fühlen, Körperwahrnehmung, Erinnerungen und Handlung ist nicht immer gleich. Er verändert sich mit unserem Zustand, unserer Umgebung und unserem Gefühl von Sicherheit.
-
-Gerade bei komplexen Traumafolgen kann das besonders deutlich werden. Eine Ressource kann vorhanden sein und trotzdem im entscheidenden Moment kaum erreichbar sein. Ein Skill kann bekannt sein, ohne dass der Zugang zu ihm gerade funktioniert.
-
-Das hat für mich einen großen Unterschied gemacht.
-
-Denn dann ist die Lösung nicht unbedingt, noch mehr Wissen oder noch mehr Skills anzusammeln.
-
-Vielleicht braucht es etwas, das **den Weg zu diesen Ressourcen zugänglicher macht.**
+Dann ist die Lösung nicht unbedingt, noch mehr Wissen oder noch mehr Skills anzusammeln. Vielleicht braucht es etwas, das **den Weg zu diesen Ressourcen zugänglicher macht.**
 
 ---
 
 ## Von Ressourcen zu Brücken
 
-Damit entstand auch die Idee der App.
+Daraus entstand die Idee dieser App.
 
-Am Anfang dachte ich an eine Sammlung von Übungen: Was ist gerade los? Was könnte helfen? Mach einen Skill. Schreib alles auf, du kannst dir eh nichts merken. Aber dann vergesse ich ja doch wieder, wo die Liste liegt. Also schreibe ich eine Liste für meine Listen? Und wo lege ich die dann hin?
+Zuerst klingt es nach einer Sammlung von Übungen: Was ist gerade los? Was könnte helfen? Mach einen Skill. Aber wer gerade keinen Zugang zu sich, zum eigenen Körper, zum eigenen Wissen hat, dem hilft eine Liste mit zwanzig weiteren Skills nicht unbedingt weiter. Und die Liste, die man selbst geschrieben hat, ist im entscheidenden Moment oft nicht auffindbar.
 
-Wenn das eigentliche Hindernis darin besteht, dass ich gerade keinen Zugang zu mir, meinem Körper, meinem Wissen oder meinen Ressourcen habe, hilft mir eine Liste mit zwanzig weiteren Skills und Ressourcen nicht unbedingt weiter.
+Deshalb werden Ressourcen hier verbunden und als **Brücken** verstanden.
 
-Ich begann deshalb, Ressourcen zu verbinden und als **Brücken** zu betrachten.
+Eine Brücke verbindet den aktuellen Zustand mit etwas, zu dem man wieder Zugang bekommen möchte.
 
-Eine Brücke verbindet meinen aktuellen Zustand mit etwas, zu dem ich wieder Zugang bekommen möchte.
+Vielleicht möchtest du raus in die Natur, aber du bist erschöpft und kommst nicht ins Handeln.
 
-Vielleicht möchte ich raus in die Natur, aber ich bin erschöpft und komme nicht ins Handeln.
+Vielleicht möchtest du jemanden kontaktieren, aber Nähe löst gleichzeitig Unsicherheit aus.
 
-Vielleicht möchte ich jemanden kontaktieren, aber Nähe löst gleichzeitig Unsicherheit aus.
+Vielleicht möchtest du kreativ sein, aber Anspruch und Überforderung machen den ersten Schritt unmöglich.
 
-Vielleicht möchte ich kreativ sein, aber mein Anspruch und meine Überforderung machen den ersten Schritt unmöglich.
+Dann besteht die Brücke nicht aus einem einzelnen Skill. Sie kann aus mehreren kleinen Ressourcen bestehen: Begleitung, Orientierung, eine vereinfachte Entscheidung, ein vertrauter Ort, Musik, Wärme, ein konkreter erster Schritt.
 
-Dann besteht die Brücke vielleicht nicht aus einem einzelnen Skill. Sie kann aus mehreren kleinen Ressourcen bestehen: Begleitung, Orientierung, eine vereinfachte Entscheidung, ein vertrauter Ort, Musik, Wärme, ein konkreter erster Schritt.
-
-So wurde aus der Frage **„Was hilft mir?"** langsam die viel praktischere Frage:
-**„Was brauche ich, um das tun zu können, was ich tun will? Was will ich überhaupt – und wie, wann, wer, wo, was... wie komme ich dorthin?"**
+So wird aus der Frage **„Was hilft mir?"** die praktischere Frage:
+**„Was brauche ich, um das tun zu können, was ich tun will? Was will ich überhaupt – und wie, wann, wer, wo, was … wie komme ich dorthin?"**
 
 ---
 
-## Und irgendwann ging es nicht mehr nur ums Regulieren
+## Es geht nicht nur ums Regulieren
 
-Wenn man sich viel mit psychischer Belastung beschäftigt, kann leicht der Eindruck entstehen, das Ziel sei, möglichst schnell wieder einen guten oder ruhigen Zustand zu erreichen.
+Wer sich viel mit psychischer Belastung beschäftigt, kann leicht den Eindruck bekommen, das Ziel sei, möglichst schnell wieder einen guten oder ruhigen Zustand zu erreichen.
 
-Aber ich möchte nicht mein ganzes Leben damit verbringen, meinen Zustand zu optimieren.
+Aber niemand möchte sein ganzes Leben damit verbringen, den eigenen Zustand zu optimieren.
 
-Ich möchte leben. Jetzt.
+Es geht ums Leben. Jetzt.
 
-Deshalb kam eine weitere Ebene dazu: **Was ist mir eigentlich wichtig?**
+Deshalb gehört eine weitere Ebene dazu: **Was ist mir eigentlich wichtig?**
 
-Natur. Tiere. Kreativität. Verbindung. Lernen. Freiheit. Ruhe. Neugier. Sinn. Lebendigkeit, ...
+Natur. Tiere. Kreativität. Verbindung. Lernen. Freiheit. Ruhe. Neugier. Sinn. Lebendigkeit …
 
-Nicht als Aufgaben, die ich abhaken muss. Sondern als Richtungen, in die mein Leben gehen darf.
+Nicht als Aufgaben, die man abhaken muss. Sondern als Richtungen, in die das Leben gehen darf.
 
-Hier treffen sich für mich auch Gedanken aus der **Akzeptanz- und Commitment-Therapie (ACT)** mit dem, was ich selbst erlebt habe: Ein gutes Leben bedeutet nicht, dass sich alles gut anfühlt. Und ich muss nicht erst vollständig reguliert sein, bevor ich etwas tun darf, das mir wichtig ist.
+Hier treffen sich Gedanken aus der **Akzeptanz- und Commitment-Therapie (ACT)** mit der Erfahrung vieler Menschen: Ein gutes Leben bedeutet nicht, dass sich alles gut anfühlt. Und man muss nicht erst vollständig reguliert sein, bevor man etwas tun darf, das einem wichtig ist.
 
-Manchmal kann ein kleiner Schritt in Richtung eines Wertes gleichzeitig Teil der Regulation sein.
+Manchmal ist ein kleiner Schritt in Richtung eines Wertes gleichzeitig Teil der Regulation.
 
 Ein Spaziergang ist dann nicht nur „Bewegung".
 
@@ -94,13 +81,13 @@ Eine Nachricht an einen Menschen ist nicht nur „Kontakt aufnehmen".
 
 Sie kann Verbindung, Sicherheit und Zugehörigkeit bedeuten.
 
-Dadurch wurde die App immer weniger zu einer Sammlung von Maßnahmen gegen schlechte Zustände – und immer mehr zu einem Werkzeug für **Zugang zum eigenen Leben**.
+So wird die App weniger zu einer Sammlung von Maßnahmen gegen schlechte Zustände – und mehr zu einem Werkzeug für **Zugang zum eigenen Leben**.
 
 ---
 
 ## Der Weg
 
-Aus all diesen Gedanken entstand langsam eine Struktur:
+Daraus ergibt sich eine Struktur:
 
 **Was passiert gerade in mir?**
 → Körper, Zustand, Gefühl und Schutzstrategie
@@ -120,11 +107,11 @@ Aus all diesen Gedanken entstand langsam eine Struktur:
 **Was ist jetzt möglich?**
 → eine konkrete, kleine Handlung
 
-Damit verbindet die App etwas, das sonst oft getrennt voneinander betrachtet wird: **Selbstwahrnehmung, Regulation, Bedürfnisse, Ressourcen, Werte und Handlung.**
+Die App verbindet damit, was sonst oft getrennt betrachtet wird: **Selbstwahrnehmung, Regulation, Bedürfnisse, Ressourcen, Werte und Handlung.**
 
-Und trotzdem muss nicht immer alles durchlaufen werden.
+Und es muss nicht immer alles durchlaufen werden.
 
-Manchmal brauche ich zuerst Sicherheit.
+Manchmal braucht es zuerst Sicherheit.
 
 Manchmal Orientierung.
 
@@ -142,9 +129,7 @@ Nicht im Sinne von:
 
 Im Gegenteil.
 
-„Von mir aus" bedeutet für mich:
-
-**Es darf bei mir anfangen.**
+„Von mir aus" bedeutet: **Es darf bei mir anfangen.**
 
 Bei meinem Erleben.
 Bei meinem Körper.
@@ -163,7 +148,7 @@ Vielleicht bedeutet sie vielmehr, **wieder Einfluss darauf zu bekommen, wie ich 
 
 **Von mir aus** – irgendwo muss man ja anfangen.
 
-Und vielleicht muss es dafür gar nicht der perfekte Zeitpunkt, der perfekte Zustand oder die perfekte Lösung sein.
+Und dafür braucht es nicht den perfekten Zeitpunkt, den perfekten Zustand oder die perfekte Lösung.
 
 Vielleicht reicht erst einmal:
 
@@ -171,17 +156,13 @@ Vielleicht reicht erst einmal:
 
 ---
 
-## Jetzt
+## Worum es geht
 
-Was als sehr persönliches Problem angefangen hat – *„Warum komme ich nicht an das heran, was ich längst weiß?"* – ist für mich inzwischen zu einer viel größeren Auseinandersetzung mit **Zugang, Handlung und menschlicher Selbstregulation** geworden.
+Was mit einer sehr persönlichen Frage begonnen hat, ist eine größere Auseinandersetzung mit **Zugang, Handlung und menschlicher Selbstregulation** geworden: Wie entsteht aus Wahrnehmung Handlung? Wie kann aus Co-Regulation mit der Zeit mehr Selbstregulation werden? Wie beeinflussen Sicherheit, Beziehung, Körper, Bedeutung und Umgebung, was uns überhaupt zugänglich ist? Und wie lassen sich komplexe psychologische und neurobiologische Zusammenhänge so übersetzen, dass sie im echten Leben etwas bringen?
 
-Mich interessiert, wie aus Wahrnehmung Handlung entsteht. Wie aus Co-Regulation irgendwann mehr Selbstregulation werden kann. Wie Sicherheit, Beziehung, Körper, Bedeutung und Umgebung beeinflussen, was uns überhaupt zugänglich ist. Und wie man komplexe psychologische und neurobiologische Zusammenhänge so übersetzen kann, dass sie im echten Leben etwas bringen.
+Alle diese Fragen werden sich wohl nie ganz beantworten lassen. Das muss auch nicht sein.
 
-Ich werde wahrscheinlich niemals alle diese Fragen für mich beantworten.
-
-Aber das muss ich auch nicht.
-
-Ich habe jetzt einfach bei mir angefangen.
+Es reicht, irgendwo anzufangen.
 
 **Ressourcen zugänglich machen. Hindernisse sichtbar machen. Brücken bauen. Kleine Wege zum eigenen Leben finden.**
 
@@ -201,22 +182,31 @@ Eine Brücke verbindet deinen aktuellen Zustand mit etwas, das du eigentlich tun
 
 ## So funktioniert es in der App
 
-• **Wert:** Du wählst, wohin die Brücke führen soll, zum Beispiel Natur, Freundschaft oder Kreativität.
-• **Schritte:** Du baust kleine Schritte dorthin. Der erste ist so klein, dass er auch an einem schweren Tag geht, jeder weitere ein Stück größer.
-• **Was einen Schritt trägt:** An jeden Schritt hängst du, was du schon in der App hast: einen Ort, eine Aktivität, einen hilfreichen Menschen, ein Hilfsmittel oder einen Skill.
-• **Du bleibst frei:** Du darfst auf jeder Stufe stehen bleiben. Ein Wert und ein Schritt reichen für eine erste Brücke.
+• **Wert:** Du wählst, wohin die Brücke führen soll, zum Beispiel Natur, Freundschaft oder Kreativität. Wenn du magst, schreibst du dazu, warum dir das wichtig ist. Passende Bedürfnisse schlägt die App vor.
+• **Kleine Schritte:** Du baust Schritte dorthin. Der erste ist so klein, dass er auch an einem schweren Tag geht, jeder weitere ein Stück größer. Ideen zu deinem Wert kannst du antippen und übernehmen.
+• **Was einen Schritt trägt:** An jeden Schritt hängst du, was du schon in der App hast: einen Ort, eine Aktivität, einen Menschen aus deinem Netz, ein Hilfsmittel, einen Skill oder eine gespeicherte Quelle. Die App schlägt dir Passendes vor.
+• **Wenn du magst, mehr:** Hindernisse, trotz derer die Brücke helfen soll, Umstände, unter denen es leichter geht („nicht allein“, „kein Zeitdruck“, eigene möglich), Zugangskanäle, ein Tipp, ein Bild. Eine Brücke muss ein Hindernis nicht beseitigen – es reicht, wenn sie trotzdem einen kleinen Zugang öffnet.
+• **Du bleibst frei:** Ein Wert und ein Schritt reichen für eine erste Brücke. Du darfst auf jeder Stufe stehen bleiben, mehrere Schritte gleichzeitig wählen oder später etwas ändern.
 
-Ein ganz genaues Beispiel findest du ganz oben im Formular „Neue Brücke“.
+Ein ganz genaues Beispiel findest du im Formular „Neue Brücke“. Und unter „Brücken entdecken“ gibt es fertige Impulse, die du als eigene Brücke übernehmen und danach beliebig verändern kannst.
+
+## Im Alltag benutzen
+
+• **Schritt wählen:** Im Detail einer Brücke tippst du den Schritt an, der sich gerade richtig anfühlt.
+• **Begleiten lassen:** Auf Wunsch startest du einen ruhigen Timer, ohne Druck und mit sanfter Nachfrage beim Abbrechen. Danach kannst du den Schritt mit Datum und Uhrzeit ins Tagebuch übernehmen.
+• **Auf dem Weg dorthin:** Im Zugang führt dich die App, wenn es passt, von einem Bedürfnis zu einer Brücke in Richtung deiner Werte. Fällt ein Schritt gerade schwer, hilft dir „Warum fällt mir das gerade schwer?“ im Brücken-Detail, erst einmal hinzuschauen, was den Zugang erschwert.
+• **Für schwere Zeiten:** Brücken lassen sich im Sicherheitsnetz einer Warnstufe zuordnen und mit einem Stern als Favorit markieren.
+• **Weitergeben:** „An Freunde senden“ schickt einen Link, den die andere Person direkt in ihre App übernehmen kann. Als PDF kannst du eine oder alle Brücken ausdrucken oder speichern.
 
 ---
 
 ## Das Grundprinzip
 
-Wo will ich hin? → Wieso ist mir das wichtig? → Was möchte ich tun? → Was steht mir dabei im Weg? → Welche Ressourcen brauche ich, um dieses Hindernis zu überwinden? → Das ist meine Brücke.
+Wohin möchte ich? → Wieso ist mir das wichtig? → Was ist ein kleiner erster Schritt? → Was steht mir dabei im Weg? → Welche Ressourcen tragen mich über dieses Hindernis? → Das ist meine Brücke.
 
-Kurz gesagt: **Ziel → Wert → Aktivität → Hindernis → Brücke**
+Kurz gesagt: **Wert → Schritte → Ressourcen** (und, wenn du magst, **Hindernisse und Umstände**).
 
-Eine Brücke kann dabei aus mehreren Ressourcen zusammengesetzt sein.
+Eine Brücke kann dabei aus mehreren Ressourcen zusammengesetzt sein. Ressourcen sind die Bausteine, die Brücke ist der Weg.
 
 ---
 
@@ -227,7 +217,7 @@ Eine Brücke kann dabei aus mehreren Ressourcen zusammengesetzt sein.
 • Was steht im Weg? Ich bin erschöpft, sitze fest und der Schritt „jetzt aufstehen und los" fühlt sich riesig an.
 • Wie komme ich trotzdem dorthin?
 
-**🌉 Meine Brücke:**
+**🌉 Meine Brücke (Schritte, vom kleinsten zum größten):**
 
 • Fenster auf → erster Kontakt mit draußen
 • Wasser trinken → den Körper versorgen
@@ -243,7 +233,7 @@ Wobei hilft mir diese Brücke? Sie überwindet Erschöpfung, fehlenden Handlungs
 • Wieso? Kreativität bedeutet für mich Ausdruck und Lebendigkeit.
 • Was steht im Weg? Ich habe das Gefühl, es müsste etwas „Gutes" entstehen. Dadurch fange ich gar nicht erst an.
 
-**🌉 Meine Brücke:**
+**🌉 Meine Brücke (Schritte, vom kleinsten zum größten):**
 
 • Material sichtbar hinlegen → weniger Vorbereitung
 • Lieblingsmusik an → Stimmung herstellen

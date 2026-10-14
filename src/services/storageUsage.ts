@@ -29,6 +29,7 @@ function categoryLabelFor(key: string): string {
   if (key.startsWith('garden')) return 'Garten';
   if (key.startsWith('network') || key.startsWith('safety-plan')) return 'Sicherheitsnetz';
   if (key.startsWith('medi-log') || key.startsWith('recurring-medications') || key.startsWith('saved-medications')) return 'Medi-Log';
+  if (key.startsWith('park-notes') || key.startsWith('waiting-room')) return 'Parkbox & Wartezimmer';
   if (key.startsWith('glaubenssaetze')) return 'Denkmaschine';
   if (key.startsWith('sorgenfresser-worries')) return 'Loslassen';
   if (key.startsWith('letters-to-self')) return 'Briefe an mich';

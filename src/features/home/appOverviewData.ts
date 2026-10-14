@@ -108,6 +108,7 @@ export const OVERVIEW_GROUPS: OverviewGroup[] = [
       E('brief', '💌', ['Brief an mich', 'Ein Brief von dir an dich, für später – oder per Link/Datei an eine andere Person, die ihn zu der Uhrzeit bekommt, die du einstellst.'], ['Letter to myself', 'A letter from you to you, for later — or by link/file to someone else, who gets it at the time you set.'], '/entdecken/brief-an-mich'),
       E('lesezeichen', '🔖', ['Lesezeichen', 'Gespeicherte Links und Inhalte.'], ['Bookmarks', 'Saved links and content.'], '/entdecken/lesezeichen'),
       E('favoriten', '⭐', ['Favoriten', 'Schnellzugriff auf gemerkte Ressourcen und Brücken.'], ['Favourites', 'Quick access to saved resources and bridges.'], '/favoriten'),
+      E('parkbox', '📮', ['Verbindliche Parkbox & Wartezimmer', 'Zettel schreiben, die in eine sichere Box fliegen – für heute bist du entlastet. Darunter das Wartezimmer: Ideen, Projekte und Wünsche mit festem Platz, denen du später einen Zeitraum im Kalender geben kannst.'], ['Binding parking box & waiting room', 'Write note slips that fly into a safe box — you are relieved for today. Below it the waiting room: ideas, projects and wishes with a fixed seat, which you can later give a period in the calendar.'], '/parkbox'),
       E('medi', '💊', ['Medi-Log', 'Medikamente/Einnahmen festhalten, samt Packungen.'], ['Medication log', 'Note medication/intake, including packages.'], '/entdecken/medi-log'),
     ],
   },

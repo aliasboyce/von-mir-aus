@@ -208,7 +208,7 @@ export function CalendarPage() {
             return (
               <button key={a.id} onClick={() => openEdit(a)} className="text-left rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface)', border: `1px solid var(--color-border)`, borderLeft: `5px solid ${colorOf(a)}` }}>
                 <p className="text-[12px] tabular-nums text-[var(--color-text-faint)]">
-                  {a.time}
+                  {a.time}{a.endTime ? `–${a.endTime}` : ''}
                   {categories.find((c) => c.id === a.categoryId) && <span style={{ color: colorOf(a) }}> · {categories.find((c) => c.id === a.categoryId)!.label}</span>}
                 </p>
                 <p className="text-[15px] text-[var(--color-text)] mb-1">{a.title}</p>

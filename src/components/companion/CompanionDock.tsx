@@ -344,7 +344,8 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
 
   if (!settings.brainEnabled) return null;
 
-  const showTip = tip && !menuOpen;
+  // "Nur jetzt": no speech bubbles at all – the creature just sits there quietly
+  const showTip = tip && !menuOpen && !settings.nurJetztMode;
 
   if (variant === 'hero') {
     return (

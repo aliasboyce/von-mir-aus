@@ -40,7 +40,7 @@ export function SchmuggelPopup() {
   const [showCard, setShowCard] = useState(false);
   const [running, setRunning] = useState(false);
 
-  const enabled = settings.schmuggelPopupEnabled !== false && settings.brainEnabled && settings.companionChosen && settings.introSeen && !settings.tourActive;
+  const enabled = settings.schmuggelPopupEnabled !== false && settings.brainEnabled && settings.companionChosen && settings.introSeen && !settings.tourActive && !settings.nurJetztMode;
   const blockedHere = location.pathname === '/krisenmodus' || location.pathname === '/helfermodus' || location.pathname.startsWith('/inneres-wetter') || location.pathname === '/zugang';
 
   // refs so the interval always sees the current blocking state

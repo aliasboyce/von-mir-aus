@@ -1,3 +1,5 @@
+import { markFirstUse, requestPersistentStorage } from '../services/testSupport';
+import { pendingLetterStore } from '../features/briefAnMich/lettersRepo';
 import { useEffect, useRef, useState } from 'react';
 import { runStartupMigrations } from '../services/migrations';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -18,7 +20,7 @@ import { createKeyValueStore } from '../services/storage/keyValueStore';
  * be tangled into the same flag the tour itself watches. */
 const aboutSeenStore = createKeyValueStore<boolean>('about-vmA-seen', false);
 import { AppTourOverlay } from '../components/companion/AppTourOverlay';
-import { tourIndexStore } from '../components/companion/tourData';
+import { tourExtrasModeStore, tourIndexStore } from '../components/companion/tourData';
 import { useSettings } from '../state/SettingsContext';
 import { useResolvedTheme } from '../state/ThemeEffect';
 import { useModalStack } from '../state/ModalStackContext';
@@ -53,6 +55,19 @@ export function AppShell() {
     runStartupMigrations();
     return true;
   });
+
+  // longer real-life use: keep the data safe in the browser and remember since when the app is in use
+  useEffect(() => {
+    markFirstUse();
+    void requestPersistentStorage();
+  }, []);
+
+  // A letter link opened by someone who is still in the first-launch screens: remember it, the home page offers it afterwards.
+  useEffect(() => {
+    if (location.pathname !== '/brief/importieren') return;
+    const d = new URLSearchParams(location.search).get('d');
+    if (d) pendingLetterStore.set(d);
+  }, [location.pathname, location.search]);
 
   // "Bei jedem Tippen von Buttons ein Sound"-Auftrag — one listener
   // here covers every button in the app (including ones added later),
@@ -153,12 +168,13 @@ export function AppShell() {
 
   const [aboutOpen, setAboutOpen] = useState(false);
   useEffect(() => {
-    if (settings.introSeen && !aboutSeenStore.get()) {
+    // not in the middle of the guided tour – the essay follows once the tour is done (or paused)
+    if (settings.introSeen && !settings.tourActive && !aboutSeenStore.get()) {
       aboutSeenStore.set(true);
       setAboutOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.introSeen]);
+  }, [settings.introSeen, settings.tourActive]);
 
   // "Nur jetzt"-Modus overhaul — the nav itself only offering a reduced
   // set of destinations (see BottomNav) is the primary UX signal, but a
@@ -167,7 +183,7 @@ export function AppShell() {
   // the backstop: while active, anything outside the explicit allowlist
   // redirects home rather than silently letting the "reduced" promise
   // be broken.
-  const NUR_JETZT_ALLOWED_PREFIXES = ['/', '/inneres-wetter', '/zugang', '/krisenmodus'];
+  const NUR_JETZT_ALLOWED_PREFIXES = ['/', '/inneres-wetter', '/zugang', '/krisenmodus', '/nur-jetzt', '/entdecken/ressourcen/skill-start', '/entdecken/tageskurve'];
   useEffect(() => {
     if (!settings.nurJetztMode) return;
     const path = location.pathname;
@@ -297,6 +313,12 @@ export function AppShell() {
         <AppTourOverlay
           onFinish={() => {
             tourIndexStore.set(0);
+            tourExtrasModeStore.set(null);
+            updateSettings({ tourActive: false });
+            const pending = pendingLetterStore.get();
+            navigate(pending ? `/brief/importieren?d=${pending}` : '/');
+          }}
+          onPause={() => {
             updateSettings({ tourActive: false });
             navigate('/');
           }}

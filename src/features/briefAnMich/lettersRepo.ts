@@ -1,3 +1,4 @@
+import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { createRepository, createId } from '../../services/storage/repository';
 
 export interface LetterToSelf {
@@ -17,6 +18,10 @@ export interface LetterToSelf {
 }
 
 export const lettersRepo = createRepository<LetterToSelf>('letters-to-self');
+
+/** Token of a letter link that was opened but not yet put into the app (e.g. a new person opened the link
+ * before finishing the first-launch screens) — so the letter is not lost on the way. */
+export const pendingLetterStore = createKeyValueStore<string | null>('pending-letter-token', null);
 
 export function addLetter(text: string, scheduledFor: string, inReview = false): LetterToSelf {
   const letter: LetterToSelf = { id: createId('letter'), text, createdAt: new Date().toISOString(), scheduledFor, opened: false, inReview };

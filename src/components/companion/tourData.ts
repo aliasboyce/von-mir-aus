@@ -43,11 +43,11 @@ const S = (id: string, path: string, de: Txt, en: Txt, opts: { allow?: string[];
   en: { title: en[0], why: en[1], task: en[2] },
 });
 
-export const TOUR_STOPS: TourStop[] = [
+const ALL_STOPS: TourStop[] = [
   // ───────────── Wo bin ich? ─────────────
   S('start', '/',
-    ['Die Startseite', 'Hier beginnt alles, ruhig und ohne Pflicht. „Das habe ich geschafft“ gibt kleinen Dingen Platz: Wer nur das Schwere sieht, übersieht, was schon gelingt.', 'Trag unter „Das habe ich geschafft“ eine Kleinigkeit von heute ein und tippe auf „Speichern“ – z. B. „bin aufgestanden“ oder „diese Anleitung angefangen“.'],
-    ['The home page', 'Everything starts here, calmly and without obligation. "I managed this" makes room for small things: if you only see the hard part, you overlook what already works.', 'Under "I managed this" enter a small thing from today and tap "Save" – e.g. "got up" or "started this guide".'],
+    ['Die Startseite', 'Die App hat fünf Hauptbereiche: Wo bin ich · Mich regulieren · Mich verbinden · Mich sichern · Zurückschauen – damit du wieder bei dir ankommst. Diese Anleitung zeigt zuerst nur diesen Kern (10 kurze Schritte). Danach entscheidest du, ob du die Zusatzfunktionen kennenlernen willst. Hier auf der Startseite beginnt alles ruhig und ohne Pflicht.', 'Trag unter „Das habe ich geschafft“ eine Kleinigkeit von heute ein und tippe auf „Speichern“ – z. B. „bin aufgestanden“ oder „diese Anleitung angefangen“.'],
+    ['The home page', 'The app has five main areas: Where am I · Regulate · Connect · Secure · Look back – so that you arrive back at yourself. This guide first shows only this core (10 short steps). Afterwards you decide whether you want to get to know the extras. Here on the home page everything begins calmly and without obligation.', 'Under "I managed this" enter a small thing from today and tap "Save" – e.g. "got up" or "started this guide".'],
     { check: cnt('diary-entries') }),
   S('wetter', '/inneres-wetter',
     ['Check-in: Inneres Wetter', 'Ein Check-in ist kein Tracking und keine Bewertung, sondern eine Momentaufnahme. Etwas zu benennen, nimmt ihm schon ein wenig Druck. Und aus vielen Momentaufnahmen entsteht später deine eigene Kurve.', 'Wähle das Wetter, das gerade am ehesten passt, und geh den kurzen Check-in bis zum Ende durch.'],
@@ -195,6 +195,10 @@ export const TOUR_STOPS: TourStop[] = [
     ['Brief an mich', 'Ein Brief, den du jetzt schreibst und später öffnest – von dir an dich, wenn du es gut gebrauchen kannst. Oder an jemanden, der ihn zu einer Uhrzeit bekommt, die du einstellst.', 'Tippe auf „Neuen Brief schreiben“ und schreib kurz an dein späteres Ich: „Falls es dir gerade schlecht geht, möchte ich dir sagen …“'],
     ['Letter to myself', 'A letter you write now and open later – from you to you when you can use it. Or to someone who receives it at a time you set.', 'Tap "Write new letter" and write briefly to your later self: "If you are not doing well right now, I would like to tell you …"'],
     { allow: ['/entdecken/brief-an-mich'], check: cnt('letters-to-self') }),
+  S('parkbox', '/parkbox',
+    ['Parkbox & Wartezimmer', 'Was heute nicht mehr muss, darf in die Box – es bleibt sicher, nichts geht verloren, und morgen ist auch noch ein Tag. Im Wartezimmer haben Ideen, Projekte und Wünsche einen festen Platz, bis du ihnen einen Zeitraum im Kalender gibst. Das nimmt die Angst, etwas zu verpassen oder nicht genug Zeit zu haben.', 'Schreib einen Zettel und tippe auf „In die Box legen“. Setz danach etwas in das Wartezimmer – und gib ihm, wenn du magst, über „Einen Zeitraum zuordnen“ einen Platz im Kalender.'],
+    ['Parking box & waiting room', 'What does not have to happen today may go into the box – it stays safe, nothing gets lost, and tomorrow is another day. In the waiting room ideas, projects and wishes have a fixed place until you give them a period in the calendar. That takes away the fear of missing something or not having enough time.', 'Write a note and tap "Put it in the box". Then seat something in the waiting room – and, if you like, give it a place in the calendar via "Assign a time period".'],
+    { allow: ['/parkbox'], check: cnt('park-notes', 'waiting-room') }),
   S('medi', '/entdecken/medi-log',
     ['Medi-Log', 'Nur falls hilfreich: festhalten, was du wann eingenommen hast – damit du es nicht im Kopf behalten musst und für Gespräche mit Ärzt:innen alles parat hast.', 'Schau dir die Seite an. Trag nur etwas ein, wenn du wirklich Medikamente nimmst und es dir nützt.'],
     ['Medication log', 'Only if helpful: note what you took when – so you do not have to keep it in your head and have everything ready for talks with doctors.', 'Look at the page. Only enter something if you really take medication and it is useful.'],
@@ -232,5 +236,23 @@ export const TOUR_STOPS: TourStop[] = [
 ];
 
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
+
+/**
+ * Der Kern zuerst: die fünf Hauptbereiche (Wo bin ich · Mich regulieren · Mich verbinden · Mich sichern ·
+ * Zurückschauen), je mit der einen Handlung, die den Bereich lebendig macht. Alles andere sind Zusatzfunktionen:
+ * nach dem Kern entscheidet die Person, ob sie sie erklärt bekommen oder gleich ausprobieren möchte.
+ */
+const CORE_IDS = ['start', 'wetter', 'zugang', 'ressource', 'skill', 'bruecke', 'netzwerk', 'plan', 'krise', 'rueckblick'];
+const byId = (id: string) => {
+  const stop = ALL_STOPS.find((x) => x.id === id);
+  if (!stop) throw new Error('tour stop missing: ' + id);
+  return stop;
+};
+export const TOUR_STOPS: TourStop[] = [...CORE_IDS.map(byId), ...ALL_STOPS.filter((x) => !CORE_IDS.includes(x.id))];
+/** number of core stops; everything from this index on is an extra */
+export const CORE_COUNT = CORE_IDS.length;
+
+/** how the person wants to meet the extras after the core: read about them or try them right away */
+export const tourExtrasModeStore = createKeyValueStore<'explain' | 'try' | null>('tour-extras-mode', null);
 /** which station the person is on — kept so a reload in the middle of the tour continues where it was */
 export const tourIndexStore = createKeyValueStore<number>('tour-index', 0);

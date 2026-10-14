@@ -35,7 +35,7 @@ export function CalendarOverviewPage() {
     return (
       <button key={a.id} onClick={() => setEditing(a)} className="text-left rounded-[var(--radius-lg)] p-3" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderLeft: `5px solid ${cat?.color ?? 'var(--color-text-faint)'}` }}>
         <p className="text-[12px] text-[var(--color-text-faint)] tabular-nums">
-          {startOf(a).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} · {a.time}
+          {startOf(a).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} · {a.time}{a.endTime ? `–${a.endTime}` : ''}
           {cat && <span style={{ color: cat.color }}> · {cat.label}</span>}
         </p>
         <p className="text-[14.5px] text-[var(--color-text)]">{a.title}</p>

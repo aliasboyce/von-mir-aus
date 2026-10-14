@@ -62,16 +62,35 @@ export function BriefAnMichPage() {
         <h1 className="text-[24px] mb-1">{t.briefAnMich.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6 leading-relaxed">{t.briefAnMich.subtitle}</p>
 
-        <Button fullWidth variant="secondary" icon={<Plus size={17} />} onClick={() => setWriting(true)} className="mb-3">
+        <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.briefAnMich.sectionSelf}</p>
+        <Button fullWidth variant="secondary" icon={<Plus size={17} />} onClick={() => setWriting(true)} className="mb-5">
           {t.briefAnMich.writeCta}
         </Button>
-        <div className="flex gap-2 mb-3">
-          <Button fullWidth variant="secondary" icon={<Send size={16} />} onClick={() => { setSharing(true); setReceiving(false); }} data-testid="letter-share-open">
-            {t.briefAnMich.shareCta}
-          </Button>
-          <Button fullWidth variant="secondary" icon={<Inbox size={16} />} onClick={() => { setReceiving(true); setSharing(false); }} data-testid="letter-receive-open">
-            {t.briefAnMich.receiveCta}
-          </Button>
+
+        <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.briefAnMich.sectionOthers}</p>
+        <Card className="mb-3" data-testid="letter-flow">
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-1.5">{t.briefAnMich.flowTitle}</p>
+          <ol className="flex flex-col gap-1 pl-5 list-decimal">
+            {[t.briefAnMich.flow1, t.briefAnMich.flow2, t.briefAnMich.flow3].map((s, i) => (
+              <li key={i} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{s}</li>
+            ))}
+          </ol>
+        </Card>
+        <div className="flex flex-col gap-2 mb-3">
+          <button type="button" onClick={() => { setSharing(true); setReceiving(false); }} className="text-left rounded-[var(--radius-lg)] px-4 py-3 flex items-start gap-3 bg-[var(--color-surface)] border border-[var(--color-border)]" data-testid="letter-share-open">
+            <Send size={18} className="text-[var(--color-primary)] mt-0.5 flex-shrink-0" />
+            <span>
+              <span className="block text-[15px] text-[var(--color-text)]">{t.briefAnMich.shareCta}</span>
+              <span className="block text-[12.5px] text-[var(--color-text-muted)] leading-snug mt-0.5">{t.briefAnMich.shareCardSub}</span>
+            </span>
+          </button>
+          <button type="button" onClick={() => { setReceiving(true); setSharing(false); }} className="text-left rounded-[var(--radius-lg)] px-4 py-3 flex items-start gap-3 bg-[var(--color-surface)] border border-[var(--color-border)]" data-testid="letter-receive-open">
+            <Inbox size={18} className="text-[var(--color-primary)] mt-0.5 flex-shrink-0" />
+            <span>
+              <span className="block text-[15px] text-[var(--color-text)]">{t.briefAnMich.receiveCta}</span>
+              <span className="block text-[12.5px] text-[var(--color-text-muted)] leading-snug mt-0.5">{t.briefAnMich.receiveCardSub}</span>
+            </span>
+          </button>
         </div>
         <LetterGuide />
         {sharing && <LetterShareComposer onClose={() => setSharing(false)} />}

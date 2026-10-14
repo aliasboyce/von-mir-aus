@@ -28,7 +28,7 @@ export const ADDON_GROUPS: { labelKey: string; items: { emoji: string; titleKey:
   { labelKey: 'nachschlagen', items: [{ emoji: '🫀', titleKey: 'koerper', to: '/entdecken/koerper' }, { emoji: '❤️', titleKey: 'gefuehle', to: '/entdecken/gefuehle' }, { emoji: '📚', titleKey: 'quellen', to: '/quellen' }] },
   { labelKey: 'gedanken', items: [{ emoji: '🧠', titleKey: 'denkmaschine', to: '/entdecken/denkmaschine' }, { emoji: '🛡️', titleKey: 'schutzstrategien', to: '/entdecken/schutzstrategien' }, { emoji: '🍃', titleKey: 'loslassen', to: '/entdecken/loslassen' }] },
   { labelKey: 'schreiben', items: [{ emoji: '📔', titleKey: 'tagebuch', to: '/sicherheit/tagebuch' }, { emoji: '💌', titleKey: 'briefAnMich', to: '/entdecken/brief-an-mich' }, { emoji: '🔖', titleKey: 'lesezeichen', to: '/entdecken/lesezeichen' }] },
-  { labelKey: 'alltag', items: [{ emoji: '📅', titleKey: 'kalender', to: '/kalender' }, { emoji: '⏱️', titleKey: 'timer', to: '/entdecken/timer' }, { emoji: '💊', titleKey: 'mediLog', to: '/entdecken/medi-log' }, { emoji: '⭐', titleKey: 'favoriten', to: '/favoriten' }] },
+  { labelKey: 'alltag', items: [{ emoji: '📮', titleKey: 'parkbox', to: '/parkbox' }, { emoji: '📅', titleKey: 'kalender', to: '/kalender' }, { emoji: '⏱️', titleKey: 'timer', to: '/entdecken/timer' }, { emoji: '💊', titleKey: 'mediLog', to: '/entdecken/medi-log' }, { emoji: '⭐', titleKey: 'favoriten', to: '/favoriten' }] },
   { labelKey: 'begleitung', items: [{ emoji: '✨', titleKey: 'wesen', to: '/einstellungen/wesen-info' }, { emoji: '⚙️', titleKey: 'einstellungen', to: '/einstellungen' }] },
 ];
 

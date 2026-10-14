@@ -7,7 +7,9 @@ import { LICHTWESEN } from './lichtwesen';
 import { useSettings } from '../../state/SettingsContext';
 import { Button } from '../ui/Button';
 import { useT } from '../../i18n';
-import { tourIndexStore } from './tourData';
+import { tourExtrasModeStore, tourIndexStore } from './tourData';
+import { InstallGuide } from '../shared/InstallGuide';
+import { isStandalone } from '../../services/testSupport';
 
 interface IntroSlide {
   text: string;
@@ -27,6 +29,7 @@ export function IntroFlow() {
   const being = getAnyLichtwesen(settings.selectedBrainId);
   const otherBeings = LICHTWESEN.filter((b) => b.id !== being.id).slice(0, 3);
   const [step, setStep] = useState(0);
+  const [installStep, setInstallStep] = useState(false);
   const [joyBurst, setJoyBurst] = useState<'hop' | 'spin' | 'wobble' | 'dance' | null>(null);
 
   const slides: IntroSlide[] = t.companion.introSlides.map((text, i) => {
@@ -48,15 +51,25 @@ export function IntroFlow() {
 
   const isLast = step === slides.length - 1;
 
+  function startTour() {
+    tourIndexStore.set(0);
+    tourExtrasModeStore.set(null);
+    updateSettings({ introSeen: true, tourActive: true });
+    navigate('/');
+  }
+
   function next() {
     if (isLast) {
+      // right after meeting the companion: how to put the app on the home screen (skipped if it already is installed)
+      if (!isStandalone()) {
+        setInstallStep(true);
+        return;
+      }
       // Slides are done — hand off to the real, navigating app tour
       // overlay (rendered by AppShell once tourActive is set), landing on
       // Home first. The actual first check-in happens once the tour
       // finishes or is closed (see AppShell).
-      tourIndexStore.set(0);
-      updateSettings({ introSeen: true, tourActive: true });
-      navigate('/');
+      startTour();
       return;
     }
     setStep((s) => s + 1);
@@ -74,6 +87,38 @@ export function IntroFlow() {
 
   function skip() {
     updateSettings({ introSeen: true });
+  }
+
+  if (installStep) {
+    const en = settings.language === 'en';
+    return (
+      <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="install-step">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={() => setInstallStep(false)} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+            <ChevronLeft size={20} />
+          </button>
+          <span />
+        </div>
+        <div className="flex flex-col items-center text-center gap-3 mb-5">
+          <LichtCompanion size="small" />
+          <h1 className="text-[22px] leading-tight">{en ? 'One thing before we start: put the app on your home screen' : 'Eins vor dem Start: Hol dir die App auf den Startbildschirm'}</h1>
+          <p className="text-[13px] text-[var(--color-text-faint)] leading-relaxed max-w-[320px]">
+            {en ? 'Best right now, while nothing is entered yet: on an iPhone the installed app is its own space, so you start fresh there.' : 'Am besten jetzt, wo noch nichts eingetragen ist: Auf dem iPhone ist die installierte App ein eigener Speicher – du startest dort noch einmal von vorn.'}
+          </p>
+        </div>
+        <div className="flex-1">
+          <InstallGuide />
+        </div>
+        <div className="mt-6 flex flex-col gap-2">
+          <Button fullWidth onClick={startTour} data-testid="install-continue">
+            {en ? 'Done – show me the app' : 'Erledigt – zeig mir die App'}
+          </Button>
+          <button type="button" onClick={startTour} className="text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 py-1" data-testid="install-later">
+            {en ? 'Later (you find this under Settings → Test version)' : 'Später (du findest das unter Einstellungen → Test-Version)'}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

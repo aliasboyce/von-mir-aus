@@ -19,6 +19,8 @@ export interface Appointment {
   date: string;
   /** Local time, 'HH:MM'. */
   time: string;
+  /** Optional end of the period, 'HH:MM' (set when a Wartezimmer item gets a period). */
+  endTime?: string;
   categoryId?: string;
   /** NetworkEntry.id of the person this appointment is with. */
   personId?: string;

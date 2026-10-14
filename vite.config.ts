@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { writeFileSync } from 'fs'
+import { writeFileSync, readdirSync, existsSync } from 'fs'
 
 // "Update-Benachrichtigung fuer Nutzer"-Auftrag — a fresh build id is
 // generated once per build and written to both the JS bundle (via
@@ -20,6 +20,17 @@ export default defineConfig({
       name: 'write-build-version',
       buildStart() {
         writeFileSync('public/version.json', JSON.stringify({ buildId }))
+      },
+    },
+    {
+      // Liste aller App-Dateien für die Offline-Hülle (public/sw.js lädt sie beim Installieren vor)
+      name: 'write-precache-list',
+      closeBundle() {
+        const list = ['/index.html']
+        for (const dir of ['assets', 'icons']) {
+          if (existsSync(`dist/${dir}`)) for (const f of readdirSync(`dist/${dir}`)) list.push(`/${dir}/${f}`)
+        }
+        writeFileSync('dist/precache.json', JSON.stringify(list))
       },
     },
   ],

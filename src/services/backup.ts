@@ -12,6 +12,8 @@
  * round-trip export->import is byte-for-byte the same as what was
  * there before, with zero risk of a subtle serialization mismatch.
  */
+import { markBackupDone } from './testSupport';
+
 const NAMESPACE = 'innerpath';
 
 interface BackupFile {
@@ -44,6 +46,7 @@ export function downloadBackup() {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+  markBackupDone();
 }
 
 export type ImportResult = { ok: true; keyCount: number } | { ok: false; error: 'invalid-file' | 'wrong-app' };
