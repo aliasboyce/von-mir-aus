@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { goBack } from '../../services/navigation';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Mail } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { EmptyState } from '../../components/ui/EmptyState';
 import { useT } from '../../i18n';
-import { useSettings } from '../../state/SettingsContext';
-import { lettersRepo, addLetter, markLetterOpened, pendingLetters, openedLetters } from './lettersRepo';
-import { LetterEnvelope } from './LetterEnvelope';
+import { addLetter } from './lettersRepo';
+import { LettersList } from './LettersList';
 import { LetterGuide } from './LetterGuide';
 import { LetterShareComposer } from './LetterShareComposer';
 import { LetterReceivePanel } from './LetterReceive';
@@ -26,7 +24,6 @@ import { Send, Inbox } from 'lucide-react';
 export function BriefAnMichPage() {
   const t = useT();
   const navigate = useNavigate();
-  const { settings } = useSettings();
   const [, refresh] = useState(0);
   const [writing, setWriting] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -35,7 +32,6 @@ export function BriefAnMichPage() {
   const [inReview, setInReview] = useState(false);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('09:00');
-  const [openLetterId, setOpenLetterId] = useState<string | null>(null);
 
   function bump() {
     refresh((n) => n + 1);
@@ -50,10 +46,6 @@ export function BriefAnMichPage() {
     setWriting(false);
     bump();
   }
-
-  const pending = pendingLetters();
-  const opened = openedLetters();
-  const openLetter = openLetterId ? lettersRepo.getAll().find((l) => l.id === openLetterId) : null;
 
   return (
     <div className="animate-in">
@@ -131,63 +123,9 @@ export function BriefAnMichPage() {
           </Card>
         )}
 
-        {pending.length === 0 && opened.length === 0 ? (
-          <EmptyState title={t.briefAnMich.empty} />
-        ) : (
-          <>
-            {pending.length > 0 && (
-              <>
-                <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.briefAnMich.pendingLabel}</p>
-                <div className="flex flex-col gap-2 mb-6">
-                  {pending.map((l) => (
-                    <Card key={l.id} className="flex items-center gap-3">
-                      <Mail size={18} className="text-[var(--color-text-faint)] flex-shrink-0" />
-                      <p className="text-[13px] text-[var(--color-text-muted)] flex-1">
-                        {(l.fromName ? t.briefAnMich.inTransitFrom.replace('{name}', l.fromName) : t.briefAnMich.arrivesOn).replace(
-                          '{date}',
-                          new Date(l.scheduledFor).toLocaleString(settings.language === 'de' ? 'de-DE' : 'en-US', {
-                            day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
-                          })
-                        )}
-                      </p>
-                    </Card>
-                  ))}
-                </div>
-              </>
-            )}
-            {opened.length > 0 && (
-              <>
-                <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{t.briefAnMich.openedLabel}</p>
-                <div className="flex flex-col gap-2">
-                  {opened.map((l) => (
-                    <button key={l.id} onClick={() => setOpenLetterId(l.id)} className="text-left w-full">
-                      <Card interactive className="flex items-start gap-3">
-                        <Mail size={18} className="text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          {l.fromName && <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-0.5">{t.briefAnMich.fromLine.replace('{name}', l.fromName)}</p>}
-                          <p className="text-[13px] text-[var(--color-text)] line-clamp-2">{l.text}</p>
-                        </div>
-                      </Card>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </>
-        )}
+        <LettersList showPendingList onChanged={bump} />
       </div>
 
-      {openLetter && (
-        <LetterEnvelope
-          letter={openLetter}
-          alreadyOpen={openLetter.opened}
-          onClose={() => setOpenLetterId(null)}
-          onOpened={() => {
-            if (!openLetter.opened) markLetterOpened(openLetter.id);
-            bump();
-          }}
-        />
-      )}
     </div>
   );
 }

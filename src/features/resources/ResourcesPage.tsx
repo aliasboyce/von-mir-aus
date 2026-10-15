@@ -31,6 +31,9 @@ import { skillkettenRepo } from './skillkettenRepo';
 import { skillkettenForZone } from './skillketteZone';
 import { AROUSAL_BANDS } from '../polyvagal/arousalBands';
 import { buildResourcePdf } from './resourcePdf';
+import { buildShareText, type ShareKind } from '../../services/sharedLinks';
+import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
+import { kindOfCategory } from './kindText';
 import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
 import { ConditionsPicker } from '../bridges/ConditionsPicker';
 import { HilfsmittelFormModal } from './HilfsmittelFormModal';
@@ -76,6 +79,14 @@ type FilterValue = 'all' | ResourceCategory;
  * a broad catch-all so no existing resource ever becomes unreachable
  * while more subcategories are still to come, as agreed.
  */
+function shareKindOf(r: Resource): ShareKind {
+  if (r.skillDetails) return 'skill';
+  const k = kindOfCategory(r.category);
+  if (k === 'orte') return 'ort';
+  if (k === 'aktivitaeten') return 'aktivitaet';
+  return r.hilfsmittelDetails ? 'hilfsmittel' : 'ressource';
+}
+
 export function ResourcesPage() {
   const t = useT();
   const say = useCompanionSay();
@@ -338,10 +349,13 @@ export function ResourcesPage() {
       description: resource.description,
       categoryLabel: categoryLabel(resource.category),
       link: resource.link,
+      note: resource.note,
       tags: resource.tags,
+      from: settings.userName || undefined,
+      kind: shareKindOf(resource),
     };
     const url = `${window.location.origin}/entdecken/ressourcen/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
-    await shareOrCopy({ title: resource.title, url }, t.resources.shareLinkCopied);
+    await shareOrCopy({ title: resource.title, text: buildShareText({ kind: payload.kind, title: resource.title, url, from: settings.userName, lang: settings.language === 'en' ? 'en' : 'de' }) }, t.resources.shareLinkCopied);
   }
 
   // "Das PDF erstellen von Skills funktioniert nicht (braucht Safari, da
@@ -353,7 +367,7 @@ export function ResourcesPage() {
     const needed = (resource.skillDetails?.relatedHilfsmittelIds ?? [])
       .map((id) => resourcesRepo.getById(id)?.title)
       .filter((x): x is string => !!x);
-    const bytes = buildResourcePdf(resource, categoryLabel(resource.category), t, needed);
+    const bytes = buildResourcePdf(resource, categoryLabel(resource.category), t, needed, settings.language === 'en' ? 'en' : 'de');
     await deliverPdf(bytes, safeFilename(resource.title, 'skill'), resource.title);
   }
 
@@ -527,6 +541,8 @@ export function ResourcesPage() {
             {t.resources.discoverCta}
           </button>
         )}
+
+        <PasteSharedButton className="mb-5" />
 
         <RecentlyUsedRow type="resource" hrefFor={(id) => `/entdecken/ressourcen?open=${id}`} />
 

@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { shareOrCopy } from '../../services/shareOrCopy';
+import { buildShareText } from '../../services/sharedLinks';
 import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, Trash2, Pencil, ArrowUpRight, Link2, Share2 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
 import { categoryLabel, helpsWithLabel } from './networkMeta';
 import { getIcon } from '../../components/icons/networkIcons';
 import { NetworkEntryForm } from './NetworkEntryForm';
@@ -36,6 +38,7 @@ export function NetworkDetailModal({
   onRemoveConnection,
 }: NetworkDetailModalProps) {
   const t = useT();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<NetworkEntry | null>(null);
@@ -81,9 +84,10 @@ export function NetworkDetailModal({
       role: entry.role,
       description: entry.description,
       helpsWith: entry.helpsWith,
+      from: settings.userName || undefined,
     };
     const url = `${window.location.origin}/sicherheit/kontakte/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
-    await shareOrCopy({ title: entry.name, url }, t.resources.shareLinkCopied);
+    await shareOrCopy({ title: entry.name, text: buildShareText({ kind: 'kontakt', title: entry.name, url, from: settings.userName, lang: settings.language === 'en' ? 'en' : 'de' }) }, t.resources.shareLinkCopied);
   }
 
   return (

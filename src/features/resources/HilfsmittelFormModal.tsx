@@ -15,6 +15,9 @@ import { ImageSuggestionCarousel } from '../../components/shared/ImageSuggestion
 import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { ZonePicker } from '../../components/shared/ZonePicker';
 import { ConditionsPicker } from '../bridges/ConditionsPicker';
+import { OwnImageControl } from '../../components/shared/OwnImageControl';
+import { ResourceLinkFields, normalizeLink } from '../../components/shared/ResourceLinkFields';
+import { kindText } from './kindText';
 import { useT } from '../../i18n';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { createId } from '../../services/storage/repository';
@@ -58,6 +61,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = 'hilfsmittel' }: HilfsmittelFormModalProps) {
   const t = useT();
   const { settings } = useSettings();
+  const K = kindText(t, kind, settings.language === 'en' ? 'en' : 'de');
   const d = resource?.hilfsmittelDetails;
   const [title, setTitle] = useState(resource?.title ?? '');
   const fixedCategory = kind === 'orte' ? ORTE_CATEGORY : kind === 'aktivitaeten' ? AKTIVITAETEN_CATEGORY : null;
@@ -84,12 +88,17 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
   const [energyLevel, setEnergyLevel] = useState<EnergyLevel | undefined>(resource?.energyLevel);
   const [fit, setFit] = useState<FitProfile | undefined>(resource?.fit);
   const [umstaende, setUmstaende] = useState<string[]>(resource?.umstaende ?? []);
+  const [link, setLink] = useState(resource?.link ?? '');
+  const [note, setNote] = useState(resource?.note ?? '');
 
   function handleSave() {
     if (!title.trim()) return;
     onSave({
       id: resource?.id ?? createId('res'),
       title,
+      description: resource?.description,
+      link: normalizeLink(link),
+      note: note.trim() || undefined,
       category,
       subcategory: subtypesFor(category).some((s) => s.id === subcategory) ? subcategory : undefined,
       image,
@@ -122,14 +131,14 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={resource ? title || t.resources.hilfsmittelFormTitle : kind === 'orte' ? t.resources.orteFormTitleNew : kind === 'aktivitaeten' ? t.resources.aktivitaetenFormTitleNew : t.resources.hilfsmittelFormTitleNew}>
+    <Modal open={open} onClose={onClose} title={resource ? title || (kind === 'orte' ? t.resources.orteFormTitleNew : kind === 'aktivitaeten' ? t.resources.aktivitaetenFormTitleNew : t.resources.hilfsmittelFormTitle) : kind === 'orte' ? t.resources.orteFormTitleNew : kind === 'aktivitaeten' ? t.resources.aktivitaetenFormTitleNew : t.resources.hilfsmittelFormTitleNew}>
       <div className="flex flex-col gap-4 pb-2">
-        <Field label={t.resources.hilfsmittelNameLabel}>
+        <Field label={K.name}>
           <input autoFocus className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
         </Field>
 
         <Field label={t.resources.hilfsmittelSubtitleLabel}>
-          <input className="input" placeholder={t.resources.hilfsmittelSubtitlePlaceholder} value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
+          <input className="input" placeholder={K.subtitlePlaceholder} value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
         </Field>
 
         {!fixedCategory && (
@@ -173,7 +182,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
         {/* "Bei Hilfsmittel erstellen soll man auch die Energie angeben,
          * die man dafuer braucht"-Auftrag */}
         <div>
-          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5">{t.energy.formTitleHilfsmittel}</p>
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5">{K.energy}</p>
           <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.energy.fieldHint}</p>
           <EnergyLevelPicker value={energyLevel} onChange={setEnergyLevel} />
         </div>
@@ -194,46 +203,46 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
         </label>
 
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.hilfsmittelSection1Title}</p>
-          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.hilfsmittelSection1Hint}</p>
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{K.s1Title}</p>
+          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{K.s1Hint}</p>
           <div className="flex flex-col gap-3">
             <Field label={t.resources.hilfsmittelBeruhigungLabel}>
-              <textarea className="input" rows={2} placeholder={t.resources.hilfsmittelBeruhigungPlaceholder} value={beruhigungTrost} onChange={(e) => setBeruhigungTrost(e.target.value)} />
+              <textarea className="input" rows={2} placeholder={K.beruhigungPh} value={beruhigungTrost} onChange={(e) => setBeruhigungTrost(e.target.value)} />
             </Field>
             <Field label={t.resources.hilfsmittelFokusLabel}>
-              <textarea className="input" rows={2} placeholder={t.resources.hilfsmittelFokusPlaceholder} value={fokusAblenkung} onChange={(e) => setFokusAblenkung(e.target.value)} />
+              <textarea className="input" rows={2} placeholder={K.fokusPh} value={fokusAblenkung} onChange={(e) => setFokusAblenkung(e.target.value)} />
             </Field>
             <Field label={t.resources.hilfsmittelVentilLabel}>
-              <textarea className="input" rows={2} placeholder={t.resources.hilfsmittelVentilPlaceholder} value={ventilAnspannung} onChange={(e) => setVentilAnspannung(e.target.value)} />
+              <textarea className="input" rows={2} placeholder={K.ventilPh} value={ventilAnspannung} onChange={(e) => setVentilAnspannung(e.target.value)} />
             </Field>
           </div>
         </div>
 
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.hilfsmittelSection2Title}</p>
-          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.hilfsmittelSection2Hint}</p>
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{K.s2Title}</p>
+          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{K.s2Hint}</p>
           <div className="flex flex-col gap-3">
             <Field label={t.resources.hilfsmittelAnspannungsbereichLabel}>
-              <input className="input" placeholder={t.resources.hilfsmittelAnspannungsbereichPlaceholder} value={anspannungsbereich} onChange={(e) => setAnspannungsbereich(e.target.value)} />
+              <input className="input" placeholder={K.anspannungPh} value={anspannungsbereich} onChange={(e) => setAnspannungsbereich(e.target.value)} />
             </Field>
             <Field label={t.resources.hilfsmittelAlarmLabel}>
-              <textarea className="input" rows={2} placeholder={t.resources.hilfsmittelAlarmPlaceholder} value={alarmSituation} onChange={(e) => setAlarmSituation(e.target.value)} />
+              <textarea className="input" rows={2} placeholder={K.alarmPh} value={alarmSituation} onChange={(e) => setAlarmSituation(e.target.value)} />
             </Field>
           </div>
         </div>
 
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.hilfsmittelSection3Title}</p>
-          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.hilfsmittelSection3Hint}</p>
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{K.s3Title}</p>
+          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{K.s3Hint}</p>
           <div className="flex flex-col gap-3">
             <Field label={t.resources.hilfsmittelDauerLabel}>
-              <input className="input" placeholder={t.resources.hilfsmittelDauerPlaceholder} value={dauer} onChange={(e) => setDauer(e.target.value)} />
+              <input className="input" placeholder={K.dauerPh} value={dauer} onChange={(e) => setDauer(e.target.value)} />
             </Field>
             <Field label={t.resources.hilfsmittelMethodeLabel}>
-              <textarea className="input" rows={2} placeholder={t.resources.hilfsmittelMethodePlaceholder} value={methode} onChange={(e) => setMethode(e.target.value)} />
+              <textarea className="input" rows={2} placeholder={K.methodePh} value={methode} onChange={(e) => setMethode(e.target.value)} />
             </Field>
             <Field label={t.resources.hilfsmittelAusschlussLabel}>
-              <textarea className="input" rows={2} placeholder={t.resources.hilfsmittelAusschlussPlaceholder} value={ausschlusskriterium} onChange={(e) => setAusschlusskriterium(e.target.value)} />
+              <textarea className="input" rows={2} placeholder={K.ausschlussPh} value={ausschlusskriterium} onChange={(e) => setAusschlusskriterium(e.target.value)} />
             </Field>
           </div>
         </div>
@@ -254,21 +263,24 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
         )}
 
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.hilfsmittelSection5Title}</p>
-          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.hilfsmittelSection5Hint}</p>
-          <Field label={t.resources.hilfsmittelBereitschaftLabel}>
-            <textarea className="input" rows={2} placeholder={t.resources.hilfsmittelBereitschaftPlaceholder} value={bereitschaft} onChange={(e) => setBereitschaft(e.target.value)} />
+          <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{K.s5Title}</p>
+          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{K.s5Hint}</p>
+          <Field label={K.bereitschaftLabel}>
+            <textarea className="input" rows={2} placeholder={K.bereitschaftPh} value={bereitschaft} onChange={(e) => setBereitschaft(e.target.value)} />
           </Field>
         </div>
 
-        <Field label={`${t.resources.categoryLabel} — Bild`}>
+        <Field label={t.bridges.imageLabel}>
           <div className="flex flex-col gap-2">
             <ImageSuggestionCarousel images={imageSuggestions} selected={image} onSelect={(url) => setImage(url)} ariaLabel={t.resources.pickThisImage} />
             <button type="button" onClick={() => setImageSuggestions(suggestedImageOptions(title, category))} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
               <RefreshCw size={13} /> {t.resources.moreSuggestions}
             </button>
+            <OwnImageControl image={image} onChange={setImage} fallback={() => suggestedImage(title, category)} />
           </div>
         </Field>
+
+        <ResourceLinkFields kind={kind === 'orte' ? 'ort' : kind === 'aktivitaeten' ? 'aktivitaet' : 'hilfsmittel'} link={link} note={note} onLink={setLink} onNote={setNote} />
 
         <AccessChannelPicker selected={accessChannels} onChange={setAccessChannels} />
 

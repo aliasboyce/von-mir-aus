@@ -19,6 +19,8 @@ import { PhotoBackground } from '../../components/shared/PhotoBackground';
 import { FitSummary } from '../../components/shared/FitSummary';
 import { subjectOfResource } from '../../content/fitCriteria';
 import { umstandLabel } from '../bridges/conditions';
+import { useSettings } from '../../state/SettingsContext';
+import { kindText, kindOfCategory } from './kindText';
 
 interface ResourceDetailModalProps {
   resource: Resource | null;
@@ -42,6 +44,7 @@ export function ResourceDetailModal({
   onExportPdf,
 }: ResourceDetailModalProps) {
   const t = useT();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const say = useCompanionSay();
   const [savedToDiary, setSavedToDiary] = useState(false);
@@ -119,7 +122,7 @@ export function ResourceDetailModal({
         {resource.skillDetails ? (
           <SkillDetailsView details={resource.skillDetails} description={resource.description} />
         ) : resource.hilfsmittelDetails ? (
-          <HilfsmittelDetailsView details={resource.hilfsmittelDetails} description={resource.description} />
+          <HilfsmittelDetailsView details={resource.hilfsmittelDetails} description={resource.description} category={resource.category} />
         ) : (
           resource.description && <p className="text-[14px] text-[var(--color-text)] leading-relaxed">{resource.description}</p>
         )}
@@ -163,10 +166,14 @@ export function ResourceDetailModal({
             href={resource.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-[13px] text-[var(--color-primary)] break-all"
+            className="flex items-center gap-2.5 rounded-[var(--radius-lg)] px-3.5 py-3 text-[13.5px] border"
+            style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}
           >
-            <LinkIcon size={14} className="flex-shrink-0" />
-            {resource.link}
+            <LinkIcon size={16} className="flex-shrink-0" />
+            <span className="flex flex-col min-w-0">
+              <span className="font-medium">{settings.language === 'en' ? 'Open link' : 'Link öffnen'}</span>
+              <span className="text-[11.5px] text-[var(--color-text-faint)] truncate">{linkHost(resource.link)}</span>
+            </span>
           </a>
         )}
 
@@ -250,8 +257,10 @@ export function ResourceDetailModal({
  * template instead (see HilfsmittelFormModal.tsx): Funktion des
  * Objekts, Einsatz-Moment, Gebrauchsanweisung, fester Platz,
  * Pflege & Vorbereitung — each sub-field only shown when filled in. */
-function HilfsmittelDetailsView({ details, description }: { details: NonNullable<Resource['hilfsmittelDetails']>; description?: string }) {
+function HilfsmittelDetailsView({ details, description, category }: { details: NonNullable<Resource['hilfsmittelDetails']>; description?: string; category: string }) {
   const t = useT();
+  const { settings } = useSettings();
+  const K = kindText(t, kindOfCategory(category), settings.language === 'en' ? 'en' : 'de');
   const hasSection1 = details.beruhigungTrost || details.fokusAblenkung || details.ventilAnspannung;
   const hasSection2 = details.anspannungsbereich || details.alarmSituation;
   const hasSection3 = details.dauer || details.methode || details.ausschlusskriterium;
@@ -265,7 +274,7 @@ function HilfsmittelDetailsView({ details, description }: { details: NonNullable
 
       {hasSection1 && (
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{t.resources.hilfsmittelSection1Title}</p>
+          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{K.s1Title}</p>
           {details.beruhigungTrost && <p className="text-[13px] text-[var(--color-text)] mb-1">{details.beruhigungTrost}</p>}
           {details.fokusAblenkung && <p className="text-[13px] text-[var(--color-text)] mb-1">{details.fokusAblenkung}</p>}
           {details.ventilAnspannung && <p className="text-[13px] text-[var(--color-text)]">{details.ventilAnspannung}</p>}
@@ -274,7 +283,7 @@ function HilfsmittelDetailsView({ details, description }: { details: NonNullable
 
       {hasSection2 && (
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{t.resources.hilfsmittelSection2Title}</p>
+          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{K.s2Title}</p>
           {details.anspannungsbereich && (
             <p className="text-[13px] text-[var(--color-text)] mb-1">
               <span className="text-[var(--color-text-faint)]">{t.resources.hilfsmittelAnspannungsbereichLabel}: </span>
@@ -287,7 +296,7 @@ function HilfsmittelDetailsView({ details, description }: { details: NonNullable
 
       {hasSection3 && (
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{t.resources.hilfsmittelSection3Title}</p>
+          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{K.s3Title}</p>
           {details.dauer && (
             <p className="text-[13px] text-[var(--color-text)] mb-1">
               <span className="text-[var(--color-text-faint)]">{t.resources.hilfsmittelDauerLabel}: </span>
@@ -301,7 +310,7 @@ function HilfsmittelDetailsView({ details, description }: { details: NonNullable
 
       {hasSection4 && (
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{t.resources.hilfsmittelSection4Title}</p>
+          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{K.s4Title}</p>
           {details.platzZuhause && (
             <p className="text-[13px] text-[var(--color-text)] mb-1">
               <span className="text-[var(--color-text-faint)]">{t.resources.hilfsmittelPlatzZuhauseLabel}: </span>
@@ -319,7 +328,7 @@ function HilfsmittelDetailsView({ details, description }: { details: NonNullable
 
       {hasSection5 && (
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{t.resources.hilfsmittelSection5Title}</p>
+          <p className="text-[12.5px] font-semibold text-[var(--color-text)] mb-1.5">{K.s5Title}</p>
           <p className="text-[13px] text-[var(--color-text)]">{details.bereitschaft}</p>
         </div>
       )}
@@ -415,4 +424,12 @@ function SkillDetailsView({ details, description }: { details: NonNullable<Resou
       )}
     </div>
   );
+}
+
+function linkHost(url: string): string {
+  try {
+    return new URL(url).host.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
 }

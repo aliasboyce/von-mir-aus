@@ -153,12 +153,16 @@ export function CalendarPage() {
               >
                 <span className="text-[10.5px] uppercase tracking-wide text-[var(--color-text-faint)] leading-none mt-0.5">{d.toLocaleDateString(locale, { weekday: 'short' })}</span>
                 <span className="text-[22px] font-light text-[var(--color-text)] leading-none mt-1">{d.getDate()}</span>
-                <span className="flex flex-col gap-[3px] w-full mt-1.5 px-1">
-                  {list.slice(0, 2).map((a) => (
-                    <span key={a.id} className="block h-[5px] rounded-full" style={{ background: colorOf(a) }} />
-                  ))}
-                  {list.length > 2 && <span className="text-[9px] text-[var(--color-text-faint)] leading-none">+{list.length - 2}</span>}
-                </span>
+                {list[0] && (
+                  <span className="flex flex-col items-center w-full mt-1 leading-tight min-w-0" data-testid="day-preview">
+                    <span className="flex items-center gap-1 text-[10px] tabular-nums font-medium" style={{ color: colorOf(list[0]) }}>
+                      <span className="inline-block w-[5px] h-[5px] rounded-full flex-shrink-0" style={{ background: colorOf(list[0]) }} />
+                      {list[0].time}
+                    </span>
+                    <span className="block w-full truncate text-[9.5px] text-[var(--color-text-muted)]">{list[0].title}</span>
+                    {list.length > 1 && <span className="text-[9px] text-[var(--color-text-faint)] leading-none mt-0.5">+{list.length - 1}</span>}
+                  </span>
+                )}
                 {wishCount > 0 && list.length === 0 && <span className="text-[9px] text-[var(--color-accent-clay)] mt-1 leading-none">♡ {wishCount}</span>}
               </button>
             );

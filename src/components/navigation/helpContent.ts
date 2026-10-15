@@ -553,7 +553,16 @@ Bei jedem Warnsignal kannst du einen Skill oder ein Hilfsmittel verknüpfen. Lan
 Auch das Körperdetektiv kann ein Körperzeichen hier aufnehmen.
 
 ### Hilfe holen
-Hier übernimmst du, was dir bei einer Person aus deinem Netzwerk hilft.`,
+Hier übernimmst du, was dir bei einer Person aus deinem Netzwerk hilft.
+
+### Beispiele
+Die mit „Beispiel“ markierten Einträge sind nur Anregungen. Du kannst sie übernehmen, umschreiben oder löschen. Sie kommen nie ins PDF.
+
+### Meine Angaben und Klinikaufenthalt
+Ganz oben kannst du freiwillig Angaben für den Notfall eintragen (Name, Medikamente, Notfallkontakte, Krankenkasse …) und deine Wünsche für Behandlung und Unterbringung. Beides ist ein eigener Teil und bleibt auf deinem Gerät.
+
+### Teilen & PDF
+Pro Plan wählst du, was mitkommt: der Plan, deine Angaben, der Klinik-Teil – einzeln oder zusammen. Auf dem Handy öffnet sich das Teilen-Menü, am Computer wird die Datei heruntergeladen.`,
     bodyEn: `Your personal plan for hard moments: warning signs in three tiers and what helps then.
 
 ### If …, then …
@@ -563,7 +572,16 @@ For each warning sign you can link a skill or tool. If you land in that tier lat
 The body detective can also add a body sign here.
 
 ### Get help
-Here you take over what helps you from a person in your network.`,
+Here you take over what helps you from a person in your network.
+
+### Examples
+Entries marked “Example” are only suggestions. You can keep, rewrite or delete them. They never go into the PDF.
+
+### My details and hospital stay
+At the top you can optionally enter details for emergencies (name, medication, emergency contacts, insurance …) and your wishes for treatment and placement. Both are separate parts and stay on your device.
+
+### Share & PDF
+Per plan you choose what goes along: the plan, your details, the hospital part – alone or together. On a phone the share menu opens, on a computer the file is downloaded.`,
   },
   tagebuch: {
     title: `Tagebuch`,

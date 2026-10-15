@@ -562,6 +562,8 @@ export interface SafetyPlanSection {
   key: string;
   title: string;
   items: string[];
+  /** Beispiele (Anregungen) — als Beispiel markiert, jederzeit löschbar, nie im PDF/Teilen-Text. */
+  examples?: string[];
 }
 
 /** Traffic-light tiers for escalation, from "beginnt gerade" to "außer Kontrolle". */
@@ -575,6 +577,8 @@ export interface TieredItem {
    * sign — it then comes first in the personal roadmap when the check-in lands in
    * this tier. */
   resourceId?: string;
+  /** Beispiel-Eintrag: als Beispiel markiert, löschbar, kommt nie ins PDF. */
+  example?: boolean;
 }
 
 /** references into other parts of the app, scoped to one warning tier —
@@ -597,6 +601,10 @@ export interface SafetyPlan {
   helpItems: TieredItem[];
   linkedByTier: Record<WarningTier, TierLinkedItems>;
   sections: SafetyPlanSection[];
+  /** Welche Teile in PDF / Teilen-Text dieses Plans kommen (pro Plan neu entscheidbar). */
+  pdfParts?: { personal: boolean; plan: boolean; clinic: boolean };
+  /** 1 = Beispiele wurden im allgemeinen Plan ergänzt. */
+  examplesVersion?: number;
   updatedAt: string;
 }
 
@@ -1027,7 +1035,7 @@ export interface UserSettings {
   /** How a NEW hint (reminder, follow-up, review) announces itself while the app
    * is open: not at all, with a soft sound, or with a short vibration (Android
    * only). undefined counts as 'still'. */
-  hintMode?: 'still' | 'klang' | 'vibration';
+  hintMode?: 'still' | 'klang' | 'vibration' | 'beides';
   /** Load the example photos on cards and in the picker from the internet
    * (picsum.photos)? undefined counts as on, as before. Off = calm colour fields
    * and no request leaves the device; own photos always stay local. */
@@ -1051,10 +1059,6 @@ export interface UserSettings {
    * du?") — used occasionally and gently by the companion, changeable
    * later in Settings. Entirely optional; the question can be skipped. */
   userName?: string;
-  /** the safety plan is deliberately reduced to only black or white so the
-   * warning-tier colors stay the sole source of color signal — see Phase-2
-   * design decision in SafetyPlanPage. Defaults to 'weiss'. */
-  safetyPlanBackground?: 'weiss' | 'schwarz';
   /** when true, every newly saved Medi-Log entry that represents an
    * actually-taken dose (not a skipped recurring one) is automatically
    * also saved to the diary — off by default, since this is a real

@@ -30,6 +30,9 @@ export const ALL_STORAGE_KEYS: string[] = [
   'diary-custom-categories',
   'safety-plan-tier-colors',
   'safety-plans',
+  'safety-personal-info',
+  'safety-clinic-wishes',
+  'tester-thanks-said',
   // Added while bringing this list back in sync with the actual code
   // (see the comment above — this had drifted out of date across
   // several earlier sessions; the dynamic namespace scan below already

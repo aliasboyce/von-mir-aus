@@ -3,6 +3,7 @@ import { ExploreMap } from './ExploreMap';
 import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
+import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
 import { ReorderableTiles, type TileCustomization } from '../../components/navigation/ReorderableTiles';
 import { getPins, getArchived, togglePin, toggleArchive } from '../../services/exploreCustomization';
 import { useT } from '../../i18n';
@@ -149,6 +150,7 @@ export function ExplorePage() {
         <HelpButton helpKey="entdecken" />
       </div>
       <p className="text-[14px] text-[var(--color-text-muted)] mb-3">{t.resources.subtitle}</p>
+      <PasteSharedButton className="mb-3" />
       <div className="flex gap-1 p-1 rounded-full mb-4" style={{ background: 'var(--color-surface-muted)' }} role="group" aria-label={t.nav.explore}>
         {(['map', 'list'] as const).map((v) => (
           <button

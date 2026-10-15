@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
-import type { LetterToSelf } from './lettersRepo';
+import { describeLetter, type LetterToSelf } from './lettersRepo';
 
 interface LetterEnvelopeProps {
   letter: LetterToSelf;
@@ -24,6 +24,13 @@ export function LetterEnvelope({ letter, alreadyOpen, onClose, onOpened }: Lette
   useRegisterModalOpen(true);
   const { settings } = useSettings();
   const [revealed, setRevealed] = useState(alreadyOpen);
+  const info = describeLetter(letter);
+  const headline =
+    info.role === 'received'
+      ? t.briefAnMich.fromLine.replace('{name}', info.who || t.briefAnMich.receiveFromSomeone)
+      : info.role === 'copy'
+        ? t.briefAnMich.copyPrefix.replace('{to}', info.who || t.briefAnMich.shareReadyToFallback)
+        : null;
 
   return createPortal(
     <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.5)] flex items-center justify-center px-6" onClick={onClose}>
@@ -41,7 +48,7 @@ export function LetterEnvelope({ letter, alreadyOpen, onClose, onOpened }: Lette
           className="flex flex-col items-center gap-4"
         >
           <EnvelopeIllustration />
-          {letter.fromName && <span className="text-[15px] text-white">{t.briefAnMich.fromLine.replace('{name}', letter.fromName)}</span>}
+          {headline && <span className="text-[15px] text-white">{headline}</span>}
           <span className="text-[14px] text-white/90">{t.briefAnMich.tapToOpen}</span>
         </button>
       ) : (
@@ -50,14 +57,14 @@ export function LetterEnvelope({ letter, alreadyOpen, onClose, onOpened }: Lette
           style={{ background: '#FBF6EA', animation: settings.reduceMotion ? undefined : 'letter-unfold 0.5s ease-out both' }}
           onClick={(e) => e.stopPropagation()}
         >
-          {letter.fromName && (
-            <p className="text-[12px] uppercase tracking-wide mb-3" style={{ color: '#8A8168' }}>{t.briefAnMich.fromLine.replace('{name}', letter.fromName)}</p>
+          {headline && (
+            <p className="text-[12px] uppercase tracking-wide mb-3" style={{ color: '#8A8168' }}>{headline}</p>
           )}
           <p
             className="text-[16px] leading-[1.8] whitespace-pre-wrap"
             style={{ fontFamily: 'var(--font-display)', color: '#3A3527' }}
           >
-            {letter.text}
+            {info.body}
           </p>
           <p className="text-[12px] mt-6 pt-4 leading-relaxed" style={{ color: '#8A8168', borderTop: '1px solid #E4D9BE' }}>
             {t.briefAnMich.foundInDiaryNote}

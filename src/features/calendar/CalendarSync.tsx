@@ -5,6 +5,7 @@ import { addMail } from '../../services/mailbox';
 import { notifyHint } from '../../services/hintFeedback';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { appointmentsRepo, carryNotesFor, dayKey, startOf, type Appointment } from './calendarRepo';
+import { waitItemsRepo } from '../parkbox/parkboxRepo';
 
 const MIN = 60 * 1000;
 const CHECK_EVERY_MS = 30 * 1000;
@@ -73,8 +74,12 @@ export function CalendarSync() {
         }
 
         // --- follow-up: one hour after the start ------------------------
-        if (!a.followUpDeliveredAt && now >= start + 60 * MIN) {
-          if (now < start + 7 * 24 * 60 * MIN) {
+        // a period from the waiting room is followed up when it ends; everything else one hour after the start
+        const endMs = a.endTime ? new Date(`${a.date}T${a.endTime}:00`).getTime() : NaN;
+        const followAt = !Number.isNaN(endMs) && endMs > start ? endMs : start + 60 * MIN;
+        if (!a.followUpDeliveredAt && now >= followAt) {
+          if (now < followAt + 7 * 24 * 60 * MIN) {
+            const waitItem = waitItemsRepo.getAll().find((w) => w.appointmentId === a.id);
             const who = person ? ` ${settings.language === 'de' ? 'mit' : 'with'} ${person.name}` : '';
             const base = new Date(now).getTime();
             // ONE message with everything in it (reflection, optional next
@@ -83,8 +88,12 @@ export function CalendarSync() {
             const fu = addMail({
               id: `appt-fu-${tag}`,
               kind: 'followup',
-              title: t.calendar.followUp1Title,
-              text: t.calendar.followUp1Text.replace('{title}', a.title).replace('{person}', who),
+              title: waitItem ? (settings.language === 'de' ? 'Wie war es?' : 'How was it?') : t.calendar.followUp1Title,
+              text: waitItem
+                ? settings.language === 'de'
+                  ? `„${a.title}" aus dem Wartezimmer hatte seine Zeit. Magst du kurz festhalten, wie es war – und entscheiden, wie es weitergeht?`
+                  : `"${a.title}" from the waiting room has had its time. Would you like to note how it went – and decide what happens next?`
+                : t.calendar.followUp1Text.replace('{title}', a.title).replace('{person}', who),
               prominent: true,
               createdAt: new Date(base).toISOString(),
               payload: { appointmentId: a.id, step: 'all' },

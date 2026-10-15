@@ -5,8 +5,9 @@ import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
+import { SharedIdeaIntro } from '../../components/shared/SharedIdeaIntro';
 import { useT } from '../../i18n';
+import { BrowserTabNotice } from '../../components/shared/BrowserTabNotice';
 import { networkRepo } from './networkRepo';
 import { createId } from '../../services/storage/repository';
 
@@ -15,6 +16,7 @@ interface SharedContactPayload {
   role?: string;
   description?: string;
   helpsWith?: string[];
+  from?: string;
 }
 
 /**
@@ -65,6 +67,7 @@ export function NetworkImportPage() {
     <div className="animate-in">
       <TopBar />
       <div className="px-5 pb-6">
+        <BrowserTabNotice />
         {!payload ? (
           <EmptyState title={t.network.importInvalid} />
         ) : saved ? (
@@ -75,10 +78,7 @@ export function NetworkImportPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-start gap-3 mb-5">
-              <InlineCompanionNote />
-              <p className="text-[14px] text-[var(--color-text)] flex-1">{t.network.importIntro}</p>
-            </div>
+            <SharedIdeaIntro kind="kontakt" from={payload.from} />
             <Card className="mb-5">
               <p className="text-[17px] text-[var(--color-text)] mb-1">{payload.name}</p>
               {payload.role && <p className="text-[13px] text-[var(--color-text-faint)] mb-2">{payload.role}</p>}

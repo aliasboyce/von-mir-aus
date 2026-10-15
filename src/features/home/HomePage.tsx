@@ -26,6 +26,8 @@ import { useSettings } from '../../state/SettingsContext';
 import { weatherRepo } from '../innerWeather/weatherRepo';
 import { getDueCustomReminders, dismissCustomReminder, type CustomReminder } from '../../services/customReminders';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
+import { TEST_PHASE } from '../../services/testSupport';
+import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { getHomeContext, getBestEffortWeather } from './homeContext';
 import { pickHomeContextLine, pickCustomHomeLine } from './homeCompanionLines';
 import { WeatherExplainerModal } from '../innerWeather/WeatherExplainerModal';
@@ -62,6 +64,8 @@ function reminderTimesFor(settings: { weatherReminderTimes?: string[]; weatherRe
   return ['09:00'];
 }
 
+const testerThanksSaid = createKeyValueStore<boolean>('tester-thanks-said', false);
+
 export function HomePage() {
   const t = useT();
   const say = useCompanionSay();
@@ -81,6 +85,21 @@ export function HomePage() {
   const isEn = settings.language === 'en';
   const [backupDue, setBackupDue] = useState(() => backupReminderDue());
   const [dueCustomReminders, setDueCustomReminders] = useState<CustomReminder[]>(() => getDueCustomReminders());
+
+  // Test phase: the companion thanks the testers once (after the intro/tour, never in the middle of it).
+  useEffect(() => {
+    if (!TEST_PHASE || !settings.introSeen || settings.tourActive || testerThanksSaid.get()) return;
+    const timer = window.setTimeout(() => {
+      testerThanksSaid.set(true);
+      say(
+        settings.language === 'en'
+          ? 'Thank you for testing “von mir aus”. If something stands out, you can report it any time: Settings → Test version → “Report something”.'
+          : 'Danke, dass du „von mir aus“ testest. Wenn dir etwas auffällt, kannst du es jederzeit melden: Einstellungen → Test-Version → „Etwas melden“.',
+      );
+    }, 3500);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.introSeen, settings.tourActive]);
 
   // Contextual companion aside: time-of-day / weekend / (best-effort,
   // permission-gated) weather. Only ~45% of Home visits so it stays a

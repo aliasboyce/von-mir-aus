@@ -28,9 +28,9 @@ const cnt = (...keys: string[]) => () => keys.reduce((n, k) => n + arr(k).length
 const favRes = () => (arr('resources') as { favorite?: boolean }[]).filter((r) => r.favorite).length;
 const importantContacts = () => (arr('network-entries') as { isImportantContact?: boolean }[]).filter((e) => e.isImportantContact).length;
 const planItems = () =>
-  (arr('safety-plans') as { warningSignals?: unknown[]; helpers?: unknown[]; reasonsToLive?: unknown[]; linkedByTier?: Record<string, { resourceIds?: unknown[]; bridgeIds?: unknown[]; contactIds?: unknown[] }> }[]).reduce((n, p) => {
+  (arr('safety-plans') as { warningSignals?: { example?: boolean }[]; helpers?: unknown[]; reasonsToLive?: unknown[]; linkedByTier?: Record<string, { resourceIds?: unknown[]; bridgeIds?: unknown[]; contactIds?: unknown[] }> }[]).reduce((n, p) => {
     const linked = Object.values(p.linkedByTier ?? {}).reduce((m, l) => m + (l.resourceIds?.length ?? 0) + (l.bridgeIds?.length ?? 0) + (l.contactIds?.length ?? 0), 0);
-    return n + (p.warningSignals?.length ?? 0) + (p.helpers?.length ?? 0) + (p.reasonsToLive?.length ?? 0) + linked;
+    return n + ((p.warningSignals ?? []).filter((w) => !w.example).length) + (p.helpers?.length ?? 0) + (p.reasonsToLive?.length ?? 0) + linked;
   }, 0);
 
 type Txt = [string, string, string];

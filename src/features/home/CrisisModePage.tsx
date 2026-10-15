@@ -31,7 +31,9 @@ export function CrisisModePage() {
   const [groundingOpen, setGroundingOpen] = useState(false);
   const [view, setView] = useState<'main' | 'plan' | 'network'>('main');
 
-  const plan = safetyPlansRepo.getAll()[0];
+  const rawPlan = safetyPlansRepo.getAll()[0];
+  // marked examples are suggestions, not the person's own plan
+  const plan = rawPlan ? { ...rawPlan, warningSignals: rawPlan.warningSignals.filter((w) => !w.example), helpItems: rawPlan.helpItems.filter((h) => !h.example) } : rawPlan;
   const contacts = networkRepo.getAll().filter((c) => c.category === 'menschen');
 
   if (view === 'plan') {

@@ -21,6 +21,7 @@ import { BRIDGES_INFO_TEXT } from '../../content/aboutContent';
 import { BridgeBuiltAnimation } from './BridgeBuiltAnimation';
 import { BridgePrintView } from './BridgePrintView';
 import { DiscoverBridgesModal } from './DiscoverBridgesModal';
+import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
 import { RecentlyUsedRow } from '../../components/shared/RecentlyUsedRow';
 import { BridgeHeroIllustration } from './BridgeHeroIllustration';
 import { createId } from '../../services/storage/repository';
@@ -174,6 +175,8 @@ export function BridgesPage() {
         <Compass size={15} />
         {t.bridges.discoverCta}
       </button>
+
+      <PasteSharedButton className="mb-5" />
 
       <RecentlyUsedRow type="bridge" hrefFor={(id) => `/bruecken/${id}`} />
 

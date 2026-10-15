@@ -3,6 +3,7 @@ import { AROUSAL_BANDS } from '../polyvagal/arousalBands';
 import { SKILL_CATEGORY_ZONE_COLOR } from './resourceMeta';
 import type { Resource } from '../../data/types';
 import type { TranslationDictionary } from '../../i18n/de';
+import { kindText, kindOfCategory } from './kindText';
 
 interface Row {
   label?: string;
@@ -30,8 +31,9 @@ function rows(doc: PdfDoc, title: string, items: Row[], opts: { box?: boolean } 
  * services/pdf/pdfBuilder.ts for why this no longer goes through
  * window.print().
  */
-export function buildResourcePdf(resource: Resource, categoryLabel: string, t: TranslationDictionary, neededHilfsmittel: string[] = []): Uint8Array {
+export function buildResourcePdf(resource: Resource, categoryLabel: string, t: TranslationDictionary, neededHilfsmittel: string[] = [], lang: 'de' | 'en' = 'de'): Uint8Array {
   const r = t.resources;
+  const K = kindText(t, kindOfCategory(resource.category), lang);
   const doc = new PdfDoc('von mir aus');
   const catColor = hexToRgb(SKILL_CATEGORY_ZONE_COLOR[resource.category] ?? '#5a6b5e');
 
@@ -71,21 +73,21 @@ export function buildResourcePdf(resource: Resource, categoryLabel: string, t: T
 
   const h = resource.hilfsmittelDetails;
   if (h) {
-    rows(doc, r.hilfsmittelSection1Title, [{ value: h.beruhigungTrost }, { value: h.fokusAblenkung }, { value: h.ventilAnspannung }]);
-    rows(doc, r.hilfsmittelSection2Title, [
+    rows(doc, K.s1Title, [{ value: h.beruhigungTrost }, { value: h.fokusAblenkung }, { value: h.ventilAnspannung }]);
+    rows(doc, K.s2Title, [
       { label: r.hilfsmittelAnspannungsbereichLabel, value: h.anspannungsbereich },
       { label: r.hilfsmittelAlarmLabel, value: h.alarmSituation },
     ]);
-    rows(doc, r.hilfsmittelSection3Title, [
+    rows(doc, K.s3Title, [
       { label: r.hilfsmittelDauerLabel, value: h.dauer },
       { label: r.hilfsmittelMethodeLabel, value: h.methode },
       { label: r.hilfsmittelAusschlussLabel, value: h.ausschlusskriterium },
     ]);
-    rows(doc, r.hilfsmittelSection4Title, [
+    rows(doc, K.s4Title, [
       { label: r.hilfsmittelPlatzZuhauseLabel, value: h.platzZuhause },
       { label: r.hilfsmittelPlatzUnterwegsLabel, value: h.platzUnterwegs },
     ]);
-    rows(doc, r.hilfsmittelSection5Title, [{ value: h.bereitschaft }]);
+    rows(doc, K.s5Title, [{ value: h.bereitschaft }]);
   }
 
   if (neededHilfsmittel.length > 0) {

@@ -5,18 +5,25 @@ import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
 import { useT } from '../../i18n';
 import { resourcesRepo } from './resourcesRepo';
 import { createId } from '../../services/storage/repository';
 import { suggestedImage } from '../../services/suggestedImages';
+import { isShareKind, type ShareKind } from '../../services/sharedLinks';
+import { SharedIdeaIntro, useSharedIdeaTexts } from '../../components/shared/SharedIdeaIntro';
+import { BrowserTabNotice } from '../../components/shared/BrowserTabNotice';
+import { useSettings } from '../../state/SettingsContext';
+import { ORTE_CATEGORY, AKTIVITAETEN_CATEGORY } from '../../content/hilfsmittelCategories';
 
 interface SharedResourcePayload {
   title: string;
   description?: string;
   categoryLabel?: string;
   link?: string;
+  note?: string;
   tags?: string[];
+  from?: string;
+  kind?: ShareKind;
 }
 
 /**
@@ -39,6 +46,8 @@ export function ResourceImportPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [saved, setSaved] = useState(false);
+  const { settings } = useSettings();
+  const X = useSharedIdeaTexts();
 
   const payload = useMemo<SharedResourcePayload | null>(() => {
     const raw = searchParams.get('data');
@@ -46,6 +55,7 @@ export function ResourceImportPage() {
     try {
       const parsed = JSON.parse(decodeURIComponent(raw));
       if (typeof parsed.title !== 'string') return null;
+      if (!isShareKind(parsed.kind)) parsed.kind = undefined;
       return parsed;
     } catch {
       return null;
@@ -59,14 +69,21 @@ export function ResourceImportPage() {
       id: createId('resource'),
       title: payload.title,
       description: payload.description,
-      category: 'sonstiges',
+      category: payload.kind === 'ort' ? ORTE_CATEGORY : payload.kind === 'aktivitaet' ? AKTIVITAETEN_CATEGORY : 'sonstiges',
       // The share-link deliberately can't carry the sender's actual
       // picked photo (see file header) — this is a real, keyword-matched
       // suggested photo as a sensible default, never a blank card or an
       // icon placeholder. The recipient can change it via the normal
       // edit flow like any other resource.
       image: suggestedImage(payload.title, 'sonstiges'),
-      note: payload.categoryLabel ? t.resources.importedFromCategory.replace('{category}', payload.categoryLabel) : undefined,
+      note:
+        [
+          payload.from ? (settings.language === 'en' ? `Shared by ${payload.from} as an idea` : `Von ${payload.from} als Idee geteilt`) : undefined,
+          payload.note,
+          payload.categoryLabel ? t.resources.importedFromCategory.replace('{category}', payload.categoryLabel) : undefined,
+        ]
+          .filter(Boolean)
+          .join('\n') || undefined,
       link: payload.link,
       tags: payload.tags ?? [],
       favorite: false,
@@ -90,10 +107,8 @@ export function ResourceImportPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-start gap-3 mb-5">
-              <InlineCompanionNote />
-              <p className="text-[14px] text-[var(--color-text)] flex-1">{t.resources.importIntro}</p>
-            </div>
+            <BrowserTabNotice />
+            <SharedIdeaIntro kind={payload.kind} from={payload.from} />
             <Card className="mb-5">
               {payload.categoryLabel && (
                 <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">
@@ -106,9 +121,14 @@ export function ResourceImportPage() {
               )}
               {payload.link && <p className="text-[13px] text-[var(--color-primary)] mt-2 break-all">{payload.link}</p>}
             </Card>
-            <Button fullWidth onClick={accept}>
-              {t.resources.importAccept}
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button fullWidth onClick={accept} data-testid="import-accept">
+                {X.accept}
+              </Button>
+              <Button fullWidth variant="ghost" onClick={() => navigate('/entdecken/ressourcen')}>
+                {X.later}
+              </Button>
+            </div>
           </>
         )}
       </div>

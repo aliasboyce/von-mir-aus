@@ -5,7 +5,8 @@ import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
-import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
+import { SharedIdeaIntro, useSharedIdeaTexts } from '../../components/shared/SharedIdeaIntro';
+import { BrowserTabNotice } from '../../components/shared/BrowserTabNotice';
 import { useT } from '../../i18n';
 import { bridgesRepo } from './bridgesRepo';
 import { createId } from '../../services/storage/repository';
@@ -23,6 +24,7 @@ interface SharedBridgePayload {
   reflection?: string;
   levels: BridgeLevel[];
   tip?: string;
+  from?: string;
 }
 
 /** Same no-backend, link-encoded approach as the resource import. */
@@ -31,6 +33,7 @@ export function BridgeImportPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [saved, setSaved] = useState(false);
+  const X = useSharedIdeaTexts();
 
   const payload = useMemo<SharedBridgePayload | null>(() => {
     const raw = searchParams.get('data');
@@ -87,10 +90,8 @@ export function BridgeImportPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-start gap-3 mb-5">
-              <InlineCompanionNote />
-              <p className="text-[14px] text-[var(--color-text)] flex-1">{t.bridges.importIntro}</p>
-            </div>
+            <BrowserTabNotice />
+            <SharedIdeaIntro kind="bruecke" from={payload.from} />
             <Card className="mb-5">
               <p className="text-[17px] text-[var(--color-text)] mb-2">{payload.title}</p>
               {payload.description && (
@@ -104,9 +105,14 @@ export function BridgeImportPage() {
                 ))}
               </div>
             </Card>
-            <Button fullWidth onClick={accept}>
-              {t.bridges.importAccept}
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button fullWidth onClick={accept} data-testid="import-accept">
+                {X.accept}
+              </Button>
+              <Button fullWidth variant="ghost" onClick={() => navigate('/bruecken')}>
+                {X.later}
+              </Button>
+            </div>
           </>
         )}
       </div>

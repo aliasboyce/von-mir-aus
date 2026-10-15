@@ -1,12 +1,13 @@
 import { InstallGuide } from '../../components/shared/InstallGuide';
 import { buildDate, feedbackTemplate, isIos, isStandalone } from '../../services/testSupport';
+import { TesterThanks } from '../../components/shared/TesterThanks';
 import { CORE_COUNT, TOUR_STOPS, tourExtrasModeStore, tourIndexStore } from '../../components/companion/tourData';
 import { useEffect, useRef, useState } from 'react';
 import { buildDailyRemindersIcs } from '../../services/icsExport';
 import { deliverTextFile } from '../../services/fileShare';
 import { GENTLE_SCHEDULES } from '../../components/shared/GentleRemindersSync';
 import { GENTLE_HINTS } from '../../content/gentleHints';
-import { notifyHint, vibrationSupported } from '../../services/hintFeedback';
+import { notifyHint, vibrationSupported, hintFlags, hintModeFrom } from '../../services/hintFeedback';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link } from 'react-router-dom';
 import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell, X, CalendarPlus, ShieldCheck, ChevronRight } from 'lucide-react';
@@ -61,11 +62,17 @@ const PALETTE_SWATCH: Record<BuiltInPalette, string> = {
   salbei: '#6B7F5E',
 };
 
-const SECTION_KEYS: { key: string; labelKey: 'home' | 'explore' | 'bridges' | 'safety' }[] = [
-  { key: '/', labelKey: 'home' },
-  { key: '/entdecken', labelKey: 'explore' },
-  { key: '/bruecken', labelKey: 'bridges' },
-  { key: '/sicherheit', labelKey: 'safety' },
+/** Every top-level part of the app that can have its own color world. Everything below a part follows it. */
+const SECTION_KEYS: { key: string; de: string; en: string; deHint: string; enHint: string }[] = [
+  { key: '/', de: 'Jetzt', en: 'Now', deHint: 'Startseite, Check-in', enHint: 'Start page, check-in' },
+  { key: '/zugang', de: 'Zugang', en: 'Access', deHint: 'Hinschauen, Bedürfnis, Weg', enHint: 'Looking, need, path' },
+  { key: '/entdecken', de: 'Entdecken', en: 'Explore', deHint: 'Ressourcen, Skills, Wertekompass, Brief an mich, Timer, Garten …', enHint: 'Resources, skills, values compass, letters, timer, garden …' },
+  { key: '/bruecken', de: 'Brücken', en: 'Bridges', deHint: 'Brücken und ihre Schritte', enHint: 'Bridges and their steps' },
+  { key: '/sicherheit', de: 'Sicherheit', en: 'Safety', deHint: 'Sicheres Netz, Sicherheitsplan, Kontakte, Tagebuch', enHint: 'Safe network, safety plan, contacts, diary' },
+  { key: '/kalender', de: 'Kalender', en: 'Calendar', deHint: 'Termine und Übersicht', enHint: 'Appointments and overview' },
+  { key: '/parkbox', de: 'Parkbox & Wartezimmer', en: 'Parking box & waiting room', deHint: 'Zettel und Wartezimmer', enHint: 'Notes and waiting room' },
+  { key: '/inneres-wetter', de: 'Inneres Wetter', en: 'Inner weather', deHint: 'Check-in-Verlauf', enHint: 'Check-in history' },
+  { key: '/einstellungen', de: 'Einstellungen', en: 'Settings', deHint: 'Diese Seite und ihre Unterseiten', enHint: 'This page and its sub-pages' },
 ];
 
 export function SettingsPage() {
@@ -278,11 +285,14 @@ export function SettingsPage() {
         <Card className="mb-3" padding="md">
           <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.pagePalettesHint}</p>
           <div className="flex flex-col gap-4">
-            {SECTION_KEYS.map(({ key, labelKey }) => {
+            {SECTION_KEYS.map((sec) => {
+              const key = sec.key;
               const current = settings.pagePalettes?.[key];
+              const en = settings.language === 'en';
               return (
                 <div key={key}>
-                  <p className="text-[13px] text-[var(--color-text)] mb-2">{t.nav[labelKey]}</p>
+                  <p className="text-[13px] text-[var(--color-text)]">{en ? sec.en : sec.de}</p>
+                  <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{en ? sec.enHint : sec.deHint}</p>
                   <div className="flex gap-2 flex-wrap">
                     <button
                       onClick={() =>
@@ -502,8 +512,9 @@ export function SettingsPage() {
 
         {/* ================= Erinnerungen ================= */}
         <SectionLabel>🔔 {t.settings.reminders}</SectionLabel>
+        <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.settings.remindersIntro}</p>
         <Card className="mb-6" padding="md">
-          <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.reminders}</p>
+          <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.reminderTimeLabel}</p>
           <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.remindersHint}</p>
           <div className="flex flex-col gap-2">
             {(settings.weatherReminderTimes ?? (settings.weatherReminderTime ? [settings.weatherReminderTime] : ['09:00'])).map((time, i) => {
@@ -549,30 +560,28 @@ export function SettingsPage() {
           <p className="text-[14px] text-[var(--color-text)] mb-1">{t.settings.hintModeTitle}</p>
           <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.settings.hintModeHint}</p>
           <div className="flex flex-wrap gap-2">
-            {(
-              [
-                ['still', t.settings.hintModeStill, true],
-                ['klang', t.settings.hintModeSound, true],
-                ['vibration', t.settings.hintModeVibration, vibrationSupported()],
-              ] as const
-            ).map(([key, label, available]) => {
-              const active = (settings.hintMode ?? 'still') === key;
+            {(() => {
+              const flags = hintFlags(settings.hintMode);
+              const chip = (active: boolean) => (active ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' });
+              const choose = (sound: boolean, vibration: boolean) => {
+                const mode = hintModeFrom(sound, vibration);
+                updateSettings({ hintMode: mode });
+                notifyHint(mode);
+              };
               return (
-                <button
-                  key={key}
-                  disabled={!available}
-                  onClick={() => {
-                    updateSettings({ hintMode: key });
-                    if (key !== 'still') notifyHint(key);
-                  }}
-                  aria-pressed={active}
-                  className="rounded-full px-4 py-2 text-[13px] border disabled:opacity-40"
-                  style={active ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
-                >
-                  {label}
-                </button>
+                <>
+                  <button onClick={() => updateSettings({ hintMode: 'still' })} aria-pressed={!flags.sound && !flags.vibration} className="rounded-full px-4 py-2 text-[13px] border" style={chip(!flags.sound && !flags.vibration)}>
+                    {t.settings.hintModeStill}
+                  </button>
+                  <button onClick={() => choose(!flags.sound, flags.vibration)} aria-pressed={flags.sound} className="rounded-full px-4 py-2 text-[13px] border" style={chip(flags.sound)} data-testid="hint-sound">
+                    {t.settings.hintModeSound}
+                  </button>
+                  <button disabled={!vibrationSupported()} onClick={() => choose(flags.sound, !flags.vibration)} aria-pressed={flags.vibration} className="rounded-full px-4 py-2 text-[13px] border disabled:opacity-40" style={chip(flags.vibration)} data-testid="hint-vibration">
+                    {t.settings.hintModeVibration}
+                  </button>
+                </>
               );
-            })}
+            })()}
           </div>
           {!vibrationSupported() && <p className="text-[11.5px] text-[var(--color-text-faint)] mt-2">{t.settings.hintModeNoVibration}</p>}
         </Card>
@@ -685,6 +694,9 @@ export function SettingsPage() {
         {/* ================= Test-Version: Installieren & Rückmeldung ================= */}
         <SectionLabel>🧪 {settings.language === 'en' ? 'Test version' : 'Test-Version'}</SectionLabel>
         <Card padding="md" className="mb-3" data-testid="test-card">
+          <div className="mb-3">
+            <TesterThanks compact />
+          </div>
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">
             {settings.language === 'en' ? 'Version' : 'Version'}: {buildDate()}
           </p>
@@ -709,8 +721,8 @@ export function SettingsPage() {
           )}
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-2">
             {settings.language === 'en'
-              ? 'Your feedback is welcome: the button copies a short template (version and device type only, nothing personal). Paste it into a message and add what you noticed.'
-              : 'Deine Rückmeldung ist willkommen: Der Knopf kopiert eine kurze Vorlage (nur Version und Gerätetyp, nichts Persönliches). Füge sie in eine Nachricht ein und ergänze, was dir aufgefallen ist.'}
+              ? 'Prefer to write a message instead? This button prepares a short template (version and device type only, nothing personal). On a phone you can send it straight on; otherwise it is copied.'
+              : 'Lieber eine Nachricht schreiben? Der Knopf bereitet eine kurze Vorlage vor (nur Version und Gerätetyp, nichts Persönliches). Auf dem Handy kannst du sie direkt weiterschicken, sonst wird sie kopiert.'}
           </p>
           <button
             type="button"
@@ -718,6 +730,15 @@ export function SettingsPage() {
             data-testid="feedback-copy"
             onClick={async () => {
               const text = feedbackTemplate(settings.language === 'en');
+              // on phones: straight into the share sheet (WhatsApp, Signal, Mail …)
+              if (typeof navigator.share === 'function') {
+                try {
+                  await navigator.share({ title: settings.language === 'en' ? 'Feedback' : 'Rückmeldung', text });
+                  return;
+                } catch (err) {
+                  if ((err as Error)?.name === 'AbortError') return;
+                }
+              }
               try {
                 await navigator.clipboard.writeText(text);
                 setFeedbackCopied(true);
@@ -727,7 +748,7 @@ export function SettingsPage() {
               }
             }}
           >
-            {feedbackCopied ? (settings.language === 'en' ? 'Copied ✓' : 'Kopiert ✓') : settings.language === 'en' ? 'Copy feedback template' : 'Rückmeldung-Vorlage kopieren'}
+            {feedbackCopied ? (settings.language === 'en' ? 'Copied ✓' : 'Kopiert ✓') : settings.language === 'en' ? 'Send message template' : 'Nachrichten-Vorlage senden'}
           </button>
         </Card>
 
@@ -787,10 +808,23 @@ export function SettingsPage() {
         </Card>
 
         {/* ================= Meine Daten ================= */}
-        <SectionLabel>📦 {t.settings.myDataSection}</SectionLabel>
+        <SectionLabel>📦 {t.settings.privacySection}</SectionLabel>
+        <Card padding="md" className="mb-3" data-testid="privacy-card">
+          <div className="flex items-center gap-2.5 mb-2">
+            <ShieldCheck size={17} className="text-[var(--color-primary)]" />
+            <p className="text-[14px] font-medium text-[var(--color-text)]">{t.settings.privacy}</p>
+          </div>
+          <ul className="flex flex-col gap-1.5 list-disc pl-5 mb-3">
+            {t.settings.privacyPoints.map((pt) => (
+              <li key={pt} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{pt}</li>
+            ))}
+          </ul>
+          <Link to="/einstellungen/datenschutz" className="flex items-center gap-1 text-[13px] text-[var(--color-primary)]" data-testid="privacy-link">
+            {t.settings.privacyOpenCta} <ChevronRight size={14} />
+          </Link>
+        </Card>
         <StorageOverviewCard />
         <Card padding="md" className="mb-3">
-          <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{t.settings.myDataWhere}</p>
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.settings.myDataBackupNote}</p>
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-2">{t.settings.myDataMultiDeviceNote}</p>
         </Card>
@@ -839,18 +873,7 @@ export function SettingsPage() {
         </Card>
         <p className="text-[12px] text-[var(--color-text-faint)] mb-6 -mt-3 leading-relaxed">{t.settings.myDataDeleteAllPointer}</p>
 
-        {/* ================= privacy note + danger zone ================= */}
-        <Link to="/einstellungen/datenschutz" className="block mb-3" data-testid="privacy-link">
-          <Card padding="md">
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck size={17} className="text-[var(--color-primary)]" />
-              <p className="text-[14px] text-[var(--color-text)] flex-1">{t.settings.privacyOpenCta}</p>
-              <ChevronRight size={16} className="text-[var(--color-text-faint)]" />
-            </div>
-            <p className="text-[12.5px] text-[var(--color-text-muted)] mt-1.5 leading-relaxed">{t.settings.privacyHint}</p>
-          </Card>
-        </Link>
-
+        {/* ================= danger zone ================= */}
         <SectionLabel>⚠️ {t.settings.dangerZone}</SectionLabel>
         <Card padding="md" className="mb-6" style={{ borderColor: 'var(--color-danger)' }}>
           <div className="flex items-center gap-2 mb-1.5">

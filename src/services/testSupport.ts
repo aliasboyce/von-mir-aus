@@ -128,3 +128,7 @@ export async function promptInstall(): Promise<boolean> {
 export function isAndroid(): boolean {
   return /Android/.test(navigator.userAgent);
 }
+
+/** Anonymous feedback form for the test phase (Tally). Set TEST_PHASE to false to hide every mention later. */
+export const TEST_FEEDBACK_URL = 'https://tally.so/r/YjDWG0';
+export const TEST_PHASE = true;

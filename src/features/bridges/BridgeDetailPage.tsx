@@ -4,6 +4,7 @@ import { useSettings } from '../../state/SettingsContext';
 import { energyInfo } from '../../content/energyLevels';
 import { goBack } from '../../services/navigation';
 import { shareOrCopy } from '../../services/shareOrCopy';
+import { buildShareText } from '../../services/sharedLinks';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -174,9 +175,11 @@ export function BridgeDetailPage() {
       reflection: bridge.reflection,
       levels: bridge.levels.map(({ level, title, description, energyLevel }) => ({ level, title, description, energyLevel })),
       tip: bridge.tip,
+      from: settings.userName || undefined,
+      kind: 'bruecke' as const,
     };
     const url = `${window.location.origin}/bruecken/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
-    await shareOrCopy({ title: bridge.title, url }, t.resources.shareLinkCopied);
+    await shareOrCopy({ title: bridge.title, text: buildShareText({ kind: 'bruecke', title: bridge.title, url, from: settings.userName, lang: settings.language === 'en' ? 'en' : 'de' }) }, t.resources.shareLinkCopied);
   }
 
   function exportBridgePdf() {

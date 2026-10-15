@@ -15,6 +15,22 @@ export interface LetterToSelf {
   fromName?: string;
   /** id of the shared letter — protects against importing the same one twice. */
   externalId?: string;
+  /** Set for the sender's own copy of a letter sent to someone else (the name it went to, '' if none). */
+  copyOfTo?: string;
+}
+
+export type LetterRole = 'self' | 'received' | 'copy';
+
+/** Older copies carried "Kopie – Brief an X" as the first lines of their text; read them as copies too. */
+const OLD_COPY_RE = /^(?:Kopie – Brief an|Copy – letter to)\s+(.*?)\n\n/s;
+
+/** What a letter is, who it is with, and the text without any label. */
+export function describeLetter(l: LetterToSelf): { role: LetterRole; who: string; body: string } {
+  if (l.fromName || l.externalId) return { role: 'received', who: l.fromName ?? '', body: l.text };
+  if (l.copyOfTo !== undefined) return { role: 'copy', who: l.copyOfTo, body: l.text };
+  const m = l.text.match(OLD_COPY_RE);
+  if (m) return { role: 'copy', who: m[1], body: l.text.slice(m[0].length) };
+  return { role: 'self', who: '', body: l.text };
 }
 
 export const lettersRepo = createRepository<LetterToSelf>('letters-to-self');
@@ -23,8 +39,8 @@ export const lettersRepo = createRepository<LetterToSelf>('letters-to-self');
  * before finishing the first-launch screens) — so the letter is not lost on the way. */
 export const pendingLetterStore = createKeyValueStore<string | null>('pending-letter-token', null);
 
-export function addLetter(text: string, scheduledFor: string, inReview = false): LetterToSelf {
-  const letter: LetterToSelf = { id: createId('letter'), text, createdAt: new Date().toISOString(), scheduledFor, opened: false, inReview };
+export function addLetter(text: string, scheduledFor: string, inReview = false, copyOfTo?: string): LetterToSelf {
+  const letter: LetterToSelf = { id: createId('letter'), text, createdAt: new Date().toISOString(), scheduledFor, opened: false, inReview, copyOfTo };
   lettersRepo.save(letter);
   return letter;
 }

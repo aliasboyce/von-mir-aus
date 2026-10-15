@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { shareOrCopy } from '../../services/shareOrCopy';
+import { buildShareText } from '../../services/sharedLinks';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { Plus, Bookmark as BookmarkIcon, ExternalLink, Trash2, Pencil, Settings2, X, Check, Link2, FileDown } from 'lucide-react';
@@ -15,6 +16,7 @@ import { pickLine } from '../../components/companion/companionRegistry';
 import { bookmarksRepo, bookmarkCategoriesStore, seedDefaultSources } from './bookmarksRepo';
 import { BookmarksPrintView } from './BookmarksPrintView';
 import { useSettings } from '../../state/SettingsContext';
+import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
 import { createId } from '../../services/storage/repository';
 import type { Bookmark } from '../../data/types';
 import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
@@ -120,9 +122,10 @@ export function BookmarksPage() {
       url: bm.url,
       note: bm.note,
       categoryLabel: categoryLabel(bm.categoryId),
+      from: settings.userName || undefined,
     };
     const url = `${window.location.origin}/entdecken/lesezeichen/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
-    await shareOrCopy({ title: bm.title, url }, t.resources.shareLinkCopied);
+    await shareOrCopy({ title: bm.title, text: buildShareText({ kind: 'quelle', title: bm.title, url, from: settings.userName, lang: settings.language === 'en' ? 'en' : 'de' }) }, t.resources.shareLinkCopied);
   }
 
   function remove(id: string) {
@@ -165,6 +168,8 @@ export function BookmarksPage() {
         <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-4">
           {t.bookmarks.addNew}
         </Button>
+
+        <PasteSharedButton className="mb-4" />
 
         <div className="chip-row no-scrollbar mb-5 -mx-5 px-5">
           <Chip selected={filter === 'all'} onClick={() => setFilter('all')}>

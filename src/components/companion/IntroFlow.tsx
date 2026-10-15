@@ -9,6 +9,7 @@ import { Button } from '../ui/Button';
 import { useT } from '../../i18n';
 import { tourExtrasModeStore, tourIndexStore } from './tourData';
 import { InstallGuide } from '../shared/InstallGuide';
+import { TesterThanks } from '../shared/TesterThanks';
 import { isStandalone } from '../../services/testSupport';
 
 interface IntroSlide {
@@ -105,6 +106,9 @@ export function IntroFlow() {
           <p className="text-[13px] text-[var(--color-text-faint)] leading-relaxed max-w-[320px]">
             {en ? 'Best right now, while nothing is entered yet: on an iPhone the installed app is its own space, so you start fresh there.' : 'Am besten jetzt, wo noch nichts eingetragen ist: Auf dem iPhone ist die installierte App ein eigener Speicher – du startest dort noch einmal von vorn.'}
           </p>
+        </div>
+        <div className="mb-5">
+          <TesterThanks showWhere />
         </div>
         <div className="flex-1">
           <InstallGuide />

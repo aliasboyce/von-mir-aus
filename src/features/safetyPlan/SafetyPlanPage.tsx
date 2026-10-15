@@ -1,10 +1,11 @@
 import { ResourceTile } from '../../components/shared/ItemTile';
 import { useMemo, useState } from 'react';
 import { shareOrCopy } from '../../services/shareOrCopy';
+import { exportPrintBlocksToPdf } from '../../services/pdf/domToPdf';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Plus, X, FileDown, Share2, Palette, SunMoon, ChevronDown, ChevronUp, MessageCircleHeart } from 'lucide-react';
+import { Phone, Plus, X, Share2, Palette, ChevronDown, ChevronUp, MessageCircleHeart, Check } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
@@ -18,12 +19,18 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { useSettings } from '../../state/SettingsContext';
 import { LinkedItemsPicker } from './LinkedItemsPicker';
 import { TierColorEditor } from './TierColorEditor';
+import { PersonalInfoCard } from './PersonalInfoCard';
+import { ClinicWishesCard } from './ClinicWishesCard';
+import { SharePlanModal, type PdfParts } from './SharePlanModal';
+import { personalInfoStore, clinicWishesStore, personalHasContent, clinicHasContent, DEFAULT_PDF_PARTS } from './personalInfoStore';
+import { planTexts } from './planTexts';
 import { useT } from '../../i18n';
 import {
   safetyPlansRepo,
   seedSafetyPlansIfEmpty,
   createNewPlan,
   normalizePlan,
+  ensureExamples,
   SAFETY_PLAN_SECTION_ORDER,
   WARNING_TIER_ORDER,
 } from './safetyPlansRepo';
@@ -38,55 +45,56 @@ import type { SafetyPlan, WarningTier } from '../../data/types';
 
 seedSafetyPlansIfEmpty();
 
-/**
- * Deliberately reduced to only black or white — see design decision:
- * warning-tier colors stay the sole source of color, the background stays
- * calm instead of adding a second color system to sort through. Applied
- * as inline CSS variable overrides on this page's own wrapper only (the
- * same pattern the app already uses for per-page palettes), so nothing
- * outside this page is affected.
- */
-const REIZARM_VARS: Record<'weiss' | 'schwarz', Record<string, string>> = {
-  weiss: {
-    '--color-bg': '#FFFFFF',
-    '--color-bg-soft': '#F7F7F7',
-    '--color-surface': '#FFFFFF',
-    '--color-surface-muted': '#F2F2F2',
-    '--color-text': '#111111',
-    '--color-text-muted': '#3D3D3D',
-    '--color-text-faint': '#6B6B6B',
-    '--color-border': '#DDDDDD',
-    '--color-border-strong': '#BBBBBB',
-  },
-  schwarz: {
-    '--color-bg': '#0A0A0A',
-    '--color-bg-soft': '#111111',
-    '--color-surface': '#0A0A0A',
-    '--color-surface-muted': '#161616',
-    '--color-text': '#F5F5F5',
-    '--color-text-muted': '#C7C7C7',
-    '--color-text-faint': '#8F8F8F',
-    '--color-border': '#333333',
-    '--color-border-strong': '#4D4D4D',
-  },
-};
+function ExampleRow({ text, onKeep, onDelete, T }: { text: string; onKeep: () => void; onDelete: () => void; T: ReturnType<typeof planTexts> }) {
+  return (
+    <li
+      data-testid="plan-example"
+      className="rounded-[var(--radius-md)] px-2.5 py-2 text-[13px] text-[var(--color-text-muted)]"
+      style={{ border: '1.5px dashed var(--color-border-strong)', background: 'var(--color-surface-muted)' }}
+    >
+      <div className="flex items-start gap-2">
+        <span className="text-[10.5px] uppercase tracking-wide rounded-full px-2 py-0.5 flex-shrink-0 mt-0.5" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary-soft-text)' }}>
+          {T.example}
+        </span>
+        <span className="flex-1 italic">{text}</span>
+      </div>
+      <div className="flex gap-4 mt-1.5 ml-0.5">
+        <button type="button" onClick={onKeep} className="flex items-center gap-1 text-[12px] text-[var(--color-primary)] underline underline-offset-2" data-testid="example-keep">
+          <Check size={12} /> {T.exampleKeep}
+        </button>
+        <button type="button" onClick={onDelete} className="flex items-center gap-1 text-[12px] text-[var(--color-danger)] underline underline-offset-2" data-testid="example-delete">
+          <X size={12} /> {T.exampleDelete}
+        </button>
+      </div>
+    </li>
+  );
+}
 
 export function SafetyPlanPage() {
   const t = useT();
   const say = useCompanionSay();
   const navigate = useNavigate();
-  const { settings, updateSettings } = useSettings();
-  const reizarmMode = settings.safetyPlanBackground ?? 'weiss';
+  const { settings } = useSettings();
+  const lang: 'de' | 'en' = settings.language === 'en' ? 'en' : 'de';
+  const T = planTexts(lang);
   const [showMoreContacts, setShowMoreContacts] = useState(false);
   const [openContactNumber, setOpenContactNumber] = useState<string | null>(null);
   const [quickHelpOpen, setQuickHelpOpen] = useState(false);
-  const [plans, setPlans] = useState<SafetyPlan[]>(() => safetyPlansRepo.getAll().map(normalizePlan));
+  const [plans, setPlans] = useState<SafetyPlan[]>(() =>
+    safetyPlansRepo.getAll().map(normalizePlan).map((p) => {
+      const withExamples = ensureExamples(p, lang);
+      // save once, so crisis mode & co. read the marked examples as examples
+      if (withExamples !== p) safetyPlansRepo.save(withExamples);
+      return withExamples;
+    }),
+  );
   const [activeId, setActiveId] = useState<string>(() => safetyPlansRepo.getAll()[0]?.id ?? '');
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [addingPlan, setAddingPlan] = useState(false);
   const [newPlanName, setNewPlanName] = useState('');
   const [tierColorEditorOpen, setTierColorEditorOpen] = useState(false);
   const [tierColors, setTierColors] = useState(() => tierColorsStore.getAll());
+  const [shareOpen, setShareOpen] = useState(false);
   const [limitExplanation] = useState(() => pickLimitExplanation());
 
   const plan = plans.find((p) => p.id === activeId) ?? plans[0];
@@ -101,7 +109,7 @@ export function SafetyPlanPage() {
 
   function persist(next: SafetyPlan) {
     safetyPlansRepo.save(next);
-    setPlans(safetyPlansRepo.getAll().map(normalizePlan));
+    setPlans(safetyPlansRepo.getAll().map(normalizePlan).map((p) => ensureExamples(p, lang)));
   }
 
   function addPlan() {
@@ -109,7 +117,7 @@ export function SafetyPlanPage() {
     if (!name) return;
     const created = createNewPlan(name);
     safetyPlansRepo.save(created);
-    setPlans(safetyPlansRepo.getAll().map(normalizePlan));
+    setPlans(safetyPlansRepo.getAll().map(normalizePlan).map((p) => ensureExamples(p, lang)));
     setActiveId(created.id);
     setNewPlanName('');
     setAddingPlan(false);
@@ -181,51 +189,125 @@ export function SafetyPlanPage() {
     });
   }
 
+  function removeExampleSection(sectionKey: string, index: number, keep: boolean) {
+    if (!plan) return;
+    persist({
+      ...plan,
+      sections: plan.sections.map((sec) => {
+        if (sec.key !== sectionKey) return sec;
+        const ex = sec.examples ?? [];
+        return { ...sec, examples: ex.filter((_, i) => i !== index), items: keep ? [...sec.items, ex[index]] : sec.items };
+      }),
+    });
+  }
+
+  function exampleWarning(id: string, keep: boolean) {
+    if (!plan) return;
+    persist({
+      ...plan,
+      warningSignals: keep
+        ? plan.warningSignals.map((w) => (w.id === id ? { ...w, example: false } : w))
+        : plan.warningSignals.filter((w) => w.id !== id),
+    });
+  }
+
+  function exampleHelp(id: string, keep: boolean) {
+    if (!plan) return;
+    persist({
+      ...plan,
+      helpItems: keep ? plan.helpItems.map((h) => (h.id === id ? { ...h, example: false } : h)) : plan.helpItems.filter((h) => h.id !== id),
+    });
+  }
+
+  function deleteAllExamples() {
+    if (!plan) return;
+    persist({
+      ...plan,
+      warningSignals: plan.warningSignals.filter((w) => !w.example),
+      helpItems: plan.helpItems.filter((h) => !h.example),
+      sections: plan.sections.map((sec) => ({ ...sec, examples: [] })),
+    });
+  }
+
+  const hasExamples = !!plan && (plan.warningSignals.some((w) => w.example) || plan.helpItems.some((h) => h.example) || plan.sections.some((sec) => (sec.examples ?? []).length > 0));
+  const parts: PdfParts = plan?.pdfParts ?? DEFAULT_PDF_PARTS;
+  const personalData = personalInfoStore.get();
+  const clinicData = clinicWishesStore.get();
+
+  function setParts(next: PdfParts) {
+    if (!plan) return;
+    persist({ ...plan, pdfParts: next });
+  }
+
+  function planText(): string {
+    if (!plan) return '';
+    const out: string[] = [];
+    const P = personalInfoStore.get();
+    const C = clinicWishesStore.get();
+    const med = (m: { name: string; dose?: string; when?: string }) => `- ${[m.name, m.dose, m.when].filter((x) => x && x.trim()).join(' · ')}`;
+    if (parts.personal && personalHasContent(P)) {
+      out.push(T.personalTitle.replace(/ \(.*\)$/, '') + ':');
+      const row = (l: string, v?: string) => v && v.trim() && out.push(`${l}: ${v.trim()}`);
+      row(T.name, P.name); row(T.birthdate, P.birthdate); row(T.address, P.address);
+      const reg = (P.regularMeds ?? []).filter((m) => m.name.trim());
+      if (reg.length) out.push(T.regularMeds + ':', ...reg.map(med));
+      const need = (P.asNeededMeds ?? []).filter((m) => m.name.trim());
+      if (need.length) out.push(T.asNeededMeds + ':', ...need.map(med));
+      row(T.allergies, P.allergies); row(T.preconditions, P.preconditions); row(T.diagnoses, P.diagnoses);
+      const cons = (P.contacts ?? []).filter((c) => c.name.trim());
+      if (cons.length) out.push(T.contacts + ':', ...cons.map((c) => `- ${[c.name, c.address, c.phone, c.email].filter((x) => x && x.trim()).join(' · ')}`));
+      row(T.insurance, P.insurance); row(T.insuranceNumber, P.insuranceNumber); row(T.copay, P.copayExemption); row(T.gdb, P.gdb); row(T.pets, P.pets);
+      out.push('');
+    }
+    if (parts.plan) {
+      out.push(plan.name, t.safetyPlan.warningSignals + ':');
+      out.push(
+        ...WARNING_TIER_ORDER.flatMap((tier) =>
+          plan.warningSignals.filter((w) => w.tier === tier && !w.example).map((w) => `[${TIER_LABELS[tier]}] ${w.text}${w.resourceId && resourcesRepo.getById(w.resourceId) ? ` → ${resourcesRepo.getById(w.resourceId)!.title}` : ''}`),
+        ),
+        '',
+        t.safetyPlan.helpItems + ':',
+        ...WARNING_TIER_ORDER.flatMap((tier) => plan.helpItems.filter((h) => h.tier === tier && !h.example).map((h) => `[${TIER_LABELS[tier]}] ${h.text}`)),
+        ...plan.sections.filter((sec) => sec.items.length > 0).flatMap((sec) => ['', `${t.safetyPlan.sections[sec.key as keyof typeof t.safetyPlan.sections]}:`, ...sec.items.map((i) => `- ${i}`)]),
+      );
+      out.push('');
+    }
+    if (parts.clinic && clinicHasContent(C)) {
+      out.push(T.clinicTitle + ':');
+      for (const k of ['treatment', 'placement', 'placementFallback', 'never', 'excludedMeds', 'history', 'additions'] as const) {
+        if (C[k] && C[k]!.trim()) out.push(T[k], C[k]!.trim(), '');
+      }
+    }
+    return out.join('\n').trim();
+  }
+
   async function sharePlan() {
     if (!plan) return;
-    const text = [
-      plan.name,
-      t.safetyPlan.warningSignals + ':',
-      ...WARNING_TIER_ORDER.flatMap((tier) =>
-        plan.warningSignals.filter((w) => w.tier === tier).map((w) => `[${TIER_LABELS[tier]}] ${w.text}${w.resourceId && resourcesRepo.getById(w.resourceId) ? ` → ${resourcesRepo.getById(w.resourceId)!.title}` : ''}`),
-      ),
-      '',
-      t.safetyPlan.helpItems + ':',
-      ...WARNING_TIER_ORDER.flatMap((tier) =>
-        plan.helpItems.filter((h) => h.tier === tier).map((h) => `[${TIER_LABELS[tier]}] ${h.text}`),
-      ),
-      ...plan.sections.flatMap((s) => [
-        '',
-        `${t.safetyPlan.sections[s.key as keyof typeof t.safetyPlan.sections]}:`,
-        ...s.items.map((i) => `- ${i}`),
-      ]),
-    ].join('\n');
-    await shareOrCopy({ title: plan.name, text }, t.resources.shareCopied);
+    await shareOrCopy({ title: plan.name, text: planText() }, t.resources.shareCopied);
+  }
+
+  async function sharePdf(): Promise<boolean> {
+    return exportPrintBlocksToPdf(plan?.name ?? 'sicherheitsplan', 'safety-plan');
+  }
+
+  function printNow() {
+    setShareOpen(false);
+    window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation, 'safety-plan'), 250);
   }
 
   if (!plan) return null;
 
   return (
-    <div className="animate-in safety-plan-root" style={REIZARM_VARS[reizarmMode]}>
+    <div className="animate-in safety-plan-root">
       <TopBar
         action={
           <div className="flex items-center gap-1 no-print">
             <HelpButton helpKey="sicherheitsplan" />
-            <button
-              className="p-2"
-              onClick={() => updateSettings({ safetyPlanBackground: reizarmMode === 'weiss' ? 'schwarz' : 'weiss' })}
-              aria-label={t.safetyPlan.toggleBackground}
-            >
-              <SunMoon size={16} />
-            </button>
             <button className="p-2" onClick={() => setTierColorEditorOpen(true)} aria-label={t.safetyPlan.tierColorsTitle}>
               <Palette size={16} />
             </button>
-            <button className="p-2" onClick={sharePlan} aria-label={t.resources.share}>
+            <button className="p-2" onClick={() => setShareOpen(true)} aria-label={T.openCta} data-testid="share-plan-open">
               <Share2 size={16} />
-            </button>
-            <button className="p-2" onClick={() => triggerPrint(t.common.printStandaloneExplanation)} aria-label={t.safetyPlan.pdfExport}>
-              <FileDown size={16} />
             </button>
           </div>
         }
@@ -261,6 +343,18 @@ export function SafetyPlanPage() {
             </div>
           )}
         </div>
+
+        <PersonalInfoCard />
+        <ClinicWishesCard />
+
+        {hasExamples && (
+          <div className="rounded-[var(--radius-md)] px-3.5 py-3 mb-5 flex flex-col gap-2" style={{ border: '1.5px dashed var(--color-border-strong)' }} data-testid="examples-hint">
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{T.exampleHint}</p>
+            <button type="button" onClick={deleteAllExamples} className="self-start text-[12.5px] text-[var(--color-danger)] underline underline-offset-2" data-testid="examples-delete-all">
+              {T.exampleDeleteAll}
+            </button>
+          </div>
+        )}
 
         <Button
           fullWidth
@@ -333,8 +427,12 @@ export function SafetyPlanPage() {
         {WARNING_TIER_ORDER.map((tier) => {
           const warnKey = `warn-${tier}`;
           const helpKey = `help-${tier}`;
-          const warnItems = plan.warningSignals.filter((w) => w.tier === tier);
-          const helpItems = plan.helpItems.filter((h) => h.tier === tier);
+          const warnAll = plan.warningSignals.filter((w) => w.tier === tier);
+          const warnItems = warnAll.filter((w) => !w.example);
+          const warnExamples = warnAll.filter((w) => w.example);
+          const helpAll = plan.helpItems.filter((h) => h.tier === tier);
+          const helpItems = helpAll.filter((h) => !h.example);
+          const helpExamples = helpAll.filter((h) => h.example);
           const linked = plan.linkedByTier[tier];
           const tierColor = tierColors[tier];
 
@@ -380,6 +478,13 @@ export function SafetyPlanPage() {
                   })}
                 </ul>
               )}
+              {warnExamples.length > 0 && (
+                <ul className="flex flex-col gap-1.5 mb-2.5">
+                  {warnExamples.map((w) => (
+                    <ExampleRow key={w.id} text={w.text} T={T} onKeep={() => exampleWarning(w.id, true)} onDelete={() => exampleWarning(w.id, false)} />
+                  ))}
+                </ul>
+              )}
               <div className="flex items-center gap-2 mb-4 no-print">
                 <input
                   className="input"
@@ -412,6 +517,13 @@ export function SafetyPlanPage() {
                         <X size={13} />
                       </button>
                     </li>
+                  ))}
+                </ul>
+              )}
+              {helpExamples.length > 0 && (
+                <ul className="flex flex-col gap-1.5 mb-2.5">
+                  {helpExamples.map((h) => (
+                    <ExampleRow key={h.id} text={h.text} T={T} onKeep={() => exampleHelp(h.id, true)} onDelete={() => exampleHelp(h.id, false)} />
                   ))}
                 </ul>
               )}
@@ -493,6 +605,13 @@ export function SafetyPlanPage() {
                     ))}
                   </ul>
                 )}
+                {(section.examples ?? []).length > 0 && (
+                  <ul className="flex flex-col gap-1.5 mb-2.5">
+                    {(section.examples ?? []).map((ex, i) => (
+                      <ExampleRow key={i} text={ex} T={T} onKeep={() => removeExampleSection(key, i, true)} onDelete={() => removeExampleSection(key, i, false)} />
+                    ))}
+                  </ul>
+                )}
                 <div className="flex items-center gap-2 no-print">
                   <input
                     className="input"
@@ -512,6 +631,11 @@ export function SafetyPlanPage() {
             );
           })}
         </div>
+
+        <Button fullWidth icon={<Share2 size={16} />} onClick={() => setShareOpen(true)} className="mt-6" data-testid="share-plan-open-bottom">
+          {T.openCta}
+        </Button>
+        <p className="text-[12px] text-[var(--color-text-faint)] text-center mt-1.5">{T.openHint}</p>
       </div>
 
       <SafetyPlanPrintView
@@ -520,6 +644,24 @@ export function SafetyPlanPage() {
         tierColors={tierColors}
         warningSignalsLabel={t.safetyPlan.warningSignals}
         helpItemsLabel={t.safetyPlan.helpItemsForTier}
+        sectionTitles={t.safetyPlan.sections}
+        parts={parts}
+        personal={personalData}
+        clinic={clinicData}
+        lang={lang}
+      />
+
+      <SharePlanModal
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        planName={plan.name}
+        parts={parts}
+        onPartsChange={setParts}
+        hasPersonal={personalHasContent(personalData)}
+        hasClinic={clinicHasContent(clinicData)}
+        onPdf={sharePdf}
+        onPrint={printNow}
+        onText={sharePlan}
       />
 
       <TierColorEditor

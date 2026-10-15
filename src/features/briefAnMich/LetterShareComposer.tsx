@@ -29,7 +29,7 @@ export function LetterShareComposer({ onClose }: { onClose: () => void }) {
     if (!text.trim() || !date || !from.trim()) return;
     const payload = newPayload(from, to, text, new Date(`${date}T${time}`));
     const token = await encodeLetter(payload);
-    if (keepCopy) addLetter(`${b.copyPrefix.replace('{to}', to.trim() || b.shareReadyToFallback)}\n\n${payload.text}`, payload.at);
+    if (keepCopy) addLetter(payload.text, payload.at, false, to.trim());
     setReady({ payload, link: buildLetterLink(token), copyKept: keepCopy });
   }
 

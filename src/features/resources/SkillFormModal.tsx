@@ -17,6 +17,8 @@ import { ImageSuggestionCarousel } from '../../components/shared/ImageSuggestion
 import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { ZonePicker } from '../../components/shared/ZonePicker';
 import { ConditionsPicker } from '../bridges/ConditionsPicker';
+import { OwnImageControl } from '../../components/shared/OwnImageControl';
+import { ResourceLinkFields, normalizeLink } from '../../components/shared/ResourceLinkFields';
 import { useT } from '../../i18n';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { createId } from '../../services/storage/repository';
@@ -84,6 +86,8 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
   const [inNetwork, setInNetwork] = useState<boolean>(() => resource?.inNetwork ?? networkRepo.getAll().some((e) => e.linkedResourceId === resource?.id));
   const [linkedNeeds, setLinkedNeeds] = useState<NeedDirection[]>(resource?.linkedNeeds ?? []);
   const [umstaende, setUmstaende] = useState<string[]>(resource?.umstaende ?? []);
+  const [link, setLink] = useState(resource?.link ?? '');
+  const [note, setNote] = useState(resource?.note ?? '');
   // new skills start as 'koerper' (the safer default for crisis zones); an existing one keeps what it is
   const [modality, setModality] = useState<SkillModality>(resource ? skillModality(resource) : 'koerper');
   const [contextPhoto, setContextPhoto] = useState<string | undefined>(resource?.contextPhoto);
@@ -110,6 +114,9 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
     onSave({
       id: resource?.id ?? createId('res'),
       title,
+      description: resource?.description,
+      link: normalizeLink(link),
+      note: note.trim() || undefined,
       category,
       image,
       tags: resource?.tags ?? ['dbt'],
@@ -291,14 +298,17 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
           </div>
         </div>
 
-        <Field label={`${t.resources.categoryLabel} — Bild`}>
+        <Field label={t.bridges.imageLabel}>
           <div className="flex flex-col gap-2">
             <ImageSuggestionCarousel images={imageSuggestions} selected={image} onSelect={(url) => setImage(url)} ariaLabel={t.resources.pickThisImage} />
             <button type="button" onClick={() => setImageSuggestions(suggestedImageOptions(title, category))} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
               <RefreshCw size={13} /> {t.resources.moreSuggestions}
             </button>
+            <OwnImageControl image={image} onChange={setImage} fallback={() => suggestedImage(title, category)} />
           </div>
         </Field>
+
+        <ResourceLinkFields kind="skill" link={link} note={note} onLink={setLink} onNote={setNote} />
 
         <Field label={t.resources.hilfsmittelPickerLabel}>
           {hilfsmittelOptions.length === 0 ? (

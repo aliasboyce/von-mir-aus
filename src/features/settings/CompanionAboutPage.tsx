@@ -38,6 +38,18 @@ export function CompanionAboutPage() {
         <h1 className="text-[24px] mb-1">{t.companionAbout.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6 leading-relaxed">{t.companionAbout.subtitle}</p>
 
+        <Card className="mb-4" data-testid="companion-menu-card">
+          <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{t.companionAbout.menuTitle}</p>
+          <p className="text-[12.5px] text-[var(--color-text-faint)] mb-3 leading-relaxed">{t.companionAbout.menuIntro}</p>
+          <ul className="flex flex-col gap-2">
+            {t.companionAbout.menuItems.map((m) => (
+              <li key={m.title} className="text-[13px] leading-relaxed text-[var(--color-text-muted)]">
+                <span className="font-medium text-[var(--color-text)]">{m.title}</span> – {m.text}
+              </li>
+            ))}
+          </ul>
+        </Card>
+
         <Card className="mb-4" style={{ background: 'var(--color-primary-soft)' }}>
           <div className="flex items-start gap-3">
             <Moon size={20} className="text-[var(--color-primary)] flex-shrink-0 mt-0.5" />

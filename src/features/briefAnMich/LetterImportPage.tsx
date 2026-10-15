@@ -6,6 +6,7 @@ import { pendingLetterStore } from './lettersRepo';
 import { decodeLetter, type SharedLetterPayload } from './letterShare';
 import { LetterPreview, LetterReceivePanel } from './LetterReceive';
 import { goBack } from '../../services/navigation';
+import { BrowserTabNotice } from '../../components/shared/BrowserTabNotice';
 
 /** Route /brief/importieren?d=… — opened by tapping a letter link. */
 export function LetterImportPage() {
@@ -28,7 +29,8 @@ export function LetterImportPage() {
       <TopBar onBack={() => goBack(navigate)} />
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-4">{t.briefAnMich.receiveTitle}</h1>
-        {payload && <LetterPreview payload={payload} showIosHint />}
+        <BrowserTabNotice />
+        {payload && <LetterPreview payload={payload} />}
         {failed && <LetterReceivePanel onClose={() => navigate('/entdecken/brief-an-mich')} />}
       </div>
     </div>

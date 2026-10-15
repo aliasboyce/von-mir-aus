@@ -28,6 +28,7 @@ import {
 } from './diaryCategories';
 import { MiniCurve } from '../polyvagal/MiniCurve';
 import { DailyReview } from './DailyReview';
+import { LettersList } from '../briefAnMich/LettersList';
 import { DiaryExportModal, type DiaryExportChoice } from './DiaryExportModal';
 import { DiaryPrintView } from './DiaryPrintView';
 import { DailyReviewPrintView } from './DailyReviewPrintView';
@@ -215,7 +216,10 @@ export function DiaryPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftInReview, setDraftInReview] = useState(false);
   // /sicherheit/tagebuch?tab=review opens straight on the Tagesrueckblick (used by "Heute bisher" on Home)
-  const [view, setView] = useState<'entries' | 'review'>(() => (new URLSearchParams(window.location.search).get('tab') === 'review' ? 'review' : 'entries'));
+  const [view, setView] = useState<'entries' | 'review' | 'letters'>(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    return tab === 'review' ? 'review' : tab === 'briefe' ? 'letters' : 'entries';
+  });
   const [fontPickerOpen, setFontPickerOpen] = useState(false);
 
   function categoryLabel(id: string): string {
@@ -328,18 +332,17 @@ export function DiaryPage() {
           <CompulsionAwarenessNote />
         </div>
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           <Chip selected={view === 'entries'} onClick={() => setView('entries')}>
             {t.diary.viewEntries}
           </Chip>
           <Chip selected={view === 'review'} onClick={() => setView('review')}>
             {t.diary.viewReview}
           </Chip>
+          <Chip selected={view === 'letters'} onClick={() => setView('letters')} icon={<Mail size={14} />}>
+            {t.diary.viewLetters}
+          </Chip>
         </div>
-
-        <Link to="/entdecken/brief-an-mich" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-5">
-          <Mail size={14} /> {t.diary.lettersLinkCta}
-        </Link>
 
         <div className="mb-5">
           <button
@@ -369,7 +372,14 @@ export function DiaryPage() {
           )}
         </div>
 
-        {view === 'review' ? (
+        {view === 'letters' ? (
+          <div className="animate-in">
+            <Link to="/entdecken/brief-an-mich" className="flex items-center gap-1.5 text-[14px] text-[var(--color-primary)] mb-5" data-testid="letters-to-page">
+              <Mail size={15} /> {t.diary.lettersToPage}
+            </Link>
+            <LettersList />
+          </div>
+        ) : view === 'review' ? (
           <DailyReview diaryEntries={entries} />
         ) : (
           <>

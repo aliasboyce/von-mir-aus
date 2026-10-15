@@ -16,6 +16,48 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-etwas-melden',
+    date: '2026',
+    items: [
+      'Danke, dass du „von mir aus“ testest! Wenn dir etwas auffällt, kannst du es jetzt anonym melden: Einstellungen → Test-Version → „Etwas melden“ (ca. 1 Minute, alles freiwillig).',
+    ],
+    itemsEn: [
+      'Thank you for testing “von mir aus”! If something stands out you can now report it anonymously: Settings → Test version → “Report something” (about 1 minute, everything optional).',
+    ],
+  },
+  {
+    id: '2026-sicherheitsplan-angaben-pdf',
+    date: '2026',
+    items: [
+      'Sicherheitsplan: Er sieht jetzt aus wie der Rest der App (kein eigener Nachtmodus mehr). Jeder Abschnitt hat ein als „Beispiel“ markiertes, löschbares oder übernehmbares Beispiel – Beispiele kommen nie ins PDF.',
+      'Neu, ganz oben und freiwillig: „Meine Angaben“ (Name, Geburtsdatum, Adresse, Medikamente – auch aus der Medikamenten-Seite übernehmbar, Allergien, Diagnosen, Notfallkontakte, Krankenkasse, GdB, Haustiere) und „Klinikaufenthalt & Behandlung“ mit deinen Wünschen zu Behandlung und Unterbringung.',
+      'Teilen & PDF: Du wählst für jeden Plan einzeln, was mitkommt – Plan, Angaben, Klinik-Teil, einzeln oder zusammen. Im PDF steht nur, was ausgefüllt ist. Außerdem fehlten im PDF bisher die Abschnittsüberschriften; das ist behoben.',
+    ],
+    itemsEn: [
+      'Safety plan: it now looks like the rest of the app (no separate night mode any more). Every section has an example marked “Example” that you can delete or keep – examples never go into the PDF.',
+      'New, at the top and optional: “My details” (name, date of birth, address, medication – can be taken over from the medication page, allergies, diagnoses, emergency contacts, insurance, GdB, pets) and “Hospital stay & treatment” with your wishes for treatment and placement.',
+      'Share & PDF: for each plan you choose separately what goes along – plan, details, hospital part, alone or together. The PDF only shows what is filled in. The PDF was also missing the section headings before; that is fixed.',
+    ],
+  },
+  {
+    id: '2026-links-briefe-safari',
+    date: '2026',
+    items: [
+      'Skills, Hilfsmittel, Orte und Aktivitäten können jetzt einen Link (Song, Route, Pinterest, Film …) und ein eigenes Bild haben. Orte und Aktivitäten haben eigene, passende Beschriftungen.',
+      'Etwas von jemandem erhalten: Link kopieren und in der App einfügen (auf dem iPhone landet Antippen im Browser). Geteiltes erscheint als „X hat dir … geschickt – als Idee“, du entscheidest, ob du es speicherst.',
+      'Briefe: „Meine Briefe“ steht im Tagebuch gleichberechtigt neben Einträgen und Tagesrückblick. Briefe von anderen heißen „Brief von … an dich“ und stehen getrennt von denen an dich selbst.',
+      'Kalender zeigt Uhrzeit und Titel in der Kachel. Aus dem Wartezimmer geplante Termine bekommen danach Rückblick und die Wahl: nächster Termin oder zurück ins Wartezimmer.',
+      'Einstellungen: Datenschutz nur noch einmal, Erinnerungen sagen, wofür sie sind, Hinweise können Klang und Vibration zugleich. „Was kann ich alles?“ des Wesens ist aktualisiert.',
+    ],
+    itemsEn: [
+      'Skills, tools, places and activities can now have a link (song, route, Pinterest, film …) and your own picture. Places and activities have their own fitting labels.',
+      'Receiving something from someone: copy the link and paste it in the app (on iPhone tapping lands in the browser). Shared things show as "X sent you … – as an idea", you decide whether to save it.',
+      'Letters: "My letters" sits in the diary next to entries and daily review. Letters from others are called "Letter from … to you" and are kept apart from those to yourself.',
+      'The calendar tile shows time and title. Appointments planned from the waiting room get a review afterwards and the choice: next appointment or back to the waiting room.',
+      'Settings: privacy only once, reminders say what they are for, hints can use sound and vibration together. The companion\'s "What can I do?" is updated.',
+    ],
+  },
+  {
     id: '2026-installieren-startseite-ruhiger',
     date: '2026',
     items: [
