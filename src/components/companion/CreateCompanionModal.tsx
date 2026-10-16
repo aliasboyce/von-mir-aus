@@ -176,7 +176,7 @@ export function CreateCompanionModal({ open, onClose, onCreated, editing = null,
 
         <div className="flex flex-col gap-1.5">
           <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.companion.personalityLabel}</span>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.companion.personalityHint}</p>
+          <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.companion.personalityHint}</p>
           <div className="flex flex-wrap gap-2">
             {CATEGORY_OPTIONS.map((o) => (
               <Chip key={o.value} type="button" selected={preferredCategories.includes(o.value)} onClick={() => toggleCategory(o.value)}>

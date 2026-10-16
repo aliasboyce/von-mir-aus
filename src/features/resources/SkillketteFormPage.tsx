@@ -99,7 +99,7 @@ export function SkillketteFormPage() {
 
           <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
             <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.skillketteSection1Title}</p>
-            <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.skillketteSection1Hint}</p>
+            <p data-hint className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.skillketteSection1Hint}</p>
             <div className="flex flex-col gap-3">
               <Field label={t.resources.skillketteTriggerLabel}>
                 <textarea className="input" rows={2} placeholder={t.resources.skillketteTriggerPlaceholder} value={draft.notfallTrigger ?? ''} onChange={(e) => setDraft({ ...draft, notfallTrigger: e.target.value })} />
@@ -163,7 +163,7 @@ export function SkillketteFormPage() {
 
           <div className="rounded-[var(--radius-lg)] p-3.5 mt-2" style={{ background: 'var(--color-surface-muted)' }}>
             <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.skillketteSection3Title}</p>
-            <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.skillketteSection3Hint}</p>
+            <p data-hint className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.skillketteSection3Hint}</p>
             <div className="flex flex-col gap-3">
               <Field label={t.resources.skillketteLogistikZuhauseLabel}>
                 <textarea className="input" rows={2} placeholder={t.resources.skillketteLogistikZuhausePlaceholder} value={draft.logistikZuhause ?? ''} onChange={(e) => setDraft({ ...draft, logistikZuhause: e.target.value })} />

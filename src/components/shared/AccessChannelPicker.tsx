@@ -30,7 +30,7 @@ export function AccessChannelPicker({
       {!hideLabel && (
         <>
           <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.common.accessChannelsLabel}</span>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.common.accessChannelsHint}</p>
+          <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.common.accessChannelsHint}</p>
         </>
       )}
       <div className="flex flex-wrap gap-1.5">

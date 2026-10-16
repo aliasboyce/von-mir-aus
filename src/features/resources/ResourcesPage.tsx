@@ -1,3 +1,4 @@
+import { buildResourcePayload } from '../../services/resourceShare';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from '../../state/SettingsContext';
 import { shareOrCopy } from '../../services/shareOrCopy';
@@ -344,18 +345,19 @@ export function ResourcesPage() {
   }
 
   async function shareResourceLink(resource: Resource) {
-    const payload = {
-      title: resource.title,
-      description: resource.description,
+    // everything filled in travels along: texts, steps, circumstances, energy,
+    // access channels and the picture (as a small thumbnail)
+    const neededTitles = (resource.skillDetails?.relatedHilfsmittelIds ?? [])
+      .map((id) => resourcesRepo.getById(id)?.title)
+      .filter((x): x is string => !!x);
+    const payload = await buildResourcePayload(resource, {
       categoryLabel: categoryLabel(resource.category),
-      link: resource.link,
-      note: resource.note,
-      tags: resource.tags,
       from: settings.userName || undefined,
       kind: shareKindOf(resource),
-    };
+      neededTitles,
+    });
     const url = `${window.location.origin}/entdecken/ressourcen/importieren?data=${encodeURIComponent(JSON.stringify(payload))}`;
-    await shareOrCopy({ title: resource.title, text: buildShareText({ kind: payload.kind, title: resource.title, url, from: settings.userName, lang: settings.language === 'en' ? 'en' : 'de' }) }, t.resources.shareLinkCopied);
+    await shareOrCopy({ title: resource.title, text: buildShareText({ kind: shareKindOf(resource), title: resource.title, url, from: settings.userName, lang: settings.language === 'en' ? 'en' : 'de' }) }, t.resources.shareLinkCopied);
   }
 
   // "Das PDF erstellen von Skills funktioniert nicht (braucht Safari, da
@@ -441,7 +443,7 @@ export function ResourcesPage() {
               <p className="text-[13px] font-semibold mb-0.5" style={{ color: zoneBand.color }}>
                 {t.resources.zoneBannerTitle.replace('{zone}', t.polyvagal.arousalZones[zoneBand.labelKey as keyof typeof t.polyvagal.arousalZones].label)}
               </p>
-              <p className="text-[12px] text-[var(--color-text-muted)] mb-2">{t.resources.zoneBannerHint}</p>
+              <p data-hint className="text-[12px] text-[var(--color-text-muted)] mb-2">{t.resources.zoneBannerHint}</p>
               {zoneKetten.length > 0 && (
                 <div className="flex flex-col gap-1.5 mb-2">
                   <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">{t.resources.skillkettenTileTitle}</p>
@@ -530,7 +532,7 @@ export function ResourcesPage() {
             {typeScope === 'hilfsmittel' ? t.resources.hilfsmittelFormTitleNew : typeScope === 'orte' ? t.resources.orteFormTitleNew : typeScope === 'aktivitaeten' ? t.resources.aktivitaetenFormTitleNew : t.resources.addNew}
           </Button>
         )}
-        {!typeScope && <p className="text-[12px] text-[var(--color-text-faint)] italic mb-4 leading-relaxed">{t.resources.thoughtStarterHint}</p>}
+        {!typeScope && <p data-hint className="text-[12px] text-[var(--color-text-faint)] italic mb-4 leading-relaxed">{t.resources.thoughtStarterHint}</p>}
 
         {typeScope !== 'skills' && (
           <button
@@ -968,7 +970,7 @@ export function ResourcesPage() {
               onChange={(ids) => setEditing({ ...editing, umstaende: ids.length > 0 ? ids : undefined })}
             />
 
-            <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed">{t.resources.favoriteToNetworkHint}</p>
+            <p data-hint className="text-[12px] text-[var(--color-text-faint)] leading-relaxed">{t.resources.favoriteToNetworkHint}</p>
 
             <Button type="submit" fullWidth>
               {t.common.save}

@@ -75,6 +75,10 @@ export function ThemeEffect() {
     );
   }, [settings.reduceMotion]);
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-minimal-hints', settings.minimalHints ? 'true' : 'false');
+  }, [settings.minimalHints]);
+
   return null;
 }
 

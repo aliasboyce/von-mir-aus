@@ -71,7 +71,7 @@ export function ResourcesHubPage() {
             <p className="text-[13.5px] font-semibold text-[var(--color-text)] mb-1">
               {NEED_META[need].icon} {t.resources.needHubTitle.replace('{need}', NEED_META[need].label(t))}
             </p>
-            <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed mb-2">{t.resources.needHubHint}</p>
+            <p data-hint className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed mb-2">{t.resources.needHubHint}</p>
             <Link to="/entdecken/ressourcen" replace className="text-[12.5px] text-[var(--color-primary)] underline underline-offset-2">
               {t.resources.needHubShowAll}
             </Link>

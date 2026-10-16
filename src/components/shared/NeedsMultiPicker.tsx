@@ -10,7 +10,7 @@ export function NeedsMultiPicker({ selected, onChange }: { selected: NeedDirecti
   return (
     <div>
       <p className="text-[13px] font-semibold text-[var(--color-text)] mb-0.5">{t.resources.needsFieldTitle}</p>
-      <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.needsFieldHint}</p>
+      <p data-hint className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.needsFieldHint}</p>
       <div className="flex flex-wrap gap-1.5">
         {NEED_ORDER.map((n) => {
           const on = selected.includes(n);

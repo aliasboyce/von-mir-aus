@@ -192,9 +192,9 @@ export function ResourceDetailModal({
             {t.resources.exportPdf}
           </Button>
         </div>
-        <p className="text-[11px] text-[var(--color-text-faint)] mb-2 leading-relaxed">{t.resources.shareVsPdfHint}</p>
+        <p data-hint className="text-[11px] text-[var(--color-text-faint)] mb-2 leading-relaxed">{t.resources.shareVsPdfHint}</p>
         {resource.favorite && (
-          <p className="text-[11px] text-[var(--color-text-faint)] mb-1">{t.resources.favoriteToNetworkHint}</p>
+          <p data-hint className="text-[11px] text-[var(--color-text-faint)] mb-1">{t.resources.favoriteToNetworkHint}</p>
         )}
         <Button variant="ghost" fullWidth icon={<TimerIcon size={15} />} onClick={() => setTimerOpen(true)}>
           {t.bridges.startTimer}

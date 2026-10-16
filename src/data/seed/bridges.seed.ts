@@ -1,5 +1,6 @@
 import type { Bridge } from '../types';
-import { suggestImagesFor } from '../../components/shared/imageSuggestionLibrary';
+import { symbolImage } from '../../components/shared/symbolImage';
+import { builtInBridgeColor } from '../../components/shared/itemColors';
 
 /**
  * Point 4 — each bridge's image now actually matches its own theme (a
@@ -8,9 +9,9 @@ import { suggestImagesFor } from '../../components/shared/imageSuggestionLibrary
  * picsum.photos stock photo that had no real connection to the bridge's
  * content.
  */
-const img = (name: string) => suggestImagesFor(name)[0];
+const img = (_name: string) => '';
 
-export const DEMO_BRIDGES: Bridge[] = [
+const RAW_DEMO_BRIDGES: Bridge[] = [
   {
     id: 'bridge_natur',
     title: '10 Minuten Natur',
@@ -162,3 +163,5 @@ export const DEMO_BRIDGES: Bridge[] = [
   },
 
 ];
+
+export const DEMO_BRIDGES: Bridge[] = RAW_DEMO_BRIDGES.map((b) => ({ ...b, image: symbolImage(b.title, builtInBridgeColor(b.category), '🌉') }));

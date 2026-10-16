@@ -16,6 +16,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-aufgeraeumt-und-passender',
+    date: '2026',
+    items: [
+      'Neu in den Einstellungen: „Ich kenne mich aus – weniger Hinweistexte“. Das blendet die vielen kleinen Erklär- und Beispielzeilen aus. Info-Texte und Fragezeichen bleiben.',
+      'Das Wesen ist von Anfang an das „Verlässliche“ und lässt sich auf dem Handy flüssiger verschieben.',
+      'Vorgespeicherte Skills und Brücken haben jetzt passende gezeichnete Bilder in den Stresstoleranz-Farben. Beim Teilen reisen Bild, Beschreibung und alle Angaben mit.',
+      'Hilfsmittel erscheinen auch, wenn du mehr Energie hast, als sie brauchen. Im Zugang ist „Wie versucht mein System gerade, Sicherheit herzustellen?“ jetzt sortiert. Das Sicherheitsnetz zeigt Beispiele klar als Beispiele (alle auf einmal löschbar), und die Denkmaschine hat ein sinnvolles Beispiel.',
+    ],
+    itemsEn: [
+      'New in settings: “I know my way around – fewer hint texts”. It hides the many small explanation and example lines. Info texts and question marks stay.',
+      'The companion is the “Reliable” one from the very start and moves more smoothly on the phone.',
+      'Pre-saved skills and bridges now have fitting drawn pictures in the stress-tolerance colours. When sharing, picture, description and all details travel along.',
+      'Aids also show when you have more energy than they need. In Zugang, “How is my system trying to create safety right now?” is now sorted. The safety net marks examples clearly as examples (deletable all at once), and the thought machine has a meaningful example.',
+    ],
+  },
+  {
     id: '2026-etwas-melden',
     date: '2026',
     items: [

@@ -32,26 +32,15 @@ Dann ist die Lösung nicht unbedingt, noch mehr Wissen oder noch mehr Skills anz
 
 ---
 
-## Von Ressourcen zu Brücken
+## Von Ressourcen zu Zugang
 
 Daraus entstand die Idee dieser App.
 
 Zuerst klingt es nach einer Sammlung von Übungen: Was ist gerade los? Was könnte helfen? Mach einen Skill. Aber wer gerade keinen Zugang zu sich, zum eigenen Körper, zum eigenen Wissen hat, dem hilft eine Liste mit zwanzig weiteren Skills nicht unbedingt weiter. Und die Liste, die man selbst geschrieben hat, ist im entscheidenden Moment oft nicht auffindbar.
 
-Deshalb werden Ressourcen hier verbunden und als **Brücken** verstanden.
+Deshalb geht es hier zuerst darum, **Ressourcen erreichbar zu machen**: Skills, Orte, Aktivitäten, Hilfsmittel und Menschen liegen dort, wo du sie findest, auch wenn du gerade nicht weißt, wonach du suchst. Und bevor etwas empfohlen wird, schaust du, **was gerade los ist** und **was gerade überhaupt zugänglich ist.**
 
-Eine Brücke verbindet den aktuellen Zustand mit etwas, zu dem man wieder Zugang bekommen möchte.
-
-Vielleicht möchtest du raus in die Natur, aber du bist erschöpft und kommst nicht ins Handeln.
-
-Vielleicht möchtest du jemanden kontaktieren, aber Nähe löst gleichzeitig Unsicherheit aus.
-
-Vielleicht möchtest du kreativ sein, aber Anspruch und Überforderung machen den ersten Schritt unmöglich.
-
-Dann besteht die Brücke nicht aus einem einzelnen Skill. Sie kann aus mehreren kleinen Ressourcen bestehen: Begleitung, Orientierung, eine vereinfachte Entscheidung, ein vertrauter Ort, Musik, Wärme, ein konkreter erster Schritt.
-
-So wird aus der Frage **„Was hilft mir?"** die praktischere Frage:
-**„Was brauche ich, um das tun zu können, was ich tun will? Was will ich überhaupt – und wie, wann, wer, wo, was … wie komme ich dorthin?"**
+Das hilft beim Beruhigen, beim Aktivieren, beim Auffangen. Es ist ein wichtiger Teil, aber nicht der einzige.
 
 ---
 
@@ -69,6 +58,8 @@ Natur. Tiere. Kreativität. Verbindung. Lernen. Freiheit. Ruhe. Neugier. Sinn. L
 
 Nicht als Aufgaben, die man abhaken muss. Sondern als Richtungen, in die das Leben gehen darf.
 
+Dafür gibt es in der App den Wertekompass. Und jede Brücke beginnt bei einem Wert.
+
 Hier treffen sich Gedanken aus der **Akzeptanz- und Commitment-Therapie (ACT)** mit der Erfahrung vieler Menschen: Ein gutes Leben bedeutet nicht, dass sich alles gut anfühlt. Und man muss nicht erst vollständig reguliert sein, bevor man etwas tun darf, das einem wichtig ist.
 
 Manchmal ist ein kleiner Schritt in Richtung eines Wertes gleichzeitig Teil der Regulation.
@@ -82,6 +73,27 @@ Eine Nachricht an einen Menschen ist nicht nur „Kontakt aufnehmen".
 Sie kann Verbindung, Sicherheit und Zugehörigkeit bedeuten.
 
 So wird die App weniger zu einer Sammlung von Maßnahmen gegen schlechte Zustände – und mehr zu einem Werkzeug für **Zugang zum eigenen Leben**.
+
+---
+
+## Von Werten zu Brücken
+
+Wer weiß, wohin er eigentlich möchte, steht trotzdem oft vor einer Lücke: zwischen dem, was einem wichtig ist, und dem, was gerade möglich scheint.
+
+Deshalb werden Ressourcen hier verbunden und als **Brücken** verstanden.
+
+Eine Brücke verbindet den aktuellen Zustand mit etwas, zu dem man wieder Zugang bekommen möchte. Sie beginnt bei einem **Wert**, geht über **kleine Schritte** und wird von **Ressourcen** getragen.
+
+Vielleicht möchtest du raus in die Natur, aber du bist erschöpft und kommst nicht ins Handeln.
+
+Vielleicht möchtest du jemanden kontaktieren, aber Nähe löst gleichzeitig Unsicherheit aus.
+
+Vielleicht möchtest du kreativ sein, aber Anspruch und Überforderung machen den ersten Schritt unmöglich.
+
+Dann besteht die Brücke nicht aus einem einzelnen Skill. Sie kann aus mehreren kleinen Ressourcen bestehen: Begleitung, Orientierung, eine vereinfachte Entscheidung, ein vertrauter Ort, Musik, Wärme, ein konkreter erster Schritt.
+
+So wird aus der Frage **„Was hilft mir?"** die praktischere Frage:
+**„Was brauche ich, um das tun zu können, was ich tun will? Was will ich überhaupt – und wie, wann, wer, wo, was … wie komme ich dorthin?"**
 
 ---
 

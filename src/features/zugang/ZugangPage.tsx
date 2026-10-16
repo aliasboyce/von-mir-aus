@@ -28,6 +28,7 @@ import {
   SURVIVAL_STATE_META,
   FEELING_GROUPS,
   PROTECTION_STRATEGIES_DE,
+  PROTECTION_POSITIVE_DE,
   PROTECTION_GARDEN_SUGGESTIONS,
   CARE_WISH_OPTIONS,
   CARE_ACTIONS_DE,
@@ -424,7 +425,7 @@ export function ZugangPage() {
                 style={{ borderColor: 'var(--color-primary)', background: 'var(--color-surface)' }}
               >
                 <span className="block text-[15px] text-[var(--color-text)]">{t.zugang.intentRegulate}</span>
-                <span className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.intentRegulateHint}</span>
+                <span data-hint className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.intentRegulateHint}</span>
               </button>
               <button
                 type="button"
@@ -436,7 +437,7 @@ export function ZugangPage() {
                 style={{ borderColor: 'var(--color-primary)', background: 'var(--color-surface)' }}
               >
                 <span className="block text-[15px] text-[var(--color-text)]">{t.zugang.intentAct}</span>
-                <span className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.intentActHint}</span>
+                <span data-hint className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.intentActHint}</span>
               </button>
             </div>
             <button
@@ -446,7 +447,7 @@ export function ZugangPage() {
               style={{ borderColor: 'var(--color-border)', background: 'transparent' }}
             >
               <span className="block text-[15px] text-[var(--color-text)]">{t.zugang.introOpenCta}</span>
-              <span className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.introOpenHint}</span>
+              <span data-hint className="block text-[12px] text-[var(--color-text-faint)]">{t.zugang.introOpenHint}</span>
             </button>
           </>
         )}
@@ -569,7 +570,7 @@ export function ZugangPage() {
             <ZugangStepHeader question={t.zugang.step1Question} hint={t.zugang.step1Hint} />
             {bodyStage === 'free' && (
               <>
-                <p className="text-[12.5px] text-[var(--color-text-faint)] mb-3">{t.zugang.bodyNamingHint}</p>
+                <p data-hint className="text-[12.5px] text-[var(--color-text-faint)] mb-3">{t.zugang.bodyNamingHint}</p>
                 <NamingInput
                   placeholder={t.zugang.bodyNamingPlaceholder}
                   terms={body}
@@ -586,7 +587,7 @@ export function ZugangPage() {
             )}
             {bodyStage === 'neutral' && (
               <>
-                <p className="text-[12.5px] text-[var(--color-text-faint)] mb-3">{t.zugang.bodyOptionsIntro}</p>
+                <p data-hint className="text-[12.5px] text-[var(--color-text-faint)] mb-3">{t.zugang.bodyOptionsIntro}</p>
                 <SuggestionMultiSelect
                   suggestions={[...BODY_SENSATIONS_DE].sort((a, b) => a.localeCompare(b, 'de'))}
                   customSuggestions={getCustomSuggestions('body')}
@@ -657,7 +658,7 @@ export function ZugangPage() {
             <ZugangStepHeader question={t.zugang.step3Question} hint={t.zugang.step3Hint} />
             {feelingStage === 'free' && (
               <>
-                <p className="text-[12.5px] text-[var(--color-text-faint)] mb-3">{t.zugang.feelingNamingHint}</p>
+                <p data-hint className="text-[12.5px] text-[var(--color-text-faint)] mb-3">{t.zugang.feelingNamingHint}</p>
                 <NamingInput
                   placeholder={t.zugang.feelingNamingPlaceholder}
                   terms={feelings}
@@ -772,30 +773,55 @@ export function ZugangPage() {
         {shownStep === 4 && (
           <div>
             <ZugangStepHeader question={t.zugang.step4Question} hint={t.zugang.step4Hint} />
-            <SuggestionMultiSelect
-              suggestions={PROTECTION_STRATEGIES_DE}
-              customSuggestions={getCustomSuggestions('protection')}
-              selected={protectionStrategy}
-              onToggle={(v) => {
+            {(() => {
+              // Three clearly named groups instead of one mixed list:
+              // protective patterns / calmer-open states / everything else.
+              const toggle = (v: string) => {
                 const next = protectionStrategy.includes(v) ? protectionStrategy.filter((p) => p !== v) : [...protectionStrategy, v];
                 setProtectionStrategy(next);
                 offerGardenIfRelevant(next);
-              }}
-              onAddCustom={(v) => {
-                addCustomSuggestion('protection', v);
-                const next = [...protectionStrategy, v];
-                setProtectionStrategy(next);
-                offerGardenIfRelevant(next);
-              }}
-              onEditCustom={(o, n) => {
-                editCustomSuggestion('protection', o, n);
-                setProtectionStrategy(protectionStrategy.map((p) => (p === o ? n : p)));
-              }}
-              onDeleteCustom={(v) => {
-                removeCustomSuggestion('protection', v);
-                setProtectionStrategy(protectionStrategy.filter((p) => p !== v));
-              }}
-            />
+              };
+              const noop = () => {};
+              const patterns = PROTECTION_STRATEGIES_DE.filter((x) => !PROTECTION_POSITIVE_DE.includes(x) && x !== 'weiß ich nicht');
+              const calm = PROTECTION_STRATEGIES_DE.filter((x) => PROTECTION_POSITIVE_DE.includes(x));
+              const other = PROTECTION_STRATEGIES_DE.filter((x) => x === 'weiß ich nicht');
+              const groupLabel = 'text-[12px] text-[var(--color-text-faint)] mb-2';
+              return (
+                <div className="flex flex-col gap-5">
+                  <div data-testid="protection-group-patterns">
+                    <p className={groupLabel}>{t.zugang.step4GroupPatterns}</p>
+                    <SuggestionMultiSelect suggestions={patterns} customSuggestions={[]} selected={protectionStrategy} onToggle={toggle} onAddCustom={noop} onEditCustom={noop} onDeleteCustom={noop} hideAddCustom />
+                  </div>
+                  <div data-testid="protection-group-calm">
+                    <p className={groupLabel}>{t.zugang.step4GroupCalm}</p>
+                    <SuggestionMultiSelect suggestions={calm} customSuggestions={[]} selected={protectionStrategy} onToggle={toggle} onAddCustom={noop} onEditCustom={noop} onDeleteCustom={noop} hideAddCustom />
+                  </div>
+                  <div data-testid="protection-group-other">
+                    <p className={groupLabel}>{t.zugang.step4GroupOther}</p>
+                    <SuggestionMultiSelect
+                      suggestions={other}
+                      customSuggestions={getCustomSuggestions('protection')}
+                      selected={protectionStrategy}
+                      onToggle={toggle}
+                      onAddCustom={(v) => {
+                        addCustomSuggestion('protection', v);
+                        const next = [...protectionStrategy, v];
+                        setProtectionStrategy(next);
+                        offerGardenIfRelevant(next);
+                      }}
+                      onEditCustom={(o, n) => {
+                        editCustomSuggestion('protection', o, n);
+                        setProtectionStrategy(protectionStrategy.map((p) => (p === o ? n : p)));
+                      }}
+                      onDeleteCustom={(v) => {
+                        removeCustomSuggestion('protection', v);
+                        setProtectionStrategy(protectionStrategy.filter((p) => p !== v));
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })()}
             <Link to="/entdecken/schutzstrategien" className="text-[12px] text-[var(--color-primary)] block mt-3">
               {t.zugang.protectionRefLink}
             </Link>
@@ -826,7 +852,7 @@ export function ZugangPage() {
             {suggestedNeeds.length > 0 && (
               <Card className="mt-4">
                 <p className="text-[13px] font-medium text-[var(--color-text)] mb-1">{t.zugang.behindItTitle}</p>
-                <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.zugang.behindItHint}</p>
+                <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.zugang.behindItHint}</p>
                 <div className="flex flex-wrap gap-2">
                   {suggestedNeeds.map((n) => {
                     const added = need.includes(n);
@@ -1062,7 +1088,7 @@ export function ZugangPage() {
             <ZugangStepHeader question={t.zugang.stepChannelsQuestion} hint={t.zugang.stepChannelsHint} />
             {/* The person says what is open right now (or skips it —
              * nothing is ever hidden, only fitted). The next page uses it. */}
-            <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.zugang.openChannelsHint}</p>
+            <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.zugang.openChannelsHint}</p>
             <FitFilterPanel defaultOpen />
           </div>
         )}
@@ -1113,7 +1139,7 @@ export function ZugangPage() {
             {showWhatMadeHarder && (
               <Card className="mb-6 -mt-3">
                 <p className="text-[13px] font-medium text-[var(--color-text)] mb-1">{t.zugang.harderTitle}</p>
-                <p className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.zugang.harderHint}</p>
+                <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.zugang.harderHint}</p>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {t.zugang.harderOptions.map((o) => (
                     <button

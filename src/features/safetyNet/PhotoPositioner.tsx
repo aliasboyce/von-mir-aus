@@ -127,7 +127,7 @@ export function PhotoPositioner({ photoDataUrl, scale, offsetX, offsetY, onChang
           aria-label={t.network.photoZoom}
         />
       </label>
-      <p className="text-[11px] text-[var(--color-text-faint)]">{t.network.photoDragHint}</p>
+      <p data-hint className="text-[11px] text-[var(--color-text-faint)]">{t.network.photoDragHint}</p>
     </div>
   );
 }

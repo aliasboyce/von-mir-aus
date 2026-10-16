@@ -263,7 +263,7 @@ export function InnerWeatherPage() {
         <div className="animate-in flex-1">
           <div className="flex flex-col items-center mb-4">
             <h1 className="text-[20px] text-center">{t.polyvagal.quickPrompt}</h1>
-            <p className="text-[14px] text-[var(--color-text-muted)] text-center mt-1 max-w-[280px]">
+            <p data-hint className="text-[14px] text-[var(--color-text-muted)] text-center mt-1 max-w-[280px]">
               {t.home.zoneStepHint}
             </p>
           </div>

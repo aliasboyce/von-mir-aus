@@ -31,6 +31,7 @@ import { NetworkCategoryEditor } from './NetworkCategoryEditor';
 import { CenterNodeEditModal } from './CenterNodeEditModal';
 import { useNetworkCategories } from './useNetworkCategories';
 import { createId } from '../../services/storage/repository';
+import { netExampleTexts } from './exampleTexts';
 import { centerNodeStore, DEFAULT_CENTER_NODE, type CenterNodeConfig } from './networkCategories';
 import type { NetworkEntry } from '../../data/types';
 import './network.css';
@@ -106,6 +107,14 @@ export function SafetyNetPage() {
   );
   const totalImportant = useMemo(() => entries.filter((e) => e.isImportantContact).length, [entries]);
   const personEntries = useMemo(() => entries.filter((e) => e.category === 'person'), [entries]);
+  const EX = netExampleTexts(settings.language === 'en' ? 'en' : 'de');
+  const exampleCount = useMemo(() => entries.filter((e) => e.isExample).length, [entries]);
+
+  function deleteAllExamples() {
+    if (!window.confirm(EX.confirmAll)) return;
+    entries.filter((e) => e.isExample).forEach((e) => networkRepo.remove(e.id));
+    refresh();
+  }
   // Deliberately NOT its own stored data — always read live from
   // resourcesRepo, so marking/unmarking a favorite elsewhere in the app
   // is reflected here automatically, and unfavoriting a resource never
@@ -178,7 +187,10 @@ export function SafetyNetPage() {
   }
 
   function handleSaveDetail(entry: NetworkEntry) {
-    networkRepo.save({ ...entry, updatedAt: new Date().toISOString() });
+    // saving an edited example makes it the person's own
+    const saved = { ...entry, isExample: false, updatedAt: new Date().toISOString() };
+    networkRepo.save(saved);
+    setSelected((prev) => (prev && prev.id === saved.id ? saved : prev));
     refresh();
     say(pickLine({ page: '/sicherheit/netzwerk', trigger: 'eintrag_bearbeiten' }));
   }
@@ -238,7 +250,19 @@ export function SafetyNetPage() {
         <h1 className="text-[24px]">{t.network.title}</h1>
       </div>
       <p className="text-[14px] text-[var(--color-text-muted)] mb-2">{t.network.subtitle}</p>
-      <p className="text-[12px] text-[var(--color-text-faint)] mb-5 leading-relaxed">{t.network.examplesHint}</p>
+      <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-4 leading-relaxed">{t.network.examplesHint}</p>
+      {exampleCount > 0 && (
+        <div
+          data-testid="network-examples-banner"
+          className="rounded-[var(--radius-lg)] px-4 py-3 mb-4 text-[13px] text-[var(--color-text-muted)] leading-relaxed"
+          style={{ border: '1.5px dashed var(--color-border-strong)', background: 'var(--color-surface-muted)' }}
+        >
+          <p data-hint className="mb-2">{EX.hint}</p>
+          <button type="button" onClick={deleteAllExamples} className="text-[13px] text-[var(--color-danger)] underline underline-offset-2" data-testid="network-delete-examples">
+            {EX.deleteAll} ({exampleCount})
+          </button>
+        </div>
+      )}
 
       <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-4">
         {t.network.addNew}
@@ -282,7 +306,7 @@ export function SafetyNetPage() {
             </button>
             <NetworkLegend categories={categories} />
           </Card>
-          <p className="text-[12px] text-[var(--color-text-faint)] text-center mb-6">{t.network.dragHint}</p>
+          <p data-hint className="text-[12px] text-[var(--color-text-faint)] text-center mb-6">{t.network.dragHint}</p>
 
           {important.length > 0 && (
             <>
@@ -413,6 +437,19 @@ export function SafetyNetPage() {
  * entry look like in detail" — the list is never a second, separately
  * maintained copy of that information.
  */
+function ExampleBadge({ className = '' }: { className?: string }) {
+  const { settings } = useSettings();
+  return (
+    <span
+      data-testid="network-example-badge"
+      className={`text-[10.5px] uppercase tracking-wide rounded-full px-2 py-0.5 ${className}`}
+      style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary-soft-text)' }}
+    >
+      {netExampleTexts(settings.language === 'en' ? 'en' : 'de').badge}
+    </span>
+  );
+}
+
 function NetworkEntryListItem({
   entry,
   categories,
@@ -443,6 +480,7 @@ function NetworkEntryListItem({
           <div className="flex items-center gap-1.5 flex-wrap">
             <p className="text-[14px] text-[var(--color-text)]">{entry.name}</p>
             <span className="text-[11px] text-[var(--color-text-faint)]">· {categoryLabel(t, category)}</span>
+            {entry.isExample && <ExampleBadge />}
           </div>
           {entry.role && <p className="text-[12px] text-[var(--color-text-muted)]">{entry.role}</p>}
           {entry.description && <p className="text-[13px] text-[var(--color-text)] mt-1 line-clamp-2">{entry.description}</p>}
@@ -485,7 +523,7 @@ function ImportantContactRow({
         )}
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-[15px] text-[var(--color-text)] truncate">{entry.name}</p>
+        <p className="text-[15px] text-[var(--color-text)] truncate">{entry.name}{entry.isExample && <ExampleBadge className="ml-2 align-middle" />}</p>
         {entry.role && <p className="text-[13px] text-[var(--color-text-muted)] truncate">{entry.role}</p>}
       </div>
       </button>

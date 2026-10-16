@@ -1,7 +1,8 @@
 import type { Bridge, BridgeCategory, BridgeLevel, StepExtras } from '../types';
-import { suggestImagesFor } from '../../components/shared/imageSuggestionLibrary';
+import { symbolImage } from '../../components/shared/symbolImage';
+import { builtInBridgeColor } from '../../components/shared/itemColors';
 
-const img = (seed: string) => suggestImagesFor(seed)[0];
+
 
 /**
  * Brücken-Impulse — ready-made BRIDGES, not single exercises.
@@ -38,7 +39,7 @@ function make(
   tip: string,
 ): BridgeImpulse {
   const levels: BridgeLevel[] = steps.map(([t, d, e, x], i) => ({ level: i + 1, title: t, description: d, energyLevel: e, ...(x ? { extras: x } : {}) }));
-  return { impulseId, title, category, connectionTags: values, image: img(imageSeed), description, whyThis, levels, tip, favorite: false, isCustom: false };
+  return { impulseId, title, category, connectionTags: values, image: symbolImage(`${title} ${imageSeed}`, builtInBridgeColor(category), '🌉'), description, whyThis, levels, tip, favorite: false, isCustom: false };
 }
 
 export const BRIDGE_IMPULSES: BridgeImpulse[] = [

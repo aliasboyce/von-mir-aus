@@ -84,7 +84,7 @@ export function CompanionAboutPage() {
         </Card>
 
         <p className="text-[16px] text-[var(--color-text)] mt-7 mb-1">{t.companionAbout.detailSectionTitle}</p>
-        <p className="text-[12px] text-[var(--color-text-faint)] mb-4 leading-relaxed">{t.companionAbout.detailSectionHint}</p>
+        <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-4 leading-relaxed">{t.companionAbout.detailSectionHint}</p>
         <div className="flex flex-col gap-2">
           {details.map((d) => {
             const open = openDetail === d.id;

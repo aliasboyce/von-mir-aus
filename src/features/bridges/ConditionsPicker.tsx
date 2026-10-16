@@ -30,7 +30,7 @@ export function ConditionsPicker({ selected, onChange }: { selected: string[]; o
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.bridges.conditionsLabel}</span>
-      <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.bridges.conditionsHint}</p>
+      <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-1">{t.bridges.conditionsHint}</p>
       <div className="flex flex-wrap gap-2">
         {options.map((c) => {
           const isSel = selected.includes(c.key);

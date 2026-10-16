@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { LichtCompanion } from '../components/companion/LichtCompanion';
+import { getLichtwesen } from '../components/companion/lichtwesen';
 import { useSettings } from '../state/SettingsContext';
 import { createKeyValueStore } from '../services/storage/keyValueStore';
 
@@ -140,7 +141,10 @@ export function SplashScreen({ children }: { children: React.ReactNode }) {
             transform: floating ? floatTransform : 'translate(0, 0) scale(1)',
           }}
         >
-          <LichtCompanion size="large" />
+          {/* First launch: nothing chosen yet, and the very next screen introduces
+              "Verlässlich" - so the splash shows that same being, not the
+              stored default (which used to be a differently coloured one). */}
+          <LichtCompanion size="large" beingOverride={settings.companionChosen ? undefined : getLichtwesen('verlaesslich')} />
         </div>
         <p
           className="mt-5 text-[22px]"

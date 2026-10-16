@@ -10,7 +10,9 @@ import { BrowserTabNotice } from '../../components/shared/BrowserTabNotice';
 import { useT } from '../../i18n';
 import { bridgesRepo } from './bridgesRepo';
 import { createId } from '../../services/storage/repository';
-import { suggestedImage } from '../../services/suggestedImages';
+import { symbolImage } from '../../components/shared/symbolImage';
+import { builtInBridgeColor } from '../../components/shared/itemColors';
+import { isAcceptableSharedImage } from '../../services/shareImage';
 import { CONNECTION_ITEMS_DE } from '../zugang/zugangContent';
 import { categoryForValues } from './bridgeValues';
 import type { BridgeLevel } from '../../data/types';
@@ -25,6 +27,7 @@ interface SharedBridgePayload {
   levels: BridgeLevel[];
   tip?: string;
   from?: string;
+  image?: string;
 }
 
 /** Same no-backend, link-encoded approach as the resource import. */
@@ -57,11 +60,8 @@ export function BridgeImportPage() {
       connectionTags: values.length > 0 ? values : undefined,
       linkedNeeds: Array.isArray(payload.linkedNeeds) ? payload.linkedNeeds.filter((n) => typeof n === 'string').slice(0, 30) : undefined,
       reflection: typeof payload.reflection === 'string' ? payload.reflection : undefined,
-      // Same fix as ResourceImportPage.tsx: an empty string technically
-      // satisfies the required `image: string` type but still renders
-      // as a blank card — the exact functional bug the type change
-      // alone doesn't catch. A real suggested photo, never blank.
-      image: suggestedImage(payload.title, 'sonstiges'),
+      // the sender's picture if it came along, else the drawn symbol picture (never a blank card)
+      image: isAcceptableSharedImage(payload.image) ? payload.image : symbolImage(payload.title, builtInBridgeColor(categoryForValues(values, 'sonstiges')), '🌉'),
       description: payload.categoryLabel
         ? [payload.description, t.bridges.importedFromCategory.replace('{category}', payload.categoryLabel)]
             .filter(Boolean)

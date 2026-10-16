@@ -198,7 +198,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
           <input type="checkbox" className="mt-0.5" checked={inNetwork} onChange={(e) => setInNetwork(e.target.checked)} />
           <span>
             <span className="block text-[13px] text-[var(--color-text)]">{t.resources.inNetworkToggle}</span>
-            <span className="block text-[11.5px] text-[var(--color-text-faint)]">{t.resources.inNetworkHint}</span>
+            <span data-hint className="block text-[11.5px] text-[var(--color-text-faint)]">{t.resources.inNetworkHint}</span>
           </span>
         </label>
 
@@ -250,7 +250,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
         {kind === 'hilfsmittel' && (
         <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
           <p className="text-[13px] font-semibold text-[var(--color-text)] mb-1">{t.resources.hilfsmittelSection4Title}</p>
-          <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.hilfsmittelSection4Hint}</p>
+          <p data-hint className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.resources.hilfsmittelSection4Hint}</p>
           <div className="flex flex-col gap-3">
             <Field label={t.resources.hilfsmittelPlatzZuhauseLabel}>
               <input className="input" placeholder={t.resources.hilfsmittelPlatzZuhausePlaceholder} value={platzZuhause} onChange={(e) => setPlatzZuhause(e.target.value)} />

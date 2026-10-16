@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Maximize2, X, Printer } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
@@ -239,6 +240,15 @@ export function MeineEntwicklungPage() {
             </div>
           </>
         )}
+
+        <div className="flex flex-col items-center gap-2 mt-6">
+          <Link to="/wochenrueckblick" className="text-[13px] text-[var(--color-primary)] underline underline-offset-2">
+            {t.weeklyReview.title}
+          </Link>
+          <Link to="/entdecken/tageskurve" className="text-[13px] text-[var(--color-primary)] underline underline-offset-2">
+            {t.polyvagal.arousalChronicleTitle}
+          </Link>
+        </div>
 
         <DailyReviewsPrintView
           sortedDays={sortedDays}

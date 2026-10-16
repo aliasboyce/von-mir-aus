@@ -194,7 +194,7 @@ export function SkillketteRunPage() {
           <>
             <div className="rounded-[var(--radius-xl)] py-5 my-4 text-center" style={{ background: 'var(--color-surface-muted)' }}>
               <p className="text-[44px] font-light tabular-nums leading-none text-[var(--color-primary)]">{formatTime(elapsed)}</p>
-              <p className="text-[12.5px] text-[var(--color-text-muted)] mt-2.5 px-6 leading-relaxed">{t.skillRun.chainHint}</p>
+              <p data-hint className="text-[12.5px] text-[var(--color-text-muted)] mt-2.5 px-6 leading-relaxed">{t.skillRun.chainHint}</p>
             </div>
 
             {steps.length === 0 ? (

@@ -1,13 +1,18 @@
 import type { Resource } from '../types';
-import { suggestImagesFor } from '../../components/shared/imageSuggestionLibrary';
+import { symbolImage } from '../../components/shared/symbolImage';
+import { builtInResourceColor, NEUTRAL_COLOR } from '../../components/shared/itemColors';
 
 const now = new Date().toISOString();
 // Point 4 — each seed example now gets an image that's actually about
 // its own theme (a book icon for a reading resource, a teacup for
 // warmth), not an arbitrary photo from a random seed string.
-const img = (name: string) => suggestImagesFor(name)[0];
+// The real picture is drawn from title + category colour (see withSymbols below);
+// the old stock photos did not match the subject, so no URL is stored here.
+const img = (_name: string) => '';
+const withSymbols = <T extends { title: string; category: string; image: string }>(list: T[]): T[] =>
+  list.map((r) => ({ ...r, image: symbolImage(r.title, builtInResourceColor(r.category) ?? NEUTRAL_COLOR) }));
 
-export const DEMO_RESOURCES: Resource[] = [
+const RAW_DEMO_RESOURCES: Resource[] = [
   {
     id: 'res_waldspaziergang',
     title: 'Waldspaziergang',
@@ -66,7 +71,7 @@ export const DEMO_RESOURCES: Resource[] = [
  * so existing installs gain them without losing anything they already
  * have — see that function's own comment for why.
  */
-export const DBT_SKILL_RESOURCES: Resource[] = [
+const RAW_DBT_SKILL_RESOURCES: Resource[] = [
   {
     id: 'res_skill_tipp',
     title: 'TIPP-Skills',
@@ -668,7 +673,7 @@ export const DBT_SKILL_RESOURCES: Resource[] = [
 ];
 
 /** A few gentle starter Aktivitäten & Beschäftigung — added once (services/migrations.ts), then the person's own. */
-export const STARTER_AKTIVITAETEN: Resource[] = [
+const RAW_STARTER_AKTIVITAETEN: Resource[] = [
   {
     id: 'res_akt_spazieren',
     title: 'Eine Runde gehen',
@@ -760,3 +765,7 @@ export const STARTER_AKTIVITAETEN: Resource[] = [
     updatedAt: now,
   },
 ];
+
+export const DEMO_RESOURCES: Resource[] = withSymbols(RAW_DEMO_RESOURCES);
+export const DBT_SKILL_RESOURCES: Resource[] = withSymbols(RAW_DBT_SKILL_RESOURCES);
+export const STARTER_AKTIVITAETEN: Resource[] = withSymbols(RAW_STARTER_AKTIVITAETEN);

@@ -6,6 +6,7 @@ import { SKILL_CATEGORY_ZONE_COLOR, RESOURCE_CATEGORY_TO_GROUP } from '../../fea
 import { BRIDGE_CATEGORY_META } from '../../features/bridges/bridgeMeta';
 import { useT } from '../../i18n';
 import { createCustomCategoryStore } from '../../services/customCategories';
+import { RESOURCE_GROUP_COLOR as GROUP_COLOR, BRIDGE_GROUP_COLOR, NEUTRAL_COLOR } from './itemColors';
 
 const customResourceCategories = createCustomCategoryStore('resource-custom-categories');
 
@@ -17,19 +18,7 @@ const customResourceCategories = createCustomCategoryStore('resource-custom-cate
  * colour belongs to the item's category — the same colours the main pages use.
  */
 
-const GROUP_COLOR: Record<string, string> = {
-  faehigkeiten: '#c9522f',
-  hilfsmittel: '#4a9d8f',
-  orte_gruppe: '#4a6fa5',
-  aktivitaeten: '#e8a83d',
-};
-const BRIDGE_GROUP_COLOR: Record<string, string> = {
-  intrapersonell: '#8fae3d',
-  interpersonell: '#d17a9a',
-  temporal: '#9a7bc4',
-  transzendent: '#4a6fa5',
-};
-const NEUTRAL = '#9a948a';
+const NEUTRAL = NEUTRAL_COLOR;
 export const CHAIN_COLOR = '#c9522f';
 
 export function resourceColor(category: ResourceCategory | string): string {

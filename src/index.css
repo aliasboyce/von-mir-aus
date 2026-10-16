@@ -586,6 +586,12 @@ button {
  * wildly instead of calming down. Now every animation runs once (so one-off
  * entrances still just finish), endless ones stop, purely decorative falling
  * things (.ambient-fall) disappear, and the soft glow stays as a still glow. */
+/* "Ich kenne mich aus": hides only the small hint / example / instruction lines (marked data-hint).
+ * Info texts and the ? help buttons are deliberately never marked. */
+[data-minimal-hints='true'] [data-hint] {
+  display: none !important;
+}
+
 [data-reduce-motion='true'] * {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;

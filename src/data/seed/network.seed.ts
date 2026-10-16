@@ -13,7 +13,7 @@ const now = new Date().toISOString();
  * suggested list exactly. No connections between them (a real
  * person's own network is theirs to draw, not inherited from a demo).
  */
-export const DEMO_NETWORK: NetworkEntry[] = [
+const RAW_DEMO_NETWORK: NetworkEntry[] = [
   {
     id: 'net_aerztin',
     name: 'Ärztin',
@@ -108,3 +108,5 @@ export const DEMO_NETWORK: NetworkEntry[] = [
     updatedAt: now,
   },
 ];
+
+export const DEMO_NETWORK: NetworkEntry[] = RAW_DEMO_NETWORK.map((e) => ({ ...e, isExample: true }));

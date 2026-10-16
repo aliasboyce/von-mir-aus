@@ -20,7 +20,7 @@ export function FavoritesPage() {
   const t = useT();
   const favoriteResources = resourcesRepo.getAll().filter((r) => r.favorite);
   const favoriteBridges = bridgesRepo.getAll().filter((b) => b.favorite);
-  const importantContacts = networkRepo.getAll().filter((e) => e.isImportantContact);
+  const importantContacts = networkRepo.getAll().filter((e) => e.isImportantContact && !e.isExample);
 
   const totalCount = favoriteResources.length + favoriteBridges.length + importantContacts.length;
 

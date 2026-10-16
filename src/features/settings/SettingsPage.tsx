@@ -365,6 +365,14 @@ export function SettingsPage() {
             checked={settings.reduceMotion}
             onChange={(v) => updateSettings({ reduceMotion: v })}
           />
+          <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+            <ToggleRow
+              label={t.settings.minimalHints}
+              checked={!!settings.minimalHints}
+              onChange={(v) => updateSettings({ minimalHints: v })}
+            />
+            <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.minimalHintsHint}</p>
+          </div>
         </Card>
 
         <Card className="mb-6" padding="md">

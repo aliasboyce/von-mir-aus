@@ -9,14 +9,17 @@
   align-items: center;
   justify-content: center;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
 }
 
 .lichtwesen__glow {
   position: absolute;
   inset: -30%;
   border-radius: 50%;
-  filter: blur(2px);
+  /* no blur filter: the radial gradient is already soft, and a blur on an
+   * animated layer was repainted every frame (stutter on phones) */
   pointer-events: none;
+  will-change: transform, opacity;
   animation: lichtwesen-glow-pulse 4s ease-in-out infinite;
 }
 
@@ -210,6 +213,7 @@
   align-items: flex-end;
   gap: 8px;
   transition: bottom 0.3s ease;
+  will-change: transform;
 }
 
 /* On desktop the app renders as a centered card narrower than the browser

@@ -178,7 +178,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
         <section className="flex flex-col gap-2.5">
           <div>
             <h3 className="text-[16px] text-[var(--color-text)]">{b.connectionTagsLabel}</h3>
-            <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mt-0.5">{b.connectionTagsHint}</p>
+            <p data-hint className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mt-0.5">{b.connectionTagsHint}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {CONNECTION_ITEMS_DE.map((v) => (
@@ -203,7 +203,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
           title={b.linkedNeedsLabel}
           summary={needs.length > 0 ? needs.join(', ') : suggestedNeeds.length > 0 ? b.needsFromValues.replace('{n}', String(suggestedNeeds.length)) : b.needsNone}
         >
-          <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed -mt-1">{b.linkedNeedsHint}</p>
+          <p data-hint className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed -mt-1">{b.linkedNeedsHint}</p>
           {suggestedNeeds.length > 0 && (
             <div>
               <p className="text-[12.5px] font-medium text-[var(--color-text)] mb-1.5">{b.needsSuggested}</p>
@@ -244,7 +244,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
         <section className="flex flex-col gap-3">
           <div>
             <h3 className="text-[16px] text-[var(--color-text)]">{b.levelsLabel}</h3>
-            <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mt-0.5">{b.stepsHint}</p>
+            <p data-hint className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mt-0.5">{b.stepsHint}</p>
           </div>
           {ideas.length > 0 && (
             <div>
@@ -290,7 +290,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
         <Fold title={b.moreTitle} summary={b.moreSummary}>
           <div>
             <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{b.linkedObstaclesLabel}</span>
-            <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{b.linkedObstaclesHint}</p>
+            <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-2">{b.linkedObstaclesHint}</p>
             <div className="flex flex-wrap gap-2">
               {[...OBSTACLES_DE, ...customObstacles].map((v) => (
                 <PickChip key={v} selected={(draft.linkedObstacles ?? []).includes(v)} onClick={() => setDraft({ ...draft, linkedObstacles: toggleIn(draft.linkedObstacles ?? [], v) })}>

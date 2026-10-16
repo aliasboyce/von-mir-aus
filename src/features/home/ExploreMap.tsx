@@ -48,7 +48,7 @@ export function ExploreMap() {
 
   return (
     <div className="explore-map overflow-x-clip">
-      <p className="relative z-10 text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mb-12">{t.explore.mapHint}</p>
+      <p data-hint className="relative z-10 text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mb-12">{t.explore.mapHint}</p>
 
       {/* the neutral centre */}
       <div className="flex flex-col items-center mb-5">

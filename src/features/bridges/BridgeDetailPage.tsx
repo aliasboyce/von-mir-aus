@@ -1,3 +1,4 @@
+import { imageForShare } from '../../services/shareImage';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSettings } from '../../state/SettingsContext';
@@ -170,6 +171,7 @@ export function BridgeDetailPage() {
     const payload = {
       title: bridge.title,
       description: bridge.description,
+      image: await imageForShare(bridge.image),
       connectionTags: bridge.connectionTags,
       linkedNeeds: bridge.linkedNeeds,
       reflection: bridge.reflection,
@@ -461,7 +463,7 @@ export function BridgeDetailPage() {
           })}
         </div>
         {bridge.levels.length > 1 && (
-          <p className="text-[11px] text-[var(--color-text-faint)] -mt-3 mb-4">{t.bridges.multiLevelHint}</p>
+          <p data-hint className="text-[11px] text-[var(--color-text-faint)] -mt-3 mb-4">{t.bridges.multiLevelHint}</p>
         )}
         <button onClick={() => setShowAccessGap(true)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
           🌉 {t.bridges.accessGapEntryCta}
@@ -518,7 +520,7 @@ export function BridgeDetailPage() {
             {t.resources.exportPdf}
           </Button>
         </div>
-        <p className="text-[11px] text-[var(--color-text-faint)] mt-1.5 leading-relaxed">{t.resources.shareVsPdfHint}</p>
+        <p data-hint className="text-[11px] text-[var(--color-text-faint)] mt-1.5 leading-relaxed">{t.resources.shareVsPdfHint}</p>
 
         {activeLevel && (
           <p className="sr-only" role="status">

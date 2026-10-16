@@ -462,7 +462,7 @@ export function DiaryPage() {
                   <input type="checkbox" className="mt-0.5" checked={draftInReview} onChange={(e) => setDraftInReview(e.target.checked)} />
                   <span>
                     <span className="block text-[13px] text-[var(--color-text)]">{t.diary.inReviewToggle}</span>
-                    <span className="block text-[11.5px] text-[var(--color-text-faint)]">{t.diary.inReviewHint}</span>
+                    <span data-hint className="block text-[11.5px] text-[var(--color-text-faint)]">{t.diary.inReviewHint}</span>
                   </span>
                 </label>
 

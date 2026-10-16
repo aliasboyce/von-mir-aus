@@ -251,7 +251,7 @@ export function WeatherWheel({ onSelect, selected }: WeatherWheelProps) {
         </div>
       </div>
       </div>
-      <p className="text-[12px] text-[var(--color-text-faint)] text-center max-w-[280px]">{t.weather.wheelDragHint}</p>
+      <p data-hint className="text-[12px] text-[var(--color-text-faint)] text-center max-w-[280px]">{t.weather.wheelDragHint}</p>
     </div>
   );
 }

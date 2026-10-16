@@ -8,7 +8,6 @@ import { HelpButton } from '../../components/navigation/HelpButton';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Chip } from '../../components/ui/Chip';
-import { EmptyState } from '../../components/ui/EmptyState';
 import { useT } from '../../i18n';
 import { denkmaschineRepo, addGlaubenssatzNote, obstaclesFromZugangHistory } from './denkmaschineRepo';
 import { DefusionBillboardExercise, AnchorExercise, WordsExercise } from './DenkmaschineExercises';
@@ -53,7 +52,9 @@ export function DenkmaschinePage() {
   }
 
   const ownNotes = denkmaschineRepo.getAll();
-  const fromHistory = obstaclesFromZugangHistory().filter((h) => !ownNotes.some((n) => n.text === h.text));
+  // Only real thoughts (written as a quote, e.g. „Ich muss das alleine schaffen.“) come over from
+  // the Zugang obstacles — practical ones like "Zeitmangel" are not thoughts and do not belong here.
+  const fromHistory = obstaclesFromZugangHistory().filter((h) => /^[„"“]/.test(h.text.trim()) && !ownNotes.some((n) => n.text === h.text));
 
   function openThought(text: string, noteId?: string) {
     const existing = ownNotes.find((n) => n.id === noteId);
@@ -159,7 +160,14 @@ export function DenkmaschinePage() {
         )}
 
         {!hasAny ? (
-          <EmptyState title={t.glaubenssaetze.empty} />
+          <div className="flex flex-col gap-2">
+            <button onClick={() => openThought(t.glaubenssaetze.exampleThought)} className="text-left w-full" data-testid="denk-example">
+              <Card interactive className="flex flex-col gap-1.5">
+                <span className="text-[11px] text-[var(--color-text-faint)]">{t.glaubenssaetze.exampleTag}</span>
+                <p className="text-[14px] text-[var(--color-text)]">{t.glaubenssaetze.exampleThought}</p>
+              </Card>
+            </button>
+          </div>
         ) : (
           <div className="flex flex-col gap-2">
             {ownNotes.map((note) => (

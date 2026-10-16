@@ -7,6 +7,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
+import { netExampleTexts } from './exampleTexts';
 import { categoryLabel, helpsWithLabel } from './networkMeta';
 import { getIcon } from '../../components/icons/networkIcons';
 import { NetworkEntryForm } from './NetworkEntryForm';
@@ -45,6 +46,7 @@ export function NetworkDetailModal({
 
   if (!entry) return null;
 
+  const EX = netExampleTexts(settings.language === 'en' ? 'en' : 'de');
   const active = draft ?? entry;
   const category = categories.find((c) => c.id === active.category) ?? categories[0];
   const Icon = getIcon(active.iconKey, category.iconKey);
@@ -118,6 +120,23 @@ export function NetworkDetailModal({
             </div>
           </div>
 
+          {active.isExample && (
+            <div
+              data-testid="network-example-detail"
+              className="rounded-[var(--radius-md)] px-3 py-2.5 text-[13px] text-[var(--color-text-muted)]"
+              style={{ border: '1.5px dashed var(--color-border-strong)', background: 'var(--color-surface-muted)' }}
+            >
+              <p className="mb-1.5">
+                <span className="text-[10.5px] uppercase tracking-wide rounded-full px-2 py-0.5 mr-2" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary-soft-text)' }}>
+                  {EX.badge}
+                </span>
+                {EX.detailHint}
+              </p>
+              <button type="button" onClick={() => onSave({ ...active, isExample: false })} className="text-[12px] text-[var(--color-primary)] underline underline-offset-2" data-testid="network-example-keep">
+                {EX.keep}
+              </button>
+            </div>
+          )}
           {active.description && <p className="text-[14px] text-[var(--color-text)]">{active.description}</p>}
           {active.whatHelps && (
             <div className="rounded-[var(--radius-md)] px-3 py-2.5" style={{ background: 'var(--color-primary-soft)' }}>

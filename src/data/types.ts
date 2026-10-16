@@ -137,6 +137,8 @@ export interface NetworkEntry {
   whatHelps?: string;
   /** Marks entries surfaced in the dedicated "Wichtige Kontakte" list (capped to 5 shown, rest reachable via "Alle Kontakte") */
   isImportantContact?: boolean;
+  /** ready-made example from the first start: marked "Beispiel", editable, deletable (all at once), never in contact lists on the home page */
+  isExample?: boolean;
   /**
    * Normalized position (0–1 on both axes) within the network graph canvas,
    * 0.5/0.5 being the center. Unset until the user drags the node for the
@@ -955,6 +957,8 @@ export interface UserSettings {
   /** optional per-section palette overrides, keyed by top-level route (e.g. '/bruecken') */
   pagePalettes?: Partial<Record<string, ThemePalette>>;
   reduceMotion: boolean;
+  /** "Ich kenne mich aus": hides only the small hint/example/instruction lines on pages (not info texts, not ? help). */
+  minimalHints?: boolean;
   /** "Haptisches Feedback"-Auftrag — Web Vibration API is the only
    * reliable haptics mechanism available in a PWA (no native haptics
    * without a wrapper like Capacitor). Default true, but must be
@@ -1087,12 +1091,13 @@ export const DEFAULT_SETTINGS: UserSettings = {
   themeMode: 'light',
   palette: 'neutral',
   reduceMotion: false,
+  minimalHints: false,
   hapticsEnabled: true,
   soundsEnabled: true,
   brainEnabled: true,
   brainState: 'awake',
   nurJetztMode: false,
-  selectedBrainId: 'froehlich',
+  selectedBrainId: 'verlaesslich',
   companionChosen: false,
   introSeen: false,
   remindersEnabled: false,

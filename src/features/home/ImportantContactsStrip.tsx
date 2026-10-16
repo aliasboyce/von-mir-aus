@@ -12,7 +12,7 @@ import { networkRepo } from '../safetyNet/networkRepo';
  */
 export function ImportantContactsStrip() {
   const t = useT();
-  const important = networkRepo.getAll().filter((e) => e.isImportantContact);
+  const important = networkRepo.getAll().filter((e) => e.isImportantContact && !e.isExample);
 
   if (important.length === 0) {
     return (

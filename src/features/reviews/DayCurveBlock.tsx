@@ -163,7 +163,7 @@ export function DayCurveBlock({ checkIns, skillUses, onPdf }: { checkIns: Polyva
       <CheckInTable checkIns={checkIns} />
 
       <Modal open={enlarged} onClose={() => setEnlarged(false)} title={t.reviewSummary.chartTitle}>
-        <p className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.reviewSummary.scrollHint}</p>
+        <p data-hint className="text-[11.5px] text-[var(--color-text-faint)] mb-2">{t.reviewSummary.scrollHint}</p>
         <div className="overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
           <ReviewDayChart checkIns={checkIns} expanded />
         </div>

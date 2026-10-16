@@ -103,7 +103,7 @@ export function IntentPickerModal({ onClose, onOpenGrounding }: { onClose: () =>
         {/* the complete overview: every page / function, by need, each expandable */}
         <div className="mt-5 pt-5 border-t border-[var(--color-border)]" data-testid="app-overview">
           <h3 className="text-[17px] text-[var(--color-text)] mb-1">{t.home.overviewTitle}</h3>
-          <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed mb-4">{t.home.overviewIntro}</p>
+          <p data-hint className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed mb-4">{t.home.overviewIntro}</p>
           <div className="flex flex-col gap-2.5">
             {OVERVIEW_GROUPS.map((g) => {
               const open = openGroup === g.id;

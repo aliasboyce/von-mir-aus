@@ -1,12 +1,13 @@
 import type { Resource } from '../types';
-import { suggestImagesFor } from '../../components/shared/imageSuggestionLibrary';
+import { symbolImage } from '../../components/shared/symbolImage';
+import { builtInResourceColor, NEUTRAL_COLOR } from '../../components/shared/itemColors';
 
 // Point 4 — delegates to the local themed SVG icon library instead of
 // picsum.photos (arbitrary photo per seed string, unrelated to what the
 // seed word actually meant). These seed keys were already short
 // semantic hints (e.g. 'res-buch'), which still work fine as keyword
 // input since the matcher does substring matching.
-const img = (seed: string) => suggestImagesFor(seed)[0];
+const img = (_seed: string) => '';
 
 /**
  * A curated pool of resource ideas the person hasn't saved themselves —
@@ -22,7 +23,7 @@ export interface ResourceImpulse extends Omit<Resource, 'id' | 'createdAt' | 'up
   impulseId: string;
 }
 
-export const RESOURCE_IMPULSES: ResourceImpulse[] = [
+const RAW_RESOURCE_IMPULSES: ResourceImpulse[] = [
   {
     impulseId: 'lieblingsbuch',
     title: 'Ein Buch, das du schon mal lesen wolltest',
@@ -231,3 +232,5 @@ export const RESOURCE_IMPULSES: ResourceImpulse[] = [
     favorite: false,
   },
 ];
+
+export const RESOURCE_IMPULSES: ResourceImpulse[] = RAW_RESOURCE_IMPULSES.map((r) => ({ ...r, image: symbolImage(r.title, builtInResourceColor(r.category) ?? NEUTRAL_COLOR) }));

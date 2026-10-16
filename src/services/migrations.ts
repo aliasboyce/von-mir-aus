@@ -10,7 +10,10 @@ import { LEGACY_HILFSMITTEL_CATEGORY } from '../content/hilfsmittelCategories';
 import { SEED_SKILL_FIT, seedFitFor } from '../content/seedSkillFit';
 import { ensureUmstaendeSeeded, type UmstandOption } from '../features/bridges/conditions';
 import { DEMO_BRIDGES } from '../data/seed/bridges.seed';
-import { STARTER_AKTIVITAETEN } from '../data/seed/resources.seed';
+import { DEMO_NETWORK } from '../data/seed/network.seed';
+import { STARTER_AKTIVITAETEN, DEMO_RESOURCES, DBT_SKILL_RESOURCES } from '../data/seed/resources.seed';
+import { RESOURCE_IMPULSES } from '../data/seed/resourceImpulses.seed';
+import { BRIDGE_IMPULSES } from '../data/seed/bridgeImpulses.seed';
 import { valuesForLegacyCategory } from '../features/bridges/bridgeValues';
 
 /**
@@ -239,6 +242,45 @@ function migrateBridgeValues() {
   bridgeValuesV1.set(true);
 }
 
+const symbolImagesV1 = createKeyValueStore<boolean>('migration-seed-symbol-images-v1', false);
+
+/** The ready-made skills, activities, bridges and adopted impulses used random stock photos that
+ * did not match their subject. They now get a drawn picture with a fitting symbol in the colour of
+ * their category. Only items that still carry such a stock photo are touched - own photos stay. */
+function migrateSeedSymbolImages() {
+  if (symbolImagesV1.get()) return;
+  const isStock = (src?: string) => !!src && src.startsWith('https://picsum.photos/');
+  const resById = new Map([...DEMO_RESOURCES, ...DBT_SKILL_RESOURCES, ...STARTER_AKTIVITAETEN].map((r) => [r.id, r.image]));
+  const resByTitle = new Map(RESOURCE_IMPULSES.map((i) => [i.title, i.image]));
+  resourcesRepo.getAll().forEach((r) => {
+    const target = resById.get(r.id) ?? resByTitle.get(r.title);
+    if (target && isStock(r.image)) resourcesRepo.save({ ...r, image: target });
+  });
+  const bridgeById = new Map(DEMO_BRIDGES.map((b) => [b.id, b.image]));
+  const bridgeByTitle = new Map(BRIDGE_IMPULSES.map((i) => [i.title, i.image]));
+  bridgesRepo.getAll().forEach((b) => {
+    const target = bridgeById.get(b.id) ?? bridgeByTitle.get(b.title);
+    if (target && isStock(b.image)) bridgesRepo.save({ ...b, image: target });
+  });
+  symbolImagesV1.set(true);
+}
+
+const networkExamplesV1 = createKeyValueStore<boolean>('migration-network-examples-v1', false);
+
+/** The ready-made entries of the safety network are marked as examples now. Only those the person has not
+ * changed (same name, role and category, no phone or e-mail) get the mark. */
+function migrateNetworkExamples() {
+  if (networkExamplesV1.get()) return;
+  const demo = new Map(DEMO_NETWORK.map((e) => [e.id, e]));
+  networkRepo.getAll().forEach((e) => {
+    const d = demo.get(e.id);
+    if (d && !e.isExample && e.name === d.name && e.role === d.role && e.category === d.category && !e.phone && !e.email && !e.description) {
+      networkRepo.save({ ...e, isExample: true });
+    }
+  });
+  networkExamplesV1.set(true);
+}
+
 export function runStartupMigrations() {
   ensureResourcesReady();
   migrateEnergyScale();
@@ -251,4 +293,6 @@ export function runStartupMigrations() {
   migrateUmstaendeToGlobalList();
   seedAktivitaeten();
   migrateBridgeValues();
+  migrateSeedSymbolImages();
+  migrateNetworkExamples();
 }

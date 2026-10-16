@@ -8,23 +8,20 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useT } from '../../i18n';
 import { resourcesRepo } from './resourcesRepo';
 import { createId } from '../../services/storage/repository';
-import { suggestedImage } from '../../services/suggestedImages';
-import { isShareKind, type ShareKind } from '../../services/sharedLinks';
+import { symbolImage } from '../../components/shared/symbolImage';
+import { builtInResourceColor, NEUTRAL_COLOR } from '../../components/shared/itemColors';
+import { PhotoBackground } from '../../components/shared/PhotoBackground';
+import { isAcceptableSharedImage } from '../../services/shareImage';
+import { sanitizeDetails, sanitizeFit, sharedStr, sharedStrList, type SharedResourcePayload } from '../../services/resourceShare';
+import { addUmstand } from '../bridges/conditions';
+import { RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
+import { HILFSMITTEL_MAIN, subtypesFor } from '../../content/hilfsmittelCategories';
+import type { NeedDirection, AccessChannel, Resource } from '../../data/types';
+import { isShareKind } from '../../services/sharedLinks';
 import { SharedIdeaIntro, useSharedIdeaTexts } from '../../components/shared/SharedIdeaIntro';
 import { BrowserTabNotice } from '../../components/shared/BrowserTabNotice';
 import { useSettings } from '../../state/SettingsContext';
 import { ORTE_CATEGORY, AKTIVITAETEN_CATEGORY } from '../../content/hilfsmittelCategories';
-
-interface SharedResourcePayload {
-  title: string;
-  description?: string;
-  categoryLabel?: string;
-  link?: string;
-  note?: string;
-  tags?: string[];
-  from?: string;
-  kind?: ShareKind;
-}
 
 /**
  * No backend, no accounts - the shared resource's data travels entirely
@@ -34,12 +31,11 @@ interface SharedResourcePayload {
  * the sender's machine (localhost links aren't reachable by anyone else)
  * - see docs/open-issues.md for this limitation spelled out plainly.
  *
- * Deliberately excludes the image from the link - base64 image data
- * would make the URL far too long to share reliably via messaging apps.
- * Category travels as a plain label (not an id): the sender's custom
- * categories don't exist on the recipient's device, so the imported
- * resource always lands in "Sonstiges" with the original category name
- * folded into the note, rather than silently mismatching category ids.
+ * Everything the sender filled in travels along (see services/resourceShare.ts),
+ * including the picture as a small thumbnail. The category id is only used
+ * when it is a built-in one the receiving app knows; the sender's own custom
+ * categories don't exist here, so those land in "Sonstiges" (or Achtsamkeit
+ * for a skill) with the original category name folded into the note.
  */
 export function ResourceImportPage() {
   const t = useT();
@@ -65,31 +61,61 @@ export function ResourceImportPage() {
   function accept() {
     if (!payload) return;
     const now = new Date().toISOString();
-    resourcesRepo.save({
+    const lang = settings.language === 'en' ? 'en' : 'de';
+    const details = sanitizeDetails(payload);
+    const knownCategory = (c: unknown): c is string =>
+      typeof c === 'string' &&
+      (!!RESOURCE_CATEGORY_TO_GROUP[c] || c === 'sonstiges' || c === 'menschen' || c === ORTE_CATEGORY || c === AKTIVITAETEN_CATEGORY || (HILFSMITTEL_MAIN as readonly string[]).includes(c));
+    const category =
+      payload.kind === 'ort'
+        ? ORTE_CATEGORY
+        : payload.kind === 'aktivitaet'
+          ? AKTIVITAETEN_CATEGORY
+          : knownCategory(payload.category)
+            ? payload.category
+            : details.skillDetails
+              ? 'achtsamkeit'
+              : 'sonstiges';
+    const categoryWasKnown = knownCategory(payload.category) || payload.kind === 'ort' || payload.kind === 'aktivitaet';
+    const subcategory = payload.subcategory && subtypesFor(category).some((x) => x.id === payload.subcategory) ? payload.subcategory : undefined;
+    const needs = sharedStrList(payload.needs, 20) ?? [];
+    const image = isAcceptableSharedImage(payload.image)
+      ? payload.image
+      : symbolImage(payload.title, builtInResourceColor(category) ?? NEUTRAL_COLOR);
+    const umstaende = (payload.umstaende ?? [])
+      .filter((u) => u && typeof u.label === 'string' && u.label.trim())
+      .slice(0, 12)
+      .map((u) => addUmstand(u.label.slice(0, 80)).key);
+    const resource: Resource = {
       id: createId('resource'),
-      title: payload.title,
-      description: payload.description,
-      category: payload.kind === 'ort' ? ORTE_CATEGORY : payload.kind === 'aktivitaet' ? AKTIVITAETEN_CATEGORY : 'sonstiges',
-      // The share-link deliberately can't carry the sender's actual
-      // picked photo (see file header) — this is a real, keyword-matched
-      // suggested photo as a sensible default, never a blank card or an
-      // icon placeholder. The recipient can change it via the normal
-      // edit flow like any other resource.
-      image: suggestedImage(payload.title, 'sonstiges'),
+      title: payload.title.slice(0, 300),
+      description: sharedStr(payload.description),
+      category,
+      subcategory,
+      image,
       note:
         [
-          payload.from ? (settings.language === 'en' ? `Shared by ${payload.from} as an idea` : `Von ${payload.from} als Idee geteilt`) : undefined,
-          payload.note,
-          payload.categoryLabel ? t.resources.importedFromCategory.replace('{category}', payload.categoryLabel) : undefined,
+          payload.from ? (lang === 'en' ? `Shared by ${payload.from} as an idea` : `Von ${payload.from} als Idee geteilt`) : undefined,
+          sharedStr(payload.note),
+          needs.length ? (lang === 'en' ? `Needed for this: ${needs.join(', ')}` : `Dafür gebraucht: ${needs.join(', ')}`) : undefined,
+          !categoryWasKnown && payload.categoryLabel ? t.resources.importedFromCategory.replace('{category}', payload.categoryLabel) : undefined,
         ]
           .filter(Boolean)
           .join('\n') || undefined,
-      link: payload.link,
-      tags: payload.tags ?? [],
+      link: sharedStr(payload.link, 2000),
+      tags: sharedStrList(payload.tags, 20) ?? [],
+      umstaende: umstaende.length ? umstaende : undefined,
+      linkedNeeds: Array.isArray(payload.linkedNeeds) && payload.linkedNeeds.length ? (sharedStrList(payload.linkedNeeds, 12) as NeedDirection[]) : undefined,
+      energyLevel: payload.energyLevel === 1 || payload.energyLevel === 2 || payload.energyLevel === 3 || payload.energyLevel === 4 ? payload.energyLevel : undefined,
+      fit: sanitizeFit(payload.fit),
+      accessChannels: Array.isArray(payload.accessChannels) && payload.accessChannels.length ? (sharedStrList(payload.accessChannels, 12) as AccessChannel[]) : undefined,
+      skillDetails: details.skillDetails,
+      hilfsmittelDetails: details.hilfsmittelDetails,
       favorite: false,
       createdAt: now,
       updatedAt: now,
-    });
+    };
+    resourcesRepo.save(resource);
     setSaved(true);
   }
 
@@ -110,6 +136,9 @@ export function ResourceImportPage() {
             <BrowserTabNotice />
             <SharedIdeaIntro kind={payload.kind} from={payload.from} />
             <Card className="mb-5">
+              {isAcceptableSharedImage(payload.image) && (
+                <PhotoBackground src={payload.image} className="w-full h-40 rounded-[var(--radius-md)] bg-cover bg-center mb-3" />
+              )}
               {payload.categoryLabel && (
                 <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1">
                   {payload.categoryLabel}

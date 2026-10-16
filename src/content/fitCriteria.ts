@@ -14,7 +14,9 @@ import type { AccessChannel } from '../data/types';
  *  - effort   wie viel Einsatz/Motivation er kostet (1 kaum … 3 darf richtig kosten)
  *
  * Matching semantics (see matchesFit):
- *  - Energie: exact — kept as the person explicitly asked.
+ *  - Energie: "so viel oder weniger" — with more energy than something needs, it
+ *    still shows (a warm blanket stays available on a good day). Entries without
+ *    an energy marking count as unmarked.
  *  - Zugangskanäle: an entry fits when it works through at least ONE channel
  *    that is available right now (same idea as the channel switching in
  *    Zugang: it is enough that one door is open).
@@ -90,7 +92,8 @@ type CriterionResult = 'ok' | 'no' | 'unmarked';
 function evaluate(s: FitSubject, f: FitFilter): CriterionResult[] {
   const out: CriterionResult[] = [];
   if (f.energy !== null) {
-    out.push(!s.energy ? 'unmarked' : f.energy >= s.energy[0] && f.energy <= s.energy[1] ? 'ok' : 'no');
+    // the lowest energy it needs must not exceed what is there (for a Skillkette: it can be started)
+    out.push(!s.energy ? 'unmarked' : s.energy[0] <= f.energy ? 'ok' : 'no');
   }
   if (f.minutes !== null) {
     const m = s.fit?.minutes;

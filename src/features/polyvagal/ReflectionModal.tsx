@@ -78,7 +78,7 @@ export function ReflectionModal({ checkIn, onClose, onSaved }: ReflectionModalPr
             style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', resize: 'vertical' }}
           />
         </label>
-        <p className="text-[11.5px] text-[var(--color-text-faint)] leading-relaxed mb-4">{t.polyvagal.reflectionHint}</p>
+        <p data-hint className="text-[11.5px] text-[var(--color-text-faint)] leading-relaxed mb-4">{t.polyvagal.reflectionHint}</p>
         <button onClick={save} className="w-full py-3 rounded-full text-[14px]" style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}>
           {t.common.save}
         </button>

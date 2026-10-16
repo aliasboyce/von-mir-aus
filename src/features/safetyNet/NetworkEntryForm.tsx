@@ -256,7 +256,7 @@ export function NetworkEntryForm({
             })}
           </div>
         )}
-        <p className="text-[11px] text-[var(--color-text-faint)] mt-2">{t.network.paletteHint}</p>
+        <p data-hint className="text-[11px] text-[var(--color-text-faint)] mt-2">{t.network.paletteHint}</p>
       </Field>
 
       <Field label={t.network.helpsWithLabel}>
@@ -357,7 +357,7 @@ export function NetworkEntryForm({
 
           {allPersonEntries.filter((p) => p.id !== draft.id).length > 0 && (
             <Field label={`${t.network.connections} ${t.common.optional}`}>
-              <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.network.connectionsHint}</p>
+              <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.network.connectionsHint}</p>
               <div className="flex flex-wrap gap-2">
                 {allPersonEntries
                   .filter((p) => p.id !== draft.id)
@@ -389,7 +389,7 @@ export function NetworkEntryForm({
 
       {(draft.category === 'ressource' || draft.category === 'hilfsmittel' || draft.category === 'ort' || draft.category === 'aktivitaet') && relevantResources.length > 0 && (
         <Field label={`${t.network.linkedResource} ${t.common.optional}`}>
-          <p className="text-[11px] text-[var(--color-text-faint)] -mt-1 mb-1">{t.network.linkedResourceHint}</p>
+          <p data-hint className="text-[11px] text-[var(--color-text-faint)] -mt-1 mb-1">{t.network.linkedResourceHint}</p>
           <select
             className="input"
             value={draft.linkedResourceId ?? ''}

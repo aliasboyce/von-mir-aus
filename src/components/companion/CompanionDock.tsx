@@ -108,6 +108,10 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     return () => window.removeEventListener('resize', reclamp);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scale]);
+  const dockRef = useRef<HTMLDivElement>(null);
+  const dragBounds = useRef<{ minX: number; maxX: number; minY: number; maxY: number } | null>(null);
+  const liveOffset = useRef<{ x: number; y: number }>(offset);
+  const dragFrame = useRef<number | null>(null);
   const [picked, setPicked] = useState(false);
   const [justReleased, setJustReleased] = useState(false);
   const [joyBurst, setJoyBurst] = useState<'hop' | 'spin' | 'wobble' | 'dance' | null>(null);
@@ -229,8 +233,8 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
   // sit behind the bottom nav.
   const CLAMP_MARGIN = 8;
 
-  function clampOffset(next: { x: number; y: number }): { x: number; y: number } {
-    if (typeof window === 'undefined') return next;
+  function computeBounds(): { minX: number; maxX: number; minY: number; maxY: number } {
+    if (typeof window === 'undefined') return { minX: -1e6, maxX: 1e6, minY: -1e6, maxY: 0 };
     // A larger companion needs a bigger margin from the edges, or scaling
     // up could push part of it off-screen even at a position that was
     // perfectly fine at the default size.
@@ -258,27 +262,53 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     const minX = -(effectiveWidth - sizeAllowance * 1.42);
     const maxY = 0;
     const minY = -(window.innerHeight - bottomOffset - 140 * scale);
+    return { minX, maxX, minY, maxY };
+  }
+
+  function clampWith(b: { minX: number; maxX: number; minY: number; maxY: number }, next: { x: number; y: number }): { x: number; y: number } {
     return {
-      x: Math.max(minX + CLAMP_MARGIN, Math.min(maxX - CLAMP_MARGIN, next.x)),
-      y: Math.max(minY + CLAMP_MARGIN, Math.min(maxY - CLAMP_MARGIN, next.y)),
+      x: Math.max(b.minX + CLAMP_MARGIN, Math.min(b.maxX - CLAMP_MARGIN, next.x)),
+      y: Math.max(b.minY + CLAMP_MARGIN, Math.min(b.maxY - CLAMP_MARGIN, next.y)),
     };
+  }
+
+  function clampOffset(next: { x: number; y: number }): { x: number; y: number } {
+    if (typeof window === 'undefined') return next;
+    return clampWith(computeBounds(), next);
+  }
+
+  // Dragging is moved by writing the transform straight onto the element
+  // (one write per frame) instead of a React state update per pointer move,
+  // and the limits are measured once when the drag starts - re-rendering the
+  // whole dock and reading computed styles on every move made it stutter on
+  // phones. The state is set once when the finger lets go.
+  function paintOffset(o: { x: number; y: number }) {
+    if (dockRef.current) dockRef.current.style.transform = `translate(${o.x}px, ${o.y}px) scale(${scale})`;
   }
 
   function handleDragStart(e: React.PointerEvent) {
     (e.target as Element).setPointerCapture(e.pointerId);
     dragStart.current = { x: e.clientX, y: e.clientY, offsetX: offset.x, offsetY: offset.y, moved: false };
+    dragBounds.current = computeBounds();
+    liveOffset.current = offset;
     setPicked(true);
   }
 
   function handleDragMove(e: React.PointerEvent) {
-    if (!dragStart.current) return;
+    if (!dragStart.current || !dragBounds.current) return;
     const dx = e.clientX - dragStart.current.x;
     const dy = e.clientY - dragStart.current.y;
     if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
       dragStart.current.moved = true;
     }
     if (dragStart.current.moved) {
-      setOffset(clampOffset({ x: dragStart.current.offsetX + dx, y: dragStart.current.offsetY + dy }));
+      liveOffset.current = clampWith(dragBounds.current, { x: dragStart.current.offsetX + dx, y: dragStart.current.offsetY + dy });
+      if (dragFrame.current === null) {
+        dragFrame.current = requestAnimationFrame(() => {
+          dragFrame.current = null;
+          paintOffset(liveOffset.current);
+        });
+      }
     }
   }
 
@@ -286,14 +316,19 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     if (!dragStart.current) return;
     const wasDrag = dragStart.current.moved;
     dragStart.current = null;
+    dragBounds.current = null;
+    if (dragFrame.current !== null) {
+      cancelAnimationFrame(dragFrame.current);
+      dragFrame.current = null;
+    }
     setPicked(false);
     setJustReleased(true);
     setTimeout(() => setJustReleased(false), 320);
     if (wasDrag) {
-      setOffset((current) => {
-        setCompanionOffset(current);
-        return current;
-      });
+      const final = liveOffset.current;
+      paintOffset(final);
+      setOffset(final);
+      setCompanionOffset(final);
     } else {
       // Not a drag — treat it as the usual tap that opens the menu.
       setMenuOpen((v) => !v);
@@ -378,7 +413,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         {menuOpen && (
           <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right', maxWidth: `calc(${scale} * min(300px, 100vw - 32px))` }}>
             <div className="flex items-start justify-between gap-2">
-              <p className="companion-menu__hint">{t.companion.moveHint}</p>
+              <p data-hint className="companion-menu__hint">{t.companion.moveHint}</p>
               <button onClick={() => setMenuOpen(false)} aria-label={t.common.close} className="companion-menu__close">
                 <X size={15} />
               </button>
@@ -462,6 +497,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
 
   return (
     <div
+      ref={dockRef}
       className="companion-dock"
       style={{
         bottom: bottomOffset,
@@ -492,7 +528,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
       {menuOpen && (
         <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right', maxWidth: `calc(${scale} * min(300px, 100vw - 32px))` }}>
             <div className="flex items-start justify-between gap-2">
-              <p className="companion-menu__hint">{t.companion.moveHint}</p>
+              <p data-hint className="companion-menu__hint">{t.companion.moveHint}</p>
               <button onClick={() => setMenuOpen(false)} aria-label={t.common.close} className="companion-menu__close">
                 <X size={15} />
               </button>

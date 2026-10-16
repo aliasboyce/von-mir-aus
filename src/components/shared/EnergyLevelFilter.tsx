@@ -9,18 +9,17 @@ import { EnergyOrb } from './EnergyOrb';
  * page, no mandatory step. Selecting a level is a simple local filter
  * a person can ignore entirely.
  *
- * EXACT-match semantics (corrected after explicit feedback — the
- * earlier version used "at or below", showing untagged items too;
- * that's not what was asked for): once a level is selected, ONLY
- * items saved with exactly that energy level are shown — including
- * hiding untagged items. A clearly visible "Energielevel ausblenden"
- * link appears whenever a filter is active, resetting to show
+ * "So viel oder weniger" semantics: once a level is selected, everything that
+ * needs this much energy OR LESS is shown (with plenty of energy a warm blanket
+ * is still welcome). Items without an energy marking stay hidden. A clearly
+ * visible "Energielevel ausblenden" link appears whenever a filter is active,
+ * resetting to show
  * everything again. Resources only — Bridges already have their own
  * "levels" progression and don't use this filter at all.
  */
 export function energyExactMatch<T extends { energyLevel?: EnergyLevel }>(items: T[], level: EnergyLevel | null): T[] {
   if (level === null) return items;
-  return items.filter((item) => item.energyLevel === level);
+  return items.filter((item) => item.energyLevel !== undefined && item.energyLevel <= level);
 }
 
 export function EnergyLevelFilter({ value, onChange, hideQuestion = false }: { value: EnergyLevel | null; onChange: (v: EnergyLevel | null) => void; hideQuestion?: boolean }) {

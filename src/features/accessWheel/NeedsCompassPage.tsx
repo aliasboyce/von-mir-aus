@@ -228,7 +228,7 @@ export function NeedsCompassPage() {
               </button>
             ))}
           </div>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-6">{t.weather.needCategoryHint}</p>
+          <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-6">{t.weather.needCategoryHint}</p>
         </div>
 
         {need && (
@@ -345,7 +345,7 @@ export function NeedsCompassPage() {
         </button>
         {showFullNeedsList && (
           <div className="animate-in">
-            <p className="text-[12px] text-[var(--color-text-faint)] mb-4 leading-relaxed">{t.weather.fullNeedsListHint}</p>
+            <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-4 leading-relaxed">{t.weather.fullNeedsListHint}</p>
             <div className="flex flex-col gap-4">
               {NEED_CATEGORY_GROUPS.map((group) => (
                 <div key={group.id}>
