@@ -16,6 +16,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-routinen-und-tagesrahmen',
+    date: '2026',
+    items: [
+      'Neu: „Routinen & mein Garten“ unter Ressourcen. Du baust Routinen aus kleinen Karten (ein Schritt, Symbol oder Foto, optional Timer, Garten oder Ressource), spielst sie Karte für Karte ab und wischst jede fertige Karte nach rechts. Am Ende tanzt das Wesen, und die Dauer wird für den Rückblick festgehalten.',
+      'Neu: „Den Tag beginnen“ am Morgen und „Tag abschließen“ am Abend – eine ruhige Einladung mit dem Wesen, mit Kreuz wegklickbar und in den Einstellungen anpassbar. Erledigtes wird grün.',
+      'Garten: „Alternative für …“ (eine alte Schutzstrategie) und „Belohnung nach x Tagen“. Schutzstrategien haben neue Fragen und zeigen deine Einträge direkt auf der Seite.',
+      'Am Ende des Check-ins wirst du sanft gefragt, ob du noch ein Medikament eintragen, eine Routine starten oder etwas im Garten wachsen lassen möchtest. Im Zugang gibt es immer „Ich will eine Routine machen“. „Eine andere“ beim Erinnern des Wesens zeigt jetzt wirklich eine andere.',
+    ],
+    itemsEn: [
+      'New: “Routines & my garden” under Resources. You build routines from small cards (one step, symbol or photo, optionally a timer, garden or resource), play them card by card and swipe each finished card to the right. At the end the companion dances and the duration is kept for the review.',
+      'New: “Begin the day” in the morning and “Close the day” in the evening – a calm invitation with the companion, dismissible with the cross and adjustable in settings. What is done turns green.',
+      'Garden: “Alternative for …” (an old protection strategy) and “reward after x days”. Protection strategies have new questions and show your entries right on the page.',
+      'At the end of the check-in you are gently asked whether you would like to log a medication, start a routine or let something grow in the garden. Zugang always has “I want to do a routine”. “Another one” on the companion’s reminder now really shows another one.',
+    ],
+  },
+  {
     id: '2026-aufgeraeumt-und-passender',
     date: '2026',
     items: [

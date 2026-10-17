@@ -54,10 +54,13 @@ import { BridgeImportPage } from './features/bridges/BridgeImportPage';
 import { BookmarkImportPage } from './features/bookmarks/BookmarkImportPage';
 import { NetworkImportPage } from './features/safetyNet/NetworkImportPage';
 import { SimpleTimerPage } from './features/timer/SimpleTimerPage';
-import { GardenPage } from './features/garden/GardenPage';
 import { MediLogPage } from './features/mediLog/MediLogPage';
 import { MedicationPackagesPage } from './features/mediLog/MedicationPackagesPage';
 import { PolyvagalPage } from './features/polyvagal/PolyvagalPage';
+import { DayFlowPage } from './features/dayFlow/DayFlowPage';
+import { RoutinesGardenPage } from './features/routines/RoutinesGardenPage';
+import { RoutineEditorPage } from './features/routines/RoutineEditorPage';
+import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
 import { MeineEntwicklungPage } from './features/polyvagal/MeineEntwicklungPage';
 import { SafetyNetPage } from './features/safetyNet/SafetyNetPage';
 import { KontaktePage } from './features/safetyNet/KontaktePage';
@@ -128,7 +131,13 @@ function App() {
                 <Route path="/entdecken/lesezeichen/importieren" element={<BookmarkImportPage />} />
                 <Route path="/sicherheit/kontakte/importieren" element={<NetworkImportPage />} />
                 <Route path="/entdecken/timer" element={<SimpleTimerPage />} />
-                <Route path="/entdecken/garten" element={<GardenPage />} />
+                <Route path="/entdecken/garten" element={<RoutinesGardenPage />} />
+                <Route path="/tag-beginnen" element={<DayFlowPage phase="start" />} />
+                <Route path="/tag-abschliessen" element={<DayFlowPage phase="end" />} />
+                <Route path="/entdecken/routinen" element={<Navigate to="/entdecken/garten" replace />} />
+                <Route path="/entdecken/routinen/neu" element={<RoutineEditorPage />} />
+                <Route path="/entdecken/routinen/:id/bearbeiten" element={<RoutineEditorPage />} />
+                <Route path="/entdecken/routinen/:id/start" element={<RoutinePlayerPage />} />
                 <Route path="/entdecken/medi-log" element={<MediLogPage />} />
                 <Route path="/entdecken/medi-log/packungen" element={<MedicationPackagesPage />} />
 

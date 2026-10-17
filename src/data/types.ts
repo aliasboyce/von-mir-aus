@@ -663,7 +663,7 @@ export interface Bookmark {
   updatedAt: string;
 }
 
-export type ActivityType = 'resource' | 'bridge' | 'contact' | 'checkin' | 'grounding';
+export type ActivityType = 'resource' | 'bridge' | 'contact' | 'checkin' | 'grounding' | 'routine';
 
 /**
  * A lightweight, shared log of "I used/did this" moments — the single
@@ -768,6 +768,11 @@ export interface GardenEntry {
   /** full ISO timestamps, one per "Jetzt erledigt" tap, used instead of
    * (not in addition to) checkIns when multipleTimesPerDay is set. */
   checkInTimestamps?: string[];
+  /** "Alternative für …": the old protection strategy (name from the Schutzstrategien page) this plant is the new alternative to. */
+  alternativeFor?: string;
+  /** "Belohnung nach X Tagen": the message appears as a reminder once this many days are counted. */
+  reward?: { afterDays: number; message: string };
+  rewardShownAt?: string;
 }
 
 /** Pure documentation, never interpretation — the app never claims a link
@@ -959,6 +964,11 @@ export interface UserSettings {
   reduceMotion: boolean;
   /** "Ich kenne mich aus": hides only the small hint/example/instruction lines on pages (not info texts, not ? help). */
   minimalHints?: boolean;
+  /** "Tag beginnen" / "Tag abschließen": gentle full-screen invitation on the first opening of the day (from this time on). */
+  dayStartEnabled?: boolean;
+  dayStartTime?: string;
+  dayEndEnabled?: boolean;
+  dayEndTime?: string;
   /** "Haptisches Feedback"-Auftrag — Web Vibration API is the only
    * reliable haptics mechanism available in a PWA (no native haptics
    * without a wrapper like Capacitor). Default true, but must be
@@ -1092,6 +1102,10 @@ export const DEFAULT_SETTINGS: UserSettings = {
   palette: 'neutral',
   reduceMotion: false,
   minimalHints: false,
+  dayStartEnabled: true,
+  dayStartTime: '05:00',
+  dayEndEnabled: true,
+  dayEndTime: '19:00',
   hapticsEnabled: true,
   soundsEnabled: true,
   brainEnabled: true,

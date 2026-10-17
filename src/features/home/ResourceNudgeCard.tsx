@@ -55,15 +55,19 @@ export function ResourceNudgeCard() {
   const enabled = settings.resourceNudgeEnabled !== false && settings.brainEnabled && settings.brainState === 'awake';
   const shows = hash(`show-${slot}`) < 0.8;
 
+  // "Eine andere" must really show a different one: the candidates get a stable order for this
+  // time slot and every tap steps one further along (a random re-draw could land on the same one again).
   const pick = useMemo(() => {
     if (!enabled || !shows || !state || state.dismissed) return null;
     const all = resourcesRepo.getAll();
     const fitting = filterByFit(all, subjectOfResource, filter);
-    const pool = (fitting.length > 0 ? fitting : all).flatMap((r) => (r.favorite ? [r, r] : [r]));
+    const pool = fitting.length > 0 ? fitting : all;
     if (pool.length === 0) return null;
-    const r = pool[Math.floor(hash(`res-${slot}-${state.shuffle}`) * pool.length)];
-    const line = NUDGE_LINES[Math.floor(hash(`line-${slot}-${state.shuffle}`) * NUDGE_LINES.length)];
-    return { resource: r, text: (en ? line.en : line.de).replace('{res}', r.title) };
+    const ordered = [...pool].sort((a, b) => (hash(`res-${slot}-${a.id}`) - (a.favorite ? 0.35 : 0)) - (hash(`res-${slot}-${b.id}`) - (b.favorite ? 0.35 : 0)));
+    const r = ordered[state.shuffle % ordered.length];
+    const lineBase = Math.floor(hash(`line-${slot}`) * NUDGE_LINES.length);
+    const line = NUDGE_LINES[(lineBase + state.shuffle) % NUDGE_LINES.length];
+    return { resource: r, count: ordered.length, text: (en ? line.en : line.de).replace('{res}', r.title) };
   }, [enabled, shows, state, filter, slot, en]);
 
   if (!pick || !state) return null;
@@ -89,9 +93,11 @@ export function ResourceNudgeCard() {
             <Link to={openPath} className="px-3.5 py-1.5 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)]">
               {isSkill ? (en ? 'Start' : 'Starten') : (en ? 'Look' : 'Ansehen')}
             </Link>
-            <button type="button" onClick={() => update({ ...state, shuffle: state.shuffle + 1 })} className="px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
-              {en ? 'Another one' : 'Eine andere'}
-            </button>
+            {pick.count > 1 && (
+              <button type="button" onClick={() => update({ ...state, shuffle: state.shuffle + 1 })} className="px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text)]" data-testid="nudge-another">
+                {en ? 'Another one' : 'Eine andere'}
+              </button>
+            )}
             <button type="button" onClick={() => update({ ...state, dismissed: true })} className="text-[12.5px] text-[var(--color-text-faint)] underline px-1">
               {en ? 'Not now' : 'Gerade nicht'}
             </button>

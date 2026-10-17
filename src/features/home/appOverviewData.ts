@@ -92,7 +92,7 @@ export const OVERVIEW_GROUPS: OverviewGroup[] = [
     entries: [
       E('bruecken', '🌉', ['Brücken', 'Kleine Schritte zu etwas, das dir wichtig ist – mit Hindernissen, Ressourcen und eigenem Tempo.'], ['Bridges', 'Small steps toward something that matters to you — with obstacles, resources and your own pace.'], '/bruecken'),
       E('werte', '🧭', ['Wertekompass', 'Was dir wichtig ist – damit Brücken in eine Richtung führen, die zu dir passt.'], ['Values compass', 'What matters to you — so bridges lead in a direction that fits you.'], '/entdecken/wertekompass'),
-      E('garten', '🌱', ['Garten', 'Gesammelte Handlungen im Überblick – wachsen sehen, ohne Druck.'], ['Garden', 'Collected actions at a glance — watch things grow, without pressure.'], '/entdecken/garten'),
+      E('garten', '🌱', ['Routinen & mein Garten', 'Routinen aus kleinen Karten und Gesammeltes im Garten – wachsen sehen, ohne Druck.'], ['Routines & my garden', 'Routines made of small cards and collected actions in the garden — watch things grow, without pressure.'], '/entdecken/garten'),
       E('kalender', '📅', ['Kalender', 'Die nächsten Tage: Termine, Erinnerungen und die „Ich muss gar nichts, aber ich will“-Liste (mit „will ich / soll ich“ zum Hinspüren).'], ['Calendar', 'The next days: appointments, reminders and the “I don’t have to, but I want to” list (with “I want to / I should” for noticing).'], '/kalender'),
       E('kalenderuebersicht', '🗓️', ['Kalender-Übersicht', 'Alle Termine auf einen Blick.'], ['Calendar overview', 'All appointments at a glance.'], '/kalender/uebersicht'),
     ],

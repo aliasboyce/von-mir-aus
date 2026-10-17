@@ -14,6 +14,10 @@ import { protectionReflectionFor, newProtectionReflectionFor, hasContent, obstac
 import { Button } from '../../components/ui/Button';
 import { DismissibleCustomList } from '../../components/shared/DismissibleCustomList';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
+import { gardenRepo } from '../garden/gardenRepo';
+import { routinesRepo } from '../routines/routinesRepo';
+import { useProtectionTexts } from './protectionTexts';
+import { allProtectionReflections, NEW_PREFIX, type ProtectionReflection } from './protectionReflectionRepo';
 
 /**
  * Priority 3 + Priority 14 — Zugang's Schutzstrategie step, browsable on
@@ -28,6 +32,7 @@ import { createKeyValueStore } from '../../services/storage/keyValueStore';
  */
 export function ProtectionStrategiesReferencePage() {
   const t = useT();
+  const px = useProtectionTexts();
   const navigate = useNavigate();
   const [openStrategy, setOpenStrategy] = useState<string | null>(null);
   const [openNewStrategy, setOpenNewStrategy] = useState<string | null>(null);
@@ -98,6 +103,11 @@ export function ProtectionStrategiesReferencePage() {
           </div>
         )}
 
+        <MyEntries
+          px={px}
+          onOpen={(strategy, isNew) => (isNew ? setOpenNewStrategy(strategy) : setOpenStrategy(strategy))}
+        />
+
         <h2 className="text-[19px] mb-1">{t.protectionRef.oldTitle}</h2>
         <p className="text-[13px] text-[var(--color-text-muted)] mb-3 leading-relaxed">{t.protectionRef.oldSubtitle}</p>
         <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.protectionRef.tapToReflectLabel}</p>
@@ -108,7 +118,7 @@ export function ProtectionStrategiesReferencePage() {
           isMarked={(s) => hasContent(protectionReflectionFor(s))}
         />
 
-        <div className="mt-7 pt-6 border-t border-[var(--color-border)]">
+        <div id="neue-schutzstrategien" className="mt-7 pt-6 border-t border-[var(--color-border)]">
           <h2 className="text-[19px] mb-1">{t.protectionRef.newTitle}</h2>
           <p className="text-[13px] text-[var(--color-text-muted)] mb-3 leading-relaxed">{t.protectionRef.newSubtitle}</p>
           <DismissibleCustomList
@@ -253,6 +263,58 @@ export function ProtectionStrategiesReferencePage() {
           }}
         />
       )}
+    </div>
+  );
+}
+
+const ENTRY_FIELDS: (keyof ProtectionReflection)[] = ['valence', 'protectedFrom', 'costsToday', 'notice', 'trigger', 'alternative', 'replaceRoutine', 'reward', 'setbackSupport', 'avoid', 'keepGoing', 'whatFor', 'whenTry', 'needed'];
+
+/**
+ * "Wenn etwas aufgeschrieben wird, soll es dazu einen Eintrag auf der Seite geben": every strategy that has
+ * written content shows up here as a card with the first lines, plus the gardens and routines linked as its alternative.
+ */
+function MyEntries({ px, onOpen }: { px: ReturnType<typeof useProtectionTexts>; onOpen: (strategy: string, isNew: boolean) => void }) {
+  const entries = allProtectionReflections()
+    .filter((r) => hasContent(r))
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  if (entries.length === 0) return null;
+  const gardens = gardenRepo.getAll();
+  const routines = routinesRepo.getAll();
+  return (
+    <div className="mb-7" data-testid="protection-entries">
+      <h2 className="text-[19px] mb-1">{px.entriesTitle}</h2>
+      <p className="text-[12.5px] text-[var(--color-text-muted)] mb-3 leading-relaxed" data-hint>{px.entriesText}</p>
+      <div className="flex flex-col gap-2.5">
+        {entries.map((r) => {
+          const isNew = r.strategy.startsWith(NEW_PREFIX);
+          const name = isNew ? r.strategy.slice(NEW_PREFIX.length) : r.strategy;
+          const lines = ENTRY_FIELDS.filter((f) => f !== 'valence' && typeof r[f] === 'string' && (r[f] as string).trim()).slice(0, 3);
+          const linkedGardens = gardens.filter((g) => g.alternativeFor === name);
+          const linkedRoutines = routines.filter((x) => x.alternativeFor === name);
+          return (
+            <button key={r.strategy} type="button" onClick={() => onOpen(name, isNew)} className="text-left" data-testid="protection-entry">
+              <Card interactive>
+                <p className="text-[14.5px] font-medium text-[var(--color-text)] mb-1">
+                  {isNew ? '🌿' : '🛡️'} {name}
+                  {isNew && <span className="ml-2 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-full align-middle" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>{px.newMarker}</span>}
+                </p>
+                {r.valence && <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{r.valence.split('|||').join(' · ')}</p>}
+                {lines.map((f) => (
+                  <p key={f} className="text-[12.5px] text-[var(--color-text-muted)] leading-snug line-clamp-2">
+                    <span className="text-[var(--color-text-faint)]">{(px.labels as Record<string, string>)[f]}: </span>
+                    {r[f] as string}
+                  </p>
+                ))}
+                {(linkedGardens.length > 0 || linkedRoutines.length > 0) && (
+                  <p className="text-[12px] text-[var(--color-primary)] mt-1.5">
+                    {linkedGardens.map((g) => `🌱 ${g.name}`).concat(linkedRoutines.map((x) => `🔁 ${x.title}`)).join(' · ')}
+                  </p>
+                )}
+              </Card>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

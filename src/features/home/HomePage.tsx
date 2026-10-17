@@ -16,6 +16,7 @@ import { CompanionDock } from '../../components/companion/CompanionDock';
 import { AboutVonMirAusModal } from '../../components/shared/AboutVonMirAusModal';
 import { ABOUT_VON_MIR_AUS_TEXT } from '../../content/aboutContent';
 import { AchievementSection } from './AchievementSection';
+import { GardenRewardCard } from '../garden/GardenRewardCard';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { downloadBackup } from '../../services/backup';
@@ -375,6 +376,8 @@ export function HomePage() {
       <button onClick={() => setShowIntentPicker(true)} className="text-[12.5px] text-[var(--color-primary)] mt-3 mb-6 block mx-auto">
         {t.home.intentPickerEntryCta}
       </button>
+
+      <GardenRewardCard />
 
       <ResourceNudgeCard />
 

@@ -1,4 +1,5 @@
-import { Wrench, Sparkles, Bookmark, MapPin, Activity, Users } from 'lucide-react';
+import { Wrench, Sparkles, Bookmark, MapPin, Activity, Users, Repeat } from 'lucide-react';
+import { useRoutineTexts } from '../routines/routineTexts';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { TopBar } from '../../components/navigation/TopBar';
 import { ReorderableTiles } from '../../components/navigation/ReorderableTiles';
@@ -24,6 +25,7 @@ import { countHiddenUnmarked } from '../../content/fitCriteria';
  */
 export function ResourcesHubPage() {
   const t = useT();
+  const rtx = useRoutineTexts();
   const [searchParams] = useSearchParams();
   const fitRows = useFitRows();
   const hiddenUnmarked = [fitRows.all.ketten, fitRows.all.skills, fitRows.all.hilfsmittel, fitRows.all.orte, fitRows.all.aktivitaeten].reduce((n, rows) => n + countHiddenUnmarked(rows.map((r) => r.subject), fitRows.filter), 0);
@@ -56,6 +58,7 @@ export function ResourcesHubPage() {
     { key: 'orte', to: '/entdecken/ressourcen/orte', icon: MapPin, title: t.resources.orteTitle, subtitle: t.resources.orteSubtitle },
     { key: 'aktivitaeten', to: '/entdecken/ressourcen/aktivitaeten', icon: Activity, title: t.resources.aktivitaetenTitle, subtitle: t.resources.aktivitaetenSubtitle },
     { key: 'personen', to: '/sicherheit/netzwerk', icon: Users, title: t.resources.personenTitle, subtitle: t.resources.personenSubtitle },
+    { key: 'routinen', to: '/entdecken/garten', icon: Repeat, title: rtx.pageTitle, subtitle: rtx.tileSub, },
     { key: 'lesezeichen', to: '/entdecken/lesezeichen', icon: Bookmark, title: t.bookmarks.title, subtitle: t.bookmarks.subtitle },
   ];
 

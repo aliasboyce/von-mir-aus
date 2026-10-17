@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { ExploreMap } from './ExploreMap';
-import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network } from 'lucide-react';
+import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network, Sunrise, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
 import { ReorderableTiles, type TileCustomization } from '../../components/navigation/ReorderableTiles';
 import { getPins, getArchived, togglePin, toggleArchive } from '../../services/exploreCustomization';
 import { useT } from '../../i18n';
+import { useRoutineTexts } from '../routines/routineTexts';
+import { useDayFlowTexts } from '../dayFlow/dayFlowTexts';
 import type { OrderableSection } from '../../services/sectionOrder';
 
 interface Tile {
@@ -33,6 +35,8 @@ interface Tile {
  */
 export function ExplorePage() {
   const t = useT();
+  const rtx = useRoutineTexts();
+  const dfx = useDayFlowTexts();
   const [customizing, setCustomizing] = useState(false);
   // Karte (the mind map) is the default way in; Liste is the previous tile
   // view with pin/archive. The choice is remembered per device.
@@ -106,7 +110,9 @@ export function ExplorePage() {
   ];
   const bridgeTiles: Tile[] = [{ key: 'bruecken', to: '/bruecken', icon: GitBranch, title: t.nav.bridges, subtitle: t.bridges.subtitle, color: 'var(--color-accent-clay)' }];
   const everydayTiles: Tile[] = [
-    { key: 'garten', to: '/entdecken/garten', icon: Sprout, title: t.garden.title, subtitle: t.garden.subtitle, color: 'var(--color-accent-sun)' },
+    { key: 'garten', to: '/entdecken/garten', icon: Sprout, title: rtx.pageTitle, subtitle: t.garden.subtitle, color: 'var(--color-accent-sun)' },
+    { key: 'tagBeginnen', to: '/tag-beginnen', icon: Sunrise, title: dfx.startTitle, subtitle: dfx.tileStartSub, color: 'var(--color-accent-sun)' },
+    { key: 'tagAbschliessen', to: '/tag-abschliessen', icon: Moon, title: dfx.endTitle, subtitle: dfx.tileEndSub, color: 'var(--color-accent-sun)' },
     { key: 'kalender', to: '/kalender', icon: CalendarDays, title: t.calendar.title, subtitle: t.calendar.subtitle, color: 'var(--color-accent-sun)' },
     { key: 'timer', to: '/entdecken/timer', icon: Timer, title: t.simpleTimer.title, subtitle: t.simpleTimer.subtitle, color: 'var(--color-accent-sun)' },
     { key: 'medilog', to: '/entdecken/medi-log', icon: Pill, title: t.mediLog.title, subtitle: t.mediLog.subtitle, color: 'var(--color-accent-sun)' },

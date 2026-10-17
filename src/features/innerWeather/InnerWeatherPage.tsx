@@ -17,6 +17,7 @@ import { ArousalModelExplainer } from '../polyvagal/ArousalModelExplainer';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { MiniCurve } from '../polyvagal/MiniCurve';
 import { WeatherWheel } from './WeatherWheel';
+import { CheckInFollowUp } from './CheckInFollowUp';
 import { WeatherAnimation } from './WeatherAnimation';
 import { useSettings } from '../../state/SettingsContext';
 import { createId } from '../../services/storage/repository';
@@ -370,6 +371,7 @@ export function InnerWeatherPage() {
               {NEED_META[need].icon} {NEED_META[need].label(t)}
             </div>
           )}
+          <CheckInFollowUp />
           <div className="w-full flex flex-col gap-3 mt-4">
             <Button
               fullWidth

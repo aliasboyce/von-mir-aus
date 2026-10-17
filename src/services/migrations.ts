@@ -14,6 +14,7 @@ import { DEMO_NETWORK } from '../data/seed/network.seed';
 import { STARTER_AKTIVITAETEN, DEMO_RESOURCES, DBT_SKILL_RESOURCES } from '../data/seed/resources.seed';
 import { RESOURCE_IMPULSES } from '../data/seed/resourceImpulses.seed';
 import { BRIDGE_IMPULSES } from '../data/seed/bridgeImpulses.seed';
+import { routinesRepo, exampleRoutines } from '../features/routines/routinesRepo';
 import { valuesForLegacyCategory } from '../features/bridges/bridgeValues';
 
 /**
@@ -281,6 +282,18 @@ function migrateNetworkExamples() {
   networkExamplesV1.set(true);
 }
 
+const routineExamplesFlag = createKeyValueStore<boolean>('migration-routine-examples', false);
+
+/** Two example routines (marked "Beispiel") so the new page is not empty on first look. */
+function migrateRoutineExamples() {
+  if (routineExamplesFlag.get()) return;
+  const have = new Set(routinesRepo.getAll().map((r) => r.id));
+  exampleRoutines().forEach((r) => {
+    if (!have.has(r.id)) routinesRepo.save(r);
+  });
+  routineExamplesFlag.set(true);
+}
+
 export function runStartupMigrations() {
   ensureResourcesReady();
   migrateEnergyScale();
@@ -295,4 +308,5 @@ export function runStartupMigrations() {
   migrateBridgeValues();
   migrateSeedSymbolImages();
   migrateNetworkExamples();
+  migrateRoutineExamples();
 }

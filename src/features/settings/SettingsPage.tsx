@@ -22,6 +22,7 @@ import { Card } from '../../components/ui/Card';
 import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
+import { useDayFlowTexts } from '../dayFlow/dayFlowTexts';
 import { useSettings } from '../../state/SettingsContext';
 import { resetAllAppData } from '../../services/resetAppData';
 import { customPalettesRepo, deleteCustomPalette } from '../../services/customPalettes';
@@ -77,6 +78,7 @@ const SECTION_KEYS: { key: string; de: string; en: string; deHint: string; enHin
 
 export function SettingsPage() {
   const t = useT();
+  const dayFx = useDayFlowTexts();
   const { settings, updateSettings } = useSettings();
 
   /** The daily check-in reminders as recurring events with an alarm, for the phone's own calendar. */
@@ -356,6 +358,27 @@ export function SettingsPage() {
                 </div>
               );
             })}
+          </div>
+        </Card>
+
+        <Card className="mb-6" padding="md" data-testid="settings-dayflow">
+          <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{dayFx.settingsTitle}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3" data-hint>{dayFx.settingsHint}</p>
+          <ToggleRow label={dayFx.settingsStartOn} checked={settings.dayStartEnabled !== false} onChange={(v) => updateSettings({ dayStartEnabled: v })} />
+          {settings.dayStartEnabled !== false && (
+            <label className="flex items-center gap-2 mt-2 mb-3 text-[13px] text-[var(--color-text-muted)]">
+              {dayFx.settingsStartTime}
+              <input type="time" className="input" style={{ width: 120 }} value={settings.dayStartTime ?? '05:00'} onChange={(e) => e.target.value && updateSettings({ dayStartTime: e.target.value })} data-testid="settings-day-start-time" />
+            </label>
+          )}
+          <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+            <ToggleRow label={dayFx.settingsEndOn} checked={settings.dayEndEnabled !== false} onChange={(v) => updateSettings({ dayEndEnabled: v })} />
+            {settings.dayEndEnabled !== false && (
+              <label className="flex items-center gap-2 mt-2 text-[13px] text-[var(--color-text-muted)]">
+                {dayFx.settingsEndTime}
+                <input type="time" className="input" style={{ width: 120 }} value={settings.dayEndTime ?? '19:00'} onChange={(e) => e.target.value && updateSettings({ dayEndTime: e.target.value })} data-testid="settings-day-end-time" />
+              </label>
+            )}
           </div>
         </Card>
 

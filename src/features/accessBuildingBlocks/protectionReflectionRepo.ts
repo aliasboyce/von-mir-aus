@@ -11,6 +11,20 @@ export interface ProtectionReflection {
   whatFor?: string;
   whenTry?: string;
   needed?: string;
+  /** Erkennen: how do I notice it kicks in */
+  notice?: string;
+  /** Auslöser */
+  trigger?: string;
+  /** replace the old routine by a new one */
+  replaceRoutine?: string;
+  /** own rewards */
+  reward?: string;
+  /** support for setbacks */
+  setbackSupport?: string;
+  /** avoiding temptations */
+  avoid?: string;
+  /** keeping going */
+  keepGoing?: string;
   updatedAt: string;
 }
 
@@ -39,7 +53,7 @@ export function saveProtectionReflection(strategy: string, fields: Partial<Omit<
 
 /** True when any text/valence has actually been written. */
 export function hasContent(r: ProtectionReflection | undefined): boolean {
-  return !!r && !![r.protectedFrom, r.costsToday, r.alternative, r.valence, r.whatFor, r.whenTry, r.needed].some((v) => v && v.trim());
+  return !!r && !![r.protectedFrom, r.costsToday, r.alternative, r.valence, r.whatFor, r.whenTry, r.needed, r.notice, r.trigger, r.replaceRoutine, r.reward, r.setbackSupport, r.avoid, r.keepGoing].some((v) => v && v.trim());
 }
 
 // ---- Hindernisse ----

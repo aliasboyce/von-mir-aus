@@ -4,6 +4,7 @@ import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { TopBar } from '../../components/navigation/TopBar';
+import { goBack } from '../../services/navigation';
 import { useT } from '../../i18n';
 import { createId } from '../../services/storage/repository';
 import { resourcesRepo } from './resourcesRepo';
@@ -282,7 +283,7 @@ export function SkillketteRunPage() {
             <Button fullWidth variant="secondary" data-sound="complete" onClick={finishRun}>
               {t.skillRun.chainEnd}
             </Button>
-            <button onClick={() => navigate(-1)} className="w-full text-center text-[13px] text-[var(--color-text-faint)] mt-3 py-2">
+            <button onClick={() => goBack(navigate)} className="w-full text-center text-[13px] text-[var(--color-text-faint)] mt-3 py-2">
               {t.skillRun.cancel}
             </button>
           </>

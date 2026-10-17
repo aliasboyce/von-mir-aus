@@ -38,6 +38,7 @@ import { playSound, warmUpAudio } from '../services/sounds';
 import { UsageCheckInPrompt } from '../components/companion/UsageCheckInPrompt';
 import { SchmuggelPopup } from '../components/companion/SchmuggelPopup';
 import { triggerHaptic } from '../services/haptics';
+import { DayGate } from '../features/dayFlow/DayGate';
 
 /** Top-level section key used for per-page palette overrides — everything
  * under e.g. /sicherheit/* shares one override, not each sub-route separately. */
@@ -308,6 +309,7 @@ export function AppShell() {
         </div>
       )}
       <SchmuggelPopup />
+      <DayGate pathname={location.pathname} />
       {!hideNav && <BottomNav />}
       {settings.tourActive && (
         <AppTourOverlay

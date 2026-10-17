@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Plus, Pause, Play, X, RotateCcw, Trash2, Check, Eye } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -14,6 +14,8 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { gardenRepo, migrateLegacyGardenData, createId } from './gardenRepo';
+import { oldProtectionStrategies } from '../accessBuildingBlocks/strategyList';
+import { GardenRewardCard } from './GardenRewardCard';
 import { GardenScene, ALL_PLANT_STYLES } from './GardenScene';
 import { progressFor, stageForProgress, MILESTONE_PROGRESS, distinctCheckInDays } from './gardenGrowth';
 import { detectAndRecordGrowth } from './gardenGrowthAnimation';
@@ -54,10 +56,39 @@ function startOfWeekStr(): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function GardenPage() {
+const GX = {
+  de: {
+    embeddedTitle: '🌱 Mein Garten',
+    alternativeFor: 'Alternative für …',
+    alternativeNone: 'Keine – einfach etwas Neues',
+    alternativeTag: 'Alternative für',
+    rewardLabel: 'Belohnung nach einigen Tagen',
+    rewardAfter: 'Nach',
+    rewardDays: 'Tagen',
+    rewardText: 'Meine Belohnung ist …',
+    rewardPh: 'z. B. Ein Eis essen gehen',
+    rewardTag: 'Belohnung nach {n} Tagen',
+  },
+  en: {
+    embeddedTitle: '🌱 My garden',
+    alternativeFor: 'Alternative for …',
+    alternativeNone: 'None – just something new',
+    alternativeTag: 'Alternative for',
+    rewardLabel: 'Reward after some days',
+    rewardAfter: 'After',
+    rewardDays: 'days',
+    rewardText: 'My reward is …',
+    rewardPh: 'e.g. Go and have an ice cream',
+    rewardTag: 'Reward after {n} days',
+  },
+};
+
+export function GardenPage({ embedded = false }: { embedded?: boolean }) {
   const t = useT();
   const say = useCompanionSay();
   const { settings } = useSettings();
+  const gx = settings.language === 'en' ? GX.en : GX.de;
+  const [searchParams, setSearchParams] = useSearchParams();
   const [entries, setEntries] = useState<GardenEntry[]>(() => gardenRepo.getAll());
   const [creating, setCreating] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -72,6 +103,11 @@ export function GardenPage() {
   const [newDailyTargetCount, setNewDailyTargetCount] = useState(3);
   const [newDailyTargetTimes, setNewDailyTargetTimes] = useState<string[]>(['09:00', '14:00', '20:00']);
   const [newPlantStyle, setNewPlantStyle] = useState<GardenPlantStyle>('bluete_rose');
+  const [newAlternativeFor, setNewAlternativeFor] = useState('');
+  const [newRewardOn, setNewRewardOn] = useState(false);
+  const [newRewardDays, setNewRewardDays] = useState(21);
+  const [newRewardText, setNewRewardText] = useState('');
+  const strategyOptions = oldProtectionStrategies();
   const [confirmResetId, setConfirmResetId] = useState<string | null>(null);
   const [justGrewIds, setJustGrewIds] = useState<Set<string>>(new Set());
   const [wateringId, setWateringId] = useState<string | null>(null);
@@ -156,6 +192,21 @@ export function GardenPage() {
     setEntries(gardenRepo.getAll());
   }
 
+  // ?alternativeFor=<Schutzstrategie> (from the Schutzstrategien page) opens "Neu" with that strategy preselected
+  useEffect(() => {
+    const alt = searchParams.get('alternativeFor');
+    if (alt) {
+      setNewAlternativeFor(alt);
+      setNewKind('aufbau');
+      setNewPlantStyle(ALL_PLANT_STYLES[Math.floor(Math.random() * ALL_PLANT_STYLES.length)]);
+      setCreating(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('alternativeFor');
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function openCreate() {
     setNewPlantStyle(ALL_PLANT_STYLES[Math.floor(Math.random() * ALL_PLANT_STYLES.length)]);
     setCreating(true);
@@ -165,8 +216,13 @@ export function GardenPage() {
     const name = newName.trim();
     if (!name) return;
     const now = new Date().toISOString();
+    const extra = {
+      alternativeFor: newAlternativeFor || undefined,
+      reward: newRewardOn && newRewardText.trim() ? { afterDays: Math.max(1, Math.round(newRewardDays) || 1), message: newRewardText.trim() } : undefined,
+    };
     if (newKind === 'veraenderung') {
       gardenRepo.save({
+        ...extra,
         id: createId('garden'),
         name,
         kind: 'veraenderung',
@@ -178,6 +234,7 @@ export function GardenPage() {
       });
     } else {
       gardenRepo.save({
+        ...extra,
         id: createId('garden'),
         name,
         kind: 'aufbau',
@@ -197,6 +254,10 @@ export function GardenPage() {
       });
     }
     setNewName('');
+    setNewAlternativeFor('');
+    setNewRewardOn(false);
+    setNewRewardDays(21);
+    setNewRewardText('');
     setNewFrequency('daily');
     setNewWeekday('mo');
     setNewReminderEnabled(false);
@@ -301,16 +362,22 @@ export function GardenPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="garten" />} />
-      <div className="px-5 pb-6">
-        <h1 className="text-[24px] mb-1 text-center">{t.garden.title}</h1>
+      {!embedded && <TopBar action={<HelpButton helpKey="garten" />} />}
+      <div className={embedded ? 'pb-6' : 'px-5 pb-6'}>
+        {embedded ? (
+          <h2 className="text-[22px] mb-1 text-center" data-testid="garden-title">{gx.embeddedTitle}</h2>
+        ) : (
+          <h1 className="text-[24px] mb-1 text-center">{t.garden.title}</h1>
+        )}
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1 text-center">{t.garden.subtitle}</p>
         <Link to="/entdecken/schutzstrategien" className="text-[12px] text-[var(--color-primary)] block text-center mb-1">
           {t.garden.patternExplainerLink}
         </Link>
         <p className="text-[12px] text-[var(--color-text-faint)] mb-5 text-center">{t.garden.growsOncePerDayNote}</p>
 
-        <Button fullWidth icon={<Plus size={17} />} onClick={openCreate} className="mb-5">
+        <GardenRewardCard onChange={refresh} />
+
+        <Button fullWidth icon={<Plus size={17} />} onClick={openCreate} className="mb-5" data-testid="garden-add">
           {t.garden.addNew}
         </Button>
 
@@ -353,6 +420,12 @@ export function GardenPage() {
                           </span>
                         </div>
                         <p className="text-[15px] text-[var(--color-text)] font-medium">{e.name}</p>
+                        {e.alternativeFor && (
+                          <p className="text-[12px] text-[var(--color-primary)]" data-testid="garden-alt-tag">↔ {gx.alternativeTag}: {e.alternativeFor}</p>
+                        )}
+                        {e.reward && (
+                          <p className="text-[12px] text-[var(--color-text-faint)]">🎁 {gx.rewardTag.replace('{n}', String(e.reward.afterDays))}</p>
+                        )}
                         <p className="text-[13px] text-[var(--color-text-muted)]">
                           {e.status === 'paused'
                             ? t.garden.statusPaused
@@ -478,6 +551,32 @@ export function GardenPage() {
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && create()}
             />
+            <label className="block mb-3">
+              <span className="block text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5">{gx.alternativeFor}</span>
+              <select className="input" value={newAlternativeFor} onChange={(e) => setNewAlternativeFor(e.target.value)} data-testid="garden-alt-select">
+                <option value="">{gx.alternativeNone}</option>
+                {strategyOptions.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+                {newAlternativeFor && !strategyOptions.includes(newAlternativeFor) && <option value={newAlternativeFor}>{newAlternativeFor}</option>}
+              </select>
+            </label>
+            <div className="mb-3">
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={newRewardOn} onChange={(e) => setNewRewardOn(e.target.checked)} className="w-5 h-5 accent-[var(--color-primary)]" data-testid="garden-reward-on" />
+                <span className="text-[13px] text-[var(--color-text)]">{gx.rewardLabel}</span>
+              </label>
+              {newRewardOn && (
+                <div className="mt-2 pl-7 flex flex-col gap-2 animate-in">
+                  <div className="flex items-center gap-2 text-[13px] text-[var(--color-text-muted)]">
+                    {gx.rewardAfter}
+                    <input type="number" min={1} max={365} className="input" style={{ width: 84 }} value={newRewardDays} onChange={(e) => setNewRewardDays(Number(e.target.value))} data-testid="garden-reward-days" />
+                    {gx.rewardDays}
+                  </div>
+                  <input className="input" placeholder={gx.rewardPh} aria-label={gx.rewardText} value={newRewardText} onChange={(e) => setNewRewardText(e.target.value)} data-testid="garden-reward-text" />
+                </div>
+              )}
+            </div>
             {newKind === 'aufbau' && (
               <div className="mb-3">
                 <div className="flex flex-wrap gap-2 mb-2">

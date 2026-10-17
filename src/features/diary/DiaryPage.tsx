@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
 import { buildReviewPdf, buildDiaryEntriesPdf } from '../reviews/reviewPdf';
@@ -16,6 +16,7 @@ import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { useSettings } from '../../state/SettingsContext';
+import { allDiaryTemplates, applyTemplate } from './diaryTemplates';
 import { diaryRepo } from './diaryRepo';
 import { DIARY_FONT_ORDER, DIARY_FONT_META, type DiaryFont } from './diaryFonts';
 import { getCategoryStyle, setCategoryStyle } from './diaryCategoryStyles';
@@ -268,6 +269,21 @@ export function DiaryPage() {
     setDraftCategory(activeCategory === 'all' ? DIARY_DEFAULT_CATEGORY_ID : activeCategory);
     setComposing(true);
   }
+
+  // ?template=<id> (from "Tag beginnen" / "Tag abschließen"): opens a new entry with that template
+  // already filled in – and marked for the Rückblick, so the day's start/end shows up there as usual.
+  const templateParamDone = useRef(false);
+  useEffect(() => {
+    if (templateParamDone.current) return;
+    const id = new URLSearchParams(window.location.search).get('template');
+    if (!id) return;
+    templateParamDone.current = true;
+    const tpl = allDiaryTemplates().find((x) => x.id === id);
+    if (!tpl) return;
+    startNewFromTemplate(applyTemplate(tpl, settings.language === 'en'));
+    setDraftInReview(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function startEdit(entry: DiaryEntry) {
     setEditingId(entry.id);

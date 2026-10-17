@@ -451,6 +451,15 @@ export function ZugangPage() {
             </button>
           </>
         )}
+        <button
+          type="button"
+          onClick={() => navigate('/entdecken/garten')}
+          className="w-full max-w-[320px] rounded-[var(--radius-lg)] border px-4 py-3 text-left mb-5"
+          style={{ borderColor: 'var(--color-border-strong)', background: 'var(--color-surface)' }}
+          data-testid="zugang-routine"
+        >
+          <span className="block text-[15px] text-[var(--color-text)]">🔁 {settings.language === 'en' ? 'I want to do a routine' : 'Ich will eine Routine machen'}</span>
+        </button>
         {pendingFollowUp && (
           <div className="w-full max-w-[320px] rounded-[var(--radius-lg)] p-4 mb-5 text-left" style={{ background: 'var(--color-primary-soft)' }}>
             <p className="text-[14px] text-[var(--color-text)] mb-0.5">{t.zugang.after.pendingTitle}</p>

@@ -420,10 +420,22 @@ Die Stoppuhr zählt nur mit. Es gibt kein Ende, das du erreichen musst.`,
 The stopwatch simply counts along. There is no end you have to reach.`,
   },
   garten: {
-    title: `Mein Garten`,
-    titleEn: `My Garden`,
-    body: `Ein Bild für Dinge, die du aufbauen oder verändern möchtest. Jeder Eintrag wächst mit der Zeit, ohne Leistungsdruck, als ruhige Erinnerung an deinen eigenen Weg.`,
-    bodyEn: `A picture for things you would like to build or change. Each entry grows over time, without pressure to perform, as a calm reminder of your own path.`,
+    title: `Routinen & mein Garten`,
+    titleEn: `Routines & my garden`,
+    body: `Routinen strukturieren den Alltag, sparen Mühe und Zeit und automatisieren das Handeln.
+
+### Oben: Routinen
+Eine Routine ist eine Reihe kleiner Karten, jede mit genau einem Schritt. Beim Starten siehst du immer nur eine Karte, ganz groß. Ist der Schritt getan, wischst du sie nach rechts – die nächste erscheint. Auf Wunsch hat eine Karte einen Timer, einen Garten, der automatisch abgehakt wird, oder eine Ressource. Alles ist freiwillig. „Gerade nicht“ ist immer möglich. Am Ende siehst du, wie lange es gedauert hat – nur zum Anschauen und Vergleichen. Der Verlauf steht auch im Rückblick.
+
+### Unten: Garten
+Ein Bild für Dinge, die du aufbauen oder verändern möchtest. Jeder Eintrag wächst mit der Zeit, ohne Leistungsdruck. Du kannst eine Alternative zu einer alten Schutzstrategie eintragen und eine Belohnung nach einer Anzahl Tage festlegen.`,
+    bodyEn: `Routines give the day structure, save effort and time and automate doing.
+
+### On top: routines
+A routine is a series of small cards, each with exactly one step. When you start it you only see one card, large. When the step is done you swipe it to the right – the next one appears. A card can optionally have a timer, a garden that is ticked automatically, or a resource. All of it is voluntary. "Not right now" is always possible. At the end you see how long it took – just to look at and compare. The history is also in the review.
+
+### Below: garden
+A picture for things you would like to build or change. Each entry grows over time, without pressure. You can enter an alternative to an old protection strategy and set a reward after a number of days.`,
   },
   mediLog: {
     title: `Medi-Log`,
