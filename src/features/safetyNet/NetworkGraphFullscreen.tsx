@@ -4,6 +4,7 @@ import { NetworkGraph } from './NetworkGraph';
 import { NetworkLegend } from './NetworkLegend';
 import { useT } from '../../i18n';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
+import { useSettings } from '../../state/SettingsContext';
 import type { CenterNodeConfig } from './networkCategories';
 import type { NetworkCategoryConfig, NetworkEntry } from '../../data/types';
 
@@ -18,7 +19,8 @@ interface NetworkGraphFullscreenProps {
   connectingFromId?: string | null;
   onCompleteConnection?: (target: NetworkEntry) => void;
   onCancelConnecting?: () => void;
-  onRemoveConnection?: (fromId: string, toId: string) => void;
+  onLinkTap?: (aId: string, bId: string) => void;
+  linksVersion?: number;
 }
 
 export function NetworkGraphFullscreen({
@@ -32,9 +34,11 @@ export function NetworkGraphFullscreen({
   connectingFromId,
   onCompleteConnection,
   onCancelConnecting,
-  onRemoveConnection,
+  onLinkTap,
+  linksVersion,
 }: NetworkGraphFullscreenProps) {
   const t = useT();
+  const { settings } = useSettings();
   useRegisterModalOpen(true);
 
   return createPortal(
@@ -49,7 +53,7 @@ export function NetworkGraphFullscreen({
         </button>
         <span className="flex items-center gap-1.5 text-[12px] text-[var(--color-text-faint)]">
           <Move3d size={14} />
-          Ziehen zum Verschieben · Pinch/Scrollen zum Zoomen
+          {settings.language === 'en' ? 'Drag to move · pinch or scroll to zoom – as far as you like' : 'Ziehen zum Verschieben · Pinch/Scrollen zum Zoomen – so weit du magst'}
         </span>
       </div>
       <div className="network-fullscreen__canvas">
@@ -64,7 +68,8 @@ export function NetworkGraphFullscreen({
           connectingFromId={connectingFromId}
           onCompleteConnection={onCompleteConnection}
           onCancelConnecting={onCancelConnecting}
-          onRemoveConnection={onRemoveConnection}
+          onLinkTap={onLinkTap}
+          linksVersion={linksVersion}
         />
         <NetworkLegend categories={categories} />
       </div>

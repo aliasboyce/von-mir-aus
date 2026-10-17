@@ -15,6 +15,7 @@ import { resourcesRepo } from '../resources/resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { RoutineCard3D } from './RoutineCard3D';
+import { MediaEmbed } from './MediaEmbed';
 import { routinesRepo, runsFor, saveRun, tickGardenForCard, formatDuration, type Routine, type RoutineCard, type RoutineRun } from './routinesRepo';
 import { useRoutineTexts } from './routineTexts';
 import './routines.css';
@@ -69,9 +70,11 @@ function Player({ routine }: { routine: Routine }) {
   const [remainingMs, setRemainingMs] = useState<number | null>(card.timerSec ? card.timerSec * 1000 : null);
   const [paused, setPaused] = useState(false);
   const [timeUp, setTimeUp] = useState(false);
+  const [mediaDone, setMediaDone] = useState(false);
   const timerRef = useRef({ endAt: 0, left: 0 });
   useEffect(() => {
     setTimeUp(false);
+    setMediaDone(false);
     setPaused(false);
     cardStart.current = Date.now();
     if (!card.timerSec) {
@@ -138,6 +141,11 @@ function Player({ routine }: { routine: Routine }) {
     const sec = Math.max(0, Math.round((Date.now() - cardStart.current) / 1000));
     results.current.push({ cardId: card.id, text: card.text, sec, done });
     if (done) tickGardenForCard(card.gardenId);
+    pose.current = { x: 0, y: 0, rot: 0 };
+    if (peekRef.current) {
+      peekRef.current.style.transform = 'translate3d(0,16px,-60px) scale(0.93)';
+      peekRef.current.style.opacity = '0.8';
+    }
     if (idx >= cards.length - 1) {
       finish();
     } else {
@@ -146,33 +154,112 @@ function Player({ routine }: { routine: Routine }) {
     }
   }
 
-  function completeCard(done: boolean) {
+  // ----- physics: the card is really pushed by the finger, flies off with the momentum it got, and the next one moves up -----
+  const peekRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef(0);
+  const pose = useRef({ x: 0, y: 0, rot: 0 });
+  const [sparks, setSparks] = useState<{ id: number; dx: number; dy: number; c: string }[]>([]);
+
+  function setPose(x: number, y: number, extraOpacity = 1) {
+    const el = frontRef.current;
+    if (!el) return;
+    const rot = Math.max(-38, Math.min(38, x / 14));
+    pose.current = { x, y, rot };
+    el.style.transformOrigin = '50% 115%';
+    el.style.transform = reduce ? `translate3d(${x}px,0,0)` : `translate3d(${x}px,${y}px,0) rotate(${rot}deg)`;
+    el.style.opacity = String(extraOpacity);
+    const p = Math.min(1, Math.abs(x) / DRAG_DONE_PX);
+    if (peekRef.current) {
+      peekRef.current.style.transform = `translate3d(0,${(16 * (1 - p)).toFixed(1)}px,${(-60 * (1 - p)).toFixed(1)}px) scale(${(0.93 + 0.07 * p).toFixed(3)})`;
+      peekRef.current.style.opacity = String(0.8 + 0.2 * p);
+    }
+    if (hintRef.current) {
+      hintRef.current.style.opacity = String(Math.max(0, Math.min(1, x / 110)));
+    }
+    if (skipHintRef.current) {
+      skipHintRef.current.style.opacity = String(Math.max(0, Math.min(1, -x / 110)));
+    }
+  }
+  const skipHintRef = useRef<HTMLDivElement>(null);
+
+  function burstSparks() {
+    const colors = [card.color, '#fff', '#ffe08a', '#bfe9c2'];
+    setSparks(Array.from({ length: 14 }, (_, i) => ({ id: Date.now() + i, dx: (Math.random() - 0.3) * 260, dy: (Math.random() - 0.7) * 260, c: colors[i % colors.length] })));
+    window.setTimeout(() => setSparks([]), 900);
+  }
+
+  /** Let go with momentum: keeps moving the way it was pushed until it has left the screen. */
+  function fling(dir: 1 | -1, v0: number, vy0 = 0) {
     if (leaving) return;
     setLeaving(true);
+    const done = dir === 1;
     playSound(done ? 'select' : 'close', settings);
     triggerHaptic('tap', settings);
-    const el = frontRef.current;
-    if (el && !reduce) {
-      el.style.transition = 'transform 420ms cubic-bezier(.2,.75,.25,1), opacity 380ms ease-out';
-      el.style.transform = done ? 'translate3d(135vw,-20px,0) rotate(14deg) rotateY(-22deg)' : 'translate3d(0,40px,0) scale(0.9)';
-      el.style.opacity = '0';
+    if (done && !reduce) burstSparks();
+    if (reduce) {
+      window.setTimeout(() => advance(done), 0);
+      return;
     }
-    window.setTimeout(() => advance(done), reduce ? 0 : 400);
+    cancelAnimationFrame(rafRef.current);
+    let { x, y } = pose.current;
+    let v = dir * Math.max(1.15, Math.abs(v0)); // px per ms, at least a decent push
+    let vy = Math.max(-0.5, Math.min(0.5, vy0));
+    const limit = window.innerWidth * 0.95 + 200;
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = Math.min(32, now - last);
+      last = now;
+      v *= 1 + 0.0009 * dt; // keeps gathering a little speed, like a card sliding away
+      vy += 0.0012 * dt; // slight fall
+      x += v * dt;
+      y += vy * dt;
+      const fade = Math.max(0, 1 - Math.max(0, Math.abs(x) - window.innerWidth * 0.5) / (window.innerWidth * 0.55));
+      setPose(x, y, fade);
+      if (Math.abs(x) < limit) rafRef.current = requestAnimationFrame(step);
+      else advance(done);
+    };
+    rafRef.current = requestAnimationFrame(step);
+  }
+
+  /** Let go without enough push: a soft spring brings the card back, with a little overshoot. */
+  function springBack() {
+    cancelAnimationFrame(rafRef.current);
+    if (reduce) {
+      setPose(0, 0);
+      return;
+    }
+    let { x, y } = pose.current;
+    let vx = 0;
+    let vy = 0;
+    let last = performance.now();
+    const step = (now: number) => {
+      const dt = Math.min(32, now - last) / 16.7;
+      last = now;
+      vx += (-0.085 * x - 0.2 * vx) * dt;
+      vy += (-0.085 * y - 0.2 * vy) * dt;
+      x += vx * dt;
+      y += vy * dt;
+      setPose(x, y);
+      if (Math.abs(x) > 0.4 || Math.abs(vx) > 0.05 || Math.abs(y) > 0.4) rafRef.current = requestAnimationFrame(step);
+      else setPose(0, 0);
+    };
+    rafRef.current = requestAnimationFrame(step);
+  }
+
+  function completeCard(done: boolean) {
+    if (leaving) return;
+    // buttons give the card a push of its own
+    fling(done ? 1 : -1, 1.2);
   }
 
   // ----- swipe -----
-  const drag = useRef({ down: false, moved: false, startX: 0, startY: 0, dx: 0, t0: 0, id: -1 });
-  function applyDrag(dx: number, animate: boolean) {
-    const el = frontRef.current;
-    if (!el) return;
-    el.style.transition = animate ? 'transform 380ms cubic-bezier(.34,1.4,.5,1)' : 'none';
-    el.style.transform = reduce ? `translate3d(${dx}px,0,0)` : `translate3d(${dx}px,0,0) rotate(${dx / 30}deg) rotateY(${dx / -16}deg)`;
-    if (hintRef.current) hintRef.current.style.opacity = String(Math.max(0, Math.min(1, dx / 120)));
-  }
+  const drag = useRef({ down: false, moved: false, startX: 0, startY: 0, dx: 0, dy: 0, id: -1, samples: [] as { t: number; x: number; y: number }[], crossed: false });
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
   function onPointerDown(e: React.PointerEvent) {
     if (leaving || phase !== 'run') return;
     if ((e.target as HTMLElement).closest('[data-nodrag]')) return;
-    drag.current = { down: true, moved: false, startX: e.clientX, startY: e.clientY, dx: 0, t0: Date.now(), id: e.pointerId };
+    cancelAnimationFrame(rafRef.current);
+    drag.current = { down: true, moved: false, startX: e.clientX - pose.current.x, startY: e.clientY - pose.current.y, dx: 0, dy: 0, id: e.pointerId, samples: [{ t: performance.now(), x: e.clientX, y: e.clientY }], crossed: false };
   }
   function onPointerMove(e: React.PointerEvent) {
     const d = drag.current;
@@ -181,7 +268,7 @@ function Player({ routine }: { routine: Routine }) {
     const dy = e.clientY - d.startY;
     if (!d.moved) {
       if (Math.abs(dx) < 8) return;
-      if (Math.abs(dy) > Math.abs(dx)) {
+      if (Math.abs(dy) > Math.abs(dx) * 1.2) {
         d.down = false;
         return;
       }
@@ -192,17 +279,32 @@ function Player({ routine }: { routine: Routine }) {
         // pointer capture is optional
       }
     }
-    d.dx = dx > 0 ? dx : dx / 4; // dragging left only wiggles a little
-    applyDrag(d.dx, false);
+    d.dx = dx;
+    d.dy = dy * 0.45; // the card follows up/down a little, but sideways is what counts
+    const now = performance.now();
+    d.samples.push({ t: now, x: e.clientX, y: e.clientY });
+    while (d.samples.length > 2 && now - d.samples[0].t > 90) d.samples.shift();
+    if (!d.crossed && Math.abs(dx) > DRAG_DONE_PX) {
+      d.crossed = true;
+      triggerHaptic('select', settings);
+    } else if (d.crossed && Math.abs(dx) < DRAG_DONE_PX * 0.8) d.crossed = false;
+    setPose(d.dx, d.dy);
   }
   function onPointerUp() {
     const d = drag.current;
     if (!d.down) return;
     d.down = false;
     if (!d.moved) return;
-    const velocity = d.dx / Math.max(1, Date.now() - d.t0);
-    if (d.dx > DRAG_DONE_PX || (d.dx > 45 && velocity > 0.5)) completeCard(true);
-    else applyDrag(0, true);
+    const s = d.samples;
+    const a = s[0];
+    const b = s[s.length - 1];
+    const dt = Math.max(1, b.t - a.t);
+    const vx = (b.x - a.x) / dt;
+    const vy = (b.y - a.y) / dt;
+    const dir: 1 | -1 = d.dx >= 0 ? 1 : -1;
+    const pushed = Math.abs(d.dx) > DRAG_DONE_PX || (Math.abs(d.dx) > 40 && Math.abs(vx) > 0.45 && Math.sign(vx) === dir);
+    if (pushed) fling(dir, vx, vy * 0.45);
+    else springBack();
   }
 
   // ----- finish screen: sparkle sounds + dancing Wesen -----
@@ -285,6 +387,7 @@ function Player({ routine }: { routine: Routine }) {
             <div className="rt-stage w-full" style={{ maxWidth: 380, height: 'min(62vh, 520px)' }} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
               {next && (
                 <RoutineCard3D
+                  ref={peekRef}
                   card={{ ...next, text: '', image: undefined }}
                   badge={<span />}
                   className="absolute inset-0"
@@ -300,6 +403,20 @@ function Player({ routine }: { routine: Routine }) {
                 style={{ touchAction: 'pan-y' }}
               >
                 {timeUp && <p className="text-[14px] text-[var(--color-text-muted)]" style={{ color: card.image ? '#fff' : undefined }}>{rt.timeUp}</p>}
+                {card.media?.url && (
+                  <MediaEmbed
+                    key={card.id}
+                    url={card.media.url}
+                    color={card.color}
+                    onEnded={() => {
+                      setMediaDone(true);
+                      playSound('settle', settings);
+                      triggerHaptic('settle', settings);
+                      if (card.media?.autoNext) window.setTimeout(() => fling(1, 1.2), 1600);
+                    }}
+                  />
+                )}
+                {mediaDone && <p className="text-[14px] text-[var(--color-text-muted)]" style={{ color: card.image ? '#fff' : undefined }} data-testid="routine-media-ended">{rt.mediaEnded}</p>}
                 {(linkedResource || linkedPerson) && (
                   <button type="button" data-nodrag onClick={() => setLinkedOpen(true)} className="w-full max-w-[300px] text-left" data-testid="routine-linked">
                     {linkedResource ? (
@@ -309,15 +426,21 @@ function Player({ routine }: { routine: Routine }) {
                     )}
                   </button>
                 )}
+                <div ref={skipHintRef} className="absolute left-4 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full text-[12px] pointer-events-none" style={{ opacity: 0, background: 'rgba(255,255,255,0.8)', color: 'var(--color-text-muted)' }}>
+                  {rt.notNow}
+                </div>
                 <div ref={hintRef} className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full flex items-center justify-center pointer-events-none" style={{ opacity: 0, background: card.color, color: '#fff', boxShadow: `0 0 28px ${card.color}` }}>
                   <Check size={28} />
                 </div>
               </RoutineCard3D>
+              {sparks.map((sp) => (
+                <span key={sp.id} className="rt-spark" style={{ background: sp.c, ['--dx' as string]: `${sp.dx}px`, ['--dy' as string]: `${sp.dy}px` }} />
+              ))}
             </div>
           </div>
 
           <div className="px-5 pt-3 flex flex-col items-center gap-2" style={{ maxWidth: 420, width: '100%', margin: '0 auto' }}>
-            <Button fullWidth onClick={() => completeCard(true)} className={timeUp && !reduce ? 'rt-pulse' : ''} icon={<Check size={17} />} data-testid="routine-done">
+            <Button fullWidth onClick={() => completeCard(true)} className={(timeUp || mediaDone) && !reduce ? 'rt-pulse' : ''} icon={<Check size={17} />} data-testid="routine-done">
               {rt.done}
             </Button>
             <button type="button" onClick={() => completeCard(false)} className="text-[13px] text-[var(--color-text-faint)] py-1.5 underline underline-offset-2" data-testid="routine-skip">

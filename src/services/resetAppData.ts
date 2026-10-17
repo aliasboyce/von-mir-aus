@@ -6,6 +6,10 @@
  */
 export const ALL_STORAGE_KEYS: string[] = [
   'settings',
+  'breath-prefs',
+  'mindmaps',
+  'network-link-meta',
+  'network-link-categories',
   'custom-lichtwesen',
   'custom-theme-palettes',
   'bridges',

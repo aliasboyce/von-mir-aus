@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { buildShareText } from '../../services/sharedLinks';
 import { useNavigate } from 'react-router-dom';
-import { Phone, Mail, Trash2, Pencil, ArrowUpRight, Link2, Share2 } from 'lucide-react';
+import { Phone, Mail, Trash2, Pencil, ArrowUpRight, Link2, Share2, Plus } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
@@ -13,6 +13,8 @@ import { getIcon } from '../../components/icons/networkIcons';
 import { NetworkEntryForm } from './NetworkEntryForm';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { NextAppointmentBlock } from '../calendar/NextAppointmentBlock';
+import { childrenOf, descendantIds, validParentId } from './networkLayout';
+import { linkCategoriesRepo, linkMetaStore, resolveLink } from './networkLinks';
 import type { NetworkCategoryConfig, NetworkEntry } from '../../data/types';
 
 interface NetworkDetailModalProps {
@@ -25,6 +27,11 @@ interface NetworkDetailModalProps {
   onDelete: (id: string) => boolean | void;
   onStartConnecting?: (id: string) => void;
   onRemoveConnection?: (fromId: string, toId: string) => void;
+  /** start a new sub-element under this entry */
+  onAddChild?: (parent: NetworkEntry) => void;
+  /** edit name/colour of the line between two entries */
+  onOpenLink?: (a: string, b: string) => void;
+  onChangeParent?: (entry: NetworkEntry, parentId: string | undefined) => void;
 }
 
 export function NetworkDetailModal({
@@ -37,6 +44,9 @@ export function NetworkDetailModal({
   onDelete,
   onStartConnecting,
   onRemoveConnection,
+  onAddChild,
+  onOpenLink,
+  onChangeParent,
 }: NetworkDetailModalProps) {
   const t = useT();
   const { settings } = useSettings();
@@ -55,6 +65,13 @@ export function NetworkDetailModal({
     (e) => e.id !== active.id && ((active.linkedTo ?? []).includes(e.id) || (e.linkedTo ?? []).includes(active.id)),
   );
   const personEntries = entries.filter((e) => e.category === 'person');
+  const en = settings.language === 'en';
+  const byId = new Map(entries.map((e) => [e.id, e]));
+  const parentEntry = byId.get(validParentId(active, byId) ?? '');
+  const kids = childrenOf(entries, active.id);
+  const blocked = descendantIds(entries, active.id);
+  const parentOptions = entries.filter((e) => e.id !== active.id && !blocked.has(e.id));
+  const linkCats = linkCategoriesRepo.getAll();
 
   function startEdit() {
     setDraft(entry);
@@ -115,7 +132,7 @@ export function NetworkDetailModal({
               )}
             </span>
             <div className="min-w-0">
-              <p className="text-[13px] text-[var(--color-text-faint)]">{categoryLabel(t, category)}</p>
+              <p className="text-[13px] text-[var(--color-text-faint)]">{categoryLabel(t, category)}{parentEntry ? ` · ↳ ${parentEntry.name}` : ''}</p>
               {active.role && <p className="text-[14px] text-[var(--color-text-muted)]">{active.role}</p>}
             </div>
           </div>
@@ -201,7 +218,18 @@ export function NetworkDetailModal({
                     key={other.id}
                     className="flex items-center justify-between gap-2 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] px-3 py-2"
                   >
-                    <span className="text-[13px] text-[var(--color-text)]">{other.name}</span>
+                    <button type="button" className="flex-1 text-left text-[13px] text-[var(--color-text)]" onClick={() => onOpenLink?.(active.id, other.id)} data-testid={`detail-link-${other.id}`}>
+                      {other.name}
+                      {(() => {
+                        const r = resolveLink(linkMetaStore.get(active.id, other.id), linkCats);
+                        return r.label ? (
+                          <span className="ml-2 text-[11.5px] text-[var(--color-text-muted)]">
+                            <span className="inline-block w-2 h-2 rounded-full mr-1 align-middle" style={{ background: r.color ?? 'var(--color-primary)' }} />
+                            {r.label}
+                          </span>
+                        ) : null;
+                      })()}
+                    </button>
                     <button
                       onClick={() => onRemoveConnection?.(active.id, other.id)}
                       aria-label={`${t.common.delete}: ${other.name}`}
@@ -214,6 +242,38 @@ export function NetworkDetailModal({
               </div>
             </div>
           )}
+
+          {kids.length > 0 && (
+            <div data-testid="detail-children">
+              <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">{en ? 'Sub-elements' : 'Unterelemente'}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {kids.map((k) => (
+                  <span key={k.id} className="text-[12.5px] rounded-full px-3 py-1 bg-[var(--color-surface-muted)] text-[var(--color-text)]">{k.name}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <Button variant="secondary" fullWidth icon={<Plus size={15} />} onClick={() => onAddChild?.(active)} data-testid="detail-add-child">
+            {en ? 'Add a sub-element' : 'Unterelement hinzufügen'}
+          </Button>
+          <p data-hint className="text-[11.5px] text-[var(--color-text-faint)] -mt-2">{en ? 'A sub-element hangs only under this one – not under you – like a branch of a mind map.' : 'Ein Unterelement hängt nur an diesem hier – nicht an dir – wie ein Ast einer Mindmap.'}</p>
+
+          <div>
+            <label className="block text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5" htmlFor="detail-parent">{en ? 'Belongs to' : 'Gehört zu'}</label>
+            <select
+              id="detail-parent"
+              data-testid="detail-parent"
+              value={parentEntry?.id ?? ''}
+              onChange={(e) => onChangeParent?.(active, e.target.value || undefined)}
+              className="w-full rounded-[var(--radius-md)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-[14px]"
+            >
+              <option value="">{en ? 'Directly to me' : 'Direkt zu mir'}</option>
+              {parentOptions.map((e) => (
+                <option key={e.id} value={e.id}>{e.name}</option>
+              ))}
+            </select>
+          </div>
 
           <Button
             variant="ghost"

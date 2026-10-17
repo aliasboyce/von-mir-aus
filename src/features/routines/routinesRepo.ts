@@ -20,6 +20,8 @@ export interface RoutineCard {
   timerSec?: number;
   /** optional: a garden item ('aufbau') that is ticked automatically when this card is done */
   gardenId?: string;
+  /** optional: a song, video or podcast link that belongs to the step (played inside the app when possible) */
+  media?: { url: string; autoNext?: boolean };
   /** optional: a resource or a person from the safety net attached to the step */
   linked?: { kind: 'resource' | 'person'; id: string };
 }

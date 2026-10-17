@@ -12,7 +12,9 @@ import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { oldProtectionStrategies } from '../accessBuildingBlocks/strategyList';
 import { RoutineCard3D } from './RoutineCard3D';
-import { ROUTINE_COLORS, ROUTINE_EMOJIS, newCard, newRoutine, routinesRepo, type Routine, type RoutineCard } from './routinesRepo';
+import { parseMediaLink, reportsEnd } from './mediaLink';
+import { EmojiPicker, ColorPicker } from '../../components/shared/SymbolColorPicker';
+import { ROUTINE_COLORS, newCard, newRoutine, routinesRepo, type Routine, type RoutineCard } from './routinesRepo';
 import { useRoutineTexts } from './routineTexts';
 import { useSettings } from '../../state/SettingsContext';
 
@@ -168,6 +170,26 @@ export function RoutineEditorPage() {
                         </div>
 
                         <div>
+                          <p className="text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5">🎵 {rt.media}</p>
+                          <input className="input" inputMode="url" value={c.media?.url ?? ''} placeholder={rt.mediaPh} onChange={(e) => patchCard(c.id, { media: e.target.value.trim() ? { url: e.target.value, autoNext: c.media?.autoNext } : undefined })} data-testid={`routine-media-${i}`} />
+                          {c.media?.url && (() => {
+                            const pm = parseMediaLink(c.media.url);
+                            if (!pm) return <p className="text-[12px] text-[var(--color-danger)] mt-1">{rt.mediaBad}</p>;
+                            return (
+                              <div className="mt-1.5">
+                                <p className="text-[12px] text-[var(--color-primary)]" data-testid={`routine-media-kind-${i}`}>✓ {rt.mediaOk.replace('{kind}', pm.label)}{pm.kind === 'other' ? ` – ${rt.mediaOther}` : ''}</p>
+                                {reportsEnd(pm.kind) && (
+                                  <label className="flex items-center gap-2 mt-1.5 text-[12.5px] text-[var(--color-text-muted)]">
+                                    <input type="checkbox" checked={!!c.media.autoNext} onChange={(ev) => patchCard(c.id, { media: { url: c.media!.url, autoNext: ev.target.checked } })} /> {rt.mediaAuto}
+                                  </label>
+                                )}
+                              </div>
+                            );
+                          })()}
+                          <p data-hint className="text-[11.5px] text-[var(--color-text-faint)] mt-1">{rt.mediaNote}</p>
+                        </div>
+
+                        <div>
                           <p className="text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5">{rt.linked}</p>
                           {linked ? (
                             <div className="flex items-center gap-2">
@@ -217,25 +239,9 @@ function Pill({ on, onClick, children }: { on: boolean; onClick: () => void; chi
 
 function EmojiColor({ emoji, color, onEmoji, onColor, rt }: { emoji: string; color: string; onEmoji: (e: string) => void; onColor: (c: string) => void; rt: ReturnType<typeof useRoutineTexts> }) {
   return (
-    <div className="flex flex-col gap-2.5">
-      <div>
-        <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{rt.symbol}</p>
-        <div className="flex flex-wrap gap-1.5">
-          {ROUTINE_EMOJIS.map((e) => (
-            <button key={e} type="button" onClick={() => onEmoji(e)} className="w-9 h-9 rounded-full text-[18px] flex items-center justify-center" style={{ background: emoji === e ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', outline: emoji === e ? '2px solid var(--color-primary)' : 'none' }} aria-label={e}>
-              {e}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div>
-        <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{rt.colour}</p>
-        <div className="flex flex-wrap gap-2">
-          {ROUTINE_COLORS.map((c) => (
-            <button key={c} type="button" onClick={() => onColor(c)} className="w-8 h-8 rounded-full" style={{ background: c, outline: color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={c} />
-          ))}
-        </div>
-      </div>
+    <div className="flex flex-col gap-3">
+      <EmojiPicker value={emoji} onChange={onEmoji} label={rt.symbol} />
+      <ColorPicker value={color} onChange={onColor} label={rt.colour} />
     </div>
   );
 }

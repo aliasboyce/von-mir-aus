@@ -168,6 +168,11 @@ export interface NetworkEntry {
    * visually differently from an active-exchange connection.
    */
   linkedTo?: string[];
+  /**
+   * Sub-element: this entry hangs under another one (like a branch of a mind map) and is tied only to
+   * its parent – not to the "you" node in the middle.
+   */
+  parentId?: string;
   /** links an "aktivitaet"/"ressource" node to a concrete Resource entry */
   linkedResourceId?: string;
   createdAt: string;

@@ -1,7 +1,7 @@
 export type HelpKey =
   | 'home' | 'checkin' | 'entdecken' | 'ressourcen' | 'zugangsrad' | 'zugang' | 'zugangRueckblick'
   | 'beduerfnisKompass' | 'tageskurve' | 'meineEntwicklung' | 'lesezeichen' | 'wochenrueckblick'
-  | 'timer' | 'garten' | 'mediLog' | 'bruecken' | 'bridgeDetail' | 'sicherheit' | 'sicherheitsnetz'
+  | 'timer' | 'garten' | 'atmen' | 'mindmap' | 'mediLog' | 'bruecken' | 'bridgeDetail' | 'sicherheit' | 'sicherheitsnetz'
   | 'kontakte' | 'sicherheitsplan' | 'tagebuch' | 'einstellungen' | 'wesenInhalte' | 'favoriten'
   | 'wesenAblenkung' | 'wesenOrientierung' | 'wesenMitteilungen'
   | 'quellen' | 'skills' | 'hilfsmittel' | 'orte' | 'aktivitaeten' | 'skillketten'
@@ -362,10 +362,14 @@ It is an optional tool for recognizing your own patterns over time. You only ent
     titleEn: `My Development`,
     body: `Ein längerer Blick auf deine Tageskurve über Wochen und Monate.
 
-Es geht nicht darum, „besser“ zu werden, sondern eigene Muster und Zusammenhänge sichtbarer zu machen.`,
+Es geht nicht darum, „besser“ zu werden, sondern eigene Muster und Zusammenhänge sichtbarer zu machen.
+
+Unter der Kurve findest du „Verlauf & Auffälligkeiten“ für 7, 30 oder 90 Tage: ruhigster und anstrengendster Tag, schwierige Momente und was du am meisten genutzt hast.`,
     bodyEn: `A longer view of your daily curve over weeks and months.
 
-It is not about getting "better" but about making your own patterns and connections more visible.`,
+It is not about getting "better" but about making your own patterns and connections more visible.
+
+Below the curve you find "Trend & highlights" for 7, 30 or 90 days: calmest and most strenuous day, difficult moments and what you used most.`,
   },
   lesezeichen: {
     title: `Gespeicherte Quellen`,
@@ -393,6 +397,9 @@ You can share sources as a link or import from others.`,
 ### Was drin ist
 Alles, was du ohnehin festgehalten hast: Check-ins, genutzte Ressourcen und Brücken, Zugang-Durchgänge, Medikamente, Garten und deine Tagebucheinträge.
 
+### Verlauf & Auffälligkeiten
+In einem Kasten wird für 7, 30 oder 90 Tage von selbst berechnet: dein Verlauf, der ruhigste und der anstrengendste Tag, deine schwierigen Momente (und ob du danach wieder zurückgekommen bist) und was du am häufigsten genutzt hast – Skills, Hilfsmittel, Routinen. Das ist nur eine Spiegelung, keine Bewertung.
+
 ### Getrennt vom Tagebuch
 Der Rückblick sammelt von selbst, schreibt aber nichts ins Tagebuch. Das Tagebuch bleibt nur das, was du dort selbst einträgst.
 
@@ -402,6 +409,9 @@ Mit dem Symbol oben rechts exportierst du den Rückblick, zum Beispiel für ein 
 
 ### What is in it
 Everything you captured anyway: check-ins, resources and bridges used, Access passes, medication, garden and your diary entries.
+
+### Trend & highlights
+One box calculates by itself for 7, 30 or 90 days: your trend, the calmest and most strenuous day, your difficult moments (and whether you came back afterwards) and what you used most – skills, tools, routines. It is only a mirror, not a judgement.
 
 ### Separate from the diary
 The review collects by itself but writes nothing into the diary. The diary stays only what you enter there yourself.
@@ -418,6 +428,62 @@ Die Stoppuhr zählt nur mit. Es gibt kein Ende, das du erreichen musst.`,
     bodyEn: `A simple timer for bridges, resources or just for yourself, to consciously give yourself a set time for something.
 
 The stopwatch simply counts along. There is no end you have to reach.`,
+  },
+  mindmap: {
+    title: `Mindmaps`,
+    titleEn: `Mind maps`,
+    body: `Eine freie Fläche für deine Gedanken: Du baust Karten aus Knoten, Notizzetteln und Rahmen (Cluster) und verbindest sie so, wie es für dich Sinn ergibt. Das hat mit dem Sicherheitsnetzwerk nichts zu tun – es ist einfach dein Platz zum Sortieren, Planen und Träumen.
+
+### So geht es
+- **Knoten** hinzufügen (oder doppelt auf die Fläche tippen). Antippen wählt aus, ziehen verschiebt.
+- Am ausgewählten Knoten ist ein **+**: antippen = Unterknoten, ziehen zu einem anderen Knoten = Verbindung, ziehen ins Leere = neuer Knoten daran.
+- **Stil**: Form (Rechteck, Oval, Wolke …), Farbe, Symbol, Größe.
+- **Linien** antippen: Farbe, Stil (durchgezogen, gestrichelt, gepunktet), Stärke, Pfeil, Beschriftung – und am Punkt in der Mitte biegen.
+- **Rahmen** fassen Dinge zu einem Cluster zusammen; zieht man den Rahmen, wandert der Inhalt mit.
+- Mit zwei Fingern oder den Knöpfen zoomen, auf der Fläche ziehen zum Verschieben – so weit du magst.
+
+### Teilen und drucken
+Über die drei Punkte kannst du die Mindmap als PDF drucken (alles ist drauf – bei großen Karten mit Detailseiten) oder per Link mit Freund:innen teilen. Der Link enthält die ganze Mindmap; die andere Person fügt ihn unter „Etwas von jemandem erhalten“ ein und bekommt eine eigene Kopie.`,
+    bodyEn: `A free canvas for your thoughts: you build maps from nodes, sticky notes and frames (clusters) and connect them the way that makes sense to you. This has nothing to do with the safety net – it is simply your place to sort, plan and dream.
+
+### How it works
+- Add a **node** (or double-tap the canvas). Tapping selects, dragging moves.
+- A selected node has a **+**: tap = sub-node, drag to another node = connection, drag into empty space = new node attached.
+- **Style**: shape (rectangle, oval, cloud …), colour, symbol, size.
+- Tap **lines**: colour, style (solid, dashed, dotted), weight, arrow, label – and bend them with the dot in the middle.
+- **Frames** gather things into a cluster; when you drag the frame, its contents move along.
+- Zoom with two fingers or the buttons, drag the canvas to move – as far as you like.
+
+### Share and print
+Via the three dots you can print the mind map as a PDF (everything is on it – big maps get detail pages) or share it with friends by link. The link contains the whole mind map; the other person pastes it under "Received something from someone" and gets a copy of their own.`,
+  },
+  atmen: {
+    title: `Atmen`,
+    titleEn: `Breathing`,
+    body: `Hier führt dich ein Bild durch den Atem: ein Kreis, der wächst und schrumpft (das Wesen atmet darin mit), eine Welle, der du mit dem Punkt folgst, oder ein Quadrat für gleich lange Teile.
+
+### Alles ist ein Angebot
+Du kannst die Augen offen lassen, jederzeit mit dem ✕ aufhören, pausieren und die Halte-Pausen weglassen. Wenn Atmen sich gerade unangenehm anfühlt, ist das ein ernstzunehmendes Signal – dann hilft vielleicht etwas anderes (Bewegung, Umschauen, ein anderer Skill).
+
+### Fühlen
+Mit „Mitvibrieren“ gibt es kleine Impulse: schneller beim Einatmen, langsamer beim Ausatmen. Das klappt auf Android-Handys. Auf dem iPhone erlaubt der Browser keine Vibration – dort helfen Bild und der sanfte Ton.
+
+### Was ist belegt?
+Jede Übung zeigt ehrlich, wie gut sie untersucht ist. Am besten belegt: Seufzer-Atmen und etwa sechs Atemzüge pro Minute. Box-Atmen und 4-7-8 sind weniger belegt – wahrscheinlich zählt vor allem das langsame Tempo und das lange Ausatmen.
+
+Nach dem Üben wird es als Skill im Rückblick vermerkt.`,
+    bodyEn: `Here a picture guides you through the breath: a circle that grows and shrinks (the Wesen breathes inside it), a wave you follow with the dot, or a square for equal parts.
+
+### Everything is an offer
+You can keep your eyes open, stop any time with the ✕, pause and leave out the holds. If breathing feels unpleasant right now, take that seriously – maybe something else helps (movement, looking around, another skill).
+
+### Feeling it
+With "Vibrate along" there are small pulses: faster while breathing in, slower while breathing out. This works on Android phones. On iPhone the browser allows no vibration – picture and the soft tone help there.
+
+### What is supported?
+Each exercise honestly shows how well it is studied. Best supported: sigh breathing and about six breaths per minute. Box breathing and 4-7-8 are less supported – probably the slow pace and long exhale matter most.
+
+After practising it is noted as a skill in the review.`,
   },
   garten: {
     title: `Routinen & mein Garten`,

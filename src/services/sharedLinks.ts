@@ -13,6 +13,7 @@ const IMPORT_PATHS = [
   '/entdecken/lesezeichen/importieren',
   '/sicherheit/kontakte/importieren',
   '/brief/importieren',
+  '/entdecken/mindmap/importieren',
 ];
 
 /** The in-app route (path + query) found in a pasted text, or null. */
@@ -53,7 +54,7 @@ export function isIosBrowserTab(): boolean {
   return isIosDevice() && !isStandaloneApp();
 }
 
-export type ShareKind = 'skill' | 'hilfsmittel' | 'ort' | 'aktivitaet' | 'ressource' | 'bruecke' | 'quelle' | 'kontakt';
+export type ShareKind = 'skill' | 'hilfsmittel' | 'ort' | 'aktivitaet' | 'ressource' | 'bruecke' | 'quelle' | 'kontakt' | 'mindmap';
 
 const KIND_PHRASE: Record<ShareKind, { de: string; en: string }> = {
   skill: { de: 'einen Skill', en: 'a skill' },
@@ -64,6 +65,7 @@ const KIND_PHRASE: Record<ShareKind, { de: string; en: string }> = {
   bruecke: { de: 'eine Brücke', en: 'a bridge' },
   quelle: { de: 'eine Quelle', en: 'a source' },
   kontakt: { de: 'einen Kontakt', en: 'a contact' },
+  mindmap: { de: 'eine Mindmap', en: 'a mind map' },
 };
 
 export function isShareKind(x: unknown): x is ShareKind {

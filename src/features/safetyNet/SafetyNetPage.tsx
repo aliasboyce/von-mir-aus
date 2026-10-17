@@ -25,6 +25,9 @@ import { NetworkLegend } from './NetworkLegend';
 import { NetworkDetailModal } from './NetworkDetailModal';
 import { categoryLabel } from './networkMeta';
 import { NetworkPrintView } from './NetworkPrintView';
+import { NetworkLinkEditor } from './NetworkLinkEditor';
+import { computePositions, positionForNewChild, validParentId } from './networkLayout';
+import { linkMetaStore } from './networkLinks';
 import { useSettings } from '../../state/SettingsContext';
 import { NetworkEntryForm } from './NetworkEntryForm';
 import { NetworkCategoryEditor } from './NetworkCategoryEditor';
@@ -76,6 +79,8 @@ export function SafetyNetPage() {
   const [draft, setDraft] = useState<NetworkEntry>(emptyEntry());
   const [selected, setSelected] = useState<NetworkEntry | null>(null);
   const [connectingFromId, setConnectingFromId] = useState<string | null>(null);
+  const [linkEdit, setLinkEdit] = useState<{ a: string; b: string } | null>(null);
+  const [linksVersion, setLinksVersion] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Deep-link support: /sicherheit/netzwerk?open=<id> opens that entry's
@@ -128,14 +133,17 @@ export function SafetyNetPage() {
     setEntries(networkRepo.getAll());
   }
 
-  function openNew() {
-    setDraft(emptyEntry());
+  function openNew(parent?: NetworkEntry) {
+    setDraft(parent ? { ...emptyEntry(), parentId: parent.id, category: parent.category } : emptyEntry());
+    setSelected(null);
     setModalOpen(true);
   }
 
   function saveNew() {
     if (!draft.name.trim()) return;
-    networkRepo.save({ ...draft, updatedAt: new Date().toISOString() });
+    // a sub-element appears right next to its parent and stays there (saved, not re-shuffled by later siblings)
+    const position = draft.parentId ? positionForNewChild(entries, draft.parentId, draft.id) : draft.position;
+    networkRepo.save({ ...draft, position, updatedAt: new Date().toISOString() });
     setModalOpen(false);
     refresh();
     say(pickLine({ page: '/sicherheit/netzwerk', trigger: 'speichern' }));
@@ -170,6 +178,20 @@ export function SafetyNetPage() {
       say(pickLine({ page: '/sicherheit/netzwerk', trigger: 'speichern' }));
     }
     setConnectingFromId(null);
+    // give the new line a name and colour right away (all optional – just close it to keep it plain)
+    setLinkEdit({ a: source.id, b: target.id });
+  }
+
+  function openLink(a: string, b: string) {
+    setLinkEdit({ a, b });
+  }
+
+  function detachChild(childId: string) {
+    const child = networkRepo.getById(childId);
+    if (!child) return;
+    const pos = computePositions(networkRepo.getAll()).get(childId);
+    networkRepo.save({ ...child, parentId: undefined, position: child.position ?? pos, updatedAt: new Date().toISOString() });
+    refresh();
   }
 
   function removeConnection(fromId: string, toId: string) {
@@ -183,6 +205,7 @@ export function SafetyNetPage() {
     } else if (b?.linkedTo?.includes(fromId)) {
       networkRepo.save({ ...b, linkedTo: b.linkedTo.filter((id) => id !== fromId), updatedAt: new Date().toISOString() });
     }
+    linkMetaStore.remove(fromId, toId);
     refresh();
   }
 
@@ -197,6 +220,15 @@ export function SafetyNetPage() {
 
   function handleDelete(id: string): boolean {
     if (!window.confirm(t.network.confirmDelete)) return false;
+    // sub-elements are not deleted with their parent: they move up one level (and stay where they are)
+    const all = networkRepo.getAll();
+    const byId = new Map(all.map((e) => [e.id, e]));
+    const gone = byId.get(id);
+    const positions = computePositions(all);
+    const grand = gone ? validParentId(gone, byId) : undefined;
+    all.filter((e) => validParentId(e, byId) === id).forEach((c) => {
+      networkRepo.save({ ...c, parentId: grand, position: c.position ?? positions.get(c.id), updatedAt: new Date().toISOString() });
+    });
     networkRepo.remove(id);
     refresh();
     say(pickLine({ page: '/sicherheit/netzwerk', trigger: 'loeschen' }));
@@ -264,7 +296,7 @@ export function SafetyNetPage() {
         </div>
       )}
 
-      <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-4">
+      <Button fullWidth icon={<Plus size={17} />} onClick={() => openNew()} className="mb-4">
         {t.network.addNew}
       </Button>
 
@@ -294,7 +326,8 @@ export function SafetyNetPage() {
               connectingFromId={connectingFromId}
               onCompleteConnection={completeConnection}
               onCancelConnecting={() => setConnectingFromId(null)}
-              onRemoveConnection={removeConnection}
+              onLinkTap={openLink}
+              linksVersion={linksVersion}
               background={networkBackground}
             />
             <button
@@ -333,7 +366,7 @@ export function SafetyNetPage() {
                 {entries
                   .filter((e) => !important.some((i) => i.id === e.id))
                   .map((entry) => (
-                    <NetworkEntryListItem key={entry.id} entry={entry} categories={categories} onOpen={() => handleSelectEntry(entry)} />
+                    <NetworkEntryListItem key={entry.id} entry={entry} categories={categories} parentName={entries.find((p) => p.id === validParentId(entry, new Map(entries.map((x) => [x.id, x]))))?.name} onOpen={() => handleSelectEntry(entry)} />
                   ))}
               </div>
             </>
@@ -360,7 +393,8 @@ export function SafetyNetPage() {
           connectingFromId={connectingFromId}
           onCompleteConnection={completeConnection}
           onCancelConnecting={() => setConnectingFromId(null)}
-          onRemoveConnection={removeConnection}
+          onLinkTap={openLink}
+          linksVersion={linksVersion}
         />
       )}
 
@@ -381,7 +415,26 @@ export function SafetyNetPage() {
         onDelete={handleDelete}
         onStartConnecting={startConnecting}
         onRemoveConnection={removeConnection}
+        onAddChild={openNew}
+        onOpenLink={openLink}
+        onChangeParent={(entry, parentId) => {
+          handleSaveDetail({ ...entry, parentId });
+        }}
       />
+
+      {linkEdit && (
+        <NetworkLinkEditor
+          open
+          a={linkEdit.a}
+          b={linkEdit.b}
+          kind={entries.find((e) => e.id === linkEdit.a)?.parentId === linkEdit.b || entries.find((e) => e.id === linkEdit.b)?.parentId === linkEdit.a ? 'parent' : 'free'}
+          entries={entries}
+          onClose={() => setLinkEdit(null)}
+          onChanged={() => setLinksVersion((v) => v + 1)}
+          onRemove={removeConnection}
+          onDetach={detachChild}
+        />
+      )}
 
       </div>
 
@@ -398,7 +451,7 @@ export function SafetyNetPage() {
         onChange={setNetworkBackground}
       />
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t.network.modalTitle} subtitle={t.network.modalSubtitle}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t.network.modalTitle} subtitle={draft.parentId ? `${settings.language === 'en' ? 'Sub-element of' : 'Unterelement von'} ${entries.find((e) => e.id === draft.parentId)?.name ?? ''}` : t.network.modalSubtitle}>
         <NetworkEntryForm
           draft={draft}
           onChange={setDraft}
@@ -421,6 +474,7 @@ export function SafetyNetPage() {
             legendTitle: t.network.legendTitle,
             exportedOn: t.network.exportedOn,
           }}
+          lang={settings.language === 'en' ? 'en' : 'de'}
           formatDate={(iso) => new Date(iso).toLocaleDateString(settings.language === 'de' ? 'de-DE' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' })}
         />
       )}
@@ -453,8 +507,10 @@ function ExampleBadge({ className = '' }: { className?: string }) {
 function NetworkEntryListItem({
   entry,
   categories,
+  parentName,
   onOpen,
 }: {
+  parentName?: string;
   entry: NetworkEntry;
   categories: ReturnType<typeof useNetworkCategories>['categories'];
   onOpen: () => void;
@@ -480,6 +536,7 @@ function NetworkEntryListItem({
           <div className="flex items-center gap-1.5 flex-wrap">
             <p className="text-[14px] text-[var(--color-text)]">{entry.name}</p>
             <span className="text-[11px] text-[var(--color-text-faint)]">· {categoryLabel(t, category)}</span>
+            {parentName && <span className="text-[11px] text-[var(--color-text-faint)]" data-testid="network-list-parent">↳ {parentName}</span>}
             {entry.isExample && <ExampleBadge />}
           </div>
           {entry.role && <p className="text-[12px] text-[var(--color-text-muted)]">{entry.role}</p>}

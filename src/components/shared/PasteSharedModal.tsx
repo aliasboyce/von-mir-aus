@@ -10,7 +10,7 @@ const TXT = {
   de: {
     cta: 'Etwas von jemandem erhalten',
     title: 'Geteiltes einfügen',
-    intro: 'Hat dir jemand eine Ressource, ein Hilfsmittel, einen Ort, eine Aktivität, eine Brücke, eine Quelle, einen Kontakt oder einen Brief geschickt?',
+    intro: 'Hat dir jemand eine Ressource, ein Hilfsmittel, einen Ort, eine Aktivität, eine Brücke, eine Quelle, einen Kontakt, eine Mindmap oder einen Brief geschickt?',
     steps: [
       'Kopiere den Link aus der Nachricht. Tippe ihn nicht an – sonst öffnet sich auf dem iPhone Safari, und das ist nicht deine App vom Startbildschirm.',
       'Füge ihn hier ein.',
@@ -25,7 +25,7 @@ const TXT = {
   en: {
     cta: 'Received something from someone',
     title: 'Paste something shared with you',
-    intro: 'Did someone send you a resource, a tool, a place, an activity, a bridge, a source, a contact or a letter?',
+    intro: 'Did someone send you a resource, a tool, a place, an activity, a bridge, a source, a contact, a mind map or a letter?',
     steps: [
       'Copy the link from the message. Do not tap it – on an iPhone that opens Safari, which is not your app from the home screen.',
       'Paste it here.',

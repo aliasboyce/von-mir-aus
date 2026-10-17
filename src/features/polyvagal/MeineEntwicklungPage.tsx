@@ -18,6 +18,7 @@ import { PolyvagalDayChart } from './PolyvagalDayChart';
 import { ChartPrintView } from './ChartPrintView';
 import { DailyReviewsPrintView } from './DailyReviewsPrintView';
 import { exportCurvePdf } from '../reviews/curvePdf';
+import { ReviewInsightsBlock } from '../reviews/ReviewInsights';
 import { bandForValueCalibrated, FALLBACK_TENSION_BY_ZONE } from './arousalBands';
 import type { PolyvagalCheckIn } from '../../data/types';
 
@@ -171,6 +172,10 @@ export function MeineEntwicklungPage() {
             </p>
           </Card>
         )}
+
+        <div className="mb-6">
+          <ReviewInsightsBlock />
+        </div>
 
         {sortedDays.length === 0 ? (
           <EmptyState title={t.polyvagal.developmentEmpty} />

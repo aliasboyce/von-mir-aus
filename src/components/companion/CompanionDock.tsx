@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather, Footprints, Radio, Zap } from 'lucide-react';
+import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather, Footprints, Radio, Zap, Wind } from 'lucide-react';
 import { LichtCompanion } from './LichtCompanion';
 import { DistractionOverlay } from './DistractionOverlay';
 import { DinoGame } from './DinoGame';
@@ -372,6 +372,17 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         >
           <Zap size={15} />
           {en ? '10-second smuggle' : '10 Sekunden Schmuggel'}
+        </button>
+        <button
+          onClick={() => {
+            setMenuOpen(false);
+            navigate('/entdecken/atmen');
+          }}
+          className="companion-menu__item"
+          data-testid="companion-breathe"
+        >
+          <Wind size={15} />
+          {en ? 'Breathe together' : 'Gemeinsam atmen'}
         </button>
       </>
     );

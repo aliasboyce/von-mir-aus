@@ -4,7 +4,7 @@ import { useSettings } from '../../state/SettingsContext';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useSearchParams, useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Heart, Plus, Link as LinkIcon, Link2, GitBranch, Pencil, Trash2, Share2, Upload, Tag, RefreshCw, Compass } from 'lucide-react';
+import { Heart, Plus, Link as LinkIcon, Link2, GitBranch, Pencil, Trash2, Share2, Upload, Tag, RefreshCw, Compass, Wind } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
@@ -397,6 +397,21 @@ export function ResourcesPage() {
            * Auftrag — gespeicherte Ketten waren nirgends auffindbar; this
            * tile is the visible doorway to the Skillketten subpage, with a
            * live count so a freshly saved chain is noticeable right here. */}
+          {typeScope === 'skills' && (
+            <Link
+              to="/entdecken/atmen"
+              className="flex items-center gap-3 p-3.5 mb-3 rounded-[var(--radius-lg)]"
+              style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-border-strong)' }}
+              data-testid="skills-breath-link"
+            >
+              <Wind size={20} className="text-[var(--color-primary)] flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[14px] font-medium text-[var(--color-text)]">{settings.language === 'en' ? 'Breathing exercises' : 'Atemübungen'}</p>
+                <p className="text-[12px] text-[var(--color-text-muted)]">{settings.language === 'en' ? 'With circle, wave or square – and the Wesen breathing along.' : 'Mit Kreis, Welle oder Quadrat – und das Wesen atmet mit.'}</p>
+              </div>
+              <span className="text-[var(--color-primary)]" aria-hidden="true">→</span>
+            </Link>
+          )}
           {typeScope === 'skills' && (
             <Link
               to="/entdecken/ressourcen/skillketten"

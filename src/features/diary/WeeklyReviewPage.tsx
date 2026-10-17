@@ -5,6 +5,8 @@ import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
 import { buildReviewPdf } from '../reviews/reviewPdf';
 import { gatherReviewDays, lastNDaysRange } from '../reviews/reviewData';
 import { reviewSummaryLines } from '../reviews/reviewStats';
+import { ReviewInsightsBlock, insightLines } from '../reviews/ReviewInsights';
+import { computeInsights } from '../reviews/insights';
 import { skillUsesInLastDays } from '../resources/skillUsesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { PersonLine } from '../calendar/PersonAvatar';
@@ -161,6 +163,7 @@ export function WeeklyReviewPage() {
     if (stats.zugangCount > 0) extra.push(`Zugang: ${stats.zugangCount}`);
     if (stats.gardenThisWeek.length > 0) extra.push(stats.gardenThisWeek.map((g) => `${g.name}: ${g.daysThisWeek}`).join(', '));
     if (stats.helpfulYes > 0) extra.push(t.weeklyReview.helpfulNote.replace('{count}', String(stats.helpfulYes)));
+    insightLines(computeInsights(DAYS), isEn ? 'en' : 'de', isEn ? 'en-US' : 'de-DE').forEach((l) => extra.push(l));
     const title = period === 'month' ? t.weeklyReview.titleMonthly : t.weeklyReview.title;
     const bytes = buildReviewPdf({
       kind: period,
@@ -240,6 +243,9 @@ export function WeeklyReviewPage() {
                 )}
               </div>
             </div>
+
+            {/* Verlauf & Auffälligkeiten (7/30/90 Tage), automatisch berechnet */}
+            <ReviewInsightsBlock key={period} initialDays={period === 'month' ? 30 : 7} />
 
             {/* 4 — Moment der Woche, statt einer flachen Liste */}
             {stats.momentOfWeek && (

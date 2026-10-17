@@ -16,6 +16,24 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-mindmap-netzwerk-atmen',
+    date: '2026',
+    items: [
+      'Neu: „Mindmaps“ unter Entdecken – so viele, wie du magst, mit Formen, Farben, Linien, Symbolen, benannten Verbindungen, Rahmen und frei verschiebbarer, riesiger Fläche. Als PDF druckbar (alles drauf) und per Link oder Datei mit Freund:innen teilbar.',
+      'Sicherheitsnetzwerk: Unterelemente wie bei einer Mindmap (z. B. nur mit deinem Hund verbunden), Verbindungen mit Namen und Farbe (wiederverwendbar), sehr große Fläche ohne Verzerrung, und das PDF zeigt das ganze gebaute Netz.',
+      'Neu: Atemübungen mit lebendigem Wesen, Kreis, Linien und Wellen – zum Mitmachen mit Bild und (auf Android) Vibration. Zu finden bei den Skills und im Wesen-Menü.',
+      'Routinen: Karten lassen sich richtig mit dem Finger wegschieben und fortschleudern. Mehr Symbole und Farben. Pro Karte ein Link zu Lied oder Video (YouTube, Spotify …), das erst nach Antippen spielt.',
+      'Rückblicke: „Verlauf & Auffälligkeiten“ für 7, 30 und 90 Tage – ruhigster und anstrengendster Tag, schwierige Momente und was du am häufigsten genutzt hast.',
+    ],
+    itemsEn: [
+      'New: “Mindmaps” under Discover – as many as you like, with shapes, colours, lines, symbols, named connections, frames and a huge, freely movable canvas. Printable as PDF (everything on it) and shareable with friends by link or file.',
+      'Safety network: sub-elements like a mind map (e.g. connected only to your dog), connections with a name and colour (reusable), a very large canvas without distortion, and the PDF shows the whole network you built.',
+      'New: breathing exercises with a lively companion, circle, lines and waves – to follow along with visuals and (on Android) vibration. Find them under Skills and in the companion menu.',
+      'Routines: cards can really be pushed away and flung with your finger. More symbols and colours. A link to a song or video per card (YouTube, Spotify …) that only plays after you tap it.',
+      'Reviews: “Trend & highlights” for 7, 30 and 90 days – calmest and most strenuous day, difficult moments and what you used most.',
+    ],
+  },
+  {
     id: '2026-routinen-und-tagesrahmen',
     date: '2026',
     items: [

@@ -59,6 +59,10 @@ import { MedicationPackagesPage } from './features/mediLog/MedicationPackagesPag
 import { PolyvagalPage } from './features/polyvagal/PolyvagalPage';
 import { DayFlowPage } from './features/dayFlow/DayFlowPage';
 import { RoutinesGardenPage } from './features/routines/RoutinesGardenPage';
+import { BreathPage } from './features/breathing/BreathPage';
+import { MindmapListPage } from './features/mindmap/MindmapListPage';
+import { MindmapEditorPage } from './features/mindmap/MindmapEditorPage';
+import { MindmapImportPage } from './features/mindmap/MindmapImportPage';
 import { RoutineEditorPage } from './features/routines/RoutineEditorPage';
 import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
 import { MeineEntwicklungPage } from './features/polyvagal/MeineEntwicklungPage';
@@ -132,6 +136,10 @@ function App() {
                 <Route path="/sicherheit/kontakte/importieren" element={<NetworkImportPage />} />
                 <Route path="/entdecken/timer" element={<SimpleTimerPage />} />
                 <Route path="/entdecken/garten" element={<RoutinesGardenPage />} />
+                <Route path="/entdecken/atmen" element={<BreathPage />} />
+                <Route path="/entdecken/mindmap" element={<MindmapListPage />} />
+                <Route path="/entdecken/mindmap/importieren" element={<MindmapImportPage />} />
+                <Route path="/entdecken/mindmap/:id" element={<MindmapEditorPage />} />
                 <Route path="/tag-beginnen" element={<DayFlowPage phase="start" />} />
                 <Route path="/tag-abschliessen" element={<DayFlowPage phase="end" />} />
                 <Route path="/entdecken/routinen" element={<Navigate to="/entdecken/garten" replace />} />
