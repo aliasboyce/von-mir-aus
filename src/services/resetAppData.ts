@@ -1,3 +1,4 @@
+import { clearAllOwnMedia } from './mediaStore';
 /**
  * Every key the app writes to localStorage, in one place. When a new
  * feature adds its own repository or key-value store, add its key here too
@@ -6,6 +7,7 @@
  */
 export const ALL_STORAGE_KEYS: string[] = [
   'settings',
+  'app-lock',
   'breath-prefs',
   'mindmaps',
   'network-link-meta',
@@ -94,6 +96,7 @@ const NAMESPACE = 'innerpath';
  * so it still fully resets even if a key was ever missed in the list.
  */
 export function resetAllAppData(): void {
+  void clearAllOwnMedia();
   const toRemove: string[] = [];
   for (let i = 0; i < window.localStorage.length; i++) {
     const key = window.localStorage.key(i);

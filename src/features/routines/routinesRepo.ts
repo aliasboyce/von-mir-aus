@@ -1,6 +1,7 @@
 import { createRepository, createId } from '../../services/storage/repository';
 import { gardenRepo } from '../garden/gardenRepo';
 import { logActivity } from '../../services/activityLog';
+import { deleteOwnMedia, type OwnMediaRef } from '../../services/mediaStore';
 
 /**
  * Routinen: eine feste Reihenfolge kleiner Karten, jede mit genau einem
@@ -8,6 +9,8 @@ import { logActivity } from '../../services/activityLog';
  * ganzen Bildschirm füllt. Alles optional außer dem Schritt-Text: Timer,
  * Garten-Verknüpfung, Ressource/Person.
  */
+export type EnergyLevel = 1 | 2 | 3;
+
 export interface RoutineCard {
   id: string;
   /** the one action of this step */
@@ -22,6 +25,10 @@ export interface RoutineCard {
   gardenId?: string;
   /** optional: a song, video or podcast link that belongs to the step (played inside the app when possible) */
   media?: { url: string; autoNext?: boolean };
+  /** optional: an own photo, video or audio file shown on the card (kept on this device only, in IndexedDB) */
+  ownMedia?: OwnMediaRef;
+  /** energy traffic light: from which energy level on this step belongs to the run – 1 = even on a hard day, 2 = from medium, 3 (default) = only with full energy */
+  minEnergy?: EnergyLevel;
   /** optional: a resource or a person from the safety net attached to the step */
   linked?: { kind: 'resource' | 'person'; id: string };
 }
@@ -38,6 +45,8 @@ export interface Routine {
   isExample?: boolean;
   /** which old protection strategy this routine is the new alternative to (optional) */
   alternativeFor?: string;
+  /** set when it was created from an everyday template */
+  templateKey?: string;
 }
 
 export interface RoutineRun {
@@ -49,6 +58,8 @@ export interface RoutineRun {
   durationSec: number;
   /** one entry per card: seconds spent and whether it was done or skipped ("gerade nicht") */
   cards: { cardId: string; text: string; sec: number; done: boolean }[];
+  /** which energy version was chosen (only when the routine has more than one) */
+  energy?: EnergyLevel;
 }
 
 export const routinesRepo = createRepository<Routine>('routines');
@@ -56,6 +67,17 @@ export const routineRunsRepo = createRepository<RoutineRun>('routine-runs');
 
 export const ROUTINE_COLORS = ['#e8a83d', '#6fbf73', '#4a8f9e', '#9a7bc4', '#d9778a', '#c9522f', '#8fae3d', '#5b7fb5'];
 export const ROUTINE_EMOJIS = ['💧', '🌤️', '🌬️', '🪥', '🍵', '🧘', '🚶', '🛏️', '📵', '🌱', '🧴', '🍎', '📓', '☀️', '🌙', '💊', '🧦', '🎧', '🕯️', '🫖'];
+
+export const ENERGY_COLORS: Record<EnergyLevel, string> = { 1: '#d9774f', 2: '#e8a83d', 3: '#6fbf73' };
+
+/** the steps that belong to a run at a given energy (unmarked steps = only with full energy) */
+export const cardsForEnergy = (cards: RoutineCard[], level: EnergyLevel): RoutineCard[] => cards.filter((c) => (c.minEnergy ?? 3) <= level);
+
+/** the energy versions a routine really offers (empty or identical ones are left out); fewer than 2 means: no choice needed */
+export function energyOptions(cards: RoutineCard[]): { level: EnergyLevel; count: number }[] {
+  const raw = ([1, 2, 3] as EnergyLevel[]).map((level) => ({ level, count: cardsForEnergy(cards, level).length })).filter((o) => o.count > 0);
+  return raw.filter((o, i) => !raw[i + 1] || raw[i + 1].count !== o.count);
+}
 
 export function newCard(partial?: Partial<RoutineCard>): RoutineCard {
   return { id: createId('rcard'), text: '', emoji: '🌱', color: ROUTINE_COLORS[1], ...partial };
@@ -116,14 +138,21 @@ export function exampleRoutines(): Routine[] {
   });
   return [
     mk('routine_ex_morgen', 'Sanft in den Tag', '🌤️', '#e8a83d', [
-      { text: 'Ein Glas Wasser trinken', emoji: '💧', color: '#4a8f9e' },
-      { text: 'Fenster öffnen oder ans Licht gehen', emoji: '🌤️', color: '#e8a83d' },
-      { text: 'Drei ruhige Atemzüge nehmen', emoji: '🌬️', color: '#6fbf73', timerSec: 30 },
+      { text: 'Ein Glas Wasser trinken', emoji: '💧', color: '#4a8f9e', minEnergy: 1 },
+      { text: 'Fenster öffnen oder ans Licht gehen', emoji: '🌤️', color: '#e8a83d', minEnergy: 2 },
+      { text: 'Drei ruhige Atemzüge nehmen', emoji: '🌬️', color: '#6fbf73', timerSec: 30, minEnergy: 1 },
     ]),
     mk('routine_ex_abend', 'Sanft in die Nacht', '🌙', '#5b7fb5', [
-      { text: 'Handy zur Seite legen', emoji: '📵', color: '#5b7fb5' },
-      { text: 'Zähne putzen', emoji: '🪥', color: '#4a8f9e', timerSec: 120 },
-      { text: 'Es dir im Bett warm und weich machen', emoji: '🛏️', color: '#9a7bc4' },
+      { text: 'Handy zur Seite legen', emoji: '📵', color: '#5b7fb5', minEnergy: 1 },
+      { text: 'Zähne putzen', emoji: '🪥', color: '#4a8f9e', timerSec: 120, minEnergy: 2 },
+      { text: 'Es dir im Bett warm und weich machen', emoji: '🛏️', color: '#9a7bc4', minEnergy: 1 },
     ]),
   ];
+}
+
+/** Frees the files of cards that are no longer part of a routine (best effort). */
+export function releaseRoutineFiles(cards: RoutineCard[]): void {
+  cards.forEach((c) => {
+    if (c.ownMedia) void deleteOwnMedia(c.ownMedia.id);
+  });
 }

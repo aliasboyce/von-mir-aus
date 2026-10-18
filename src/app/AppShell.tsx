@@ -1,3 +1,6 @@
+import { scopeAllows, scopeOf } from '../services/scope';
+import { QuickExit } from '../features/lock/QuickExit';
+import { WorldAmbiance } from '../features/worlds/WorldAmbiance';
 import { markFirstUse, requestPersistentStorage } from '../services/testSupport';
 import { pendingLetterStore } from '../features/briefAnMich/lettersRepo';
 import { useEffect, useRef, useState } from 'react';
@@ -194,6 +197,13 @@ export function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, settings.nurJetztMode]);
 
+  // "Gestufter Einstieg": what a lower level hides is also not reachable by a typed address or an old link
+  const scope = scopeOf(settings);
+  useEffect(() => {
+    if (!settings.tourActive && !scopeAllows(scope, location.pathname)) navigate('/', { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, scope]);
+
   // Full-bleed flows (like the Inner Weather check-in) hide the bottom nav
   // so the moment feels contained rather than like "one more app screen".
   // A modal being open also hides it — this, not z-index tuning, is what
@@ -274,6 +284,7 @@ export function AppShell() {
 
   return (
     <div className="app-frame">
+      <WorldAmbiance />
       <main
         key={settings.reduceMotion ? undefined : location.pathname}
         className={settings.reduceMotion ? undefined : 'page-transition'}
@@ -309,6 +320,7 @@ export function AppShell() {
         </div>
       )}
       <SchmuggelPopup />
+      <QuickExit above={!hideNav} />
       <DayGate pathname={location.pathname} />
       {!hideNav && <BottomNav />}
       {settings.tourActive && (

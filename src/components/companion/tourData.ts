@@ -256,3 +256,6 @@ export const CORE_COUNT = CORE_IDS.length;
 export const tourExtrasModeStore = createKeyValueStore<'explain' | 'try' | null>('tour-extras-mode', null);
 /** which station the person is on — kept so a reload in the middle of the tour continues where it was */
 export const tourIndexStore = createKeyValueStore<number>('tour-index', 0);
+
+/** how the guided tour is met: by trying things out (interactive) or by just watching it play through */
+export const tourStyleStore = createKeyValueStore<'interactive' | 'watch'>('tour-style', 'interactive');

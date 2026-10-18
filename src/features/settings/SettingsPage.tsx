@@ -1,7 +1,7 @@
 import { InstallGuide } from '../../components/shared/InstallGuide';
 import { buildDate, feedbackTemplate, isIos, isStandalone } from '../../services/testSupport';
 import { TesterThanks } from '../../components/shared/TesterThanks';
-import { CORE_COUNT, TOUR_STOPS, tourExtrasModeStore, tourIndexStore } from '../../components/companion/tourData';
+import { CORE_COUNT, TOUR_STOPS, tourExtrasModeStore, tourIndexStore, tourStyleStore } from '../../components/companion/tourData';
 import { useEffect, useRef, useState } from 'react';
 import { buildDailyRemindersIcs } from '../../services/icsExport';
 import { deliverTextFile } from '../../services/fileShare';
@@ -32,6 +32,9 @@ import { customRemindersRepo, type CustomReminder } from '../../services/customR
 import { downloadBackup, importBackup } from '../../services/backup';
 import { createId } from '../../services/storage/repository';
 import { BUILT_IN_PALETTE_IDS } from '../../data/types';
+import { WorldPicker } from '../worlds/WorldPicker';
+import { ScopePicker } from '../scope/ScopePicker';
+import { AppLockCard } from '../lock/AppLockCard';
 import { StorageOverviewCard } from './StorageOverviewCard';
 
 type BuiltInPalette = 'neutral' | 'wald' | 'meer' | 'abend' | 'sonnenaufgang' | 'lavendel' | 'rose' | 'beige' | 'creme' | 'puder' | 'salbei';
@@ -188,6 +191,7 @@ export function SettingsPage() {
 
         {/* ================= Darstellung ================= */}
         <SectionLabel>🎨 {t.settings.appearance}</SectionLabel>
+        <WorldPicker />
         <Card className="mb-3" padding="md">
           <p className="text-[13px] text-[var(--color-text-muted)] mb-2">{t.settings.theme}</p>
           <div className="flex flex-wrap gap-2">
@@ -418,6 +422,15 @@ export function SettingsPage() {
 
         {/* ================= Mein Wesen ================= */}
         <div id="begleiter-einstellungen" />
+        {/* ================= Umfang & Schutz ================= */}
+        <SectionLabel>🔒 {settings.language === 'en' ? 'Scope and protection' : 'Umfang und Schutz'}</SectionLabel>
+        <Card padding="md" className="mb-3" data-testid="scope-card">
+          <p className="text-[14px] font-medium text-[var(--color-text)] mb-0.5">{settings.language === 'en' ? 'How much of the app is shown' : 'Wie viel von der App zu sehen ist'}</p>
+          <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mb-3" data-hint>{settings.language === 'en' ? 'Start small and show more whenever you like.' : 'Fang klein an und zeig später mehr, wann immer du magst.'}</p>
+          <ScopePicker simple={!!settings.simple} onChange={(sc) => updateSettings({ scope: sc, scopeChosen: true })} onSimple={(v) => updateSettings({ simple: v })} />
+        </Card>
+        <AppLockCard />
+
         <SectionLabel>🧸 {t.settings.brain}</SectionLabel>
         <Card className="mb-6" padding="md">
           <label className="flex flex-col gap-1.5 mb-3 pb-3 border-b border-[var(--color-border)]">
@@ -799,6 +812,7 @@ export function SettingsPage() {
               const i = tourIndexStore.get() ?? 0;
               if (i < CORE_COUNT || i >= TOUR_STOPS.length) tourIndexStore.set(CORE_COUNT);
               tourExtrasModeStore.set('try');
+              tourStyleStore.set('interactive');
               updateSettings({ tourActive: true });
             }}
             className="flex items-center gap-2.5 text-[14px] text-[var(--color-text)] w-full mt-4 pt-3 border-t border-[var(--color-border)]"
@@ -808,6 +822,20 @@ export function SettingsPage() {
             {t.settings.tourExtrasCta}
           </button>
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.tourExtrasHint}</p>
+          <button
+            onClick={() => {
+              tourStyleStore.set('watch');
+              tourIndexStore.set(0);
+              tourExtrasModeStore.set(null);
+              updateSettings({ tourActive: true });
+            }}
+            className="flex items-center gap-2.5 text-[14px] text-[var(--color-text)] w-full mt-4 pt-3 border-t border-[var(--color-border)]"
+            data-testid="tour-watch-start"
+          >
+            <PlayCircle size={17} className="text-[var(--color-primary)]" />
+            {settings.language === 'en' ? 'Watch the tour (just press play)' : 'Rundgang zum Zuschauen (nur Play drücken)'}
+          </button>
+          <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{settings.language === 'en' ? 'The app goes through its functions on its own and shows them. You do not have to do anything.' : 'Die App geht ihre Funktionen von allein durch und zeigt sie. Du musst nichts tun.'}</p>
         </Card>
 
         <Link to="/entdecken" className="block mb-6">
@@ -867,6 +895,10 @@ export function SettingsPage() {
         <Card padding="md" className="mb-6">
           <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.settings.fullBackupTitle}</p>
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{t.settings.fullBackupHint}</p>
+          <label className="flex items-start gap-2.5 mb-3 cursor-pointer">
+            <input type="checkbox" className="mt-0.5" checked={settings.backupReminder !== false} onChange={(e) => updateSettings({ backupReminder: e.target.checked })} data-testid="backup-reminder-toggle" />
+            <span className="text-[13px] text-[var(--color-text)]">{settings.language === 'en' ? 'Remind me gently to make a backup (after about a week)' : 'Sanft an eine Sicherung erinnern (nach etwa einer Woche)'}</span>
+          </label>
           <div className="flex flex-col gap-2">
             <button
               onClick={() => downloadBackup()}

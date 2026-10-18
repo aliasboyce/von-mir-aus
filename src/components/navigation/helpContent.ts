@@ -440,7 +440,19 @@ The stopwatch simply counts along. There is no end you have to reach.`,
 - **Stil**: Form (Rechteck, Oval, Wolke …), Farbe, Symbol, Größe.
 - **Linien** antippen: Farbe, Stil (durchgezogen, gestrichelt, gepunktet), Stärke, Pfeil, Beschriftung – und am Punkt in der Mitte biegen.
 - **Rahmen** fassen Dinge zu einem Cluster zusammen; zieht man den Rahmen, wandert der Inhalt mit.
+- **Einfügen**: eigene Fotos (aus Galerie oder Kamera), Sticker (große Symbole) und kopierte Texte. Du kannst auch einfach Text oder ein Bild in die Fläche einfügen. Fotos bleiben in der Mindmap auf deinem Gerät; im Link sind sie weggelassen, „Als Datei teilen“ nimmt sie mit.
 - Mit zwei Fingern oder den Knöpfen zoomen, auf der Fläche ziehen zum Verschieben – so weit du magst.
+
+### Doodles, Stift und Bewegung
+- **Doodles** (unten): Kreise (auch gestrichelt), Pfeile, Sprechblasen, Sterne, Haken, Wellen und mehr – frei auf der Fläche, ohne Feld.
+- **Stift**: selbst schreiben und zeichnen – Stift, Bleistift oder Textmarker, viele Farben, Dicke einstellbar, Radierer (ein Stück oder den ganzen Strich).
+- **Text** ohne Feld, **Fotos** ohne Rahmen und **Symbole** liegen einfach frei. Schriftart, Fett/Kursiv und verschiedene Rahmen wählst du im Stil.
+- **Größe & Drehen**: Griffe an der Auswahl ziehen, oder im Stil fein einstellen. Schriftgröße und Linienstärke gibt es als Regler.
+- **Ebenen**: im Stil unter „Anordnen“ nach vorn oder hinten – so entscheidest du, was oben liegt.
+- **Bewegung**: im Stil unter „Bewegung“ – drehen, schwingen, pulsieren, hüpfen, schweben u. a. Mehrere Dinge können sich einzeln oder als Gruppe bewegen. Mit „Bewegung anhalten“ im Menü steht alles still; wer weniger Bewegung eingestellt hat, sieht sie gar nicht.
+- **Mehrere auswählen**: Knopf „Mehrere“, dann Rahmen aufziehen oder antippen. Dann kopieren, ausschneiden, duplizieren, gruppieren, löschen oder „In neue Mindmap“.
+- **Hintergründe**: viele Muster und Farben, auch eigene Farbe.
+- **Mindmaps ordnen**: In der Liste verschieben (Ordner), archivieren und zurückholen. Eine Mindmap kann **Unter-Mindmap** einer anderen sein; als Karte in einer Mindmap zeigt sie eine kleine Vorschau – so baust du verbundene, aber getrennte Systeme.
 
 ### Teilen und drucken
 Über die drei Punkte kannst du die Mindmap als PDF drucken (alles ist drauf – bei großen Karten mit Detailseiten) oder per Link mit Freund:innen teilen. Der Link enthält die ganze Mindmap; die andere Person fügt ihn unter „Etwas von jemandem erhalten“ ein und bekommt eine eigene Kopie.`,
@@ -452,7 +464,19 @@ The stopwatch simply counts along. There is no end you have to reach.`,
 - **Style**: shape (rectangle, oval, cloud …), colour, symbol, size.
 - Tap **lines**: colour, style (solid, dashed, dotted), weight, arrow, label – and bend them with the dot in the middle.
 - **Frames** gather things into a cluster; when you drag the frame, its contents move along.
+- **Insert**: your own photos (gallery or camera), stickers (big symbols) and copied text. You can also simply paste text or a picture onto the canvas. Photos stay in the mind map on your device; the link leaves them out, “Share as file” includes them.
 - Zoom with two fingers or the buttons, drag the canvas to move – as far as you like.
+
+### Doodles, pen and motion
+- **Doodles** (bottom): circles (also dashed), arrows, speech bubbles, stars, ticks, waves and more – free on the canvas, no box needed.
+- **Pen**: write and draw yourself – pen, pencil or highlighter, many colours, adjustable thickness, eraser (a piece or the whole stroke).
+- **Text** without a box, **photos** without a frame and **symbols** simply lie free. Font, bold/italic and different borders are in Style.
+- **Size & rotate**: drag the handles on the selection, or fine-tune in Style. Font size and line weight have sliders.
+- **Layers**: in Style under “Arrange” bring forward or send back – you decide what is on top.
+- **Motion**: in Style under “Motion” – spin, swing, pulse, bounce, float and more. Several things can move individually or as a group. “Pause motion” in the menu stops everything; if you chose less motion you will not see it at all.
+- **Select several**: “Several” button, then drag a frame or tap. Then copy, cut, duplicate, group, delete or “Into new mind map”.
+- **Backgrounds**: many patterns and colours, also your own colour.
+- **Organise mind maps**: move in the list (folders), archive and restore. A mind map can be a **sub mind map** of another; as a card inside a mind map it shows a small preview – this way you build connected yet separate systems.
 
 ### Share and print
 Via the three dots you can print the mind map as a PDF (everything is on it – big maps get detail pages) or share it with friends by link. The link contains the whole mind map; the other person pastes it under "Received something from someone" and gets a copy of their own.`,
@@ -491,14 +515,22 @@ After practising it is noted as a skill in the review.`,
     body: `Routinen strukturieren den Alltag, sparen Mühe und Zeit und automatisieren das Handeln.
 
 ### Oben: Routinen
-Eine Routine ist eine Reihe kleiner Karten, jede mit genau einem Schritt. Beim Starten siehst du immer nur eine Karte, ganz groß. Ist der Schritt getan, wischst du sie nach rechts – die nächste erscheint. Auf Wunsch hat eine Karte einen Timer, einen Garten, der automatisch abgehakt wird, oder eine Ressource. Alles ist freiwillig. „Gerade nicht“ ist immer möglich. Am Ende siehst du, wie lange es gedauert hat – nur zum Anschauen und Vergleichen. Der Verlauf steht auch im Rückblick.
+Eine Routine ist eine Reihe kleiner Karten, jede mit genau einem Schritt. Beim Starten siehst du immer nur eine Karte, ganz groß. Ist der Schritt getan, wischst du sie nach rechts – die nächste erscheint. Auf Wunsch hat eine Karte einen Timer, einen Garten, der automatisch abgehakt wird, oder eine Ressource. Alles ist freiwillig. „Gerade nicht“ ist immer möglich.
+
+**Energie-Ampel:** Pro Karte stellst du ein, ob sie auch an einem schweren Tag dazugehört (rot), ab mittlerer Energie (gelb) oder nur bei voller Energie (grün). Vor dem Start fragt die Routine dann: „Schwerer Tag: nur die Kleinsten“, „Mittel“ oder „Alle Schritte“. So hast du dieselbe Routine in mehreren Größen. **Alltags-Vorlagen** (Morgen, Abend, Duschen, Essen, Schlaf, kleiner Spaziergang, Wohnung „5 Minuten“) gibt es nur auf Wunsch, als Beispiele markiert – du kannst sie ändern oder löschen.
+
+Am Ende siehst du, wie lange es gedauert hat – nur zum Anschauen und Vergleichen. Der Verlauf steht auch im Rückblick.
 
 ### Unten: Garten
 Ein Bild für Dinge, die du aufbauen oder verändern möchtest. Jeder Eintrag wächst mit der Zeit, ohne Leistungsdruck. Du kannst eine Alternative zu einer alten Schutzstrategie eintragen und eine Belohnung nach einer Anzahl Tage festlegen.`,
     bodyEn: `Routines give the day structure, save effort and time and automate doing.
 
 ### On top: routines
-A routine is a series of small cards, each with exactly one step. When you start it you only see one card, large. When the step is done you swipe it to the right – the next one appears. A card can optionally have a timer, a garden that is ticked automatically, or a resource. All of it is voluntary. "Not right now" is always possible. At the end you see how long it took – just to look at and compare. The history is also in the review.
+A routine is a series of small cards, each with exactly one step. When you start it you only see one card, large. When the step is done you swipe it to the right – the next one appears. A card can optionally have a timer, a garden that is ticked automatically, or a resource. All of it is voluntary. "Not right now" is always possible.
+
+**Energy traffic light:** per card you set whether it belongs even on a hard day (red), from medium energy (yellow) or only with full energy (green). Before the start the routine asks: "Hard day: only the smallest", "Medium" or "All steps". So you have the same routine in several sizes. **Everyday templates** (morning, evening, showering, eating, sleep, small walk, home "5 minutes") only come on request, marked as examples – you can change or delete them.
+
+At the end you see how long it took – just to look at and compare. The history is also in the review.
 
 ### Below: garden
 A picture for things you would like to build or change. Each entry grows over time, without pressure. You can enter an alternative to an old protection strategy and set a reward after a number of days.`,
@@ -700,7 +732,8 @@ The link below leads to letters to your future self.`,
 • **Wesen:** ein- oder ausschalten, was es sagt und zeigt
 • **Erinnerungen:** sanfte Hinweise und Termine
 • **Über die App:** die Idee dahinter
-• **Meine Daten:** Export und Import als Datei
+• **Umfang und Schutz:** wie viel du siehst (Nötigstes / Sicherheitsplan / Alles), Einfach-Darstellung, App-Sperre mit PIN, „Schnell weg“-Knopf
+• **Meine Daten:** Export und Import als Datei, Sicherungs-Erinnerung (abschaltbar)
 • **Gefahrenzone:** alles zurücksetzen oder löschen
 
 Alles bleibt auf deinem Gerät. Du kannst das Wesen und einzelne Funktionen ganz abschalten.`,
@@ -710,7 +743,8 @@ Alles bleibt auf deinem Gerät. Du kannst das Wesen und einzelne Funktionen ganz
 • **Companion:** switch on or off what it says and shows
 • **Reminders:** gentle hints and appointments
 • **About the app:** the idea behind it
-• **My data:** export and import as a file
+• **Scope and protection:** how much you see (essentials / safety plan / everything), simple view, app lock with PIN, “Hide now” button
+• **My data:** export and import as a file, backup reminder (can be switched off)
 • **Danger zone:** reset or delete everything
 
 Everything stays on your device. You can switch off the companion and individual features entirely.`,

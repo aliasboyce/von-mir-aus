@@ -592,6 +592,14 @@ button {
   display: none !important;
 }
 
+/* "Einfach"-Darstellung: bigger surfaces, fewer small hints (the layout scales as a whole) */
+[data-simple='true'] [data-hint] {
+  display: none !important;
+}
+[data-simple='true'] main {
+  zoom: 1.12;
+}
+
 [data-reduce-motion='true'] * {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
@@ -605,7 +613,7 @@ button {
 }
 [data-reduce-motion='true'] .pulse-glow {
   animation: none !important;
-  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--color-accent-clay) 45%, transparent);
+  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--color-notice) 45%, transparent);
 }
 
 
@@ -720,10 +728,10 @@ button {
  */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 6px 0 color-mix(in srgb, var(--color-accent-clay) 25%, transparent);
+    box-shadow: 0 0 6px 0 color-mix(in srgb, var(--color-notice) 25%, transparent);
   }
   50% {
-    box-shadow: 0 0 20px 5px color-mix(in srgb, var(--color-accent-clay) 60%, transparent);
+    box-shadow: 0 0 20px 5px color-mix(in srgb, var(--color-notice) 60%, transparent);
   }
 }
 .pulse-glow {
@@ -732,7 +740,7 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .pulse-glow {
     animation: none;
-    box-shadow: 0 0 12px 2px color-mix(in srgb, var(--color-accent-clay) 45%, transparent);
+    box-shadow: 0 0 12px 2px color-mix(in srgb, var(--color-notice) 45%, transparent);
   }
 }
 

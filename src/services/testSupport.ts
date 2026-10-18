@@ -47,11 +47,12 @@ function userDataBytes(): number {
   return n;
 }
 
-/** Due when there is real content, the app has been in use for a few days, and no backup was made for two weeks. */
-export function backupReminderDue(now = Date.now()): boolean {
+/** Due when there is real content, the app has been in use for about a week, and no backup was made for two weeks. Can be switched off in the settings. */
+export function backupReminderDue(now = Date.now(), enabled = true): boolean {
   try {
+    if (!enabled) return false;
     const first = firstUseStore.get();
-    if (!first || now - new Date(first).getTime() < 4 * DAY) return false;
+    if (!first || now - new Date(first).getTime() < 7 * DAY) return false;
     if (userDataBytes() < 1500) return false;
     const snooze = backupSnoozeStore.get();
     if (snooze && now < new Date(snooze).getTime()) return false;

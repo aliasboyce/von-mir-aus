@@ -399,7 +399,7 @@ export function ResourcesPage() {
            * live count so a freshly saved chain is noticeable right here. */}
           {typeScope === 'skills' && (
             <Link
-              to="/entdecken/atmen"
+              to="/entdecken/ressourcen/skills/atmen"
               className="flex items-center gap-3 p-3.5 mb-3 rounded-[var(--radius-lg)]"
               style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-border-strong)' }}
               data-testid="skills-breath-link"

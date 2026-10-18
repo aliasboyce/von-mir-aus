@@ -26,6 +26,17 @@ interface Options {
   initial?: CameraView;
   /** called for a press-and-release on the empty background that did not move (a "tap") */
   onBackgroundTap?: (clientX: number, clientY: number) => void;
+  /**
+   * Lets a tool (pen, eraser, selection rectangle …) take over a one-finger drag on the background instead
+   * of panning. Return handlers to claim the gesture, or null to let the camera pan. A second finger
+   * cancels the claim and turns the gesture into a pinch.
+   */
+  claim?: (e: { clientX: number; clientY: number; pointerId: number; shiftKey: boolean }) => ClaimHandlers | null;
+}
+export interface ClaimHandlers {
+  move: (clientX: number, clientY: number) => void;
+  up: (clientX: number, clientY: number) => void;
+  cancel: () => void;
 }
 
 export function useCamera(containerRef: RefObject<HTMLElement | null>, opts: Options) {
@@ -41,6 +52,9 @@ export function useCamera(containerRef: RefObject<HTMLElement | null>, opts: Opt
   const raf = useRef(0);
   const tapRef = useRef(onBackgroundTap);
   tapRef.current = onBackgroundTap;
+  const claimRef = useRef(opts.claim);
+  claimRef.current = opts.claim;
+  const claimed = useRef<ClaimHandlers | null>(null);
 
   const setView = useCallback((v: CameraView | ((p: CameraView) => CameraView)) => {
     setViewState((p) => {
@@ -131,6 +145,23 @@ export function useCamera(containerRef: RefObject<HTMLElement | null>, opts: Opt
       } catch {
         // gesture still works without capture
       }
+      if (pointers.current.size === 0 && claimRef.current) {
+        const h = claimRef.current({ clientX: e.clientX, clientY: e.clientY, pointerId: e.pointerId, shiftKey: e.shiftKey });
+        if (h) {
+          claimed.current = h;
+          pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+          setGesturing(true);
+          return;
+        }
+      }
+      if (claimed.current) {
+        // a second finger: stop the tool, continue as camera gesture from the first finger's position
+        claimed.current.cancel();
+        claimed.current = null;
+        const [first] = [...pointers.current.values()];
+        const v0 = viewRef.current;
+        if (first) pan.current = { x: first.x, y: first.y, tx: v0.tx, ty: v0.ty, moved: true, t: performance.now() };
+      }
       pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       setGesturing(true);
       const v = viewRef.current;
@@ -158,6 +189,10 @@ export function useCamera(containerRef: RefObject<HTMLElement | null>, opts: Opt
     (e: ReactPointerEvent<HTMLElement>) => {
       if (!enabled || !pointers.current.has(e.pointerId)) return;
       pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (claimed.current) {
+        claimed.current.move(e.clientX, e.clientY);
+        return;
+      }
       if (pointers.current.size >= 2 && pinch.current) {
         const [a, b] = [...pointers.current.values()];
         const dist = Math.hypot(a.x - b.x, a.y - b.y);
@@ -190,6 +225,14 @@ export function useCamera(containerRef: RefObject<HTMLElement | null>, opts: Opt
       if (!enabled) return;
       const had = pointers.current.delete(e.pointerId);
       if (!had) return;
+      if (claimed.current) {
+        const h = claimed.current;
+        claimed.current = null;
+        setGesturing(false);
+        if (e.type === 'pointerup') h.up(e.clientX, e.clientY);
+        else h.cancel();
+        return;
+      }
       if (pointers.current.size < 2) pinch.current = null;
       if (pointers.current.size === 0) {
         setGesturing(false);

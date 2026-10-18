@@ -16,6 +16,54 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-mindmap-doodle-stift-ebenen',
+    date: '2026',
+    items: [
+      'Mindmap: Doodles (Kreise auch gestrichelt, Pfeile, Sprechblasen, Sterne …), freies Zeichnen mit Stift, Bleistift und Textmarker plus Radierer – und Text, Fotos und Symbole ganz ohne Feld.',
+      'Mindmap: alles lässt sich verschieben, drehen, größer/kleiner ziehen, nach vorn oder hinten legen. Neu: Schriftarten, Rahmen, mehr Hintergründe und Bewegungen (z. B. Drehen) – einzeln oder als Gruppe, jederzeit pausierbar.',
+      'Mindmap: mehrere Dinge auswählen, kopieren, ausschneiden, duplizieren, löschen oder „In neue Mindmap“ übernehmen.',
+      'Mindmaps ordnen: verschieben, in Ordner legen, archivieren (und zurückholen) – und eine Mindmap kann Unter-Mindmap einer anderen sein, mit kleiner Vorschau als Karte.',
+    ],
+    itemsEn: [
+      'Mind map: doodles (circles also dashed, arrows, speech bubbles, stars …), free drawing with pen, pencil and highlighter plus eraser – and text, photos and symbols without any box.',
+      'Mind map: everything can be moved, rotated, resized, brought forward or back. New: fonts, borders, more backgrounds and motions (e.g. spinning) – single or as a group, pausable any time.',
+      'Mind map: select several things, copy, cut, duplicate, delete or take them “Into a new mind map”.',
+      'Organise mind maps: move, put in folders, archive (and restore) – and a mind map can be a sub mind map of another, with a small preview as a card.',
+    ],
+  },
+  {
+    id: '2026-schutz-stufen-zuschauen-energie',
+    date: '2026',
+    items: [
+      'Neu: Optionale App-Sperre mit PIN und ein neutraler „Schnell weg“-Knopf (Einstellungen → Umfang und Schutz). Die PIN ist ein Sichtschutz, keine Verschlüsselung.',
+      'Neu: Du entscheidest, wie viel du siehst – „Nur das Nötigste“, „Mit Sicherheitsplan“ oder „Alles“ – plus die „Einfach“-Darstellung mit größeren Flächen. Nichts geht verloren, es ist nur ausgeblendet.',
+      'Neu: Den Rundgang kannst du dir auch nur ansehen – auf Play drücken, die App zeigt alles von allein. Oder selbst ausprobieren. Du entscheidest.',
+      'Routinen: Alltags-Vorlagen (Morgen, Abend, Duschen, Essen, Schlaf, kleiner Spaziergang, Wohnung „5 Minuten“) als freiwillige Beispiele, und eine Energie-Ampel: pro Karte einstellbar, ob sie auch an einem schweren Tag dazugehört. Im Krisenmodus stehen Notruf und Telefonseelsorge fest und ruhig bereit; die Sicherungs-Erinnerung nach etwa einer Woche lässt sich abschalten.',
+    ],
+    itemsEn: [
+      'New: optional app lock with a PIN and a neutral “Hide now” button (Settings → Scope and protection). The PIN is a privacy screen, not encryption.',
+      'New: you decide how much you see – “Just the essentials”, “With safety plan” or “Everything” – plus the “Simple” view with bigger surfaces. Nothing is lost, it is only hidden.',
+      'New: you can also just watch the tour – press play and the app shows everything on its own. Or try it out yourself. Your choice.',
+      'Routines: everyday templates (morning, evening, showering, eating, sleep, small walk, home “5 minutes”) as voluntary examples, and an energy traffic light: set per card whether it belongs on a hard day. In crisis mode, emergency numbers and the crisis line are fixed and calm; the backup reminder after about a week can be switched off.',
+    ],
+  },
+  {
+    id: '2026-welten-einfuegen-lesbar',
+    date: '2026',
+    items: [
+      'Neu: Ästhetik-Welten in den Einstellungen – Wald, Meer, Wiese, Herbst, Winter, Berge und Sternennacht als ruhige Landschaft im Hintergrund, auf Wunsch mit sanfter Bewegung (oder „Nur Bild“). Alle anderen Einstellungen bleiben frei wählbar.',
+      'Mindmaps: eigene Fotos, Sticker, Symbole und kopierte Texte einfügen („Einfügen“ oder einfach Text/Bild in die Fläche einfügen).',
+      'Routinen-Karten: ganzes Lied über „In Spotify öffnen“, eigene Fotos, Videos oder Audio-Dateien pro Karte (bleiben auf deinem Gerät). Links wischen = überspringen, rechts = fertig – jetzt deutlich sichtbar.',
+      'Schrift bleibt in jeder Farbwelt lesbar, auch abends im hellen Modus. Der Briefkasten passt jetzt zu deiner Farbwelt. „Atmen“ liegt jetzt bei den Skills. Beim Senden von Briefen: Hinweis, Hilfe mit Freund:innen und Helfer:innen zu koordinieren.',
+    ],
+    itemsEn: [
+      'New: aesthetic worlds in the settings – forest, sea, meadow, autumn, winter, mountains and starry night as a calm landscape in the background, gently moving if you like (or “picture only”). All other settings stay freely adjustable.',
+      'Mind maps: insert your own photos, stickers, symbols and copied text (“Insert”, or simply paste text/pictures onto the canvas).',
+      'Routine cards: play the whole song via “Open in Spotify”, your own photos, videos or audio files per card (they stay on your device). Swipe left = skip, right = done – now clearly visible.',
+      'Text stays readable in every colour world, also in the evening in light mode. The mailbox now matches your colour world. “Breathing” now lives under Skills. When sending letters: a hint to coordinate help with friends and helpers.',
+    ],
+  },
+  {
     id: '2026-mindmap-netzwerk-atmen',
     date: '2026',
     items: [

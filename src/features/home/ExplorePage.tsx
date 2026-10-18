@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ExploreMap } from './ExploreMap';
-import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network, Sunrise, Moon, Wind, Workflow } from 'lucide-react';
+import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network, Sunrise, Moon, Workflow } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
@@ -39,8 +39,6 @@ export function ExplorePage() {
   const rtx = useRoutineTexts();
   const dfx = useDayFlowTexts();
   const lang = useSettings().settings.language === 'en' ? 'en' : 'de';
-  const breathTitle = lang === 'en' ? 'Breathing' : 'Atmen';
-  const breathSub = lang === 'en' ? 'Circle, wave or square – the Wesen breathes along.' : 'Kreis, Welle oder Quadrat – das Wesen atmet mit.';
   const [customizing, setCustomizing] = useState(false);
   // Karte (the mind map) is the default way in; Liste is the previous tile
   // view with pin/archive. The choice is remembered per device.
@@ -78,7 +76,6 @@ export function ExplorePage() {
   const versionKey = `${pins.join(',')}|${archived.join(',')}`;
 
   const bodyTiles: Tile[] = [
-    { key: 'atmen', to: '/entdecken/atmen', icon: Wind, title: breathTitle, subtitle: breathSub, color: 'var(--color-accent-clay)' },
     { key: 'koerper', to: '/entdecken/koerper', icon: PersonStanding, title: t.bodyAwarenessRef.title, subtitle: t.bodyAwarenessRef.subtitle, color: 'var(--color-accent-clay)' },
     { key: 'nervensystem', to: '/entdecken/nervensystem', icon: Zap, title: t.nervousSystemRef.title, subtitle: t.nervousSystemRef.subtitle, color: 'var(--color-accent-clay)' },
     { key: 'tageskurve', to: '/entdecken/tageskurve', icon: Activity, title: t.polyvagal.title, subtitle: t.polyvagal.subtitle, color: 'var(--color-accent-clay)' },

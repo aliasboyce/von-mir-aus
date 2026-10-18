@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { History, Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, History, Pencil, Play, Plus, Trash2 } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Button } from '../../components/ui/Button';
@@ -8,7 +8,8 @@ import { Card } from '../../components/ui/Card';
 import { useSettings } from '../../state/SettingsContext';
 import { GardenPage } from '../garden/GardenPage';
 import { RoutineCard3D } from './RoutineCard3D';
-import { formatDuration, routinesRepo, runsFor, type Routine } from './routinesRepo';
+import { ENERGY_COLORS, energyOptions, formatDuration, routinesRepo, runsFor, type Routine, releaseRoutineFiles } from './routinesRepo';
+import { ROUTINE_TEMPLATES, routineFromTemplate } from './routineTemplates';
 import { useRoutineTexts } from './routineTexts';
 
 /**
@@ -22,16 +23,26 @@ export function RoutinesGardenPage() {
   const navigate = useNavigate();
   const [routines, setRoutines] = useState<Routine[]>(() => routinesRepo.getAll().sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
   const [historyId, setHistoryId] = useState<string | null>(null);
+  const [tplOpen, setTplOpen] = useState(false);
+  const [tplAdded, setTplAdded] = useState<string | null>(null);
   const refresh = () => setRoutines(routinesRepo.getAll().sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
   const exampleCount = routines.filter((r) => r.isExample).length;
 
   function remove(r: Routine) {
     if (!window.confirm(rt.removeConfirm)) return;
     routinesRepo.remove(r.id);
+    releaseRoutineFiles(r.cards);
+    refresh();
+  }
+  function addTemplate(key: string) {
+    const t = ROUTINE_TEMPLATES.find((x) => x.key === key);
+    if (!t) return;
+    routinesRepo.save(routineFromTemplate(t, lang));
+    setTplAdded(key);
     refresh();
   }
   function removeExamples() {
-    routines.filter((r) => r.isExample).forEach((r) => routinesRepo.remove(r.id));
+    routines.filter((r) => r.isExample).forEach((r) => { routinesRepo.remove(r.id); releaseRoutineFiles(r.cards); });
     refresh();
   }
 
@@ -46,6 +57,31 @@ export function RoutinesGardenPage() {
         <Button fullWidth icon={<Plus size={17} />} onClick={() => navigate('/entdecken/routinen/neu')} className="mb-5" data-testid="routine-new">
           {rt.newRoutine}
         </Button>
+
+        <div className="mb-6" data-testid="routine-templates">
+          <button type="button" onClick={() => setTplOpen((o) => !o)} aria-expanded={tplOpen} className="w-full flex items-center justify-between text-left rounded-[var(--radius-lg)] px-4 py-3 bg-[var(--color-surface-muted)]" data-testid="routine-templates-toggle">
+            <span>
+              <span className="block text-[14.5px] text-[var(--color-text)]">{rt.tplTitle}</span>
+              <span className="block text-[12px] text-[var(--color-text-faint)]">{rt.tplSub}</span>
+            </span>
+            {tplOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+          {tplOpen && (
+            <div className="flex flex-col gap-2 mt-2 animate-in">
+              {ROUTINE_TEMPLATES.map((t) => (
+                <div key={t.key} className="flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2.5 border border-[var(--color-border)]" data-testid={`tpl-${t.key}`}>
+                  <span className="text-[22px] w-8 text-center">{t.emoji}</span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-[14px] text-[var(--color-text)]">{lang === 'en' ? t.en : t.de}</span>
+                    <span className="block text-[12px] text-[var(--color-text-muted)] leading-snug">{lang === 'en' ? t.deen : t.dede} · {t.cards.length} {rt.cards}</span>
+                  </span>
+                  <Button size="sm" variant="secondary" onClick={() => addTemplate(t.key)} data-testid={`tpl-add-${t.key}`}>{rt.tplAdd}</Button>
+                </div>
+              ))}
+              {tplAdded && <p className="text-[12.5px] text-[var(--color-primary)]" role="status" data-testid="tpl-added">{rt.tplAdded}</p>}
+            </div>
+          )}
+        </div>
 
         <h2 className="text-[18px] mb-3">{rt.routinesTitle}</h2>
         {exampleCount > 0 && (
@@ -76,6 +112,20 @@ export function RoutinesGardenPage() {
                         {r.isExample && <span className="ml-2 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-full align-middle" style={{ background: 'var(--color-surface-muted)', color: 'var(--color-text-faint)' }}>{rt.example}</span>}
                       </p>
                       <p className="text-[12.5px] text-[var(--color-text-muted)]">{r.cards.length} {rt.cards}{r.alternativeFor ? ` · ↔ ${r.alternativeFor}` : ''}</p>
+                      {(() => {
+                        const opts = energyOptions(r.cards);
+                        if (opts.length < 2) return null;
+                        return (
+                          <p className="text-[12px] text-[var(--color-text-muted)] flex items-center gap-1.5 flex-wrap mt-0.5" data-testid={`routine-ampel-${r.id}`}>
+                            {opts.map((o, i) => (
+                              <span key={o.level} className="inline-flex items-center gap-1">
+                                <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: ENERGY_COLORS[o.level] }} aria-hidden="true" />
+                                {i === 0 ? `${rt.energyHard}: ${rt.energyHardSub.toLowerCase()}` : i === opts.length - 1 ? rt.energyAll : rt.energyMid} ({o.count})
+                              </span>
+                            ))}
+                          </p>
+                        );
+                      })()}
                       {runs[0] && <p className="text-[12px] text-[var(--color-text-faint)]">{rt.last}: {formatDuration(runs[0].durationSec, lang)}</p>}
                     </div>
                   </div>
@@ -99,6 +149,7 @@ export function RoutinesGardenPage() {
                                 <span className="w-[74px] flex-shrink-0">{new Date(x.endedAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'de-DE', { day: '2-digit', month: '2-digit' })} {new Date(x.endedAt).toLocaleTimeString(lang === 'en' ? 'en-US' : 'de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
                                 <span className="h-2 rounded-full" style={{ width: `${Math.max(6, (x.durationSec / max) * 100)}%`, maxWidth: '55%', background: r.color }} />
                                 <span className="tabular-nums">{formatDuration(x.durationSec, lang)}</span>
+                                {x.energy && <span className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0" style={{ background: ENERGY_COLORS[x.energy] }} title={rt.energyRan} aria-hidden="true" />}
                               </div>
                             ))}
                           </div>

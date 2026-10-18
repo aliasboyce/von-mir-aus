@@ -1,4 +1,7 @@
 import { NurJetztHome } from '../nurJetzt/NurJetztHome';
+import { scopeOf } from '../../services/scope';
+import { ScopePicker } from '../scope/ScopePicker';
+import { Modal } from '../../components/ui/Modal';
 import { useEffect, useState, type ReactNode } from 'react';
 import { TodaySoFar } from './TodaySoFar';
 import { ImportantContactsStrip } from './ImportantContactsStrip';
@@ -71,6 +74,9 @@ export function HomePage() {
   const t = useT();
   const say = useCompanionSay();
   const { settings, updateSettings } = useSettings();
+  const scope = scopeOf(settings);
+  const lean = scope === 'core' || !!settings.simple;
+  const [showScopeModal, setShowScopeModal] = useState(false);
   const [reminderDismissed, setReminderDismissed] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [showWeatherExplainer, setShowWeatherExplainer] = useState(false);
@@ -84,7 +90,7 @@ export function HomePage() {
   const dueLetters = dueUnopenedLetters();
   const pendingToken = pendingLetterStore.get();
   const isEn = settings.language === 'en';
-  const [backupDue, setBackupDue] = useState(() => backupReminderDue());
+  const [backupDue, setBackupDue] = useState(() => backupReminderDue(Date.now(), settings.backupReminder !== false));
   const [dueCustomReminders, setDueCustomReminders] = useState<CustomReminder[]>(() => getDueCustomReminders());
 
   // Test phase: the companion thanks the testers once (after the intro/tour, never in the middle of it).
@@ -184,8 +190,8 @@ export function HomePage() {
     notices.push({
       key: 'letter',
       node: (
-        <Card padding="md" className="flex items-center gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }} data-testid="due-letter">
-          <Mail size={20} className="text-[var(--color-accent-clay)] flex-shrink-0" />
+        <Card padding="md" className="flex items-center gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-notice)', borderWidth: 1.5 }} data-testid="due-letter">
+          <Mail size={20} className="text-[var(--color-notice)] flex-shrink-0" />
           <div className="flex-1">
             <p className="text-[13px] text-[var(--color-text)]">{dueLetters[0].fromName ? t.briefAnMich.arrivedFromBanner.replace('{name}', dueLetters[0].fromName) : t.briefAnMich.arrivedBanner}</p>
           </div>
@@ -216,7 +222,7 @@ export function HomePage() {
     notices.push({
       key: `mail-${m.id}`,
       node: (
-        <Card padding="md" className="flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
+        <Card padding="md" className="flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-notice)', borderWidth: 1.5 }}>
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-medium text-[var(--color-text)] mb-0.5">{m.title}</p>
             {m.text && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed whitespace-pre-line">{m.text}</p>}
@@ -244,7 +250,7 @@ export function HomePage() {
     notices.push({
       key: `custom-${r.id}`,
       node: (
-        <Card padding="md" className="flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-accent-clay)', borderWidth: 1.5 }}>
+        <Card padding="md" className="flex items-start gap-3 animate-in pulse-glow" style={{ borderColor: 'var(--color-notice)', borderWidth: 1.5 }}>
           <div className="flex-1">
             <p className="text-[13px] text-[var(--color-text)]">{r.label}</p>
           </div>
@@ -356,6 +362,14 @@ export function HomePage() {
         </button>
       </div>
 
+      {scope === 'core' ? (
+        <Link to="/sicherheit/plan" className="block mb-4" data-testid="home-core-plan">
+          <Card interactive padding="md" className="text-center">
+            <p className="text-[16px] text-[var(--color-text)]">{t.crisisMode.safetyPlanCta}</p>
+          </Card>
+        </Link>
+      ) : (
+        <>
       <p className="text-[11px] text-[var(--color-text-faint)] text-center mb-2">{t.home.forkOrLabel}</p>
       <div className="flex gap-2 mb-2">
         <Link to="/zugang" className="flex-1">
@@ -373,49 +387,65 @@ export function HomePage() {
           </Card>
         </Link>
       </div>
+      {!lean ? (
       <button onClick={() => setShowIntentPicker(true)} className="text-[12.5px] text-[var(--color-primary)] mt-3 mb-6 block mx-auto">
         {t.home.intentPickerEntryCta}
       </button>
+      ) : <div className="mb-6" />}
 
-      <GardenRewardCard />
+        </>
+      )}
 
-      <ResourceNudgeCard />
+      {!lean && <GardenRewardCard />}
+
+      {!lean && <ResourceNudgeCard />}
 
       <ImportantContactsStrip />
 
-      <TodaySoFar />
+      {!lean && <TodaySoFar />}
 
+      {scope !== 'core' && (<>
       {/* everyday helpers, together in one calm place */}
       <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{isEn ? 'Everyday' : 'Alltag'}</p>
       <div className="grid grid-cols-2 gap-2 mb-6" data-testid="home-everyday">
-        <Link to="/kalender" className={chip}>
+        {scope === 'all' && (<Link to="/kalender" className={chip}>
           <CalendarDays size={15} />
           {t.calendar.title}
-        </Link>
-        <Link to="/parkbox" className={chip} data-testid="home-parkbox">
+        </Link>)}
+        {scope === 'all' && (<Link to="/parkbox" className={chip} data-testid="home-parkbox">
           <Package size={15} />
           {isEn ? 'Parking box' : 'Parkbox'}
-        </Link>
+        </Link>)}
         <Link to="/entdecken/medi-log" className={chip}>
           <Pill size={15} />
           {t.home.mediLogCta}
         </Link>
-        <Link to="/helfermodus" className={chip}>
+        {scope === 'all' && (<Link to="/helfermodus" className={chip}>
           <HeartHandshake size={15} />
           {t.helperMode.homeCta}
-        </Link>
+        </Link>)}
       </div>
+      </>)}
 
-      <AchievementSection />
+      {!lean && <AchievementSection />}
 
-      <button
+      {scope !== 'core' && (<button
         onClick={() => setShowNurJetztExplainer(true)}
         className="flex items-center justify-center gap-2 mx-auto mt-4 text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2"
         data-testid="nurjetzt-entry"
       >
         <Compass size={13} className="flex-shrink-0" />
         {t.home.nurJetztEntryCta}
-      </button>
+      </button>)}
+
+      {scope !== 'all' && (
+        <button type="button" onClick={() => setShowScopeModal(true)} className="block mx-auto mt-5 text-[13px] text-[var(--color-primary)] underline underline-offset-2" data-testid="home-show-more">
+          {isEn ? 'Show more of the app' : 'Mehr von der App zeigen'}
+        </button>
+      )}
+      <Modal open={showScopeModal} onClose={() => setShowScopeModal(false)} title={isEn ? 'How much of the app is shown' : 'Wie viel von der App zu sehen ist'}>
+        <ScopePicker simple={!!settings.simple} onChange={(sc) => { updateSettings({ scope: sc, scopeChosen: true }); if (sc === 'all') setShowScopeModal(false); }} onSimple={(v) => updateSettings({ simple: v })} />
+      </Modal>
 
       {showNurJetztExplainer && createPortal(
         <div className="fixed inset-0 z-[230] bg-[rgba(44,42,34,0.35)] flex items-end sm:items-center justify-center" onClick={() => setShowNurJetztExplainer(false)}>

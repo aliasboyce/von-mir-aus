@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Check, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { goBack } from '../../services/navigation';
 import { playSound } from '../../services/sounds';
 import { triggerHaptic } from '../../services/haptics';
@@ -15,8 +15,8 @@ import { resourcesRepo } from '../resources/resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { RoutineCard3D } from './RoutineCard3D';
-import { MediaEmbed } from './MediaEmbed';
-import { routinesRepo, runsFor, saveRun, tickGardenForCard, formatDuration, type Routine, type RoutineCard, type RoutineRun } from './routinesRepo';
+import { MediaEmbed, OwnMediaView } from './MediaEmbed';
+import { routinesRepo, runsFor, saveRun, tickGardenForCard, formatDuration, cardsForEnergy, energyOptions, ENERGY_COLORS, type EnergyLevel, type Routine, type RoutineCard, type RoutineRun } from './routinesRepo';
 import { useRoutineTexts } from './routineTexts';
 import './routines.css';
 
@@ -41,10 +41,59 @@ export function RoutinePlayerPage() {
       </div>
     );
   }
-  return <Player routine={routine} />;
+  return <EnergyGate routine={routine} />;
 }
 
-function Player({ routine }: { routine: Routine }) {
+/** Has the routine more than one energy version? Then ask first ("Schwerer Tag: nur die Kleinsten" … "Alle Schritte"). */
+function EnergyGate({ routine }: { routine: Routine }) {
+  const rt = useRoutineTexts();
+  const navigate = useNavigate();
+  const options = useMemo(() => energyOptions(routine.cards), [routine]);
+  const [level, setLevel] = useState<EnergyLevel | null>(options.length < 2 ? 3 : null);
+  useRegisterModalOpen(level === null);
+  useRegisterExternalModalOpen(level === null);
+  if (level === null) {
+    const labelFor = (i: number) => (i === 0 ? [rt.energyHard, rt.energyHardSub] : i === options.length - 1 ? [rt.energyAll, ''] : [rt.energyMid, '']);
+    return createPortal(
+      <div className="fixed inset-0 z-[220] flex flex-col px-5" style={{ background: 'var(--color-bg)', paddingTop: 'max(18px, env(safe-area-inset-top))', paddingBottom: 'max(18px, env(safe-area-inset-bottom))' }} data-testid="routine-energy-gate">
+        <div className="flex items-center mb-6">
+          <button type="button" onClick={() => goBack(navigate, '/entdecken/garten')} aria-label={rt.energyNotNow} className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center" data-testid="routine-energy-close"><X size={19} /></button>
+        </div>
+        <div className="flex-1 flex flex-col justify-center max-w-[440px] w-full mx-auto">
+          <p className="text-[34px] text-center mb-2">{routine.emoji}</p>
+          <h1 className="text-[22px] text-center mb-1">{routine.title}</h1>
+          <p className="text-[15px] text-[var(--color-text)] text-center mb-1">{rt.energyTitle}</p>
+          <p className="text-[13px] text-[var(--color-text-faint)] text-center mb-6 leading-relaxed">{rt.energySub}</p>
+          <div className="flex flex-col gap-3">
+            {options.map((o, i) => {
+              const [name, sub] = labelFor(i);
+              return (
+                <button key={o.level} type="button" onClick={() => setLevel(o.level)} data-testid={`routine-energy-pick-${o.level}`} className="text-left rounded-[var(--radius-lg)] px-5 py-4 flex items-center gap-4 border-2 bg-[var(--color-surface)]" style={{ borderColor: 'var(--color-border)', minHeight: 72 }}>
+                  <span className="w-5 h-5 rounded-full flex-shrink-0" style={{ background: ENERGY_COLORS[o.level] }} aria-hidden="true" />
+                  <span className="flex-1">
+                    <span className="block text-[17px] text-[var(--color-text)]">{name}{sub ? `: ${sub.toLowerCase()}` : ''}</span>
+                    <span className="block text-[12.5px] text-[var(--color-text-muted)]">{o.count === 1 ? rt.energyCard1 : rt.energyCards.replace('{n}', String(o.count))}</span>
+                  </span>
+                  <ChevronRight size={20} className="text-[var(--color-text-faint)]" />
+                </button>
+              );
+            })}
+          </div>
+          <button type="button" onClick={() => goBack(navigate, '/entdecken/garten')} className="mt-6 text-[13.5px] text-[var(--color-text-muted)] underline underline-offset-2 self-center py-2" data-testid="routine-energy-notnow">{rt.energyNotNow}</button>
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+  return <PlayerForLevel routine={routine} level={level} multi={options.length >= 2} />;
+}
+
+function PlayerForLevel({ routine, level, multi }: { routine: Routine; level: EnergyLevel; multi: boolean }) {
+  const shown = useMemo(() => (multi ? { ...routine, cards: cardsForEnergy(routine.cards, level) } : routine), [routine, level, multi]);
+  return <Player routine={shown} energy={multi ? level : undefined} />;
+}
+
+function Player({ routine, energy }: { routine: Routine; energy?: EnergyLevel }) {
   const rt = useRoutineTexts();
   const { settings } = useSettings();
   const navigate = useNavigate();
@@ -129,12 +178,13 @@ function Player({ routine }: { routine: Routine }) {
         endedAt: now.toISOString(),
         durationSec: Math.max(1, Math.round((now.getTime() - startedAt.current.getTime()) / 1000)),
         cards: [...results.current, ...rest],
+        ...(energy ? { energy } : {}),
       });
       const ticked = Array.from(new Set(cards.filter((c, i) => c.gardenId && results.current[i]?.done).map((c) => gardenRepo.getById(c.gardenId!)?.name).filter(Boolean) as string[]));
       setFinished({ run, previous, ticked, skipped: results.current.filter((r) => !r.done).length + rest.length });
       setPhase('done');
     },
-    [cards, navigate, routine],
+    [cards, navigate, routine, energy],
   );
 
   function advance(done: boolean) {
@@ -383,6 +433,16 @@ function Player({ routine }: { routine: Routine }) {
             <span className="w-10 text-right text-[12px] text-[var(--color-text-faint)] tabular-nums">{idx + 1}/{cards.length}</span>
           </div>
 
+          {/* the two directions, always visible: left = not right now, right = done; they glow up while the card is pushed */}
+          <div ref={skipHintRef} className="absolute inset-y-0 left-0 w-1/2 pointer-events-none flex items-center justify-start pl-5" style={{ opacity: 0, background: 'linear-gradient(90deg, color-mix(in srgb, var(--color-text-muted) 22%, transparent) 0%, transparent 100%)' }} aria-hidden="true">
+            <span className="flex flex-col items-center gap-1 text-[var(--color-text-muted)]"><ArrowLeft size={30} /><span className="text-[12.5px] font-medium">{rt.swipeLeftLabel}</span></span>
+          </div>
+          <div ref={hintRef} className="absolute inset-y-0 right-0 w-1/2 pointer-events-none flex items-center justify-end pr-5" style={{ opacity: 0, background: `linear-gradient(270deg, color-mix(in srgb, ${card.color} 38%, transparent) 0%, transparent 100%)` }} aria-hidden="true">
+            <span className="flex flex-col items-center gap-1" style={{ color: card.color }}><Check size={34} strokeWidth={3} /><span className="text-[12.5px] font-medium text-[var(--color-text)]">{rt.swipeRightLabel}</span></span>
+          </div>
+          <ChevronLeft size={26} strokeWidth={2.8} className={`absolute left-0.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] pointer-events-none ${reduce ? '' : 'rt-nudge-l'}`} aria-hidden="true" data-testid="routine-edge-left" />
+          <ChevronRight size={26} strokeWidth={2.8} className={`absolute right-0.5 top-1/2 -translate-y-1/2 pointer-events-none ${reduce ? '' : 'rt-nudge-r'}`} style={{ color: card.color }} aria-hidden="true" data-testid="routine-edge-right" />
+
           <div className="flex-1 flex items-center justify-center px-5 min-h-0">
             <div className="rt-stage w-full" style={{ maxWidth: 380, height: 'min(62vh, 520px)' }} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}>
               {next && (
@@ -416,6 +476,19 @@ function Player({ routine }: { routine: Routine }) {
                     }}
                   />
                 )}
+                {card.ownMedia && (
+                  <OwnMediaView
+                    key={`own-${card.id}`}
+                    file={card.ownMedia}
+                    color={card.color}
+                    onEnded={() => {
+                      setMediaDone(true);
+                      playSound('settle', settings);
+                      triggerHaptic('settle', settings);
+                      if (card.media?.autoNext) window.setTimeout(() => fling(1, 1.2), 1600);
+                    }}
+                  />
+                )}
                 {mediaDone && <p className="text-[14px] text-[var(--color-text-muted)]" style={{ color: card.image ? '#fff' : undefined }} data-testid="routine-media-ended">{rt.mediaEnded}</p>}
                 {(linkedResource || linkedPerson) && (
                   <button type="button" data-nodrag onClick={() => setLinkedOpen(true)} className="w-full max-w-[300px] text-left" data-testid="routine-linked">
@@ -426,12 +499,6 @@ function Player({ routine }: { routine: Routine }) {
                     )}
                   </button>
                 )}
-                <div ref={skipHintRef} className="absolute left-4 top-1/2 -translate-y-1/2 px-3 py-2 rounded-full text-[12px] pointer-events-none" style={{ opacity: 0, background: 'rgba(255,255,255,0.8)', color: 'var(--color-text-muted)' }}>
-                  {rt.notNow}
-                </div>
-                <div ref={hintRef} className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full flex items-center justify-center pointer-events-none" style={{ opacity: 0, background: card.color, color: '#fff', boxShadow: `0 0 28px ${card.color}` }}>
-                  <Check size={28} />
-                </div>
               </RoutineCard3D>
               {sparks.map((sp) => (
                 <span key={sp.id} className="rt-spark" style={{ background: sp.c, ['--dx' as string]: `${sp.dx}px`, ['--dy' as string]: `${sp.dy}px` }} />
@@ -440,13 +507,15 @@ function Player({ routine }: { routine: Routine }) {
           </div>
 
           <div className="px-5 pt-3 flex flex-col items-center gap-2" style={{ maxWidth: 420, width: '100%', margin: '0 auto' }}>
-            <Button fullWidth onClick={() => completeCard(true)} className={(timeUp || mediaDone) && !reduce ? 'rt-pulse' : ''} icon={<Check size={17} />} data-testid="routine-done">
-              {rt.done}
-            </Button>
-            <button type="button" onClick={() => completeCard(false)} className="text-[13px] text-[var(--color-text-faint)] py-1.5 underline underline-offset-2" data-testid="routine-skip">
-              {rt.notNow}
-            </button>
-            <p data-hint className="text-[11.5px] text-[var(--color-text-faint)] text-center">{rt.swipeHint}</p>
+            <div className="flex gap-2.5 w-full">
+              <button type="button" onClick={() => completeCard(false)} className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full py-3 text-[14px] border bg-[var(--color-surface)] text-[var(--color-text-muted)]" style={{ borderColor: 'var(--color-border-strong)' }} data-testid="routine-skip">
+                <ArrowLeft size={16} /> {rt.swipeLeftLabel}
+              </button>
+              <Button onClick={() => completeCard(true)} className={`flex-[1.35] ${(timeUp || mediaDone) && !reduce ? 'rt-pulse' : ''}`} icon={<Check size={17} />} data-testid="routine-done">
+                {rt.done} <ArrowRight size={16} className="ml-1" />
+              </Button>
+            </div>
+            <p className="text-[12px] text-[var(--color-text-muted)] text-center" data-testid="routine-legend">{rt.swipeLegend}</p>
           </div>
 
           {confirmEnd && (

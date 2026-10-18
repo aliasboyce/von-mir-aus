@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Compass, Shield, LifeBuoy } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
+import { scopeOf } from '../../services/scope';
 
 /**
  * Three destinations: Jetzt (Check-in, Zugang and Brücken start from
@@ -41,7 +42,13 @@ export function BottomNav() {
     { to: '/krisenmodus', label: t.crisisMode.homeCta, icon: LifeBuoy, end: false },
   ];
 
-  const items: NavItem[] = settings.nurJetztMode ? nurJetztItems : fullItems;
+  const scope = scopeOf(settings);
+  const coreItems: NavItem[] = [
+    { to: '/', label: t.nav.home, icon: Home, end: true, also: ['/inneres-wetter', '/entdecken/tageskurve'] },
+    { to: '/sicherheit/plan', label: t.crisisMode.safetyPlanCta, icon: Shield, end: false },
+  ];
+  const planItems: NavItem[] = fullItems.filter((i) => i.to !== '/entdecken');
+  const items: NavItem[] = settings.nurJetztMode ? nurJetztItems : scope === 'core' ? coreItems : scope === 'plan' ? planItems : fullItems;
 
   return (
     <nav

@@ -967,6 +967,20 @@ export interface UserSettings {
   /** optional per-section palette overrides, keyed by top-level route (e.g. '/bruecken') */
   pagePalettes?: Partial<Record<string, ThemePalette>>;
   reduceMotion: boolean;
+  /** how much of the app is shown (undefined = everything) */
+  scope?: 'core' | 'plan' | 'all';
+  /** the person has made the choice (first start) */
+  scopeChosen?: boolean;
+  /** "Einfach"-Darstellung: bigger surfaces, fewer choices and hints */
+  simple?: boolean;
+  /** show the small "Schnell weg" button */
+  quickExit?: boolean;
+  /** gentle reminder to make a backup after about a week; false = off */
+  backupReminder?: boolean;
+  /** Ästhetik-Welt (see features/worlds): complete landscape look behind the app; undefined = none */
+  world?: string;
+  /** world as a still picture without moving parts */
+  worldStill?: boolean;
   /** "Ich kenne mich aus": hides only the small hint/example/instruction lines on pages (not info texts, not ? help). */
   minimalHints?: boolean;
   /** "Tag beginnen" / "Tag abschließen": gentle full-screen invitation on the first opening of the day (from this time on). */

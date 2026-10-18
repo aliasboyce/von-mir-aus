@@ -1,0 +1,97 @@
+/* Ästhetik-Welten: a pinned, decorative layer behind the app content. */
+.world-pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  margin-bottom: -100vh;
+  margin-bottom: -100dvh;
+  z-index: 0;
+  pointer-events: none;
+}
+.world-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* content above the world, but the world itself never blocks it */
+.app-frame:has(> .world-pin) > main {
+  position: relative;
+  z-index: 1;
+}
+.world-layer span.w-anim,
+.world-layer svg.w-anim {
+  position: absolute;
+  display: block;
+}
+
+@keyframes w-firefly {
+  0%, 100% { transform: translate(0, 0); opacity: 0; }
+  15% { opacity: 0.9; }
+  50% { transform: translate(24px, -30px); opacity: 0.6; }
+  85% { opacity: 0.85; }
+}
+.w-firefly { width: 5px; height: 5px; border-radius: 50%; background: #f6e27a; box-shadow: 0 0 10px 3px rgba(246, 226, 122, 0.6); animation: w-firefly 9s ease-in-out infinite; }
+
+@keyframes w-bubble {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  12% { opacity: 0.55; }
+  100% { transform: translateY(-62vh) translateX(14px); opacity: 0; }
+}
+.w-bubble { bottom: 4%; border-radius: 50%; border: 1.5px solid color-mix(in srgb, #8fc3e8 70%, var(--color-text)); background: color-mix(in srgb, #bfe0f5 30%, transparent); animation: w-bubble 16s ease-in infinite; }
+
+@keyframes w-wave-x { from { transform: translateX(0); } to { transform: translateX(-400px); } }
+.w-wave { animation: w-wave-x var(--w-dur, 20s) linear infinite; }
+
+@keyframes w-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+.w-sway { animation: w-sway 4.6s ease-in-out infinite; }
+
+@keyframes w-butterfly {
+  0% { left: -8%; transform: translateY(0); }
+  25% { transform: translateY(-26px); }
+  50% { transform: translateY(8px); }
+  75% { transform: translateY(-20px); }
+  100% { left: 108%; transform: translateY(0); }
+}
+.w-butterfly { left: -8%; animation: w-butterfly 30s linear infinite; }
+@keyframes w-flap { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.35); } }
+.w-flap { animation: w-flap 0.9s ease-in-out infinite; }
+
+@keyframes w-leaf {
+  0% { transform: translate(0, -6vh) rotate(0deg); opacity: 0; }
+  8% { opacity: 0.85; }
+  50% { transform: translate(26px, 50vh) rotate(180deg); }
+  100% { transform: translate(-14px, 106vh) rotate(380deg); opacity: 0.7; }
+}
+.w-leaf { top: 0; width: 9px; height: 6px; border-radius: 2px 9px; animation: w-leaf 16s linear infinite; }
+
+@keyframes w-flake {
+  0% { transform: translate(0, -4vh); opacity: 0; }
+  10% { opacity: 0.8; }
+  50% { transform: translate(14px, 50vh); }
+  100% { transform: translate(-10px, 104vh); opacity: 0.6; }
+}
+.w-flake { top: 0; border-radius: 50%; background: color-mix(in srgb, #9db7d3 70%, var(--color-text)); animation: w-flake 18s linear infinite; }
+
+@keyframes w-cloud { from { transform: translateX(-40vw); } to { transform: translateX(120vw); } }
+.w-cloud { left: 0; border-radius: 999px; background: color-mix(in srgb, #ffffff 40%, var(--color-bg)); opacity: 0.55; filter: blur(7px); animation: w-cloud 110s linear infinite; }
+
+@keyframes w-twinkle { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 50% { opacity: 0.95; transform: scale(1.15); } }
+.w-star { border-radius: 50%; background: color-mix(in srgb, #7f8fd0 75%, var(--color-text)); animation: w-twinkle 4s ease-in-out infinite; }
+
+@keyframes w-shooting {
+  0%, 82% { transform: translate(0, 0) rotate(28deg); opacity: 0; }
+  84% { opacity: 0.9; }
+  96% { transform: translate(-190px, 120px) rotate(28deg); opacity: 0; }
+  100% { opacity: 0; }
+}
+.w-shooting { top: 12%; right: 12%; width: 70px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, #9aa8e0 70%, var(--color-text))); transform: rotate(28deg); animation: w-shooting 22s linear infinite; }
+
+@keyframes w-ray { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+.w-ray { animation: w-ray 9s ease-in-out infinite; }
+
+[data-reduce-motion='true'] .world-layer .w-anim { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .world-layer .w-anim { display: none !important; }
+}

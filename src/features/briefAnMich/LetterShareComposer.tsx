@@ -86,6 +86,10 @@ export function LetterShareComposer({ onClose }: { onClose: () => void }) {
     <Card className="mb-6 flex flex-col gap-3 animate-in" data-testid="letter-composer">
       <p className="text-[16px] text-[var(--color-text)]">{b.shareTitle}</p>
       <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{b.shareIntro}</p>
+      <div className="rounded-[var(--radius-md)] px-3 py-2.5" style={{ background: 'var(--color-primary-soft)' }} data-testid="letter-coord-hint">
+        <p className="text-[12px] uppercase tracking-wide text-[var(--color-primary-soft-text)] mb-1">{b.shareCoordTitle}</p>
+        <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{b.shareCoordText}</p>
+      </div>
       <div className="flex gap-2">
         <label className="flex-1 flex flex-col gap-1">
           <span className="text-[12px] text-[var(--color-text-faint)]">{b.shareFromLabel}</span>

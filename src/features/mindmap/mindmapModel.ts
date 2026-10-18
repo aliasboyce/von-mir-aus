@@ -1,13 +1,19 @@
 import { approxTextWidth, wrapText } from '../../components/canvas/svgText';
 import { createRepository, createId } from '../../services/storage/repository';
+import { doodleIds, doodleOf } from './doodles';
 
 /* ------------------------------------------------------------------ types */
 
-export type MMShape = 'rounded' | 'pill' | 'oval' | 'circle' | 'diamond' | 'hexagon' | 'cloud' | 'note' | 'plain' | 'frame';
+export type MMShape = 'rounded' | 'pill' | 'oval' | 'circle' | 'diamond' | 'hexagon' | 'cloud' | 'note' | 'plain' | 'frame' | 'image' | 'sticker' | 'draw' | 'doodle' | 'maplink';
 export type MMLook = 'solid' | 'soft' | 'outline';
 export type MMDash = 'solid' | 'dashed' | 'dotted';
 export type MMArrow = 'none' | 'end' | 'both';
-export type MMBgKind = 'plain' | 'dots' | 'grid' | 'lines';
+export type MMBgKind = 'plain' | 'dots' | 'dotsL' | 'grid' | 'graph' | 'lines' | 'crosses' | 'tri' | 'stars' | 'waves' | 'checker';
+export type MMBorder = 'solid' | 'dashed' | 'dotted' | 'double' | 'sketch' | 'thick' | 'none';
+export type MMAnim = 'none' | 'spin' | 'spinback' | 'swing' | 'pulse' | 'bounce' | 'wiggle' | 'float' | 'blink' | 'orbit' | 'jelly' | 'shake';
+export type MMPen = 'pen' | 'pencil' | 'marker';
+export type MMImgStyle = 'polaroid' | 'plain' | 'round' | 'rounded';
+export type MMFont = 'sans' | 'serif' | 'hand' | 'marker' | 'mono' | 'round' | 'display' | 'script' | 'typewriter';
 
 export interface MMNode {
   id: string;
@@ -20,9 +26,38 @@ export interface MMNode {
   /** 1 = S … 4 = XL */
   size: 1 | 2 | 3 | 4;
   symbol?: string;
+  /** photo nodes: the picture (small data URL, kept in the map) and its width/height ratio */
+  img?: string;
+  ar?: number;
   /** only for frames (cluster areas): free width/height */
   fw?: number;
   fh?: number;
+  /** rotation in degrees */
+  rot?: number;
+  /** free scale factor (1 = as sized by `size`) */
+  sc?: number;
+  /** animation (loops); speed 1 slow … 3 fast; ganim = the whole group moves as one piece */
+  anim?: MMAnim;
+  animSpeed?: 1 | 2 | 3;
+  ganim?: boolean;
+  /** group id: grouped elements are selected and moved together */
+  grp?: string;
+  font?: MMFont;
+  bold?: boolean;
+  italic?: boolean;
+  border?: MMBorder;
+  /** outline thickness in px */
+  sw?: number;
+  /** layer: higher = further in front */
+  z?: number;
+  /** pen strokes: flat list x0,y0,x1,y1 … relative to the node centre */
+  pts?: number[];
+  pen?: MMPen;
+  /** doodle: id from the catalogue */
+  doodle?: string;
+  imgStyle?: MMImgStyle;
+  /** link to another mind map (shown as a small live preview) */
+  mapId?: string;
 }
 
 export interface MMEdge {
@@ -34,6 +69,8 @@ export interface MMEdge {
   dash: MMDash;
   /** 1 thin, 2 normal, 3 thick */
   width: 1 | 2 | 3;
+  /** free thickness in px (overrides `width`) */
+  wpx?: number;
   arrow: MMArrow;
   /** sideways bend in world px (0 = straight) */
   bend: number;
@@ -50,6 +87,12 @@ export interface MindMap {
   nodes: MMNode[];
   edges: MMEdge[];
   view?: { scale: number; tx: number; ty: number };
+  /** this map is a sub map of another one */
+  parentId?: string;
+  /** name of the folder in the list */
+  folder?: string;
+  archived?: boolean;
+  archivedAt?: string;
 }
 
 export const mindmapRepo = createRepository<MindMap>('mindmaps');
@@ -69,21 +112,101 @@ export const SHAPES: { id: MMShape; de: string; en: string }[] = [
   { id: 'frame', de: 'Rahmen / Cluster', en: 'Frame / cluster' },
 ];
 
-export const BG_TONES: { id: string; color: string; de: string; en: string }[] = [
+export const BG_TONES: { id: string; color: string; de: string; en: string; css?: string }[] = [
   { id: 'paper', color: '#fbf8f1', de: 'Papier', en: 'Paper' },
   { id: 'white', color: '#ffffff', de: 'Weiß', en: 'White' },
-  { id: 'mint', color: '#eaf3ee', de: 'Mint', en: 'Mint' },
-  { id: 'sky', color: '#e8f0f7', de: 'Himmel', en: 'Sky' },
+  { id: 'cream', color: '#fff6dc', de: 'Creme', en: 'Cream' },
+  { id: 'butter', color: '#fbf0c4', de: 'Butter', en: 'Butter' },
+  { id: 'peach', color: '#fde5d8', de: 'Pfirsich', en: 'Peach' },
   { id: 'blush', color: '#f7ebee', de: 'Rosé', en: 'Blush' },
   { id: 'lavender', color: '#efe9f6', de: 'Lavendel', en: 'Lavender' },
+  { id: 'sky', color: '#e8f0f7', de: 'Himmel', en: 'Sky' },
+  { id: 'ocean', color: '#d5e8f0', de: 'Meer', en: 'Ocean' },
+  { id: 'mint', color: '#eaf3ee', de: 'Mint', en: 'Mint' },
+  { id: 'sage', color: '#dfe8d8', de: 'Salbei', en: 'Sage' },
   { id: 'sand', color: '#f3ecdc', de: 'Sand', en: 'Sand' },
+  { id: 'slate', color: '#d9dde2', de: 'Schiefer', en: 'Slate' },
+  { id: 'sunrise', color: '#fbe6d4', de: 'Morgenrot', en: 'Sunrise', css: 'linear-gradient(160deg,#fde7d3,#f6dbe6)' },
+  { id: 'dusk', color: '#e4dcef', de: 'Dämmerung', en: 'Dusk', css: 'linear-gradient(160deg,#dfe8f6,#eadcf0)' },
+  { id: 'meadow', color: '#e3f0dd', de: 'Wiese', en: 'Meadow', css: 'linear-gradient(160deg,#eaf5e0,#dcecf3)' },
   { id: 'night', color: '#23282e', de: 'Nacht', en: 'Night' },
+  { id: 'forest', color: '#22332b', de: 'Wald', en: 'Forest' },
+  { id: 'plum', color: '#35283d', de: 'Pflaume', en: 'Plum' },
+  { id: 'ink', color: '#1b2433', de: 'Tinte', en: 'Ink' },
 ];
-export const bgColor = (tone: string) => BG_TONES.find((t) => t.id === tone)?.color ?? BG_TONES[0].color;
+export const HEX_TONE = /^#[0-9a-fA-F]{6}$/;
+export const bgColor = (tone: string) => (HEX_TONE.test(tone) ? tone : BG_TONES.find((t) => t.id === tone)?.color ?? BG_TONES[0].color);
+/** CSS background (colour or gradient) for the page behind a map */
+export const bgCss = (tone: string) => (HEX_TONE.test(tone) ? tone : BG_TONES.find((t) => t.id === tone)?.css ?? bgColor(tone));
+export const bgIsDark = (tone: string) => luminance(bgColor(tone)) < 0.25;
+export const BG_KINDS: { id: MMBgKind; de: string; en: string }[] = [
+  { id: 'dots', de: 'Punkte', en: 'Dots' },
+  { id: 'dotsL', de: 'Große Punkte', en: 'Big dots' },
+  { id: 'grid', de: 'Kästchen', en: 'Grid' },
+  { id: 'graph', de: 'Millimeterpapier', en: 'Graph paper' },
+  { id: 'lines', de: 'Linien', en: 'Lines' },
+  { id: 'crosses', de: 'Kreuzchen', en: 'Crosses' },
+  { id: 'tri', de: 'Dreiecke', en: 'Triangles' },
+  { id: 'stars', de: 'Sternchen', en: 'Stars' },
+  { id: 'waves', de: 'Wellen', en: 'Waves' },
+  { id: 'checker', de: 'Schachbrett', en: 'Checkered' },
+  { id: 'plain', de: 'Leer', en: 'Plain' },
+];
+
+/* ------------------------------------------------------------------ fonts */
+
+export const FONTS: { id: MMFont; de: string; en: string; css: string; w: number }[] = [
+  { id: 'sans', de: 'Klar', en: 'Clean', css: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif', w: 1 },
+  { id: 'serif', de: 'Buch', en: 'Book', css: 'Georgia, "Times New Roman", serif', w: 1 },
+  { id: 'hand', de: 'Handschrift', en: 'Handwriting', css: 'var(--font-hand, "Segoe Print", "Bradley Hand", cursive)', w: 1.06 },
+  { id: 'marker', de: 'Filzstift', en: 'Felt pen', css: '"Marker Felt", "Chalkboard SE", "Comic Sans MS", "Comic Neue", cursive', w: 1.12 },
+  { id: 'script', de: 'Schönschrift', en: 'Script', css: '"Snell Roundhand", "Segoe Script", "Brush Script MT", "Lucida Handwriting", cursive', w: 1.02 },
+  { id: 'round', de: 'Rund', en: 'Rounded', css: '"Arial Rounded MT Bold", "Varela Round", Nunito, system-ui, sans-serif', w: 1.05 },
+  { id: 'display', de: 'Schmuck', en: 'Display', css: 'var(--font-display, Fraunces), Georgia, serif', w: 1.05 },
+  { id: 'mono', de: 'Schreibmaschine', en: 'Typewriter', css: '"American Typewriter", "Courier New", ui-monospace, monospace', w: 1.12 },
+];
+export const fontCss = (f: MMFont | undefined) => FONTS.find((x) => x.id === f)?.css;
+const fontW = (n: Pick<MMNode, 'font' | 'bold'>) => (FONTS.find((x) => x.id === n.font)?.w ?? 1) * (n.bold ? 1.07 : 1);
+
+export const ANIMS: { id: MMAnim; de: string; en: string; icon: string }[] = [
+  { id: 'none', de: 'Keine', en: 'None', icon: '⏸' },
+  { id: 'spin', de: 'Drehen', en: 'Spin', icon: '🔄' },
+  { id: 'spinback', de: 'Rückwärts drehen', en: 'Spin back', icon: '↺' },
+  { id: 'swing', de: 'Pendeln', en: 'Swing', icon: '🎐' },
+  { id: 'pulse', de: 'Pulsieren', en: 'Pulse', icon: '💗' },
+  { id: 'bounce', de: 'Hüpfen', en: 'Bounce', icon: '⛹' },
+  { id: 'wiggle', de: 'Wackeln', en: 'Wiggle', icon: '〰' },
+  { id: 'float', de: 'Schweben', en: 'Float', icon: '🎈' },
+  { id: 'blink', de: 'Blinken', en: 'Blink', icon: '✨' },
+  { id: 'orbit', de: 'Kreisen', en: 'Orbit', icon: '🪐' },
+  { id: 'jelly', de: 'Wackelpudding', en: 'Jelly', icon: '🍮' },
+  { id: 'shake', de: 'Zittern', en: 'Shake', icon: '📳' },
+];
+/** these move the whole group around its centre when "as group" is on */
+export const GROUP_ANIMS: MMAnim[] = ['spin', 'spinback', 'swing', 'orbit', 'pulse', 'float', 'bounce'];
+
+export const BORDERS: { id: MMBorder; de: string; en: string }[] = [
+  { id: 'solid', de: 'Durchgezogen', en: 'Solid' },
+  { id: 'dashed', de: 'Gestrichelt', en: 'Dashed' },
+  { id: 'dotted', de: 'Gepunktet', en: 'Dotted' },
+  { id: 'double', de: 'Doppelt', en: 'Double' },
+  { id: 'sketch', de: 'Handgezeichnet', en: 'Sketchy' },
+  { id: 'thick', de: 'Dick', en: 'Bold' },
+  { id: 'none', de: 'Ohne Rand', en: 'No border' },
+];
+
+export const PENS: { id: MMPen; de: string; en: string }[] = [
+  { id: 'pen', de: 'Stift', en: 'Pen' },
+  { id: 'pencil', de: 'Bleistift', en: 'Pencil' },
+  { id: 'marker', de: 'Textmarker', en: 'Highlighter' },
+];
 
 const FONT: Record<number, number> = { 1: 13, 2: 16, 3: 20, 4: 27 };
+export const PHOTO_W: Record<number, number> = { 1: 130, 2: 190, 3: 270, 4: 380 };
+export const STICKER_S: Record<number, number> = { 1: 46, 2: 70, 3: 104, 4: 150 };
 const BASIS: Record<number, number> = { 1: 120, 2: 168, 3: 224, 4: 300 };
 export const STROKE: Record<number, number> = { 1: 2, 2: 3.5, 3: 6 };
+export const edgeStroke = (e: Pick<MMEdge, 'width' | 'wpx'>) => (typeof e.wpx === 'number' ? Math.min(30, Math.max(1, e.wpx)) : STROKE[e.width]);
 
 /* ------------------------------------------------------------ colour utils */
 
@@ -118,6 +241,14 @@ export interface NodeStyle {
 }
 export function nodeStyle(n: MMNode, bg: string): NodeStyle {
   const dark = luminance(bg) < 0.25;
+  if (n.shape === 'image') return { fill: n.imgStyle && n.imgStyle !== 'polaroid' ? 'none' : '#ffffff', stroke: '#e6dfd0', text: n.imgStyle && n.imgStyle !== 'polaroid' ? (dark ? '#f1ede4' : '#26231f') : '#3a362d', strokeWidth: 1 };
+  if (n.shape === 'draw') return { fill: 'none', stroke: n.color, text: n.color, strokeWidth: n.sw ?? 3 };
+  if (n.shape === 'doodle') {
+    const fill = n.look === 'solid' ? n.color : n.look === 'soft' ? mixHex(n.color, dark ? '#23282e' : '#ffffff', dark ? 0.6 : 0.8) : 'none';
+    return { fill, stroke: n.color, text: n.look === 'solid' ? readableOn(n.color) : dark ? '#f1ede4' : '#26231f', strokeWidth: n.sw ?? 3 };
+  }
+  if (n.shape === 'maplink') return { fill: dark ? '#2b3138' : '#ffffff', stroke: n.color, text: dark ? '#f1ede4' : mixHex(n.color, '#000000', 0.45), strokeWidth: n.sw ?? 2.5 };
+  if (n.shape === 'sticker') return { fill: 'none', stroke: 'none', text: dark ? '#f1ede4' : '#26231f', strokeWidth: 0 };
   if (n.shape === 'plain') return { fill: 'none', stroke: 'none', text: n.look === 'solid' || n.look === 'outline' ? n.color : dark ? '#f1ede4' : '#26231f', strokeWidth: 0 };
   if (n.shape === 'frame') return { fill: mixHex(n.color, dark ? '#23282e' : '#ffffff', dark ? 0.78 : 0.86), stroke: n.color, text: dark ? '#f1ede4' : mixHex(n.color, '#000000', 0.45), strokeWidth: 2 };
   if (n.look === 'solid') return { fill: n.color, stroke: mixHex(n.color, '#000000', 0.12), text: readableOn(n.color), strokeWidth: 1.2 };
@@ -140,9 +271,42 @@ export interface NodeLayout {
   /** y offset (from node centre) of the first text baseline */
   textTop: number;
   symbolY: number;
+  /** scale factor that was applied (free scaling) */
+  k: number;
 }
 
+/** size steps of doodles (the catalogue sizes are ~100 units) */
+export const DOODLE_K: Record<number, number> = { 1: 0.9, 2: 1.4, 3: 2, 4: 2.8 };
+/** pen strokes: bounding box of the points */
+export function strokeBox(pts: number[] | undefined): { minX: number; minY: number; maxX: number; maxY: number } {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  const p = pts ?? [];
+  for (let i = 0; i + 1 < p.length; i += 2) {
+    minX = Math.min(minX, p[i]);
+    maxX = Math.max(maxX, p[i]);
+    minY = Math.min(minY, p[i + 1]);
+    maxY = Math.max(maxY, p[i + 1]);
+  }
+  if (!Number.isFinite(minX)) return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+  return { minX, minY, maxX, maxY };
+}
+export const penWidth = (n: Pick<MMNode, 'sw' | 'pen'>) => (n.sw ?? 3) * (n.pen === 'marker' ? 3.2 : 1);
+
+/** white frame around a photo (only the polaroid style has one) */
+export const imgBorder = (n: Pick<MMNode, 'imgStyle'>) => (!n.imgStyle || n.imgStyle === 'polaroid' ? 7 : 0);
+export const imgRatio = (n: Pick<MMNode, 'ar' | 'imgStyle'>) => (n.imgStyle === 'round' ? 1 : Math.min(2.6, Math.max(0.4, n.ar ?? 1)));
+
 export function layoutNode(n: MMNode): NodeLayout {
+  const b = layoutBase(n);
+  const k = n.shape === 'frame' || n.shape === 'maplink' ? 1 : Math.min(8, Math.max(0.2, n.sc ?? 1));
+  if (k === 1) return { ...b, k: 1 };
+  return { ...b, w: b.w * k, h: b.h * k, fs: b.fs * k, lh: b.lh * k, symbolSize: b.symbolSize * k, textTop: b.textTop * k, symbolY: b.symbolY * k, k };
+}
+
+function layoutBase(n: MMNode): Omit<NodeLayout, 'k'> {
   const fs = FONT[n.size] ?? 16;
   const lh = fs * 1.28;
   const basis = BASIS[n.size] ?? 168;
@@ -150,11 +314,53 @@ export function layoutNode(n: MMNode): NodeLayout {
   const padX = fs * 0.95;
   const padY = fs * 0.72;
 
+  if (n.shape === 'draw') {
+    const bx = strokeBox(n.pts);
+    const pw = penWidth(n);
+    return { w: bx.maxX - bx.minX + pw, h: bx.maxY - bx.minY + pw, lines: [], fs, lh, symbolSize: 0, textTop: 0, symbolY: 0 };
+  }
+  if (n.shape === 'doodle') {
+    const d = doodleOf(n.doodle);
+    const kk = DOODLE_K[n.size] ?? 1.4;
+    const w = n.fw ?? d.w * kk;
+    const h = n.fh ?? d.h * kk;
+    const dfs = fs * 0.95 * Math.min(1.6, Math.max(0.6, Math.sqrt((w / d.w) / kk)));
+    const dlh = dfs * 1.25;
+    const tw = d.text ? d.text.w * (w / d.w) : 0;
+    const lines = d.text && n.text.trim() ? wrapText(n.text, tw, dfs * fontW(n)) : [];
+    const cy = d.text ? d.text.cy * (h / d.h) : 0;
+    return { w, h, lines, fs: dfs, lh: dlh, symbolSize: 0, textTop: cy - (lines.length * dlh) / 2 + dlh * 0.78, symbolY: 0 };
+  }
+  if (n.shape === 'maplink') {
+    const w = n.fw ?? 320;
+    const h = n.fh ?? 220;
+    return { w, h, lines: n.text.trim() ? wrapText(n.text, w - 2 * padX, fs) : [], fs, lh, symbolSize: 0, textTop: -h / 2 + padY + fs * 0.9, symbolY: 0 };
+  }
   if (n.shape === 'frame') {
     const w = n.fw ?? 380;
     const h = n.fh ?? 250;
     const lines = n.text.trim() ? wrapText(n.text, w - 2 * padX - 24, fs) : [];
     return { w, h, lines, fs, lh, symbolSize: 0, textTop: -h / 2 + padY + fs * 0.9, symbolY: 0 };
+  }
+
+  if (n.shape === 'image' || n.shape === 'sticker') {
+    const cfs = fs * 0.9;
+    const clh = cfs * 1.28;
+    const capLines = n.text.trim() ? wrapText(n.text, (n.shape === 'image' ? PHOTO_W[n.size] : STICKER_S[n.size] * 1.6) - 14, cfs) : [];
+    const capH = capLines.length ? capLines.length * clh + 10 : 0;
+    if (n.shape === 'image') {
+      const bd = imgBorder(n);
+      const w = PHOTO_W[n.size] ?? 200;
+      const ar = imgRatio(n);
+      const ph = w / ar;
+      const h = ph + bd * 2 + capH;
+      // the caption sits below the picture (on the white border for photos)
+      return { w: w + bd * 2, h, lines: capLines, fs: cfs, lh: clh, symbolSize: 0, textTop: -h / 2 + bd + ph + 7 + cfs * 0.95, symbolY: 0 };
+    }
+    const ss = STICKER_S[n.size] ?? 68;
+    const w = Math.max(ss * 1.25, capLines.length ? STICKER_S[n.size] * 1.6 : 0);
+    const h = ss * 1.25 + capH;
+    return { w, h, lines: capLines, fs: cfs, lh: clh, symbolSize: ss, symbolY: -h / 2 + ss * 0.62, textTop: -h / 2 + ss * 1.25 + cfs * 0.9 };
   }
 
   const textW =
@@ -163,8 +369,9 @@ export function layoutNode(n: MMNode): NodeLayout {
     : n.shape === 'oval' || n.shape === 'cloud' ? basis * 0.8
     : n.shape === 'hexagon' ? basis * 0.86
     : basis - 2 * padX;
-  const lines = n.text.trim() ? wrapText(n.text, textW, fs) : [];
-  const widest = lines.reduce((m, l) => Math.max(m, approxTextWidth(l, fs)), 0);
+  const fwf = fontW(n);
+  const lines = n.text.trim() ? wrapText(n.text, textW / fwf, fs) : [];
+  const widest = lines.reduce((m, l) => Math.max(m, approxTextWidth(l, fs) * fwf), 0);
   const symbolBlock = n.symbol ? symbolSize + (lines.length ? fs * 0.15 : 0) : 0;
   const contentH = symbolBlock + lines.length * lh || lh;
   const contentW = Math.max(widest, symbolSize);
@@ -232,7 +439,10 @@ export function shapePath(shape: MMShape, w: number, h: number): string {
       return rr(x, y, w, h, Math.min(16, h / 3.2));
     case 'frame':
       return rr(x, y, w, h, 22);
+    case 'maplink':
+      return rr(x, y, w, h, 14);
     case 'note':
+    case 'image':
       return rr(x, y, w, h, 4);
     case 'oval':
     case 'circle':
@@ -355,10 +565,13 @@ export function mapBounds(map: Pick<MindMap, 'nodes' | 'edges'>): Bounds {
   const byId = new Map(map.nodes.map((n) => [n.id, n]));
   map.nodes.forEach((n) => {
     const l = layoutNode(n);
-    minX = Math.min(minX, n.x - l.w / 2);
-    maxX = Math.max(maxX, n.x + l.w / 2);
-    minY = Math.min(minY, n.y - l.h / 2);
-    maxY = Math.max(maxY, n.y + l.h / 2);
+    const r = ((n.rot ?? 0) * Math.PI) / 180;
+    const hw = (Math.abs(Math.cos(r)) * l.w + Math.abs(Math.sin(r)) * l.h) / 2;
+    const hh = (Math.abs(Math.sin(r)) * l.w + Math.abs(Math.cos(r)) * l.h) / 2;
+    minX = Math.min(minX, n.x - hw);
+    maxX = Math.max(maxX, n.x + hw);
+    minY = Math.min(minY, n.y - hh);
+    maxY = Math.max(maxY, n.y + hh);
   });
   // strongly bent lines and their labels can reach beyond the nodes
   map.edges.forEach((e) => {
@@ -372,6 +585,218 @@ export function mapBounds(map: Pick<MindMap, 'nodes' | 'edges'>): Bounds {
     maxY = Math.max(maxY, g.mid.y + 20);
   });
   return { minX, minY, maxX, maxY };
+}
+
+/* ------------------------------------------------------------ pen strokes */
+
+/** smooth path through the points (quadratic curves through the midpoints) */
+export function strokePath(pts: number[] | undefined): string {
+  const p = pts ?? [];
+  const n = Math.floor(p.length / 2);
+  if (n === 0) return '';
+  if (n === 1) return `M ${p[0]} ${p[1]} l 0.01 0`;
+  if (n === 2) return `M ${p[0]} ${p[1]} L ${p[2]} ${p[3]}`;
+  let d = `M ${p[0]} ${p[1]}`;
+  for (let i = 1; i < n - 1; i++) {
+    const mx = (p[i * 2] + p[i * 2 + 2]) / 2;
+    const my = (p[i * 2 + 1] + p[i * 2 + 3]) / 2;
+    d += ` Q ${p[i * 2]} ${p[i * 2 + 1]} ${mx.toFixed(1)} ${my.toFixed(1)}`;
+  }
+  d += ` L ${p[(n - 1) * 2]} ${p[(n - 1) * 2 + 1]}`;
+  return d;
+}
+
+/** Ramer–Douglas–Peucker on a flat point list (keeps strokes small) */
+export function simplifyPts(pts: number[], eps: number): number[] {
+  const n = pts.length / 2;
+  if (n < 3) return pts;
+  const keep = new Uint8Array(n);
+  keep[0] = 1;
+  keep[n - 1] = 1;
+  const stack: [number, number][] = [[0, n - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop()!;
+    let best = -1;
+    let bi = -1;
+    const ax = pts[a * 2];
+    const ay = pts[a * 2 + 1];
+    const bx = pts[b * 2];
+    const by = pts[b * 2 + 1];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const len = Math.hypot(dx, dy) || 1;
+    for (let i = a + 1; i < b; i++) {
+      const dist = Math.abs(dy * pts[i * 2] - dx * pts[i * 2 + 1] + bx * ay - by * ax) / len;
+      if (dist > best) {
+        best = dist;
+        bi = i;
+      }
+    }
+    if (best > eps && bi > 0) {
+      keep[bi] = 1;
+      stack.push([a, bi], [bi, b]);
+    }
+  }
+  const out: number[] = [];
+  for (let i = 0; i < n; i++) if (keep[i]) out.push(pts[i * 2], pts[i * 2 + 1]);
+  return out;
+}
+
+/** a pen stroke from absolute world points: the node sits at the middle of the box, points are relative to it */
+export function strokeNode(abs: number[], opts: { color: string; sw: number; pen: MMPen }): MMNode | null {
+  if (abs.length < 2) return null;
+  const bx = strokeBox(abs);
+  const cx = Math.round((bx.minX + bx.maxX) / 2);
+  const cy = Math.round((bx.minY + bx.maxY) / 2);
+  const pts = abs.map((v, i) => Math.round((v - (i % 2 ? cy : cx)) * 10) / 10);
+  return newNode({ x: cx, y: cy, shape: 'draw', color: opts.color, sw: opts.sw, pen: opts.pen, pts, look: 'outline' });
+}
+
+/** the stroke's points in world coordinates (honours scale and rotation) */
+export function strokeWorld(n: MMNode): number[] {
+  const p = n.pts ?? [];
+  const k = n.sc ?? 1;
+  const r = ((n.rot ?? 0) * Math.PI) / 180;
+  const c = Math.cos(r);
+  const sn = Math.sin(r);
+  const out: number[] = [];
+  for (let i = 0; i + 1 < p.length; i += 2) {
+    const x = p[i] * k;
+    const y = p[i + 1] * k;
+    out.push(n.x + x * c - y * sn, n.y + x * sn + y * c);
+  }
+  return out;
+}
+
+/** erase with a round eraser: returns the pieces that remain (possibly none, possibly several) */
+export function eraseStroke(n: MMNode, cx: number, cy: number, r: number): MMNode[] | null {
+  const w = strokeWorld(n);
+  const pen = penWidth(n) * (n.sc ?? 1);
+  const rr = r + pen / 2;
+  // densify so a fast swipe cannot jump over the eraser
+  const dense: number[] = [];
+  for (let i = 0; i + 1 < w.length; i += 2) {
+    if (i >= 2) {
+      const px = w[i - 2];
+      const py = w[i - 1];
+      const steps = Math.min(40, Math.floor(Math.hypot(w[i] - px, w[i + 1] - py) / Math.max(2, r * 0.5)));
+      for (let s = 1; s <= steps; s++) dense.push(px + ((w[i] - px) * s) / (steps + 1), py + ((w[i + 1] - py) * s) / (steps + 1));
+    }
+    dense.push(w[i], w[i + 1]);
+  }
+  const pieces: number[][] = [];
+  let cur: number[] = [];
+  let hit = false;
+  for (let i = 0; i + 1 < dense.length; i += 2) {
+    if (Math.hypot(dense[i] - cx, dense[i + 1] - cy) <= rr) {
+      hit = true;
+      if (cur.length) pieces.push(cur);
+      cur = [];
+    } else cur.push(dense[i], dense[i + 1]);
+  }
+  if (cur.length) pieces.push(cur);
+  if (!hit) return null;
+  const opts = { color: n.color, sw: (n.sw ?? 3) * (n.sc ?? 1), pen: n.pen ?? 'pen' };
+  const out: MMNode[] = [];
+  pieces.forEach((pc, i) => {
+    const simple = simplifyPts(pc, 0.6);
+    const nn = strokeNode(simple.length >= 4 || pc.length < 4 ? simple : pc, opts);
+    if (!nn) return;
+    // keep layer, group and animation of the original on the first piece, copies get fresh ids
+    out.push({ ...nn, id: i === 0 ? n.id : nn.id, z: n.z, grp: n.grp, anim: n.anim, animSpeed: n.animSpeed, ganim: n.ganim });
+  });
+  return out;
+}
+
+/** centre of every group that moves as one piece (needs at least two members with the same movement) */
+export function groupCentres(nodes: MMNode[]): Map<string, { x: number; y: number; anim: MMAnim }> {
+  const groups = new Map<string, MMNode[]>();
+  for (const n of nodes) {
+    if (!n.grp || !n.ganim || !n.anim || !GROUP_ANIMS.includes(n.anim)) continue;
+    const key = `${n.grp}|${n.anim}`;
+    const list = groups.get(key) ?? [];
+    list.push(n);
+    groups.set(key, list);
+  }
+  const out = new Map<string, { x: number; y: number; anim: MMAnim }>();
+  groups.forEach((list, key) => {
+    if (list.length < 2) return;
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const n of list) {
+      const l = layoutNode(n);
+      minX = Math.min(minX, n.x - l.w / 2);
+      maxX = Math.max(maxX, n.x + l.w / 2);
+      minY = Math.min(minY, n.y - l.h / 2);
+      maxY = Math.max(maxY, n.y + l.h / 2);
+    }
+    const c = { x: (minX + maxX) / 2, y: (minY + maxY) / 2, anim: list[0].anim as MMAnim };
+    for (const n of list) out.set(n.id, c);
+    void key;
+  });
+  return out;
+}
+
+/* ------------------------------------------------------------------ layers */
+
+/** drawing order value: frames sit behind everything unless a layer was set on purpose */
+export const zOf = (n: MMNode, i: number) => n.z ?? (n.shape === 'frame' ? -1e6 + i : i);
+
+/** nodes in drawing order (back → front) */
+export function nodesByZ(nodes: MMNode[]): MMNode[] {
+  return nodes
+    .map((n, i) => ({ n, z: zOf(n, i), i }))
+    .sort((a, b) => a.z - b.z || a.i - b.i)
+    .map((x) => x.n);
+}
+
+/** once any layer was set on purpose, new elements without one go to the front (frames to the back) */
+export function ensureZ(nodes: MMNode[]): MMNode[] {
+  if (!nodes.some((n) => n.z !== undefined) || nodes.every((n) => n.z !== undefined)) return nodes;
+  let hi = -Infinity;
+  let lo = Infinity;
+  nodes.forEach((n) => {
+    if (n.z !== undefined) {
+      hi = Math.max(hi, n.z);
+      lo = Math.min(lo, n.z);
+    }
+  });
+  return nodes.map((n) => {
+    if (n.z !== undefined) return n;
+    if (n.shape === 'frame') return { ...n, z: --lo };
+    return { ...n, z: ++hi };
+  });
+}
+
+export type LayerMove = 'front' | 'forward' | 'backward' | 'back';
+/** move the given nodes in the drawing order; returns the nodes with fresh, even layer numbers */
+export function moveLayers(nodes: MMNode[], ids: Set<string>, how: LayerMove): MMNode[] {
+  const order = nodesByZ(nodes);
+  const picked = order.filter((n) => ids.has(n.id));
+  let rest = order.filter((n) => !ids.has(n.id));
+  let next: MMNode[];
+  if (how === 'front') next = [...rest, ...picked];
+  else if (how === 'back') next = [...picked, ...rest];
+  else {
+    next = [...order];
+    const idx = (id: string) => next.findIndex((n) => n.id === id);
+    if (how === 'forward') {
+      for (const n of [...picked].reverse()) {
+        const i = idx(n.id);
+        if (i < next.length - 1 && !ids.has(next[i + 1].id)) [next[i], next[i + 1]] = [next[i + 1], next[i]];
+      }
+    } else {
+      for (const n of picked) {
+        const i = idx(n.id);
+        if (i > 0 && !ids.has(next[i - 1].id)) [next[i], next[i - 1]] = [next[i - 1], next[i]];
+      }
+    }
+    rest = [];
+  }
+  const z = new Map(next.map((n, i) => [n.id, i]));
+  return nodes.map((n) => ({ ...n, z: z.get(n.id) ?? n.z }));
 }
 
 /* ------------------------------------------------------------- creation */
@@ -440,7 +865,9 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
 }
 
 export function toPayload(map: MindMap, from?: string): SharedMapPayload {
-  return { v: 1, title: map.title, bg: map.bg, nodes: map.nodes, edges: map.edges, from: from?.trim() || undefined };
+  // links to other maps only work on this device – in a shared file they become a plain note
+  const nodes = map.nodes.map((n) => (n.shape === 'maplink' ? { ...n, shape: 'note' as const, text: `↗ ${n.text}`.trim(), mapId: undefined, fw: undefined, fh: undefined, rot: n.rot } : n));
+  return { v: 1, title: map.title, bg: map.bg, nodes, edges: map.edges, from: from?.trim() || undefined };
 }
 
 /** "z." = deflate-compressed, "p." = plain (older browsers) */
@@ -456,7 +883,9 @@ export async function encodeMap(p: SharedMapPayload): Promise<string> {
   return 'p.' + toB64(raw);
 }
 
-const SHAPE_IDS = SHAPES.map((s) => s.id) as string[];
+const SHAPE_IDS = [...SHAPES.map((s) => s.id), 'image', 'sticker', 'draw', 'doodle'] as string[];
+const oneOf = <T extends string>(x: unknown, list: readonly T[]): T | undefined => (list.includes(x as T) ? (x as T) : undefined);
+const clampN = (x: unknown, lo: number, hi: number): number | undefined => (typeof x === 'number' && Number.isFinite(x) ? Math.min(hi, Math.max(lo, x)) : undefined);
 const str = (x: unknown, max: number) => (typeof x === 'string' ? x.slice(0, max) : '');
 const num = (x: unknown, d = 0) => (typeof x === 'number' && Number.isFinite(x) ? x : d);
 const colorOk = (x: unknown, d: string) => (typeof x === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(x) ? x : d);
@@ -484,8 +913,26 @@ export function validatePayload(x: unknown): SharedMapPayload | null {
       look: r.look === 'solid' || r.look === 'outline' ? r.look : 'soft',
       size: (size >= 1 && size <= 4 ? Math.round(size) : 2) as MMNode['size'],
       symbol: typeof r.symbol === 'string' && r.symbol ? str(r.symbol, 12) : undefined,
+      img: typeof r.img === 'string' && /^data:image\/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(r.img) && r.img.length < 500_000 ? r.img : undefined,
+      ar: typeof r.ar === 'number' ? Math.min(3, Math.max(0.3, r.ar)) : undefined,
       fw: typeof r.fw === 'number' ? Math.min(3000, Math.max(80, r.fw)) : undefined,
       fh: typeof r.fh === 'number' ? Math.min(3000, Math.max(60, r.fh)) : undefined,
+      rot: clampN(r.rot, -3600, 3600),
+      sc: clampN(r.sc, 0.2, 8),
+      anim: oneOf(r.anim, ANIMS.map((a) => a.id)),
+      animSpeed: r.animSpeed === 1 || r.animSpeed === 3 ? r.animSpeed : r.animSpeed === 2 ? 2 : undefined,
+      ganim: r.ganim === true ? true : undefined,
+      grp: typeof r.grp === 'string' && r.grp ? str(r.grp, 60) : undefined,
+      font: oneOf(r.font, FONTS.map((f) => f.id)),
+      bold: r.bold === true ? true : undefined,
+      italic: r.italic === true ? true : undefined,
+      border: oneOf(r.border, BORDERS.map((b) => b.id)),
+      sw: clampN(r.sw, 0, 40),
+      z: clampN(r.z, -1e7, 1e7),
+      pts: Array.isArray(r.pts) && r.pts.length <= 4000 && r.pts.every((v) => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) < 1e5) ? (r.pts as number[]).map((v) => Math.round(v * 10) / 10) : undefined,
+      pen: oneOf(r.pen, PENS.map((x) => x.id)),
+      doodle: typeof r.doodle === 'string' && doodleIds.has(r.doodle) ? r.doodle : undefined,
+      imgStyle: oneOf(r.imgStyle, ['polaroid', 'plain', 'round', 'rounded'] as const),
     });
   }
   const edges: MMEdge[] = [];
@@ -503,17 +950,18 @@ export function validatePayload(x: unknown): SharedMapPayload | null {
       color: colorOk(r.color, '#8a8478'),
       dash: r.dash === 'dashed' || r.dash === 'dotted' ? r.dash : 'solid',
       width: (w === 1 || w === 3 ? w : 2) as MMEdge['width'],
+      wpx: clampN(r.wpx, 1, 30),
       arrow: r.arrow === 'end' || r.arrow === 'both' ? r.arrow : 'none',
       bend: Math.min(400, Math.max(-400, num(r.bend))),
       flow: r.flow === true ? true : undefined,
     });
   }
   const bgr = (o.bg ?? {}) as Record<string, unknown>;
-  const kind = bgr.kind === 'plain' || bgr.kind === 'grid' || bgr.kind === 'lines' ? bgr.kind : 'dots';
+  const kind = oneOf(bgr.kind, BG_KINDS.map((k) => k.id)) ?? 'dots';
   return {
     v: 1,
     title: str(o.title, 120) || 'Mindmap',
-    bg: { kind, tone: BG_TONES.some((t) => t.id === bgr.tone) ? (bgr.tone as string) : 'paper' },
+    bg: { kind, tone: BG_TONES.some((t) => t.id === bgr.tone) || (typeof bgr.tone === 'string' && HEX_TONE.test(bgr.tone)) ? (bgr.tone as string) : 'paper' },
     nodes,
     edges,
     from: typeof o.from === 'string' ? str(o.from, 60) : undefined,

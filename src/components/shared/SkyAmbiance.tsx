@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { phaseFor, seasonFor, pick, type SkyPhase } from '../../services/skyTime';
 import { useResolvedTheme } from '../../state/ThemeEffect';
+import { useSettings } from '../../state/SettingsContext';
 
 /**
  * "Kugeln komplett weg, stattdessen nur Sonnenlicht und Sternenhimmel
@@ -20,8 +21,8 @@ const SKY_BACKGROUNDS: Record<Exclude<SkyPhase, 'night'>, string> = {
   sunriseGlow: 'linear-gradient(180deg, #d8e6f0 0%, #f5d5c8 55%, #ffe4c2 78%, var(--color-bg) 100%)',
   sunriseGolden: 'linear-gradient(180deg, #fef3e2 0%, #fbe8d3 45%, var(--color-bg) 100%)',
   day: 'radial-gradient(circle at 70% -10%, #ffe4a8 0%, #cfe6f5 32%, var(--color-bg) 100%)',
-  sunsetGolden: 'linear-gradient(180deg, #c9a8c4 0%, #e0a898 45%, var(--color-bg) 100%)',
-  sunsetGlow: 'linear-gradient(180deg, #b8a8c4 0%, #d9a7ab 45%, #e8926e 75%, var(--color-bg) 100%)',
+  sunsetGolden: 'linear-gradient(180deg, #e6d3e0 0%, #f0d2c8 45%, var(--color-bg) 100%)',
+  sunsetGlow: 'linear-gradient(180deg, #e2d6ea 0%, #f0d0d2 45%, #f5cdb8 75%, var(--color-bg) 100%)',
 };
 /** "Im Dunkelmodus ist die hellere Schrift nicht mehr lesbar"-Auftrag
  * — the light-mode gradients above are all light/warm, which is
@@ -52,6 +53,11 @@ const SKY_FADE_MASK = {
 } as const;
 
 const NIGHT_BASE = 'linear-gradient(180deg, #2b3350 0%, #3c4568 35%, var(--color-bg) 100%)';
+/** "Im hellen Modus abends kann man die Schrift oben nicht gut lesen"-Fund —
+ * the dark night sky sat behind dark text in light mode. In light mode the
+ * night is now a pale, dusky blue the dark text reads on; the stars turn into
+ * soft blue-grey dots so they stay visible on it. */
+const NIGHT_BASE_LIGHT = 'linear-gradient(180deg, #d3d9ec 0%, #e1e5f1 40%, var(--color-bg) 100%)';
 
 type NightVariant = 'stars' | 'glow' | 'dense' | 'veil' | 'twinkle';
 const NIGHT_VARIANTS: NightVariant[] = ['glow', 'dense', 'veil', 'twinkle'];
@@ -60,6 +66,7 @@ const LEAF_COLORS = ['#c97a3d', '#d4a24a', '#a8542f', '#c7883a'];
 
 export function SkyAmbiance() {
   const resolvedTheme = useResolvedTheme();
+  const { settings } = useSettings();
   const { phase, season, nightVariant } = useMemo(() => {
     const now = new Date();
     const hour = now.getHours() + now.getMinutes() / 60;
@@ -70,15 +77,18 @@ export function SkyAmbiance() {
     };
   }, []);
 
+  // a chosen Ästhetik-Welt replaces the time-of-day sky
+  if (settings.world) return null;
   const isNight = phase === 'night';
   const backgrounds = resolvedTheme === 'dark' ? SKY_BACKGROUNDS_DARK : SKY_BACKGROUNDS;
-  const background = isNight ? NIGHT_BASE : backgrounds[phase];
+  const isLight = resolvedTheme !== 'dark';
+  const background = isNight ? (isLight ? NIGHT_BASE_LIGHT : NIGHT_BASE) : backgrounds[phase];
 
   return (
     <div className="absolute inset-x-0 top-0 h-[220px] overflow-hidden rounded-t-[inherit] pointer-events-none" aria-hidden="true" style={{ zIndex: -1, ...SKY_FADE_MASK }}>
       <div className="absolute inset-0" style={{ background, animation: 'sky-settle-in 1.4s ease-out both' }} />
 
-      {isNight && <NightStars variant={nightVariant} />}
+      {isNight && <NightStars variant={nightVariant} light={isLight} />}
 
       {season === 'herbst' &&
         Array.from({ length: 7 }, (_, i) => (
@@ -134,13 +144,14 @@ const STAR_POSITIONS = [
  * (twinkle) — 'stars' (mockup A, plain scatter only) exists in the
  * type for completeness but isn't in the random pool per the user's
  * choice of B/C/D/E. */
-function NightStars({ variant }: { variant: NightVariant }) {
+function NightStars({ variant, light }: { variant: NightVariant; light?: boolean }) {
+  const star = light ? '#6b78a8' : '#fff';
   if (variant === 'glow') {
     return (
       <>
         <div className="absolute rounded-full" style={{ top: 10, left: '35%', width: 140, height: 140, background: 'radial-gradient(circle, rgba(220,225,250,0.3) 0%, transparent 65%)' }} />
         {STAR_POSITIONS.slice(0, 5).map((s, i) => (
-          <div key={i} className="absolute rounded-full" style={{ top: s.top, left: s.left, width: 2, height: 2, background: '#fff', opacity: 0.8 }} />
+          <div key={i} className="absolute rounded-full" style={{ top: s.top, left: s.left, width: 2, height: 2, background: star, opacity: 0.8 }} />
         ))}
       </>
     );
@@ -152,7 +163,7 @@ function NightStars({ variant }: { variant: NightVariant }) {
           <div
             key={i}
             className="absolute rounded-full"
-            style={{ top: s.top, left: s.left, width: i % 3 === 0 ? 2.5 : 1.5, height: i % 3 === 0 ? 2.5 : 1.5, background: '#fff', opacity: 0.85, boxShadow: i % 3 === 0 ? '0 0 3px 1px rgba(255,255,255,0.5)' : 'none' }}
+            style={{ top: s.top, left: s.left, width: i % 3 === 0 ? 2.5 : 1.5, height: i % 3 === 0 ? 2.5 : 1.5, background: star, opacity: 0.85, boxShadow: i % 3 === 0 ? '0 0 3px 1px rgba(255,255,255,0.5)' : 'none' }}
           />
         ))}
       </>
@@ -163,7 +174,7 @@ function NightStars({ variant }: { variant: NightVariant }) {
       <>
         <div className="absolute inset-x-0 top-0" style={{ height: 90, background: 'linear-gradient(180deg, rgba(200,210,240,0.16) 0%, transparent 100%)' }} />
         {STAR_POSITIONS.slice(0, 5).map((s, i) => (
-          <div key={i} className="absolute rounded-full" style={{ top: s.top, left: s.left, width: 2, height: 2, background: '#fff', opacity: 0.8 }} />
+          <div key={i} className="absolute rounded-full" style={{ top: s.top, left: s.left, width: 2, height: 2, background: star, opacity: 0.8 }} />
         ))}
       </>
     );
@@ -175,7 +186,7 @@ function NightStars({ variant }: { variant: NightVariant }) {
         <div
           key={i}
           className="absolute rounded-full"
-          style={{ top: s.top, left: s.left, width: i % 2 === 0 ? 2 : 1, height: i % 2 === 0 ? 2 : 1, background: '#fff', opacity: 0.4 + (i % 4) * 0.15 }}
+          style={{ top: s.top, left: s.left, width: i % 2 === 0 ? 2 : 1, height: i % 2 === 0 ? 2 : 1, background: star, opacity: 0.4 + (i % 4) * 0.15 }}
         />
       ))}
     </>

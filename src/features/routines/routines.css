@@ -84,3 +84,10 @@
 @keyframes rt-spark { 0% { transform: translate(-50%, -50%) scale(0.4); opacity: 1; } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0); opacity: 0; } }
 [data-reduce-motion='true'] .rt-spark { display: none; }
 [data-reduce-motion='true'] .rt-enter { animation: none; }
+
+/* the two always-visible direction chevrons at the screen edges: a slow, soft nudge */
+.rt-nudge-l { animation: rt-nudge-l 2.6s ease-in-out infinite; transform: translateY(-50%); }
+.rt-nudge-r { animation: rt-nudge-r 2.6s ease-in-out infinite; transform: translateY(-50%); }
+@keyframes rt-nudge-l { 0%, 100% { transform: translate(0, -50%); opacity: 0.55; } 50% { transform: translate(-3px, -50%); opacity: 1; } }
+@keyframes rt-nudge-r { 0%, 100% { transform: translate(0, -50%); opacity: 0.55; } 50% { transform: translate(3px, -50%); opacity: 1; } }
+[data-reduce-motion='true'] .rt-nudge-l, [data-reduce-motion='true'] .rt-nudge-r { animation: none; }

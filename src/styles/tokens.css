@@ -27,6 +27,8 @@
   --color-accent-sky: #6E9BB8;      /* sky / calm accents */
   --color-accent-clay: #C17A56;     /* clay / grounding accents */
 
+  /* "Briefkasten immer nur orange": mailbox / notices follow the chosen colour world */
+  --color-notice: var(--color-primary);
   --color-danger: #B5533F;
   --color-danger-soft: #F6E4DE;
 

@@ -7,7 +7,9 @@ import { LICHTWESEN } from './lichtwesen';
 import { useSettings } from '../../state/SettingsContext';
 import { Button } from '../ui/Button';
 import { useT } from '../../i18n';
-import { tourExtrasModeStore, tourIndexStore } from './tourData';
+import { tourExtrasModeStore, tourIndexStore, tourStyleStore } from './tourData';
+import { ScopePicker } from '../../features/scope/ScopePicker';
+import { Eye, Hand } from 'lucide-react';
 import { InstallGuide } from '../shared/InstallGuide';
 import { TesterThanks } from '../shared/TesterThanks';
 import { isStandalone } from '../../services/testSupport';
@@ -31,6 +33,8 @@ export function IntroFlow() {
   const otherBeings = LICHTWESEN.filter((b) => b.id !== being.id).slice(0, 3);
   const [step, setStep] = useState(0);
   const [installStep, setInstallStep] = useState(false);
+  const [scopeStep, setScopeStep] = useState(false);
+  const [tourStep, setTourStep] = useState(false);
   const [joyBurst, setJoyBurst] = useState<'hop' | 'spin' | 'wobble' | 'dance' | null>(null);
 
   const slides: IntroSlide[] = t.companion.introSlides.map((text, i) => {
@@ -52,7 +56,8 @@ export function IntroFlow() {
 
   const isLast = step === slides.length - 1;
 
-  function startTour() {
+  function startTour(style: 'interactive' | 'watch' = 'interactive') {
+    tourStyleStore.set(style);
     tourIndexStore.set(0);
     tourExtrasModeStore.set(null);
     updateSettings({ introSeen: true, tourActive: true });
@@ -66,6 +71,8 @@ export function IntroFlow() {
         setInstallStep(true);
         return;
       }
+      setScopeStep(true);
+      return;
       // Slides are done — hand off to the real, navigating app tour
       // overlay (rendered by AppShell once tourActive is set), landing on
       // Home first. The actual first check-in happens once the tour
@@ -88,6 +95,70 @@ export function IntroFlow() {
 
   function skip() {
     updateSettings({ introSeen: true });
+  }
+
+  if (scopeStep && !tourStep) {
+    const en = settings.language === 'en';
+    return (
+      <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="scope-step">
+        <div className="flex flex-col items-center text-center gap-3 mb-5">
+          <LichtCompanion size="small" />
+          <h1 className="text-[22px] leading-tight">{en ? 'How much of the app do you want to see?' : 'Wie viel von der App möchtest du sehen?'}</h1>
+          <p className="text-[13px] text-[var(--color-text-faint)] leading-relaxed max-w-[320px]">
+            {en ? 'You can change this any time in the settings. Nothing is lost.' : 'Das kannst du jederzeit in den Einstellungen ändern. Es geht nichts verloren.'}
+          </p>
+        </div>
+        <div className="flex-1">
+          <ScopePicker
+            simple={!!settings.simple}
+            onChange={(sc) => updateSettings({ scope: sc, scopeChosen: true })}
+            onSimple={(v) => updateSettings({ simple: v, scopeChosen: true })}
+          />
+        </div>
+        <div className="mt-6 flex flex-col gap-2">
+          <Button fullWidth onClick={() => { updateSettings({ scopeChosen: true }); setTourStep(true); }} data-testid="scope-continue">
+            {en ? 'Continue' : 'Weiter'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (tourStep) {
+    const en = settings.language === 'en';
+    const Opt = ({ icon, title, sub, onClick, id }: { icon: React.ReactNode; title: string; sub: string; onClick: () => void; id: string }) => (
+      <button type="button" onClick={onClick} data-testid={id} className="w-full text-left rounded-[var(--radius-md)] px-4 py-3.5 flex items-start gap-3 border-2 border-[var(--color-border)] bg-[var(--color-surface)]">
+        <span className="mt-0.5 text-[var(--color-primary)]">{icon}</span>
+        <span>
+          <span className="block text-[15px] text-[var(--color-text)]">{title}</span>
+          <span className="block text-[12.5px] text-[var(--color-text-muted)] leading-snug">{sub}</span>
+        </span>
+      </button>
+    );
+    return (
+      <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="tour-choice-step">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={() => setTourStep(false)} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+            <ChevronLeft size={20} />
+          </button>
+          <span />
+        </div>
+        <div className="flex flex-col items-center text-center gap-3 mb-6">
+          <LichtCompanion size="small" />
+          <h1 className="text-[22px] leading-tight">{en ? 'Do you want a tour?' : 'Möchtest du einen Rundgang?'}</h1>
+          <p className="text-[13px] text-[var(--color-text-faint)] leading-relaxed max-w-[320px]">
+            {en ? 'You choose how. Either way you can stop at any time.' : 'Du entscheidest, wie. Du kannst jederzeit aufhören.'}
+          </p>
+        </div>
+        <div className="flex flex-col gap-3 flex-1">
+          <Opt id="tour-choice-watch" icon={<Eye size={20} />} title={en ? 'Just watch' : 'Nur zuschauen'} sub={en ? 'Press play. The app goes through its functions on its own and shows them. You do not have to do anything.' : 'Auf Play drücken. Die App geht die Funktionen von allein durch und zeigt sie. Du musst nichts tun.'} onClick={() => startTour('watch')} />
+          <Opt id="tour-choice-interactive" icon={<Hand size={20} />} title={en ? 'Try it out myself' : 'Selbst ausprobieren'} sub={en ? 'Step by step, with small tasks you do yourself.' : 'Schritt für Schritt, mit kleinen Aufgaben, die du selbst machst.'} onClick={() => startTour('interactive')} />
+        </div>
+        <button type="button" onClick={() => { updateSettings({ introSeen: true }); navigate('/'); }} className="mt-6 text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 py-1 self-center" data-testid="tour-choice-skip">
+          {en ? 'No tour, take me to the app' : 'Kein Rundgang, direkt zur App'}
+        </button>
+      </div>
+    );
   }
 
   if (installStep) {
@@ -114,10 +185,10 @@ export function IntroFlow() {
           <InstallGuide />
         </div>
         <div className="mt-6 flex flex-col gap-2">
-          <Button fullWidth onClick={startTour} data-testid="install-continue">
+          <Button fullWidth onClick={() => { setInstallStep(false); setScopeStep(true); }} data-testid="install-continue">
             {en ? 'Done – show me the app' : 'Erledigt – zeig mir die App'}
           </Button>
-          <button type="button" onClick={startTour} className="text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 py-1" data-testid="install-later">
+          <button type="button" onClick={() => { setInstallStep(false); setScopeStep(true); }} className="text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 py-1" data-testid="install-later">
             {en ? 'Later (you find this under Settings → Test version)' : 'Später (du findest das unter Einstellungen → Test-Version)'}
           </button>
         </div>

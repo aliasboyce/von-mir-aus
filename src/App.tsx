@@ -1,3 +1,4 @@
+import { LockGate } from './features/lock/LockGate';
 import { ParkboxPage } from './features/parkbox/ParkboxPage';
 import { NurJetztListPage } from './features/nurJetzt/NurJetztListPage';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -78,6 +79,7 @@ function App() {
     <SettingsProvider>
       <ThemeEffect />
       <SplashScreen>
+      <LockGate>
       <I18nProvider>
         <ModalStackProvider>
           <CompanionSpeechProvider>
@@ -136,7 +138,8 @@ function App() {
                 <Route path="/sicherheit/kontakte/importieren" element={<NetworkImportPage />} />
                 <Route path="/entdecken/timer" element={<SimpleTimerPage />} />
                 <Route path="/entdecken/garten" element={<RoutinesGardenPage />} />
-                <Route path="/entdecken/atmen" element={<BreathPage />} />
+                <Route path="/entdecken/ressourcen/skills/atmen" element={<BreathPage />} />
+                <Route path="/entdecken/atmen" element={<Navigate to="/entdecken/ressourcen/skills/atmen" replace />} />
                 <Route path="/entdecken/mindmap" element={<MindmapListPage />} />
                 <Route path="/entdecken/mindmap/importieren" element={<MindmapImportPage />} />
                 <Route path="/entdecken/mindmap/:id" element={<MindmapEditorPage />} />
@@ -167,6 +170,7 @@ function App() {
           </CompanionSpeechProvider>
         </ModalStackProvider>
       </I18nProvider>
+      </LockGate>
       </SplashScreen>
     </SettingsProvider>
     </ErrorBoundary>

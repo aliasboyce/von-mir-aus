@@ -189,7 +189,8 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
 
   useEffect(() => {
     setTipLeaving(false);
-    if (!settings.brainEnabled || settings.brainState !== 'awake' || autoTipsDisabledThisSession) {
+    // in the crisis mode nothing pops up over the emergency numbers
+    if (!settings.brainEnabled || settings.brainState !== 'awake' || autoTipsDisabledThisSession || location.pathname === '/krisenmodus') {
       setTip(null);
       return;
     }
@@ -376,7 +377,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         <button
           onClick={() => {
             setMenuOpen(false);
-            navigate('/entdecken/atmen');
+            navigate('/entdecken/ressourcen/skills/atmen');
           }}
           className="companion-menu__item"
           data-testid="companion-breathe"

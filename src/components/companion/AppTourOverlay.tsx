@@ -5,7 +5,8 @@ import { useSettings } from '../../state/SettingsContext';
 import { useModalStack } from '../../state/ModalStackContext';
 import { useT } from '../../i18n';
 import { Button } from '../ui/Button';
-import { CORE_COUNT, TOUR_STOPS, tourExtrasModeStore, tourIndexStore } from './tourData';
+import { CORE_COUNT, TOUR_STOPS, tourExtrasModeStore, tourIndexStore, tourStyleStore } from './tourData';
+import { AppTourWatch } from './AppTourWatch';
 
 function pathAllowed(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => (p === '/' ? pathname === '/' : pathname === p || pathname.startsWith(p + '/')));
@@ -24,7 +25,12 @@ interface AppTourOverlayProps {
  * durchgegangen (siehe tourData.ts). Innerhalb einer Station darf man die Seite frei benutzen
  * (Formulare, Unterseiten); verlässt man den Bereich, geht es zur Station zurück.
  */
-export function AppTourOverlay({ onFinish, onPause }: AppTourOverlayProps) {
+export function AppTourOverlay(props: AppTourOverlayProps) {
+  // the style is chosen when the tour starts (first start or settings) and stays for the whole run
+  return tourStyleStore.get() === 'watch' ? <AppTourWatch onFinish={props.onFinish} /> : <AppTourInteractive {...props} />;
+}
+
+function AppTourInteractive({ onFinish, onPause }: AppTourOverlayProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { settings } = useSettings();

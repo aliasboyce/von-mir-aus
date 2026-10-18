@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSettings } from './SettingsContext';
 import { customPalettesRepo, derivePaletteVars } from '../services/customPalettes';
 import { BUILT_IN_PALETTE_IDS } from '../data/types';
+import { ensureContrast, parseColor, toHex } from '../services/contrast';
 
 const CUSTOM_PALETTE_VAR_NAMES = [
   '--color-bg',
@@ -68,6 +69,42 @@ export function ThemeEffect() {
     }
   }, [settings.palette]);
 
+  // Whatever the palette: text stays readable. Runs after the palette /
+  // theme effects above; only sets a colour when the stylesheet's own value
+  // would be hard to read on the colours it sits on.
+  const resolvedTheme = useResolvedTheme();
+  useEffect(() => {
+    const root = document.documentElement;
+    const READABLE = ['--color-text', '--color-text-muted', '--color-text-faint', '--color-primary', '--color-primary-strong', '--color-primary-soft-text'];
+    // Undo our own earlier nudges first (a self-made palette's own inline
+    // values come back from the palette itself, built-in ones from the stylesheet).
+    const custom = BUILT_IN_PALETTE_IDS.includes(settings.palette) ? undefined : customPalettesRepo.getById(settings.palette);
+    const customVars = custom ? derivePaletteVars(custom) : {};
+    READABLE.forEach((k) => {
+      const own = (customVars as Record<string, string>)[k];
+      if (own) root.style.setProperty(k, own);
+      else root.style.removeProperty(k);
+    });
+    const cs = getComputedStyle(root);
+    const get = (k: string) => parseColor(cs.getPropertyValue(k));
+    const bgs = ['--color-bg', '--color-bg-soft', '--color-surface', '--color-surface-muted'].map(get).filter((c): c is NonNullable<typeof c> => !!c);
+    if (bgs.length === 0) return;
+    function fix(name: string, min: number, against = bgs) {
+      const fg = get(name);
+      if (!fg) return;
+      const next = ensureContrast(fg, against, min);
+      if (next !== fg) root.style.setProperty(name, toHex(next));
+    }
+    fix('--color-text', 7);
+    fix('--color-text-muted', 4.5);
+    fix('--color-text-faint', 4);
+    // primary is used both as text on the page and as a button fill under page-coloured text
+    fix('--color-primary', 4.5);
+    fix('--color-primary-strong', 4.5);
+    const soft = get('--color-primary-soft');
+    if (soft) fix('--color-primary-soft-text', 4.5, [soft]);
+  }, [settings.palette, settings.themeMode, resolvedTheme]);
+
   useEffect(() => {
     document.documentElement.setAttribute(
       'data-reduce-motion',
@@ -78,6 +115,10 @@ export function ThemeEffect() {
   useEffect(() => {
     document.documentElement.setAttribute('data-minimal-hints', settings.minimalHints ? 'true' : 'false');
   }, [settings.minimalHints]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-simple', settings.simple ? 'true' : 'false');
+  }, [settings.simple]);
 
   return null;
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ExternalLink, Play } from 'lucide-react';
+import { ownMediaUrl, type OwnMediaRef } from '../../services/mediaStore';
 import { parseMediaLink } from './mediaLink';
 import { useSettings } from '../../state/SettingsContext';
 
@@ -65,20 +66,32 @@ export function MediaEmbed({ url, onEnded, color }: { url: string; onEnded: () =
     );
   }
 
+  const spotifyOpen =
+    media.kind === 'spotify' ? (
+      <div className="flex flex-col items-center gap-1" data-testid="routine-spotify-full">
+        <a href={media.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14.5px] font-medium text-white shadow-md" style={{ background: color }} data-testid="routine-media-open-full">
+          <ExternalLink size={15} /> {en ? 'Open the whole song in Spotify' : 'Ganzes Lied in Spotify öffnen'}
+        </a>
+        <p className="text-[11px] opacity-70 text-center">{en ? 'The card’s timer keeps running. Then you come back here.' : 'Der Timer der Karte läuft weiter. Danach kommst du hierher zurück.'}</p>
+      </div>
+    ) : null;
+
   if (!loaded) {
     return (
       <div className="flex flex-col items-center gap-1.5" data-nodrag data-testid="routine-media">
-        <button type="button" onClick={() => setLoaded(true)} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14.5px] font-medium text-white shadow-md" style={{ background: color }} data-testid="routine-media-play">
-          <Play size={16} fill="currentColor" /> {media.kind === 'audio' || media.kind === 'spotify' || media.kind === 'soundcloud' ? (en ? 'Play music' : 'Musik abspielen') : en ? 'Play video' : 'Video abspielen'}
+        {spotifyOpen}
+        <button type="button" onClick={() => setLoaded(true)} className={media.kind === 'spotify' ? 'inline-flex items-center gap-2 px-4 py-2 rounded-full text-[13px] border' : 'inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-[14.5px] font-medium text-white shadow-md'} style={media.kind === 'spotify' ? { borderColor: color, color: 'inherit', background: 'transparent' } : { background: color }} data-testid="routine-media-play">
+          <Play size={16} fill="currentColor" /> {media.kind === 'spotify' ? (en ? 'Play preview here' : 'Vorschau hier abspielen') : media.kind === 'audio' || media.kind === 'soundcloud' ? (en ? 'Play music' : 'Musik abspielen') : en ? 'Play video' : 'Video abspielen'}
         </button>
         <p className="text-[11px] opacity-65">{media.embedUrl ? (en ? `Loads from ${media.label} only when you tap` : `Lädt erst beim Tippen von ${media.label}`) : ''}</p>
-        {openOutside}
+        {media.kind === 'spotify' ? null : openOutside}
       </div>
     );
   }
 
   return (
     <div className="w-full flex flex-col items-center gap-1.5" data-nodrag data-testid="routine-media">
+      {spotifyOpen}
       {media.kind === 'audio' ? (
         <audio src={media.url} controls autoPlay onEnded={fireEnded} className="w-full max-w-[300px]" />
       ) : media.kind === 'video' ? (
@@ -102,7 +115,30 @@ export function MediaEmbed({ url, onEnded, color }: { url: string; onEnded: () =
           }}
         />
       )}
-      {openOutside}
+      {media.kind === 'spotify' ? null : openOutside}
+    </div>
+  );
+}
+
+/** An own photo, video or audio file from this device, shown or played on the card. */
+export function OwnMediaView({ file, onEnded, color }: { file: OwnMediaRef; onEnded: () => void; color: string }) {
+  const { settings } = useSettings();
+  const en = settings.language === 'en';
+  const [url, setUrl] = useState<string | null | undefined>(undefined);
+  useEffect(() => {
+    let alive = true;
+    void ownMediaUrl(file.id).then((u) => alive && setUrl(u));
+    return () => {
+      alive = false;
+    };
+  }, [file.id]);
+  if (url === undefined) return null;
+  if (url === null) return <p className="text-[12.5px] opacity-70" data-nodrag>{en ? 'The file was not found on this device.' : 'Die Datei wurde auf diesem Gerät nicht gefunden.'}</p>;
+  return (
+    <div className="w-full flex flex-col items-center gap-1.5" data-nodrag data-testid="routine-own-media">
+      {file.kind === 'image' && <img src={url} alt={file.name} className="max-w-[300px] w-full max-h-[200px] object-contain rounded-2xl" style={{ boxShadow: `0 6px 18px ${color}55` }} />}
+      {file.kind === 'video' && <video src={url} controls playsInline onEnded={onEnded} className="w-full max-w-[300px] max-h-[220px] rounded-2xl" />}
+      {file.kind === 'audio' && <audio src={url} controls onEnded={onEnded} className="w-full max-w-[300px]" />}
     </div>
   );
 }
