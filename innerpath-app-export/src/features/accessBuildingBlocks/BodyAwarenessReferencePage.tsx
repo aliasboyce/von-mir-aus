@@ -1,0 +1,63 @@
+import { useNavigate } from 'react-router-dom';
+import { goBack } from '../../services/navigation';
+import { TopBar } from '../../components/navigation/TopBar';
+import { HelpButton } from '../../components/navigation/HelpButton';
+import { Card } from '../../components/ui/Card';
+import { useT } from '../../i18n';
+import { BodySilhouette } from './BodySilhouette';
+import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
+
+/**
+ * Priority 3 + Priority 15 of the "Verbinden, glätten" brief — Zugang's
+ * body-sensation step, browsable on its own, extended into a fuller
+ * explainer page.
+ *
+ * "Empfindungen doppelt"-Fund — this page used to also render its own
+ * flat list of every sensation word as colour-coded chips below the
+ * silhouette, duplicating exactly what the silhouette's own region
+ * browsing already offers. Removed; the silhouette is the one place
+ * to browse sensations here now.
+ */
+export function BodyAwarenessReferencePage() {
+  const t = useT();
+  const navigate = useNavigate();
+
+  return (
+    <div className="animate-in">
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="koerperwahrnehmung" />} />
+      <div className="px-5 pb-8">
+        <h1 className="text-[24px] mb-1">{t.bodyAwarenessRef.title}</h1>
+        <p className="text-[14px] text-[var(--color-text-muted)] mb-5 leading-relaxed">{t.bodyAwarenessRef.subtitle}</p>
+
+        <Card className="mb-4">
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.bodyAwarenessRef.whatTitle}</p>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.bodyAwarenessRef.whatText}</p>
+        </Card>
+
+        <Card className="mb-4">
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.bodyAwarenessRef.whyNoticeTitle}</p>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.bodyAwarenessRef.whyNoticeText}</p>
+        </Card>
+
+        <Card className="mb-4">
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.bodyAwarenessRef.connectionTitle}</p>
+          <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.bodyAwarenessRef.connectionText}</p>
+        </Card>
+
+        <Card className="mb-6" style={{ background: 'var(--color-primary-soft)' }}>
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.bodyAwarenessRef.tryTitle}</p>
+          <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{t.bodyAwarenessRef.tryText}</p>
+        </Card>
+
+        <Card className="mb-6">
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-1 text-center">{t.bodyAwarenessRef.silhouetteTitle}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-4 text-center">{t.bodyAwarenessRef.silhouetteHint}</p>
+          <BodySilhouette />
+        </Card>
+
+        <p className="text-[12px] text-[var(--color-text-faint)] mt-6 leading-relaxed">{t.bodyAwarenessRef.footerNote}</p>
+        <SourceNoteCard text={t.bodyAwarenessRef.sourceNote} />
+      </div>
+    </div>
+  );
+}

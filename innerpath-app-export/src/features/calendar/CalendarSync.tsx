@@ -1,0 +1,122 @@
+import { useEffect } from 'react';
+import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
+import { addMail } from '../../services/mailbox';
+import { notifyHint } from '../../services/hintFeedback';
+import { networkRepo } from '../safetyNet/networkRepo';
+import { appointmentsRepo, carryNotesFor, dayKey, startOf, type Appointment } from './calendarRepo';
+import { waitItemsRepo } from '../parkbox/parkboxRepo';
+
+const MIN = 60 * 1000;
+const CHECK_EVERY_MS = 30 * 1000;
+
+/**
+ * "Erinnerungen landen zur Zeit auf dem Startbildschirm; eine Stunde
+ * nach dem Termin automatisch im Postfach: 1 'Wie war dein Termin?',
+ * 2 'Willst du den naechsten Termin eintragen oder dir etwas
+ * notieren?'"-Auftrag. Mounted once in AppShell, renders nothing.
+ * Every message has a fixed id per appointment+time, so a check that
+ * runs twice (or the app being reopened) never produces a duplicate;
+ * moving an appointment gives it a new time and therefore new mails.
+ *
+ * Without a server there are no real push notifications: this only
+ * runs while the app is open, and catches up the moment it is opened
+ * again (a missed reminder is skipped silently if its time is long
+ * past, a missed follow-up still comes for up to a week). The follow-up
+ * is ONE message (step 'all') — older installs may still hold the former
+ * two-message pair (steps '1' and '2'), which FollowUpBody keeps rendering.
+ */
+export function CalendarSync() {
+  const t = useT();
+  const { settings } = useSettings();
+  const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
+
+  useEffect(() => {
+    function run() {
+      const now = Date.now();
+      const todayKey = dayKey(new Date(now));
+      const tomorrowKey = dayKey(new Date(now + 24 * 60 * MIN));
+      const people = networkRepo.getAll();
+
+      appointmentsRepo.getAll().forEach((a: Appointment) => {
+        const start = startOf(a).getTime();
+        if (Number.isNaN(start)) return;
+        const tag = `${a.id}-${a.date}-${a.time}`;
+        const person = a.personId ? people.find((p) => p.id === a.personId) : undefined;
+        let changed: Partial<Appointment> = {};
+
+        // --- reminder -------------------------------------------------
+        if (a.reminderMinutes != null && !a.reminderDeliveredAt) {
+          const due = start - a.reminderMinutes * MIN;
+          if (now >= due) {
+            if (now < start + 3 * 60 * MIN) {
+              const when =
+                a.date === todayKey
+                  ? t.calendar.todayAt.replace('{time}', a.time)
+                  : a.date === tomorrowKey
+                    ? t.calendar.tomorrowAt.replace('{time}', a.time)
+                    : t.calendar.onDateAt.replace('{date}', new Date(`${a.date}T12:00:00`).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: '2-digit' })).replace('{time}', a.time);
+              const lines = [when + (person ? ` · ${person.name}` : '')];
+              if (a.note) lines.push(a.note);
+              carryNotesFor(a).forEach((n) => lines.push(`${t.calendar.carryNoteTitle}: ${n}`));
+              const rem = addMail({
+                id: `appt-reminder-${tag}`,
+                kind: 'reminder',
+                title: t.calendar.reminderMailTitle.replace('{title}', a.title),
+                text: lines.join('\n'),
+                prominent: true,
+                payload: { appointmentId: a.id },
+              });
+              if (rem) notifyHint(settings.hintMode);
+            }
+            changed = { ...changed, reminderDeliveredAt: new Date(now).toISOString() };
+          }
+        }
+
+        // --- follow-up: one hour after the start ------------------------
+        // a period from the waiting room is followed up when it ends; everything else one hour after the start
+        const endMs = a.endTime ? new Date(`${a.date}T${a.endTime}:00`).getTime() : NaN;
+        const followAt = !Number.isNaN(endMs) && endMs > start ? endMs : start + 60 * MIN;
+        if (!a.followUpDeliveredAt && now >= followAt) {
+          if (now < followAt + 7 * 24 * 60 * MIN) {
+            const waitItem = waitItemsRepo.getAll().find((w) => w.appointmentId === a.id);
+            const who = person ? ` ${settings.language === 'de' ? 'mit' : 'with'} ${person.name}` : '';
+            const base = new Date(now).getTime();
+            // ONE message with everything in it (reflection, optional next
+            // appointment, note for next time, then "Fertig") — it used to be
+            // two separate cards.
+            const fu = addMail({
+              id: `appt-fu-${tag}`,
+              kind: 'followup',
+              title: waitItem ? (settings.language === 'de' ? 'Wie war es?' : 'How was it?') : t.calendar.followUp1Title,
+              text: waitItem
+                ? settings.language === 'de'
+                  ? `„${a.title}" aus dem Wartezimmer hatte seine Zeit. Magst du kurz festhalten, wie es war – und entscheiden, wie es weitergeht?`
+                  : `"${a.title}" from the waiting room has had its time. Would you like to note how it went – and decide what happens next?`
+                : t.calendar.followUp1Text.replace('{title}', a.title).replace('{person}', who),
+              prominent: true,
+              createdAt: new Date(base).toISOString(),
+              payload: { appointmentId: a.id, step: 'all' },
+            });
+            if (fu) notifyHint(settings.hintMode);
+          }
+          changed = { ...changed, followUpDeliveredAt: new Date(now).toISOString() };
+        }
+
+        if (Object.keys(changed).length > 0) appointmentsRepo.save({ ...a, ...changed });
+      });
+    }
+
+    run();
+    const iv = window.setInterval(run, CHECK_EVERY_MS);
+    const onVisible = () => document.visibilityState === 'visible' && run();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.clearInterval(iv);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.language, settings.hintMode]);
+
+  return null;
+}

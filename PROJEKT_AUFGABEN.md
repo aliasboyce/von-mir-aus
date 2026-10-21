@@ -552,6 +552,8 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Witze/Rätsel-Pool: Nutzer will nochmal durchgehen was bleibt/raus soll, plus eigene konkrete Beiträge ergänzen
 - Einfaches Spiel mit dem Wesen (z. B. Hüpfen)
 - Low-Capacity-Prinzip: Oberfläche passt sich interaktionsbasiert an geringere Kapazität an
+- Mehr Sprüche-Vorlagen und mehr Prompt-Vorlagen
+- Insider-Texte fürs Wesen-Spiel (liefert der Nutzer später)
 
 ## Grundsatzprinzipien (als Leitlinie bei jeder künftigen Entscheidung)
 - Resonanz statt Optimierung, Wahl statt Zwang, Zugang statt Leistung

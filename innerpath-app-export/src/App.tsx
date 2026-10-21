@@ -1,0 +1,180 @@
+import { LockGate } from './features/lock/LockGate';
+import { ParkboxPage } from './features/parkbox/ParkboxPage';
+import { NurJetztListPage } from './features/nurJetzt/NurJetztListPage';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ErrorBoundary } from './app/ErrorBoundary';
+import { SettingsProvider } from './state/SettingsContext';
+import { SplashScreen } from './app/SplashScreen';
+import { ThemeEffect } from './state/ThemeEffect';
+import { ModalStackProvider } from './state/ModalStackContext';
+import { CompanionSpeechProvider } from './state/CompanionSpeechContext';
+import { HeroCompanionProvider } from './state/HeroCompanionContext';
+import { I18nProvider } from './i18n';
+import { AppShell } from './app/AppShell';
+import { HomePage } from './features/home/HomePage';
+import { CrisisModePage } from './features/home/CrisisModePage';
+import { HelperModePage } from './features/home/HelperModePage';
+import { NervousSystemReferencePage } from './features/accessBuildingBlocks/NervousSystemReferencePage';
+import { BodyAwarenessReferencePage } from './features/accessBuildingBlocks/BodyAwarenessReferencePage';
+import { ProtectionStrategiesReferencePage } from './features/accessBuildingBlocks/ProtectionStrategiesReferencePage';
+import { DenkmaschinePage } from './features/denkmaschine/DenkmaschinePage';
+import { FeelingsReferencePage } from './features/feelings/FeelingsReferencePage';
+import { WertekompassPage } from './features/wertekompass/WertekompassPage';
+import { LetGoPage } from './features/letGo/LetGoPage';
+import { BriefAnMichPage } from './features/briefAnMich/BriefAnMichPage';
+import { LetterImportPage } from './features/briefAnMich/LetterImportPage';
+import { ExplorePage } from './features/home/ExplorePage';
+import { SafetyHubPage } from './features/home/SafetyHubPage';
+import { InnerWeatherPage } from './features/innerWeather/InnerWeatherPage';
+import { BridgesPage } from './features/bridges/BridgesPage';
+import { BridgeDetailPage } from './features/bridges/BridgeDetailPage';
+import { ResourcesPage } from './features/resources/ResourcesPage';
+import { ResourcesHubPage } from './features/resources/ResourcesHubPage';
+import { SkillkettenListPage } from './features/resources/SkillkettenListPage';
+import { SkillketteFormPage } from './features/resources/SkillketteFormPage';
+import { SkillketteDetailPage } from './features/resources/SkillketteDetailPage';
+import { SkillRunPage } from './features/resources/SkillRunPage';
+import { SkillketteRunPage } from './features/resources/SkillketteRunPage';
+import { CalendarPage } from './features/calendar/CalendarPage';
+import { CalendarOverviewPage } from './features/calendar/CalendarOverviewPage';
+// AccessWheelPage retired — see App.tsx route comment
+import { ZugangPage } from './features/zugang/ZugangPage';
+import { ZugangReviewPage } from './features/zugang/ZugangReviewPage';
+import { ZugangUsePage, ZugangAfterPage } from './features/zugang/ZugangFollowUpPages';
+import { CompanionContentPage } from './components/companion/CompanionContentPage';
+import { CompanionAboutPage } from './features/settings/CompanionAboutPage';
+import { PrivacyPage } from './features/settings/PrivacyPage';
+import { SourceLibraryPage } from './features/sources/SourceLibraryPage';
+import { NeedsCompassPage } from './features/accessWheel/NeedsCompassPage';
+import { ZugangskanaelePage } from './features/zugangskanaele/ZugangskanaelePage';
+import { BookmarksPage } from './features/bookmarks/BookmarksPage';
+import { FavoritesPage } from './features/favorites/FavoritesPage';
+import { WeeklyReviewPage } from './features/diary/WeeklyReviewPage';
+import { ResourceImportPage } from './features/resources/ResourceImportPage';
+import { BridgeImportPage } from './features/bridges/BridgeImportPage';
+import { BookmarkImportPage } from './features/bookmarks/BookmarkImportPage';
+import { NetworkImportPage } from './features/safetyNet/NetworkImportPage';
+import { SimpleTimerPage } from './features/timer/SimpleTimerPage';
+import { MediLogPage } from './features/mediLog/MediLogPage';
+import { MedicationPackagesPage } from './features/mediLog/MedicationPackagesPage';
+import { PolyvagalPage } from './features/polyvagal/PolyvagalPage';
+import { DayFlowPage } from './features/dayFlow/DayFlowPage';
+import { RoutinesGardenPage } from './features/routines/RoutinesGardenPage';
+import { BreathPage } from './features/breathing/BreathPage';
+import { MindmapListPage } from './features/mindmap/MindmapListPage';
+import { MindmapEditorPage } from './features/mindmap/MindmapEditorPage';
+import { MindmapImportPage } from './features/mindmap/MindmapImportPage';
+import { RoutineEditorPage } from './features/routines/RoutineEditorPage';
+import { RoutinePlayerPage } from './features/routines/RoutinePlayerPage';
+import { MeineEntwicklungPage } from './features/polyvagal/MeineEntwicklungPage';
+import { SafetyNetPage } from './features/safetyNet/SafetyNetPage';
+import { KontaktePage } from './features/safetyNet/KontaktePage';
+import { SafetyPlanPage } from './features/safetyPlan/SafetyPlanPage';
+import { DiaryPage } from './features/diary/DiaryPage';
+import { SettingsPage } from './features/settings/SettingsPage';
+
+function App() {
+  return (
+    <ErrorBoundary>
+    <SettingsProvider>
+      <ThemeEffect />
+      <SplashScreen>
+      <LockGate>
+      <I18nProvider>
+        <ModalStackProvider>
+          <CompanionSpeechProvider>
+            <HeroCompanionProvider>
+            <BrowserRouter>
+              <Routes>
+              <Route element={<AppShell />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/krisenmodus" element={<CrisisModePage />} />
+                <Route path="/parkbox" element={<ParkboxPage />} />
+                <Route path="/nur-jetzt/:kind" element={<NurJetztListPage />} />
+                <Route path="/helfermodus" element={<HelperModePage />} />
+                <Route path="/entdecken/nervensystem" element={<NervousSystemReferencePage />} />
+                <Route path="/entdecken/koerper" element={<BodyAwarenessReferencePage />} />
+                <Route path="/entdecken/schutzstrategien" element={<ProtectionStrategiesReferencePage />} />
+                <Route path="/entdecken/denkmaschine" element={<DenkmaschinePage />} />
+                <Route path="/entdecken/gefuehle" element={<FeelingsReferencePage />} />
+                <Route path="/entdecken/wertekompass" element={<WertekompassPage />} />
+                <Route path="/entdecken/loslassen" element={<LetGoPage />} />
+                <Route path="/entdecken/brief-an-mich" element={<BriefAnMichPage />} />
+                <Route path="/brief/importieren" element={<LetterImportPage />} />
+                <Route path="/inneres-wetter" element={<InnerWeatherPage />} />
+
+                <Route path="/entdecken" element={<ExplorePage />} />
+                <Route path="/entdecken/ressourcen" element={<ResourcesHubPage />} />
+                <Route path="/entdecken/ressourcen/skillketten" element={<SkillkettenListPage />} />
+                <Route path="/entdecken/ressourcen/skillketten/neu" element={<SkillketteFormPage />} />
+                <Route path="/entdecken/ressourcen/skillketten/:id/bearbeiten" element={<SkillketteFormPage />} />
+                <Route path="/entdecken/ressourcen/skillketten/:id/start" element={<SkillketteRunPage />} />
+                <Route path="/entdecken/ressourcen/skillketten/:id" element={<SkillketteDetailPage />} />
+                <Route path="/entdecken/ressourcen/skill-start/:id" element={<SkillRunPage />} />
+                <Route path="/entdecken/ressourcen/:type" element={<ResourcesPage />} />
+                {/* Zugangsrad retired per explicit audit decision — its
+                 * sliders now live on the Zugangskanäle page. */}
+                <Route path="/zugang" element={<ZugangPage />} />
+                <Route path="/zugang/rueckblick" element={<ZugangReviewPage />} />
+                <Route path="/zugang/nutzen/:entryId" element={<ZugangUsePage />} />
+                <Route path="/zugang/danach/:entryId" element={<ZugangAfterPage />} />
+                <Route path="/einstellungen/wesen-inhalte" element={<CompanionContentPage />} />
+                <Route path="/einstellungen/wesen-info" element={<CompanionAboutPage />} />
+                <Route path="/einstellungen/datenschutz" element={<PrivacyPage />} />
+                <Route path="/system-karte" element={<Navigate to="/entdecken" replace />} />
+                <Route path="/kalender" element={<CalendarPage />} />
+                <Route path="/kalender/uebersicht" element={<CalendarOverviewPage />} />
+                <Route path="/quellen" element={<SourceLibraryPage />} />
+                <Route path="/entdecken/zugangskanaele" element={<ZugangskanaelePage />} />
+                <Route path="/entdecken/beduerfnis-kompass" element={<NeedsCompassPage />} />
+                <Route path="/entdecken/tageskurve" element={<PolyvagalPage />} />
+                <Route path="/entdecken/tageskurve/entwicklung" element={<MeineEntwicklungPage />} />
+                <Route path="/entdecken/lesezeichen" element={<BookmarksPage />} />
+                <Route path="/favoriten" element={<FavoritesPage />} />
+                <Route path="/wochenrueckblick" element={<WeeklyReviewPage />} />
+                <Route path="/entdecken/ressourcen/importieren" element={<ResourceImportPage />} />
+                <Route path="/bruecken/importieren" element={<BridgeImportPage />} />
+                <Route path="/entdecken/lesezeichen/importieren" element={<BookmarkImportPage />} />
+                <Route path="/sicherheit/kontakte/importieren" element={<NetworkImportPage />} />
+                <Route path="/entdecken/timer" element={<SimpleTimerPage />} />
+                <Route path="/entdecken/garten" element={<RoutinesGardenPage />} />
+                <Route path="/entdecken/ressourcen/skills/atmen" element={<BreathPage />} />
+                <Route path="/entdecken/atmen" element={<Navigate to="/entdecken/ressourcen/skills/atmen" replace />} />
+                <Route path="/entdecken/mindmap" element={<MindmapListPage />} />
+                <Route path="/entdecken/mindmap/importieren" element={<MindmapImportPage />} />
+                <Route path="/entdecken/mindmap/:id" element={<MindmapEditorPage />} />
+                <Route path="/tag-beginnen" element={<DayFlowPage phase="start" />} />
+                <Route path="/tag-abschliessen" element={<DayFlowPage phase="end" />} />
+                <Route path="/entdecken/routinen" element={<Navigate to="/entdecken/garten" replace />} />
+                <Route path="/entdecken/routinen/neu" element={<RoutineEditorPage />} />
+                <Route path="/entdecken/routinen/:id/bearbeiten" element={<RoutineEditorPage />} />
+                <Route path="/entdecken/routinen/:id/start" element={<RoutinePlayerPage />} />
+                <Route path="/entdecken/medi-log" element={<MediLogPage />} />
+                <Route path="/entdecken/medi-log/packungen" element={<MedicationPackagesPage />} />
+
+                <Route path="/bruecken" element={<BridgesPage />} />
+                <Route path="/bruecken/:id" element={<BridgeDetailPage />} />
+
+                <Route path="/sicherheit" element={<SafetyHubPage />} />
+                <Route path="/sicherheit/netzwerk" element={<SafetyNetPage />} />
+                <Route path="/sicherheit/kontakte" element={<KontaktePage />} />
+                <Route path="/sicherheit/plan" element={<SafetyPlanPage />} />
+                <Route path="/sicherheit/tagebuch" element={<DiaryPage />} />
+
+                <Route path="/einstellungen" element={<SettingsPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+              </Routes>
+            </BrowserRouter>
+            </HeroCompanionProvider>
+          </CompanionSpeechProvider>
+        </ModalStackProvider>
+      </I18nProvider>
+      </LockGate>
+      </SplashScreen>
+    </SettingsProvider>
+    </ErrorBoundary>
+  );
+}
+
+export default App;

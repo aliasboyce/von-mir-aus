@@ -1,0 +1,399 @@
+import { useState, useMemo, useEffect } from 'react';
+import { goBack } from '../../services/navigation';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { TopBar } from '../../components/navigation/TopBar';
+import { HelpButton } from '../../components/navigation/HelpButton';
+import { Card } from '../../components/ui/Card';
+import { bridgesRepo } from '../bridges/bridgesRepo';
+import { PhotoBackground } from '../../components/shared/PhotoBackground';
+import { useT } from '../../i18n';
+import { PROTECTION_STRATEGIES_DE, PROTECTION_POSITIVE_DE, NEW_PROTECTION_STRATEGIES_DE, OBSTACLES_DE } from '../zugang/zugangContent';
+import { SourceNoteCard } from '../../components/shared/SourceNoteCard';
+import { ProtectionReflectionModal, NewProtectionModal, ObstacleReflectionModal } from './ProtectionReflectionModal';
+import { protectionReflectionFor, newProtectionReflectionFor, hasContent, obstacleReflectionFor, saveObstacleReflection, allObstacleReflections, hasObstacleContent } from './protectionReflectionRepo';
+import { linkedItems } from './strategyLinks';
+import { Button } from '../../components/ui/Button';
+import { DismissibleCustomList } from '../../components/shared/DismissibleCustomList';
+import { createKeyValueStore } from '../../services/storage/keyValueStore';
+import { gardenRepo } from '../garden/gardenRepo';
+import { routinesRepo } from '../routines/routinesRepo';
+import { useProtectionTexts } from './protectionTexts';
+import { allProtectionReflections, NEW_PREFIX, type ProtectionReflection } from './protectionReflectionRepo';
+
+/**
+ * Priority 3 + Priority 14 — Zugang's Schutzstrategie step, browsable on
+ * its own, with the "was sind Muster, warum können sie einmal sinnvoll
+ * gewesen sein" explainer the brief asked for. The same explainer text
+ * is what Mein Garten links to (see GardenPage.tsx), rather than the
+ * two pages maintaining separate copies of the same explanation.
+ *
+ * "Großer Qualitäts- und Erweiterungsprompt" brief, Section 10 —
+ * strategy chips are now tappable, opening a guided reflection
+ * (ProtectionReflectionModal) instead of being purely decorative text.
+ */
+export function ProtectionStrategiesReferencePage() {
+  const t = useT();
+  const px = useProtectionTexts();
+  const navigate = useNavigate();
+  const [openStrategy, setOpenStrategy] = useState<string | null>(null);
+  const [openNewStrategy, setOpenNewStrategy] = useState<string | null>(null);
+  const [openObstacle, setOpenObstacle] = useState<string | null>(null);
+  const [showStrategyExplainer, setShowStrategyExplainer] = useState(false);
+  const [showObstacleExplainer, setShowObstacleExplainer] = useState(false);
+  const [, bump] = useState(0);
+  const [selectedObstaclesStore] = useState(() => createKeyValueStore<string[]>('selected-obstacles', []));
+  const [selectedObstacles, setSelectedObstacles] = useState<string[]>(() => selectedObstaclesStore.get() ?? []);
+  const matchingBridgesForObstacles = useMemo(() => {
+    if (selectedObstacles.length === 0) return [];
+    return bridgesRepo.getAll().filter((b) => (b.linkedObstacles ?? []).some((o) => selectedObstacles.includes(o)));
+  }, [selectedObstacles]);
+
+  function setObstacleApplies(o: string, applies: boolean) {
+    const has = selectedObstacles.includes(o);
+    if (has === applies) return;
+    const next = applies ? [...selectedObstacles, o] : selectedObstacles.filter((x) => x !== o);
+    selectedObstaclesStore.set(next);
+    setSelectedObstacles(next);
+  }
+
+  function hasObstacleNote(o: string): boolean {
+    const r = obstacleReflectionFor(o);
+    return hasObstacleContent(r);
+  }
+
+  // links like /entdecken/schutzstrategien#hindernisse jump to the section
+  const location = useLocation();
+  useEffect(() => {
+    const id = location.hash.replace('#', '');
+    if (!id) return;
+    const tm = window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+    return () => window.clearTimeout(tm);
+  }, [location.hash]);
+
+  return (
+    <div className="animate-in">
+      <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="schutzstrategien" />} />
+      <div className="px-5 pb-8">
+        <h1 className="text-[24px] mb-1">{t.protectionRef.title}</h1>
+        <p className="text-[14px] text-[var(--color-text-muted)] mb-5 leading-relaxed">{t.protectionRef.subtitle}</p>
+
+        <button onClick={() => setShowStrategyExplainer((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
+          {showStrategyExplainer ? t.protectionRef.hideExplainerCta : t.protectionRef.showExplainerCta}
+        </button>
+        {showStrategyExplainer && (
+          <div className="animate-in">
+            <Card className="mb-6">
+              <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-3">{t.protectionRef.explainer1}</p>
+              <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-3">{t.protectionRef.explainer2}</p>
+              <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-3">{t.protectionRef.explainer3}</p>
+              <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{t.protectionRef.explainerResourcesNote}</p>
+            </Card>
+
+            <Card className="mb-6" style={{ background: 'var(--color-primary-soft)' }}>
+              <p className="text-[13px] font-medium text-[var(--color-text)] mb-1.5">{t.protectionRef.vsResourcesTitle}</p>
+              <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{t.protectionRef.vsResourcesText}</p>
+            </Card>
+
+            <Card className="mb-6">
+              <BalanceIllustration />
+              <div className="flex justify-between mt-2 px-2">
+                <p className="text-[12px] text-[var(--color-text-muted)] max-w-[45%] text-center leading-snug">{t.protectionRef.balanceShortTerm}</p>
+                <p className="text-[12px] text-[var(--color-text-muted)] max-w-[45%] text-center leading-snug">{t.protectionRef.balanceLongTerm}</p>
+              </div>
+            </Card>
+
+            <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.reflectTitle}</p>
+            <div className="flex flex-col gap-2 mb-6">
+              {t.protectionRef.reflectQuestions.map((q, i) => (
+                <div key={i} className="p-3 rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)]">
+                  <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{q}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <MyEntries
+          px={px}
+          onOpen={(strategy, isNew) => (isNew ? setOpenNewStrategy(strategy) : setOpenStrategy(strategy))}
+        />
+
+        <h2 className="text-[19px] mb-1">{t.protectionRef.oldTitle}</h2>
+        <p className="text-[13px] text-[var(--color-text-muted)] mb-3 leading-relaxed">{t.protectionRef.oldSubtitle}</p>
+        <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.protectionRef.tapToReflectLabel}</p>
+        <DismissibleCustomList
+          listKey="schutzstrategien"
+          builtins={PROTECTION_STRATEGIES_DE.filter((s) => !PROTECTION_POSITIVE_DE.includes(s))}
+          onTapBuiltin={(s) => setOpenStrategy(s)}
+          isMarked={(s) => hasContent(protectionReflectionFor(s))}
+        />
+
+        <div id="neue-schutzstrategien" className="mt-7 pt-6 border-t border-[var(--color-border)]">
+          <h2 className="text-[19px] mb-1">{t.protectionRef.newTitle}</h2>
+          <p className="text-[13px] text-[var(--color-text-muted)] mb-3 leading-relaxed">{t.protectionRef.newSubtitle}</p>
+          <DismissibleCustomList
+            listKey="neue-schutzstrategien"
+            builtins={NEW_PROTECTION_STRATEGIES_DE}
+            onTapBuiltin={(s) => setOpenNewStrategy(s)}
+            isMarked={(s) => hasContent(newProtectionReflectionFor(s))}
+          />
+        </div>
+
+        <Link to="/entdecken/garten" className="text-[13px] text-[var(--color-primary)] mt-4 block">
+          🌱 {t.protectionRef.gardenLink} →
+        </Link>
+
+        <div id="hindernisse" className="mt-8 pt-6 border-t border-[var(--color-border)]">
+          <h2 className="text-[19px] mb-1">{t.protectionRef.obstaclesTitle}</h2>
+          <p className="text-[14px] text-[var(--color-text-muted)] mb-4 leading-relaxed">{t.protectionRef.obstaclesSubtitle}</p>
+
+          <Card className="mb-4">
+            <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.obstaclesMoreTitle}</p>
+            <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{t.protectionRef.obstaclesMore1}</p>
+            <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{t.protectionRef.obstaclesMore2}</p>
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{t.protectionRef.obstaclesMore3}</p>
+          </Card>
+
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.obstaclesQuestionsTitle}</p>
+          <div className="flex flex-col gap-2 mb-4">
+            {t.protectionRef.obstaclesQuestions.map((q, i) => (
+              <div key={i} className="p-3 rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)]">
+                <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{q}</p>
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.obstaclesExamplesTitle}</p>
+          <div className="flex flex-col gap-2 mb-5">
+            {t.protectionRef.obstaclesExamples.map((ex, i) => (
+              <Card key={i}>
+                <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-1">🚧 {ex.obstacle}</p>
+                <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">🌉 {ex.help}</p>
+              </Card>
+            ))}
+          </div>
+
+          <button onClick={() => setShowObstacleExplainer((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
+            {showObstacleExplainer ? t.protectionRef.hideExplainerCta : t.protectionRef.showExplainerCta}
+          </button>
+          {showObstacleExplainer && (
+            <div className="animate-in">
+              <Card className="mb-4">
+                <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-3">{t.protectionRef.obstaclesExplainer1}</p>
+                <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{t.protectionRef.obstaclesExplainer2}</p>
+              </Card>
+
+              <Card className="mb-4">
+                <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.connectionExampleTitle}</p>
+                <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-1.5">
+                  🚧 {t.protectionRef.connectionExampleObstacle}
+                </p>
+                <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">
+                  🛡️ {t.protectionRef.connectionExampleStrategy}
+                </p>
+                <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed">{t.protectionRef.connectionExampleNote}</p>
+              </Card>
+
+              <Card className="mb-5" style={{ background: 'var(--color-primary-soft)' }}>
+                <p className="text-[13px] text-[var(--color-text)] leading-relaxed font-medium mb-1.5">{t.protectionRef.obstaclesKeyInsightTitle}</p>
+                <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{t.protectionRef.obstaclesKeyInsightText}</p>
+              </Card>
+            </div>
+          )}
+
+          <MyObstacleEntries px={px} selected={selectedObstacles} onOpen={(o) => setOpenObstacle(o)} />
+
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.protectionRef.obstaclesExamplesLabel}</p>
+          <DismissibleCustomList
+            listKey="hindernisse"
+            builtins={OBSTACLES_DE}
+            onTapBuiltin={(o) => setOpenObstacle(o)}
+            isMarked={(o) => selectedObstacles.includes(o) || hasObstacleNote(o)}
+          />
+
+          {matchingBridgesForObstacles.length > 0 ? (
+            <div className="mt-5">
+              <p className="text-[13px] font-medium text-[var(--color-text)] mb-2">{t.protectionRef.obstaclesMatchingBridgesTitle}</p>
+              <div className="flex flex-col gap-2">
+                {matchingBridgesForObstacles.slice(0, 4).map((b) => (
+                  <Link key={b.id} to={`/bruecken/${b.id}`}>
+                    <Card interactive className="flex items-center gap-3">
+                      <PhotoBackground src={b.image} className="w-10 h-10 rounded-full bg-cover bg-center flex-shrink-0" />
+                      <p className="text-[14px] text-[var(--color-text)] truncate">{b.title}</p>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <Link to="/bruecken" className="text-[13px] text-[var(--color-primary)] mt-4 block">
+              🌉 {t.protectionRef.obstaclesBridgeLink} →
+            </Link>
+          )}
+        </div>
+
+        <Card className="mt-8" style={{ background: 'var(--color-primary-soft)' }}>
+          <p className="text-[16px] text-[var(--color-text)] mb-1.5">🌱 {t.protectionRef.gardenCtaTitle}</p>
+          <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-4">{t.protectionRef.gardenCtaText}</p>
+          <Button fullWidth onClick={() => navigate('/entdecken/garten')}>
+            {t.protectionRef.gardenCtaButton}
+          </Button>
+        </Card>
+
+        <SourceNoteCard text={t.protectionRef.sourceNote} />
+      </div>
+      {openNewStrategy && (
+        <NewProtectionModal
+          strategy={openNewStrategy}
+          onClose={() => {
+            setOpenNewStrategy(null);
+            bump((n) => n + 1);
+          }}
+        />
+      )}
+      {openObstacle && (
+        <ObstacleReflectionModal
+          obstacle={openObstacle}
+          applies={selectedObstacles.includes(openObstacle)}
+          initial={obstacleReflectionFor(openObstacle) ?? {}}
+          onChange={(v) => {
+            saveObstacleReflection(openObstacle, { how: v.how, when: v.when, protects: v.protects, small: v.small });
+            setObstacleApplies(openObstacle, v.applies);
+          }}
+          onClose={() => {
+            setOpenObstacle(null);
+            bump((n) => n + 1);
+          }}
+        />
+      )}
+      {openStrategy && (
+        <ProtectionReflectionModal
+          strategy={openStrategy}
+          onClose={() => {
+            setOpenStrategy(null);
+            bump((n) => n + 1);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+const ENTRY_FIELDS: (keyof ProtectionReflection)[] = ['valence', 'protectedFrom', 'costsToday', 'notice', 'trigger', 'alternative', 'replaceRoutine', 'reward', 'setbackSupport', 'avoid', 'keepGoing', 'whatFor', 'whenTry', 'needed'];
+
+/**
+ * "Wenn etwas aufgeschrieben wird, soll es dazu einen Eintrag auf der Seite geben": every strategy that has
+ * written content shows up here as a card with the first lines, plus the gardens and routines linked as its alternative.
+ */
+function MyEntries({ px, onOpen }: { px: ReturnType<typeof useProtectionTexts>; onOpen: (strategy: string, isNew: boolean) => void }) {
+  const gardens = gardenRepo.getAll();
+  const routines = routinesRepo.getAll();
+  const written = allProtectionReflections().filter((r) => hasContent(r));
+  // a new strategy that exists as a plant or routine but has no text yet is the same entry – it shows up here too
+  const linkedNames = new Set<string>();
+  for (const x of [...gardens, ...routines]) if (x.newStrategy) linkedNames.add(x.newStrategy);
+  const stubs: ProtectionReflection[] = [...linkedNames]
+    .filter((n) => !written.some((r) => r.strategy === NEW_PREFIX + n))
+    .map((n) => ({ strategy: NEW_PREFIX + n, updatedAt: [...gardens, ...routines].find((x) => x.newStrategy === n)?.createdAt ?? new Date(0).toISOString() }));
+  const entries = [...written, ...stubs].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  if (entries.length === 0) return null;
+  return (
+    <div className="mb-7" data-testid="protection-entries">
+      <h2 className="text-[19px] mb-1">{px.entriesTitle}</h2>
+      <p className="text-[12.5px] text-[var(--color-text-muted)] mb-3 leading-relaxed" data-hint>{px.entriesText}</p>
+      <div className="flex flex-col gap-2.5">
+        {entries.map((r) => {
+          const isNew = r.strategy.startsWith(NEW_PREFIX);
+          const name = isNew ? r.strategy.slice(NEW_PREFIX.length) : r.strategy;
+          const lines = ENTRY_FIELDS.filter((f) => f !== 'valence' && typeof r[f] === 'string' && (r[f] as string).trim()).slice(0, 3);
+          const linkedGardens = gardens.filter((g) => (isNew ? g.newStrategy === name : g.alternativeFor === name));
+          const linkedRoutines = routines.filter((x) => (isNew ? x.newStrategy === name : x.alternativeFor === name));
+          return (
+            <button key={r.strategy} type="button" onClick={() => onOpen(name, isNew)} className="text-left" data-testid="protection-entry">
+              <Card interactive>
+                <p className="text-[14.5px] font-medium text-[var(--color-text)] mb-1">
+                  {isNew ? '🌿' : '🛡️'} {name}
+                  {isNew && <span className="ml-2 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-full align-middle" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>{px.newMarker}</span>}
+                </p>
+                {r.valence && <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{r.valence.split('|||').join(' · ')}</p>}
+                {lines.map((f) => (
+                  <p key={f} className="text-[12.5px] text-[var(--color-text-muted)] leading-snug line-clamp-2">
+                    <span className="text-[var(--color-text-faint)]">{(px.labels as Record<string, string>)[f]}: </span>
+                    {r[f] as string}
+                  </p>
+                ))}
+                {(linkedGardens.length > 0 || linkedRoutines.length > 0) && (
+                  <p className="text-[12px] text-[var(--color-primary)] mt-1.5">
+                    {linkedGardens.map((g) => `🌱 ${g.name}`).concat(linkedRoutines.map((x) => `🔁 ${x.title}`)).join(' · ')}
+                  </p>
+                )}
+              </Card>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** A simple balance scale — tilted toward the left (short-term relief)
+ * to visually anchor the "what it gives now vs. what it costs later"
+ * idea from the reflection questions above, without needing a chart. */
+function BalanceIllustration() {
+  return (
+    <svg viewBox="0 0 220 100" width="100%" role="img" aria-hidden="true" style={{ aspectRatio: '220 / 100', maxWidth: 340, display: 'block', margin: '0 auto' }}>
+      <line x1="110" y1="14" x2="110" y2="78" stroke="var(--color-border-strong)" strokeWidth="3" />
+      <path d="M96,88 L124,88 L118,78 L102,78 Z" fill="var(--color-border-strong)" />
+      <g style={{ transform: 'rotate(-8deg)', transformOrigin: '110px 20px' }}>
+        <line x1="30" y1="24" x2="190" y2="16" stroke="var(--color-border-strong)" strokeWidth="2.5" />
+        <line x1="30" y1="24" x2="30" y2="46" stroke="var(--color-border-strong)" strokeWidth="1.5" />
+        <ellipse cx="30" cy="52" rx="26" ry="9" fill="var(--color-accent-clay)" />
+        <line x1="190" y1="16" x2="190" y2="34" stroke="var(--color-border-strong)" strokeWidth="1.5" />
+        <ellipse cx="190" cy="38" rx="20" ry="7" fill="var(--color-surface-muted)" stroke="var(--color-border)" />
+      </g>
+      <circle cx="110" cy="18" r="5" fill="var(--color-border-strong)" />
+    </svg>
+  );
+}
+
+/**
+ * Hindernisse wie Schutzstrategien: what has been written (or marked "betrifft mich") shows up as an entry with the
+ * "Fragen zum Weiterdenken" and their answers, plus the plants and routines that help with it.
+ */
+function MyObstacleEntries({ px, selected, onOpen }: { px: ReturnType<typeof useProtectionTexts>; selected: string[]; onOpen: (o: string) => void }) {
+  const written = allObstacleReflections().filter((r) => hasObstacleContent(r));
+  const names = new Set<string>([...written.map((r) => r.obstacle), ...selected]);
+  for (const x of [...gardenRepo.getAll(), ...routinesRepo.getAll()]) if (x.forObstacle) names.add(x.forObstacle);
+  const entries = [...names].map((o) => ({ o, r: written.find((r) => r.obstacle === o) }));
+  if (entries.length === 0) return null;
+  const fields = ['how', 'when', 'protects', 'small'] as const;
+  return (
+    <div className="mb-6" data-testid="obstacle-entries">
+      <h3 className="text-[16px] mb-1">{px.obstacleEntriesTitle}</h3>
+      <p className="text-[12.5px] text-[var(--color-text-muted)] mb-3 leading-relaxed" data-hint>{px.obstacleEntriesText}</p>
+      <div className="flex flex-col gap-2.5">
+        {entries.map(({ o, r }) => {
+          const { gardens, routines } = linkedItems({ obstacle: o });
+          return (
+            <button key={o} type="button" onClick={() => onOpen(o)} className="text-left" data-testid="obstacle-entry">
+              <Card interactive>
+                <p className="text-[14.5px] font-medium text-[var(--color-text)] mb-1">🚧 {o}{selected.includes(o) && <span className="ml-2 text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded-full align-middle" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>{px.obstacleApplies}</span>}</p>
+                {fields.map((f) => (
+                  <p key={f} className="text-[12.5px] text-[var(--color-text-muted)] leading-snug line-clamp-2">
+                    <span className="text-[var(--color-text-faint)]">{px.obstacleLabels[f]}: </span>
+                    {r?.[f]?.trim() ? r[f] : <span className="text-[var(--color-text-faint)]">{px.obstacleOpenQ}</span>}
+                  </p>
+                ))}
+                {(gardens.length > 0 || routines.length > 0) && (
+                  <p className="text-[12px] text-[var(--color-primary)] mt-1.5">
+                    {gardens.map((g) => `🌱 ${g.name}`).concat(routines.map((x) => `🔁 ${x.title}`)).join(' · ')}
+                  </p>
+                )}
+              </Card>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
