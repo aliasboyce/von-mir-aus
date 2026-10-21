@@ -1,0 +1,647 @@
+.lichtwesen {
+  position: relative;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.lichtwesen__glow {
+  position: absolute;
+  inset: -30%;
+  border-radius: 50%;
+  /* no blur filter: the radial gradient is already soft, and a blur on an
+   * animated layer was repainted every frame (stutter on phones) */
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: lichtwesen-glow-pulse 4s ease-in-out infinite;
+}
+
+.lichtwesen--awake {
+  animation: lichtwesen-bob 3.6s ease-in-out infinite;
+}
+
+.lichtwesen--movement-bounce-joy { animation-name: lw-bounce-joy; animation-duration: 2.6s; }
+.lichtwesen--movement-sway-slow { animation-name: lw-sway-slow; animation-duration: 5.5s; }
+.lichtwesen--movement-still-deep { animation-name: lw-still-deep; animation-duration: 6.5s; }
+.lichtwesen--movement-tilt-steady { animation-name: lw-tilt-steady; animation-duration: 4.2s; }
+.lichtwesen--movement-pulse-warm { animation-name: lw-pulse-warm; animation-duration: 3.2s; }
+.lichtwesen--movement-drift-shy { animation-name: lw-drift-shy; animation-duration: 5s; }
+.lichtwesen--movement-rise-gentle { animation-name: lw-rise-gentle; animation-duration: 4s; }
+.lichtwesen--movement-listen-tilt { animation-name: lw-listen-tilt; animation-duration: 4.8s; }
+.lichtwesen--movement-quick-alert { animation-name: lw-quick-alert; animation-duration: 1.8s; }
+.lichtwesen--movement-precise-hover { animation-name: lw-precise-hover; animation-duration: 3.8s; }
+
+@keyframes lw-bounce-joy {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-9px) scale(1.05); }
+  55% { transform: translateY(0) scale(0.97); }
+  75% { transform: translateY(-3px) scale(1.02); }
+}
+@keyframes lw-sway-slow {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  50% { transform: translateX(4px) rotate(4deg); }
+}
+@keyframes lw-still-deep {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1.5px) scale(1.015); }
+}
+@keyframes lw-tilt-steady {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-3deg); }
+}
+@keyframes lw-pulse-warm {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes lw-drift-shy {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  30% { transform: translateX(-3px) translateY(2px); }
+  60% { transform: translateX(2px) translateY(-2px); }
+}
+@keyframes lw-rise-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes lw-listen-tilt {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(6deg) translateY(-1px); }
+  75% { transform: rotate(-6deg) translateY(-1px); }
+}
+@keyframes lw-quick-alert {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes lw-precise-hover {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(2deg); }
+}
+
+.lichtwesen--sleeping {
+  animation: lichtwesen-lie-down 0.9s ease-out forwards;
+  opacity: 0.82;
+}
+
+/* "Waehrend des Timers"-Brief — a calm, focused state distinct from
+ * sleeping: eyes stay open, but a slow, deliberate breathing motion
+ * (gentle scale pulse, ~4s per cycle — much slower than any idle
+ * "awake" movement) reads as "sitting quietly, breathing on purpose"
+ * for this limbless, abstract character, without attempting a literal
+ * yoga or desk pose that wouldn't fit its visual language at all. */
+.lichtwesen--meditating {
+  animation: lichtwesen-breathe 4s ease-in-out infinite;
+}
+
+@keyframes lichtwesen-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.lichtwesen--settling {
+  animation: lichtwesen-waddle-back 0.85s ease-in-out forwards;
+}
+
+.lichtwesen--waking {
+  animation: lichtwesen-wake-up 1.1s ease-in-out forwards;
+}
+
+.lichtwesen__moon {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+}
+
+.lichtwesen__leaf {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+  animation: lichtwesen-leaf-sway 3.2s ease-in-out infinite;
+}
+
+@keyframes lichtwesen-leaf-sway {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+
+@keyframes lichtwesen-waddle-back {
+  0% { transform: translateX(0) translateY(0) rotate(0deg); }
+  25% { transform: translateX(-8px) translateY(-2px) rotate(-6deg); }
+  50% { transform: translateX(-14px) translateY(0) rotate(4deg); }
+  75% { transform: translateX(-20px) translateY(1px) rotate(-3deg); }
+  100% { transform: translateX(-24px) translateY(2px) rotate(0deg); }
+}
+
+@keyframes lichtwesen-lie-down {
+  0% { transform: translateX(-24px) translateY(2px) rotate(0deg) scale(1); }
+  100% { transform: translateX(-24px) translateY(10px) rotate(-90deg) scale(0.92); }
+}
+
+/* Wake: slowly rights itself from lying down, gives a tiny stretch, then
+   settles back into its normal upright spot. */
+@keyframes lichtwesen-wake-up {
+  0% { transform: translateX(-24px) translateY(10px) rotate(-90deg) scale(0.92); }
+  35% { transform: translateX(-20px) translateY(6px) rotate(-45deg) scale(0.95); }
+  55% { transform: translateX(-10px) translateY(-3px) rotate(-8deg) scale(1.04); }
+  75% { transform: translateX(-2px) translateY(-1px) rotate(4deg) scale(1.02); }
+  100% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); }
+}
+
+.lichtwesen:hover {
+  transform: scale(1.08);
+}
+
+.lichtwesen:active {
+  transform: scale(0.94);
+}
+
+@keyframes lichtwesen-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(-3deg); }
+  75% { transform: translateY(-2px) rotate(3deg); }
+}
+
+@keyframes lichtwesen-glow-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lichtwesen--awake,
+  .lichtwesen--sleeping,
+  .lichtwesen--meditating,
+  .lichtwesen--settling,
+  .lichtwesen--waking,
+  .lichtwesen__leaf,
+  .lichtwesen__glow {
+    animation: none;
+  }
+}
+
+[data-reduce-motion='true'] .lichtwesen--awake,
+[data-reduce-motion='true'] .lichtwesen--sleeping,
+[data-reduce-motion='true'] .lichtwesen--meditating,
+[data-reduce-motion='true'] .lichtwesen--settling,
+[data-reduce-motion='true'] .lichtwesen--waking,
+[data-reduce-motion='true'] .lichtwesen__leaf,
+[data-reduce-motion='true'] .lichtwesen__glow {
+  animation: none;
+}
+
+/* ---- floating dock (persistent, follows across pages) ---- */
+.companion-dock {
+  position: fixed;
+  right: 16px;
+  /* "Wesen wieder abgeschnitten am Desktop"-Auftrag — this was the
+   * actual cause this time, not a positioning bug: WhatsNewCard sits
+   * at z-[350] and is full-width near the same bottom-right area,
+   * so it was visually covering the companion whenever both showed
+   * at once. The companion is a persistent, interactive element and
+   * should never be hidden behind a temporary notification card —
+   * raised just above it, but still below genuine blocking modals
+   * (which use z-[400] and higher). */
+  z-index: 355;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  transition: bottom 0.3s ease;
+  will-change: transform;
+}
+
+/* On desktop the app renders as a centered card narrower than the browser
+   window — align the dock with the card's right edge instead of the full
+   window's right edge, the same fix applied to BottomNav. */
+@media (min-width: 768px) {
+  .companion-dock {
+    right: calc((100vw - var(--app-max-width-desktop)) / 2 + 16px);
+  }
+}
+
+.companion-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: min(240px, 62vw);
+  background: var(--color-surface);
+  /* "Verschiedene Pastelltoene, die durchwechseln"-Auftrag — cycles
+   * through a slow rotation of pastel border colors rather than one
+   * fixed warm tone, so repeated tips feel a little more varied and
+   * alive rather than always identically styled. */
+  border: 1.5px solid;
+  animation: companion-tip-border-cycle 16s linear infinite;
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 10px 10px 10px 14px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  animation: soft-fade-in 0.25s ease-out both;
+  opacity: 1;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.companion-tip--leaving {
+  opacity: 0;
+  transform: translateY(4px);
+  animation: none;
+}
+
+.companion-tip--hero {
+  max-width: min(300px, 84vw);
+  text-align: center;
+}
+
+.companion-tip__no-more {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-text-faint);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.companion-tip__close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  padding: 2px;
+  margin-top: 1px;
+}
+.companion-tip__close:hover {
+  color: var(--color-text);
+}
+
+.companion-menu {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  min-width: 168px;
+  /* "Wesen-Menue-Fenster am Laptop immer noch zu gross und
+   * abgeschnitten"-Auftrag — the menu is scaled by 1/companion-scale
+   * to stay readable regardless of companion size (see the inline
+   * style where this class is used), but at the smallest companion
+   * setting (75%) that inverse scale is ~1.33x — combined with the
+   * menu's naturally wide long-text items (like the orientation
+   * item's full hint sentence), this could grow past the viewport
+   * width with nothing capping it. A hard, viewport-aware max-width
+   * keeps it on-screen at any companion size or window width. */
+  max-width: min(300px, calc(100vw - 32px));
+}
+
+.companion-menu__hint {
+  padding: 10px 14px 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-faint);
+  flex: 1;
+}
+
+.companion-menu > div:first-child {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.companion-menu__close {
+  padding: 8px 10px 0 0;
+  color: var(--color-text-faint);
+  flex-shrink: 0;
+}
+
+.companion-menu__subtext {
+  display: block;
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--color-text-faint);
+  line-height: 1.3;
+  margin-top: 1px;
+}
+
+.companion-menu__more {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--color-primary);
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.companion-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  font-size: 13px;
+  color: var(--color-text);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Flex children default to min-width:auto, which resists shrinking —
+ * without this, a long single line (like the orientation item's full
+ * hint text) can force the whole menu wider than its own max-width
+ * instead of wrapping inside it. */
+.companion-menu__item > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.companion-menu__item:not(:last-child) {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.companion-menu__item:hover {
+  background: var(--color-surface-muted);
+}
+
+/* ---- selection screen ---- */
+.companion-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.companion-picker-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: var(--radius-md);
+}
+
+.companion-picker-item span.name {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.companion-picker-item.selected {
+  background: var(--color-primary-soft);
+}
+
+/* "Oh, you picked me up" — deliberately tiny and quick, not a big
+ * animation. Picked: a small scale bump + a couple of subtle wobbles
+ * while actually being dragged. Released: one quick, soft settle-bounce. */
+.companion-grab-wrap--picked {
+  animation: companion-picked-wobble 0.5s ease-in-out infinite;
+}
+
+@keyframes companion-picked-wobble {
+  0%,
+  100% {
+    transform: scale(1.06) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.06) rotate(-2.5deg);
+  }
+  75% {
+    transform: scale(1.06) rotate(2.5deg);
+  }
+}
+
+.companion-grab-wrap--released {
+  animation: companion-released-bounce 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes companion-released-bounce {
+  0% {
+    transform: scale(1.06);
+  }
+  55% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+[data-reduce-motion='true'] .companion-grab-wrap--picked,
+[data-reduce-motion='true'] .companion-grab-wrap--released {
+  animation: none !important;
+}
+
+/* Joy burst — a few genuinely different short celebrations, picked
+ * randomly so it's not always the same reaction, triggered on real
+ * completions (creating something, finishing a diary entry, a check-in). */
+.lichtwesen--joy-hop {
+  animation: lw-joy-hop 0.7s ease-in-out !important;
+}
+@keyframes lw-joy-hop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-14px) scale(1.05);
+  }
+  55% {
+    transform: translateY(0) scale(0.97);
+  }
+  75% {
+    transform: translateY(-5px) scale(1.02);
+  }
+}
+
+.lichtwesen--joy-spin {
+  animation: lw-joy-spin 0.7s ease-in-out !important;
+}
+@keyframes lw-joy-spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(190deg) scale(1.08);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.lichtwesen--joy-wobble {
+  animation: lw-joy-wobble 0.6s ease-in-out !important;
+}
+@keyframes lw-joy-wobble {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(-9deg) scale(1.04);
+  }
+  40% {
+    transform: rotate(8deg) scale(1.04);
+  }
+  60% {
+    transform: rotate(-6deg) scale(1.02);
+  }
+  80% {
+    transform: rotate(4deg) scale(1.01);
+  }
+}
+
+.lichtwesen--joy-dance {
+  animation: lw-joy-dance 0.8s ease-in-out !important;
+}
+@keyframes lw-joy-dance {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  20% {
+    transform: translateX(-6px) translateY(-6px) scale(1.03);
+  }
+  40% {
+    transform: translateX(6px) translateY(-10px) scale(1.05);
+  }
+  60% {
+    transform: translateX(-4px) translateY(-4px) scale(1.02);
+  }
+  80% {
+    transform: translateX(3px) translateY(-2px) scale(1.01);
+  }
+}
+
+[data-reduce-motion='true'] .lichtwesen--joy-hop,
+[data-reduce-motion='true'] .lichtwesen--joy-spin,
+[data-reduce-motion='true'] .lichtwesen--joy-wobble,
+[data-reduce-motion='true'] .lichtwesen--joy-dance {
+  animation: none !important;
+}
+
+/* "Verschiedene Pastelltoene, die durchwechseln"-Auftrag — six soft
+ * pastel tones the tip border slowly rotates through. Chosen to stay
+ * visible against var(--color-surface) in both light and dark themes
+ * (moderate saturation, not washed-out white-pastels that would
+ * vanish against a light card). */
+@keyframes companion-tip-border-cycle {
+  0% { border-color: #e8b4bc; }
+  16% { border-color: #e8b4bc; }
+  20% { border-color: #e4c290; }
+  36% { border-color: #e4c290; }
+  40% { border-color: #c3d896; }
+  56% { border-color: #c3d896; }
+  60% { border-color: #9ecdd6; }
+  76% { border-color: #9ecdd6; }
+  80% { border-color: #b8aee0; }
+  96% { border-color: #b8aee0; }
+  100% { border-color: #e8b4bc; }
+}
+[data-reduce-motion='true'] .companion-tip {
+  animation: none !important;
+  border-color: var(--color-accent-sun) !important;
+}
+
+/* "Okay, mach ich" bei Liebevoller Störsender — das Wesen tanzt weiter über den
+ * Bildschirm, bis „Weiter“ oder das Kreuz gedrückt wird. */
+.wesen-dance-stage {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  height: 260px;
+  margin: 18px 0 8px;
+  overflow: hidden;
+}
+.wesen-dance-path {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -38px 0 0 -38px;
+  animation: wesen-dance-path 5.6s ease-in-out infinite;
+}
+.wesen-dance-body {
+  transform-origin: 50% 100%;
+  animation: wesen-dance-body 0.7s ease-in-out infinite;
+}
+@keyframes wesen-dance-path {
+  0%   { transform: translate(0, 0); }
+  17%  { transform: translate(-110px, -40px); }
+  34%  { transform: translate(-50px, 50px); }
+  50%  { transform: translate(0, -60px); }
+  67%  { transform: translate(60px, 50px); }
+  84%  { transform: translate(110px, -30px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes wesen-dance-body {
+  0%, 100% { transform: translateY(0) rotate(-8deg) scale(1); }
+  25%      { transform: translateY(-18px) rotate(0deg) scale(1.06, 0.96); }
+  50%      { transform: translateY(0) rotate(8deg) scale(0.97, 1.04); }
+  75%      { transform: translateY(-18px) rotate(0deg) scale(1.06, 0.96); }
+}
+.wesen-note {
+  position: absolute;
+  font-size: 22px;
+  opacity: 0;
+  color: var(--color-primary);
+  animation: wesen-note-float 3.2s ease-in-out infinite;
+}
+.wesen-note--1 { left: 12%; top: 70%; animation-delay: 0s; }
+.wesen-note--2 { left: 80%; top: 60%; animation-delay: 0.8s; }
+.wesen-note--3 { left: 30%; top: 80%; animation-delay: 1.6s; }
+.wesen-note--4 { left: 66%; top: 78%; animation-delay: 2.4s; }
+@keyframes wesen-note-float {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+  20%  { opacity: 0.9; }
+  100% { transform: translateY(-150px) rotate(18deg); opacity: 0; }
+}
+[data-reduce-motion='true'] .wesen-dance-path,
+[data-reduce-motion='true'] .wesen-dance-body,
+[data-reduce-motion='true'] .wesen-note {
+  animation: none !important;
+}
+[data-reduce-motion='true'] .wesen-note { opacity: 0.7; }
+
+/* "Wegschicken" / "herbeirufen": the Wesen hops happily off to the side – and back in */
+@keyframes companion-hop-away {
+  0%   { transform: translate(0, 0) scale(1, 1); opacity: 1; }
+  7%   { transform: translate(0, 0) scale(1.12, 0.84); }
+  18%  { transform: translate(34px, -38px) scale(0.94, 1.1) rotate(8deg); }
+  30%  { transform: translate(70px, 0) scale(1.12, 0.86) rotate(0deg); }
+  42%  { transform: translate(120px, -44px) scale(0.94, 1.1) rotate(10deg); }
+  54%  { transform: translate(180px, 0) scale(1.1, 0.88) rotate(0deg); }
+  66%  { transform: translate(250px, -46px) scale(0.94, 1.1) rotate(12deg); }
+  78%  { transform: translate(330px, 0) scale(1.08, 0.9) rotate(0deg); opacity: 1; }
+  100% { transform: translate(520px, -30px) scale(0.9, 0.9) rotate(14deg); opacity: 0; }
+}
+@keyframes companion-hop-back {
+  0%   { transform: translate(-460px, -30px) scale(0.9, 0.9) rotate(-14deg); opacity: 0; }
+  20%  { transform: translate(-300px, 0) scale(1.1, 0.9) rotate(0deg); opacity: 1; }
+  38%  { transform: translate(-200px, -46px) scale(0.94, 1.1) rotate(-10deg); }
+  56%  { transform: translate(-110px, 0) scale(1.1, 0.88) rotate(0deg); }
+  72%  { transform: translate(-48px, -40px) scale(0.95, 1.08) rotate(-6deg); }
+  88%  { transform: translate(0, 0) scale(1.14, 0.84) rotate(0deg); }
+  100% { transform: translate(0, 0) scale(1, 1); opacity: 1; }
+}
+.companion-exit-away { animation: companion-hop-away 1.8s ease-in-out forwards; pointer-events: none; }
+.companion-exit-back { animation: companion-hop-back 1.4s ease-out both; pointer-events: none; }
+@keyframes companion-fade { from { opacity: 1; } to { opacity: 0; } }
+@keyframes companion-fade-in { from { opacity: 0; } to { opacity: 1; } }
+[data-reduce-motion='true'] .companion-exit-away { animation: companion-fade 0.6s ease forwards; }
+[data-reduce-motion='true'] .companion-exit-back { animation: companion-fade-in 0.5s ease both; }
+@media (prefers-reduced-motion: reduce) {
+  .companion-exit-away { animation: companion-fade 0.6s ease forwards; }
+  .companion-exit-back { animation: companion-fade-in 0.5s ease both; }
+}
+
+/* Rundgang-Vorführung: Fingerzeig + Rahmen */
+@keyframes tour-demo-ripple { from { transform: scale(0.8); opacity: .9; } to { transform: scale(2.4); opacity: 0; } }
+.tour-demo-ripple { animation: tour-demo-ripple .7s ease-out forwards; }
+@keyframes tour-demo-ring { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 45%, transparent); } 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-primary) 0%, transparent); } }
+.tour-demo-ring { animation: tour-demo-ring 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .tour-demo-ripple, .tour-demo-ring { animation: none; } }
