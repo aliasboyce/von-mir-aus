@@ -571,7 +571,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
             data-testid="companion-quick-feedback"
           >
             <MessageCircle size={15} />
-            {settings.language === 'en' ? 'Quick feedback' : 'Kurz melden'}
+            {settings.language === 'en' ? 'Quick note to Boycie' : 'Kurz was an Boycie melden'}
           </button>}
           <button onClick={sendAway} className="companion-menu__item" data-testid="companion-send-away">
               <Hand size={15} />
@@ -702,7 +702,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
             data-testid="companion-quick-feedback"
           >
             <MessageCircle size={15} />
-            {settings.language === 'en' ? 'Quick feedback' : 'Kurz melden'}
+            {settings.language === 'en' ? 'Quick note to Boycie' : 'Kurz was an Boycie melden'}
           </button>}
           <button onClick={sendAway} className="companion-menu__item" data-testid="companion-send-away">
             <Hand size={15} />

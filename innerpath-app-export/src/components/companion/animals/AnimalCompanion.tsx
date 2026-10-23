@@ -37,7 +37,8 @@ export function AnimalCompanion({ being, size = 'small', onTap, presence = false
   if (!animal) return null;
   if (size === 'small' && (!settings.brainEnabled || (settings.companionAway && !isOverride))) return null;
   const state = sleepStateOverride ?? settings.brainState ?? 'awake';
-  const dimension = size === 'large' ? 108 : 76;
+  // animals sit smaller in their frame than the round light being, so they get a bit more room (the size slider still applies on top)
+  const dimension = size === 'large' ? 140 : 100;
   return (
     <div
       style={{

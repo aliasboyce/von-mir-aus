@@ -57,7 +57,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // everything else (manifest, …) goes straight to the network; only the hashed files and icons are remembered
-  if (!url.pathname.startsWith('/assets/') && !url.pathname.startsWith('/icons/')) return;
+  if (!url.pathname.startsWith('/assets/') && !url.pathname.startsWith('/icons/') && !url.pathname.startsWith('/ablenkung/')) return;
 
   event.respondWith(
     caches.match(req).then(

@@ -1,3 +1,4 @@
+import { TestPhaseNote } from '../shared/TestPhaseNote';
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, RefreshCw, Check } from 'lucide-react';
@@ -324,7 +325,8 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
       ) : !category ? (
         <div className="mt-6 w-full max-w-[320px]">
           <p className="text-[17px] text-[var(--color-text)] text-center mb-2">{t.companion.distractionCategoryTitle}</p>
-          <p className="text-[12px] text-[var(--color-text-faint)] text-center mb-5 leading-relaxed">{t.companion.distractionContentNote}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] text-center mb-2 leading-relaxed">{t.companion.distractionContentNote}</p>
+          <TestPhaseNote className="mb-5" />
           <div className="flex flex-col gap-2">
             {CATEGORY_ORDER.map((cat) => (
               <button
@@ -447,9 +449,13 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
             {t.companion.distractionKinds[current.kind]}
           </p>
 
-          <p className="text-[17px] text-[var(--color-text)] text-center max-w-[300px] leading-relaxed mb-4">
-            {isEn ? current.textEn : current.text}
-          </p>
+          {current.image ? (
+            <img src={current.image} alt={isEn ? current.textEn : current.text} className="rounded-[var(--radius-lg)] max-w-[300px] w-full max-h-[48vh] object-contain mb-4" data-testid="distraction-image" />
+          ) : (
+            <p className="text-[17px] text-[var(--color-text)] text-center max-w-[300px] leading-relaxed mb-4 whitespace-pre-line">
+              {isEn ? current.textEn : current.text}
+            </p>
+          )}
 
           {/* "Brueckenwoerter wirklich selbst erraten und eingeben, nicht aus
            * Optionen waehlen"-Auftrag — brueckenwort always gets the

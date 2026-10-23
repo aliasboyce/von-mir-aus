@@ -3,6 +3,7 @@ import { buildDate, feedbackTemplate, isIos, isStandalone } from '../../services
 import { TesterThanks } from '../../components/shared/TesterThanks';
 import { QuickFeedbackSheet } from '../../components/shared/QuickFeedbackSheet';
 import { StartGuideModal, startGuideLabel } from '../../components/shared/StartGuide';
+import { TestPhaseNote } from '../../components/shared/TestPhaseNote';
 import { CORE_COUNT, TOUR_STOPS, tourExtrasModeStore, tourIndexStore, tourStyleStore } from '../../components/companion/tourData';
 import { useEffect, useRef, useState } from 'react';
 import { buildDailyRemindersIcs } from '../../services/icsExport';
@@ -184,6 +185,49 @@ export function SettingsPage() {
     resetAllAppData();
     window.location.reload();
   }
+
+  const renderBeingCell = (being: (typeof allBeings)[number]) => {
+                  const selected = settings.selectedBrainId === being.id;
+                  const isCustom = !!customLichtwesenRepo.getById(being.id);
+                  return (
+                    <div key={being.id} className="relative flex flex-col items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => updateSettings({ selectedBrainId: being.id })}
+                        aria-pressed={selected}
+                        className="flex flex-col items-center gap-1"
+                      >
+                        <span
+                          className="rounded-full p-1"
+                          style={{ border: selected ? `2px solid ${being.color}` : '2px solid transparent' }}
+                        >
+                          {being.animal && getAnimal(being.animal.species) ? (
+                            <AnimalFigure animal={getAnimal(being.animal.species)!} look={lookOf(being)} age={1} size={36} inert />
+                          ) : (
+                            <svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true">
+                              <circle cx="50" cy="52" r="30" fill={being.color} />
+                              <circle cx="50" cy="52" r="17" fill="#fff" />
+                              <LichtwesenEyes style={being.eyeStyle} color={being.color} blinking={false} />
+                            </svg>
+                          )}
+                        </span>
+                        <span className="text-[10px] text-[var(--color-text-muted)] truncate max-w-full" style={{ fontFamily: 'var(--font-companion)', fontWeight: 600 }}>
+                          {being.name}
+                        </span>
+                      </button>
+                      {isCustom && (
+                        <button
+                          type="button"
+                          onClick={() => (being.animal ? setEditingAnimal(being) : setEditingBeing(being))}
+                          aria-label={`${t.common.edit}: ${being.name}`}
+                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center"
+                        >
+                          <Pencil size={9} className="text-[var(--color-text-muted)]" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                };
 
   return (
     <div className="animate-in">
@@ -440,16 +484,9 @@ export function SettingsPage() {
           />
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.soundsHint}</p>
           {getAnyLichtwesen(settings.selectedBrainId).animal && (
-            <div className="mt-3 pt-3 border-t border-[var(--color-border)]" data-testid="animal-sounds-row">
-              <ToggleRow
-                label={settings.language === 'en' ? 'Quiet animal sounds' : 'Leise Tierlaute'}
-                checked={settings.animalSoundsEnabled !== false}
-                onChange={(v) => updateSettings({ animalSoundsEnabled: v })}
-              />
-              <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">
-                {settings.language === 'en' ? 'Your animal makes a very soft little sound of its own when you tap it. Switch off and it stays silent (the other sounds stay as they are).' : 'Dein Tier macht beim Antippen einen ganz leisen, eigenen Laut. Ausgeschaltet bleibt es still (die anderen Töne bleiben wie sie sind).'}
-              </p>
-            </div>
+            <p className="text-[12px] text-[var(--color-text-faint)] mt-3 pt-3 border-t border-[var(--color-border)] leading-relaxed" data-testid="animal-silent-note">
+              {settings.language === 'en' ? 'Your animal companion makes no sounds at all – pets are completely silent.' : 'Dein Haustier-Begleiter macht gar keine Geräusche – Haustiere sind ganz ohne Ton.'}
+            </p>
           )}
         </Card>
 
@@ -484,6 +521,11 @@ export function SettingsPage() {
             onChange={(v) => updateSettings({ brainEnabled: v })}
           />
           <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mt-1.5 mb-1">{t.companionAbout.sleepInlineReassurance}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mb-1" data-testid="wesen-begleiter-note">
+            {settings.language === 'en'
+              ? 'Being and companion do exactly the same – if you prefer animals, choose one below instead of a being. You can switch the companion off completely (toggle above).'
+              : 'Wesen und Begleiter machen genau dasselbe – wer lieber Tiere mag, wählt unten ein Tier statt eines Wesens. Den Begleiter kannst du ganz ausschalten (Schalter oben).'}
+          </p>
           {settings.brainEnabled && (
             <div className="pt-3 mt-1 border-t border-[var(--color-border)]">
               <ToggleRow
@@ -552,49 +594,8 @@ export function SettingsPage() {
                   <Plus size={13} /> {t.companion.createOwn}
                 </button>
               </div>
-              <div className="grid grid-cols-5 gap-3">
-                {allBeings.map((being) => {
-                  const selected = settings.selectedBrainId === being.id;
-                  const isCustom = !!customLichtwesenRepo.getById(being.id);
-                  return (
-                    <div key={being.id} className="relative flex flex-col items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => updateSettings({ selectedBrainId: being.id })}
-                        aria-pressed={selected}
-                        className="flex flex-col items-center gap-1"
-                      >
-                        <span
-                          className="rounded-full p-1"
-                          style={{ border: selected ? `2px solid ${being.color}` : '2px solid transparent' }}
-                        >
-                          {being.animal && getAnimal(being.animal.species) ? (
-                            <AnimalFigure animal={getAnimal(being.animal.species)!} look={lookOf(being)} age={1} size={36} inert />
-                          ) : (
-                            <svg viewBox="0 0 100 100" width="34" height="34" aria-hidden="true">
-                              <circle cx="50" cy="52" r="30" fill={being.color} />
-                              <circle cx="50" cy="52" r="17" fill="#fff" />
-                              <LichtwesenEyes style={being.eyeStyle} color={being.color} blinking={false} />
-                            </svg>
-                          )}
-                        </span>
-                        <span className="text-[10px] text-[var(--color-text-muted)] truncate max-w-full" style={{ fontFamily: 'var(--font-companion)', fontWeight: 600 }}>
-                          {being.name}
-                        </span>
-                      </button>
-                      {isCustom && (
-                        <button
-                          type="button"
-                          onClick={() => (being.animal ? setEditingAnimal(being) : setEditingBeing(being))}
-                          aria-label={`${t.common.edit}: ${being.name}`}
-                          className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center"
-                        >
-                          <Pencil size={9} className="text-[var(--color-text-muted)]" />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-5 gap-3" data-testid="wesen-grid">
+                {allBeings.filter((b) => !b.animal).map((being) => renderBeingCell(being))}
               </div>
 
               <div className="pt-3 mt-3 border-t border-[var(--color-border)]" data-testid="animal-section">
@@ -604,6 +605,18 @@ export function SettingsPage() {
                     ? 'Tap an animal to set it up – name, colours, little extras. It moves in as a baby and grows with the days you use the app.'
                     : 'Tippe ein Tier an, um es einzurichten – Name, Farben, kleine Extras. Es zieht als Baby ein und wächst mit den Tagen, an denen du die App nutzt.'}
                 </p>
+                <p className="text-[12px] text-[var(--color-text-muted)] leading-relaxed mb-3" data-testid="animal-silent-info">
+                  {settings.language === 'en' ? 'Animal companions are completely silent – they make no sounds at all.' : 'Haustier-Begleiter sind ganz ohne Geräusche – sie machen gar keinen Ton.'}
+                </p>
+                {allBeings.some((b) => b.animal) && (
+                  <div className="mb-4" data-testid="my-animals">
+                    <p className="text-[12px] font-medium text-[var(--color-text-muted)] mb-2">{settings.language === 'en' ? 'My animals' : 'Meine Tiere'}</p>
+                    <div className="grid grid-cols-5 gap-3">
+                      {allBeings.filter((b) => b.animal).map((being) => renderBeingCell(being))}
+                    </div>
+                  </div>
+                )}
+                <p className="text-[12px] font-medium text-[var(--color-text-muted)] mb-2">{settings.language === 'en' ? 'Set up a new animal' : 'Neues Tier einrichten'}</p>
                 <AnimalPicker en={settings.language === 'en'} onPick={(a) => setSetupSpecies(a.id)} />
                 <GrowthSetting />
               </div>
@@ -828,6 +841,7 @@ export function SettingsPage() {
 
         {/* ================= Test-Version: Installieren & Rückmeldung ================= */}
         <SectionLabel>🧪 {settings.language === 'en' ? 'Test version' : 'Test-Version'}</SectionLabel>
+        <TestPhaseNote className="mb-3 !text-left" />
         <Card padding="md" className="mb-3" data-testid="test-card">
           <div className="mb-3">
             <TesterThanks compact />
@@ -855,7 +869,7 @@ export function SettingsPage() {
             </div>
           )}
           <button type="button" className="mt-3 mr-2 py-2.5 px-4 rounded-[var(--radius-md)] text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" onClick={() => setQuickFbOpen(true)} data-testid="quick-feedback-open">
-            💬 {settings.language === 'en' ? 'Quick feedback (one tap)' : 'Kurz-Rückmeldung (ein Tipp)'}
+            💬 {settings.language === 'en' ? 'Quick note to Boycie (one tap)' : 'Kurz was an Boycie melden (ein Tipp)'}
           </button>
           {quickFbOpen && <QuickFeedbackSheet open onClose={() => setQuickFbOpen(false)} />}
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-2">

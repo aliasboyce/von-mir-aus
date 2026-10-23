@@ -333,6 +333,8 @@ export const COMPANION_LINES: CompanionLine[] = [
   { id: 'hum-39', text: 'Man reiche mir die Tür … ich möchte gehen.', textEn: "Pass me the door, would you … I'd like to leave.", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
   { id: 'hum-40', text: 'Brenn mir mal den Film, den du da gerade schiebst.', textEn: "Burn me a copy of whatever's playing in your head right now.", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
   { id: 'hum-41', text: 'Mein Bezug zur Realität ist gerade in der Wäsche!', textEn: "My grip on reality is currently in the wash!", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-42', text: 'Ich mache kein Prokrastinieren, ich mache nur extrem wichtige Side-Quests.', textEn: "I'm not procrastinating, I'm just doing extremely important side quests.", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
+  { id: 'hum-43', text: 'Ich habe heute so viel geschafft: Ich habe geatmet. Mehrfach. Reicht dann auch.', textEn: "I got so much done today: I breathed. Several times. That's enough.", category: 'humorvoll', page: '*', trigger: 'leerlauf' },
   { id: 'trans-1', text: 'Gut. Weiter geht\u2019s.', textEn: 'Good. Onward.', category: 'feedback', page: '*', trigger: 'speichern' },
   { id: 'trans-2', text: 'Alles gespeichert.', textEn: 'All saved.', category: 'feedback', page: '*', trigger: 'speichern' },
   { id: 'trans-3', text: 'Das ist notiert.', textEn: 'Noted.', category: 'feedback', page: '*', trigger: 'speichern' },

@@ -9,6 +9,9 @@ import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { UsageCheckInPrompt } from './UsageCheckInPrompt';
 import { LichtCompanion } from './LichtCompanion';
+import { getAnyLichtwesen } from './customLichtwesen';
+import { LICHTWESEN } from './lichtwesen';
+import { gameCategoryFor, pickGameSentence, GAME_INSIDER_NOTE, GAME_INSIDER_NOTE_EN } from './gameSentences';
 
 /**
  * "Spiel wie das Chrome-Dino-Spiel, mit dem Wesen"-Auftrag — replaces
@@ -204,6 +207,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
   const [highScore, setHighScore] = useState(() => highScoreStore.get());
   const [gameOverUi, setGameOverUi] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [endSentence, setEndSentence] = useState('');
 
   function jump() {
     const s = stateRef.current;
@@ -268,6 +272,8 @@ export function DinoGame({ onClose }: DinoGameProps) {
     setGameOverReason(reason);
     const finalScoreVal = Math.floor(s.score);
     setFinalScore(finalScoreVal);
+    // the end-of-round line depends on how long this run lasted
+    setEndSentence(pickGameSentence(gameCategoryFor(s.elapsedMs / 1000)));
     if (finalScoreVal > highScoreStore.get()) {
       highScoreStore.set(finalScoreVal);
       setHighScore(finalScoreVal);
@@ -593,6 +599,10 @@ export function DinoGame({ onClose }: DinoGameProps) {
   }, [settings]);
 
   const s = stateRef.current;
+  // the game only ever runs with a light being (the animals are not made for it): the chosen one, or the first if an animal is chosen
+  const chosen = getAnyLichtwesen(settings.selectedBrainId);
+  const runner = chosen.animal ? LICHTWESEN[0] : chosen;
+  const insiderNote = settings.language === 'en' ? GAME_INSIDER_NOTE_EN : GAME_INSIDER_NOTE;
   const { S, H, k, portrait } = layout;
   const groundNow = H - GROUND_MARGIN - (portrait ? 96 / S : 0);
   const companionBaseY = groundNow - COMPANION_SIZE;
@@ -656,7 +666,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
             className="absolute top-0 left-0 pointer-events-none"
             style={{ width: 76, height: 76, transformOrigin: 'top left', transform: `translate(${COMPANION_X}px, ${companionBaseY}px) scale(${COMPANION_DISPLAY_SCALE})` }}
           >
-            <LichtCompanion size="small" sleepStateOverride={s.onGround ? 'awake' : undefined} />
+            <LichtCompanion size="small" beingOverride={runner} sleepStateOverride={s.onGround ? 'awake' : undefined} />
           </div>
         </div>
         {s.started && !gameOverUi && (
@@ -673,7 +683,10 @@ export function DinoGame({ onClose }: DinoGameProps) {
         )}
         {!s.started && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p className="text-[14px] text-[var(--color-text-muted)] bg-[var(--color-surface)] px-3 py-1.5 rounded-full">{t.dinoGame.tapToStart}</p>
+            <div className="flex flex-col items-center gap-2 px-6">
+              <p className="text-[14px] text-[var(--color-text-muted)] bg-[var(--color-surface)] px-3 py-1.5 rounded-full">{t.dinoGame.tapToStart}</p>
+              <p className="text-[11.5px] text-[var(--color-text-muted)] bg-[var(--color-surface)]/90 px-3 py-1.5 rounded-[14px] text-center leading-snug max-w-[300px]" data-testid="game-insider-note">{insiderNote}</p>
+            </div>
           </div>
         )}
         {gameOverUi && (
@@ -682,6 +695,10 @@ export function DinoGame({ onClose }: DinoGameProps) {
               {gameOverReason === 'timeout' ? t.dinoGame.timeUp : t.dinoGame.gameOver}
             </p>
             <p className="text-[13px] text-[var(--color-text-muted)]">{t.dinoGame.scoreLabel.replace('{score}', String(finalScore))}</p>
+            {endSentence && (
+              <p className="text-[15px] text-[var(--color-text)] text-center leading-snug px-6 max-w-[320px] whitespace-pre-line" style={{ fontFamily: 'var(--font-companion)' }} data-testid="game-end-sentence">{endSentence}</p>
+            )}
+            <p className="text-[10.5px] text-[var(--color-text-faint)] text-center leading-snug px-6 max-w-[300px]" data-testid="game-insider-note-end">{insiderNote}</p>
             <button
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {

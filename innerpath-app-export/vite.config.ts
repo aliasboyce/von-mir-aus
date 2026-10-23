@@ -27,7 +27,7 @@ export default defineConfig({
       name: 'write-precache-list',
       closeBundle() {
         const list = ['/index.html']
-        for (const dir of ['assets', 'icons']) {
+        for (const dir of ['assets', 'icons', 'ablenkung']) {
           if (existsSync(`dist/${dir}`)) for (const f of readdirSync(`dist/${dir}`)) list.push(`/${dir}/${f}`)
         }
         writeFileSync('dist/precache.json', JSON.stringify(list))

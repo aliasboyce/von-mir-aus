@@ -150,3 +150,5 @@ export function isAndroid(): boolean {
 /** Anonymous feedback form for the test phase (Tally). Set TEST_PHASE to false to hide every mention later. */
 export const TEST_FEEDBACK_URL = 'https://tally.so/r/YjDWG0';
 export const TEST_PHASE = true;
+/** The mail address "Kurz was an Boycie melden" goes to – shown in the quick-feedback sheet as soon as it is set (still to do: set the address). */
+export const QUICK_FEEDBACK_MAIL = '';

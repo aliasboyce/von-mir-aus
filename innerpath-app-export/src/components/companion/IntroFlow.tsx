@@ -233,7 +233,7 @@ export function IntroFlow() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in">
+    <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" style={{ overflowX: 'clip' }}>
       <div className="flex items-center justify-between mb-8">
         {step > 0 ? (
           <button
@@ -266,7 +266,7 @@ export function IntroFlow() {
               const pos = positions[i];
               if (!pos) return null;
               return (
-                <div key={b.id} className="absolute flex flex-col items-center opacity-40" style={{ ...pos, transform: 'scale(0.78)', transformOrigin: 'top center' }}>
+                <div key={b.id} className="absolute flex flex-col items-center opacity-40" style={{ ...pos, transform: `scale(${b.animal ? 0.6 : 0.78})`, transformOrigin: 'top center' }}>
                   <LichtCompanion size="small" beingOverride={b} />
                   <span className="text-[10px] mt-0.5" style={{ color: b.color, fontFamily: 'var(--font-companion)' }}>
                     {b.name}

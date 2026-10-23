@@ -1,5 +1,6 @@
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { TestPhaseNote } from './TestPhaseNote';
 import { useSettings } from '../../state/SettingsContext';
 
 const TXT = {
@@ -54,6 +55,7 @@ export function StartGuideContent() {
         </div>
       ))}
       <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed">{T.again}</p>
+      <TestPhaseNote />
     </div>
   );
 }

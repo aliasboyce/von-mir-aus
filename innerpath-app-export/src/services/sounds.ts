@@ -1,5 +1,4 @@
 import type { UserSettings } from '../data/types';
-import { scheduleAnimalVoice } from './animalSounds';
 
 /**
  * "Leichte sanfte Toene / ASMR-Klick"-Auftrag — a pure sine "beep" (the
@@ -320,21 +319,17 @@ function scheduleWakeHmm(audioCtx: AudioContext) {
 type CompanionSoundKind = 'giggle' | 'sleep' | 'wake';
 
 /**
- * `species` set = an animal is the companion: it gets its own quiet voice instead of the light-being sounds
- * (or stays silent when animal sounds are switched off in the settings).
+ * `species` set = an animal (pet) is the companion: pets are completely silent – they make no sounds at all,
+ * and they do not borrow the light-being sounds either.
  */
-export function playCompanionSound(kind: CompanionSoundKind, settings: Pick<UserSettings, 'soundsEnabled'> & { animalSoundsEnabled?: boolean }, species?: string) {
+export function playCompanionSound(kind: CompanionSoundKind, settings: Pick<UserSettings, 'soundsEnabled'>, species?: string) {
   if (!settings.soundsEnabled) return;
-  if (species && settings.animalSoundsEnabled === false) return;
+  if (species) return;
   const audioCtx = getContext();
   if (!audioCtx) return;
   function schedule() {
     if (!audioCtx) return;
     try {
-      if (species) {
-        if (scheduleAnimalVoice(audioCtx, species, kind === 'giggle' ? 'tap' : kind)) return;
-        return; // an animal without a voice stays quiet rather than using the light-being sounds
-      }
       if (kind === 'giggle') scheduleGiggle(audioCtx);
       else if (kind === 'sleep') scheduleSleepSigh(audioCtx);
       else scheduleWakeHmm(audioCtx);

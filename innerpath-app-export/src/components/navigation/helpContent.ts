@@ -803,12 +803,16 @@ You can send the companion away and call it back with a button on the start page
 Instead of a light being, an animal can accompany you – from wolf to dragon, corgi, parrot or little songbird, each in three natural colourings. Tap an animal under "Begleittiere" and set it up: name, colour, a little extra to wear (general ones like bow, scarf, crown, flower, glasses, cap – and ones just for your species, e.g. a collar for the dog or a graduation cap for the owl; a harness for dogs), something to hold or have with it (e.g. a bone, a book – the otter holds a shell, stone, fish, starfish or pearl, the crow a coin, diamond, key, ring or pearl) and how it talks. The animal moves in as a baby and grows with the days you do anything in the app – after 30 such days it is fully grown. That is not a streak: pauses are fine, it never shrinks, and you can also keep it grown or a baby. When sent away or called back it moves its own way (the dog gallops, the goose waddles, the parrot flies).`,
   },
   wesenInhalte: {
-    title: `Wesen-Inhalte`,
-    titleEn: `Companion Content`,
-    body: `Hier verwaltest du, was das Wesen sagen und zeigen kann: Mitteilungen, Tipps, Ablenkungsinhalte und die Orientierungsübung.
+    title: `Wesen/Begleiter-Inhalte`,
+    titleEn: `Being/companion content`,
+    body: `Hier verwaltest du, was dein Wesen oder dein Begleiter sagen und zeigen kann: Mitteilungen, Tipps, Ablenkungsinhalte und die Orientierungsübung.
+
+Wesen und Begleiter sind dasselbe und machen genau dasselbe – wer lieber Tiere mag, wählt in den Einstellungen ein Tier. Tiere sind ganz ohne Geräusche. Alles lässt sich ganz ausschalten: die Nachrichten hier, den Begleiter selbst unter „Begleiter anzeigen“ in den Einstellungen.
 
 Du kannst einzelne Inhalte abschalten und eigene hinzufügen.`,
-    bodyEn: `Here you manage what the companion can say and show: messages, tips, distraction content and the grounding exercise.
+    bodyEn: `Here you manage what your being or companion can say and show: messages, tips, distraction content and the grounding exercise.
+
+Being and companion are the same thing and do exactly the same – if you prefer animals, pick an animal in the settings. Animals are completely silent. Everything can be switched off: the messages here, the companion itself under "Show companion" in the settings.
 
 You can switch off individual items and add your own.`,
   },

@@ -1,4 +1,4 @@
-export type DistractionKind = 'fakt' | 'frage' | 'raetsel' | 'entweder_oder' | 'beobachtung' | 'brueckenwort' | 'wissen';
+export type DistractionKind = 'fakt' | 'frage' | 'raetsel' | 'entweder_oder' | 'beobachtung' | 'brueckenwort' | 'wissen' | 'bild';
 
 export type DistractionCategory = 'raetsel' | 'brueckenwoerter' | 'rechnen' | 'sudoku' | 'nachdenken' | 'fakten' | 'allgemeinwissen' | 'vokabeln' | 'alles';
 
@@ -39,6 +39,8 @@ export interface DistractionItem {
    * directly. */
   answer?: string;
   answerEn?: string;
+  /** a picture (path under /public) shown instead of text – only used by kind 'bild' ("Überrasch mich") */
+  image?: string;
   /** A short "why" shown alongside the answer once revealed — the
    * difference between "here's the answer" and "here's the answer, and
    * here's the reasoning that gets you there", which the brief
@@ -1150,6 +1152,21 @@ export const DISTRACTION_ITEMS: DistractionItem[] = [
     answerEn: 'POINT — highlight/climax, score.',
     difficulty: 'schwer',
   },
+
+  // ---- Fragen zum Nachdenken: Sprüche zum Mitnehmen ----
+  { kind: 'frage', text: 'IF YOU FEEL CALMER\n\nWITHOUT THEM, THAT\'S\nTHE ANSWER.', textEn: 'IF YOU FEEL CALMER\n\nWITHOUT THEM, THAT\'S\nTHE ANSWER.' },
+  { kind: 'frage', text: 'Ich habe deine Frage gehört.\n\nIch sehe keinen Grund,\nsie zu beantworten.', textEn: 'I heard your question.\n\nI see no reason\nto answer it.' },
+  { kind: 'frage', text: 'DANCE\nit\'s\n\ncheaper\nthan\n\ntherapy\n:)', textEn: 'DANCE\nit\'s\n\ncheaper\nthan\n\ntherapy\n:)' },
+
+  // ---- Bilder ("Überrasch mich"): kommen nur dort zufällig vor ----
+  { kind: 'bild', image: '/ablenkung/bild-1.jpg', text: 'Bild: Kauz mit schief gelegtem Kopf – „Yep! Looks like bullshit from this angle too!“', textEn: 'Picture: owl with its head tilted – "Yep! Looks like bullshit from this angle too!"' },
+  { kind: 'bild', image: '/ablenkung/bild-2.jpg', text: 'Bild: Taube – „Das ist Taube. Sei wie Taube. Scheiß auf alles.“', textEn: 'Picture: pigeon – "This is pigeon. Be like pigeon. Screw everything."' },
+  { kind: 'bild', image: '/ablenkung/bild-3.jpg', text: 'Bild: zwei Otter Hand in Hand – „Du und ich, Hand in Hand, auf dem Weg zum Dönerstand.“', textEn: 'Picture: two otters holding hands – "You and me, hand in hand, on the way to the kebab stand."' },
+  { kind: 'bild', image: '/ablenkung/bild-4.jpg', text: 'Bild: Mann mit Schleife auf der Mütze – „Hör auf die Stimme“', textEn: 'Picture: man with a bow on his cap – "Listen to the voice"' },
+  { kind: 'bild', image: '/ablenkung/bild-5.jpg', text: 'Bild: Frosch am Telefon – „Hallo? Bullshit-Abteilung? Wir haben einen Notfall!“', textEn: 'Picture: frog on the phone – "Hello? Bullshit department? We have an emergency!"' },
+  { kind: 'bild', image: '/ablenkung/bild-6.jpg', text: 'Bild: Puppe schreibt Tagebuch – „dear diary what the fuck“', textEn: 'Picture: doll writing in her diary – "dear diary what the fuck"' },
+  { kind: 'bild', image: '/ablenkung/bild-7.jpg', text: 'Bild: Lemur mit ausgebreiteten Armen – „I\'m about to lose it lose it“', textEn: 'Picture: lemur with arms spread – "I\'m about to lose it lose it"' },
+  { kind: 'bild', image: '/ablenkung/bild-8.jpg', text: 'Bild: Puppe mit roten Federn auf dem Kopf und Schürze, schaut ratlos', textEn: 'Picture: puppet with red feathers on its head and an apron, looking puzzled' },
 
   // ---- Small observation tasks ----
   { kind: 'beobachtung', text: 'Schau dich kurz um: Wie viele verschiedene Farben kannst du in den nächsten 10 Sekunden entdecken?', textEn: 'Look around for a moment: how many different colors can you spot in the next 10 seconds?' },

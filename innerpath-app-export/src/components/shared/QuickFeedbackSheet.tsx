@@ -4,11 +4,12 @@ import { useLocation } from 'react-router-dom';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { useSettings } from '../../state/SettingsContext';
-import { TEST_FEEDBACK_URL, quickFeedbackText, type QuickFeedbackKind } from '../../services/testSupport';
+import { TEST_FEEDBACK_URL, QUICK_FEEDBACK_MAIL, quickFeedbackText, type QuickFeedbackKind } from '../../services/testSupport';
 
 const TXT = {
   de: {
-    title: 'Kurz-Rückmeldung',
+    title: 'Kurz was an Boycie melden',
+    goesTo: 'Das geht an Boycie:',
     sub: 'Ein Tipp reicht. Alles andere ist freiwillig.',
     options: { helps: 'Das hilft', weighs: 'Das drückt / stört', missing: 'Das fehlt mir', broken: 'Das geht nicht' } as Record<QuickFeedbackKind, string>,
     notePh: 'Wenn du magst: ein Satz dazu …',
@@ -21,7 +22,8 @@ const TXT = {
     close: 'Schließen',
   },
   en: {
-    title: 'Quick feedback',
+    title: 'Quick note to Boycie',
+    goesTo: 'This goes to Boycie:',
     sub: 'One tap is enough. Everything else is optional.',
     options: { helps: 'This helps', weighs: 'This weighs on me / bothers me', missing: 'I miss something', broken: 'This does not work' } as Record<QuickFeedbackKind, string>,
     notePh: 'If you like: one sentence …',
@@ -97,6 +99,9 @@ export function QuickFeedbackSheet({ open, onClose }: { open: boolean; onClose: 
             <p className="text-[11.5px] text-[var(--color-text-faint)] leading-snug mb-3">{T.context}</p>
             <Button fullWidth onClick={send} disabled={!kind && !note.trim()} data-testid="quick-feedback-send">{T.send}</Button>
             <p className="text-[11.5px] text-[var(--color-text-faint)] leading-snug mt-2">{T.sendHint}</p>
+            {QUICK_FEEDBACK_MAIL && (
+              <p className="text-[12.5px] text-[var(--color-text-muted)] mt-2" data-testid="quick-feedback-mail">{T.goesTo} <a href={`mailto:${QUICK_FEEDBACK_MAIL}`} className="underline text-[var(--color-primary)]">{QUICK_FEEDBACK_MAIL}</a></p>
+            )}
           </>
         ) : (
           <div className="text-center py-4">

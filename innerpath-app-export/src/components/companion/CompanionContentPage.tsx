@@ -208,6 +208,11 @@ export function CompanionContentPage() {
         <h1 className="text-[24px] mb-1">{t.companionContent.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{t.companionContent.subtitle}</p>
 
+        <Card className="mb-4" padding="md" data-testid="cc-same-thing">
+          <p className="text-[14px] text-[var(--color-text)] mb-1">{t.companionContent.sameThingTitle}</p>
+          <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed">{t.companionContent.sameThingText}</p>
+        </Card>
+
         <Card className="mb-4" padding="md">
           <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" className="mt-1 w-4 h-4 accent-[var(--color-primary)]" checked={!!settings.companionQuiet} onChange={(e) => updateSettings({ companionQuiet: e.target.checked })} data-testid="cc-quiet" />

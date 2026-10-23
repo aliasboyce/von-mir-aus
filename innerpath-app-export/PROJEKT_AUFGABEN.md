@@ -553,7 +553,9 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Einfaches Spiel mit dem Wesen (z. B. Hüpfen)
 - Low-Capacity-Prinzip: Oberfläche passt sich interaktionsbasiert an geringere Kapazität an
 - Mehr Sprüche-Vorlagen und mehr Prompt-Vorlagen
-- Insider-Texte fürs Wesen-Spiel (liefert der Nutzer später)
+- Weitere Insider-Texte fürs Wesen-Spiel (die ersten Sätze nach Zeit-Kategorien sind drin: <8 s / 8–20 s / 20–35 s / ab 35 s — Schwellen mit dem Nutzer abstimmen)
+- Mail-Adresse für „Kurz was an Boycie melden“ eintragen (QUICK_FEEDBACK_MAIL in services/testSupport.ts; wird dann im Dialog angezeigt)
+- Rechte der 8 Ablenkungsbilder (public/ablenkung) klären, bevor die App über den geschlossenen Test hinaus verteilt wird (fremde Memes, Figuren, ein Foto einer realen Person)
 
 ## Grundsatzprinzipien (als Leitlinie bei jeder künftigen Entscheidung)
 - Resonanz statt Optimierung, Wahl statt Zwang, Zugang statt Leistung

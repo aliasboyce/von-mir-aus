@@ -1004,8 +1004,6 @@ export interface UserSettings {
    * synthesized tone — no audio files, generated on the fly via the
    * Web Audio API, so there's nothing to source/host/license. */
   soundsEnabled: boolean;
-  /** quiet animal voices for animal companions (on unless switched off) */
-  animalSoundsEnabled?: boolean;
   brainEnabled: boolean;
   brainState: BrainState;
   /** "Hilfsmittel in den Weg legen": the Wesen shows one of the person's own Ressourcen on the start page now and then. On unless switched off. */
