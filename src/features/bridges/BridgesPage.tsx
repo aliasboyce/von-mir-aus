@@ -1,3 +1,4 @@
+import { SearchButton } from '../../components/navigation/SearchButton';
 import { useEffect, useMemo, useState } from 'react';
 import { goBack } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -140,6 +141,7 @@ export function BridgesPage() {
           <h1 className="text-[24px]">{t.bridges.title}</h1>
         </div>
         <div className="flex items-center gap-3">
+          <SearchButton />
           <HelpButton helpKey="bruecken" />
           {bridges.length > 0 && (
             <button

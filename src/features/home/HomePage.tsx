@@ -8,10 +8,10 @@ import { ImportantContactsStrip } from './ImportantContactsStrip';
 import { ResourceNudgeCard } from './ResourceNudgeCard';
 import { createPortal } from 'react-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { IntentPickerModal } from './IntentPickerModal';
-import { Settings2, X, Info, LifeBuoy, HeartHandshake, Mail, Compass, Pill, CalendarDays, Package } from 'lucide-react';
+import { Search, Settings2, X, Info, LifeBuoy, HeartHandshake, Mail, Compass, Pill, CalendarDays, Package } from 'lucide-react';
 import { dueUnopenedLetters, markLetterOpened, pendingLetterStore } from '../briefAnMich/lettersRepo';
 import type { LetterToSelf } from '../briefAnMich/lettersRepo';
 import { LetterEnvelope } from '../briefAnMich/LetterEnvelope';
@@ -38,6 +38,8 @@ import { WeatherExplainerModal } from '../innerWeather/WeatherExplainerModal';
 import { SkyAmbiance } from '../../components/shared/SkyAmbiance';
 import { PostfachButton, PostfachPanel, type LiveEntry } from './PostfachPanel';
 import { useMailbox, markMailRead } from '../../services/mailbox';
+import { useDueSlips } from '../parkbox/slipDelivery';
+import { SlipNotice } from '../parkbox/SlipNotice';
 import { FollowUpBody, isFollowUpMail } from '../calendar/FollowUpBody';
 import { ReviewMailBody, isReviewMail } from '../reviews/ReviewMailBody';
 
@@ -84,9 +86,19 @@ export function HomePage() {
   useRegisterModalOpen(showNurJetztExplainer);
   const [showIntentPicker, setShowIntentPicker] = useState(false);
   const [groundingOpen, setGroundingOpen] = useState(false);
+  // die Lupe kann die Orientierungsübung direkt öffnen
+  const homeLoc = useLocation();
+  const homeNav = useNavigate();
+  useEffect(() => {
+    if ((homeLoc.state as { openGrounding?: boolean } | null)?.openGrounding) {
+      setGroundingOpen(true);
+      homeNav('/', { replace: true, state: null });
+    }
+  }, [homeLoc.state, homeNav]);
   const [openLetter, setOpenLetter] = useState<LetterToSelf | null>(null);
   const [postfachOpen, setPostfachOpen] = useState(false);
   const { unread: unreadMail, prominent: prominentMail } = useMailbox();
+  const dueSlips = useDueSlips();
   const dueLetters = dueUnopenedLetters();
   const pendingToken = pendingLetterStore.get();
   const isEn = settings.language === 'en';
@@ -186,6 +198,9 @@ export function HomePage() {
   // One calm notice at a time (the rest waits in the Postfach) — a start page that shows
   // five pulsing cards at once overwhelms exactly the people it is for.
   const notices: { key: string; node: ReactNode }[] = [];
+  if (dueSlips.length > 0) {
+    notices.push({ key: 'slip', node: <SlipNotice key={dueSlips[0].id} note={dueSlips[0]} lang={isEn ? 'en' : 'de'} count={dueSlips.length} /> });
+  }
   if (dueLetters.length > 0) {
     notices.push({
       key: 'letter',
@@ -283,7 +298,7 @@ export function HomePage() {
     });
   }
   // letters first, then the rare backup reminder, then everything else
-  const rank = (k: string) => (k === 'letter' ? 0 : k === 'pending' ? 1 : k === 'backup' ? 2 : 3);
+  const rank = (k: string) => (k === 'slip' ? -1 : k === 'letter' ? 0 : k === 'pending' ? 1 : k === 'backup' ? 2 : 3);
   const shownNotices = settings.tourActive ? [] : [...notices].sort((x, y) => rank(x.key) - rank(y.key));
 
   const chip = 'flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]';
@@ -299,6 +314,14 @@ export function HomePage() {
           </h1>
         </div>
         <div className="flex items-center gap-1">
+          <Link
+            to="/suche"
+            aria-label={t.common.search}
+            data-testid="home-search"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+          >
+            <Search size={20} />
+          </Link>
           <PostfachButton count={postfachCount} open={postfachOpen} onToggle={() => setPostfachOpen((v) => !v)} />
           <HelpButton helpKey="home" />
           <Link

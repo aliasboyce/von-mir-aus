@@ -16,6 +16,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-lupe-3d',
+    date: '2026',
+    items: [
+      'Neu: die Lupe. Sie sucht in der ganzen App – nach Funktionen und nach allem, was du selbst geschrieben hast. Ein Wortteil reicht, kleine Tippfehler sind okay. Das Symbol steht oben auf den Seiten, am Computer geht Strg + K.',
+      '3D-Mindmap überarbeitet: ein Steuerkreuz zum Drehen, Schieben und Zoomen (auch am Handy), Ansicht einrasten, mehr Formen, Sprechblasen, Fotos, Hintergründe, Ebenen-Looks, Kamera, Rückgängig und „Stand festhalten“.',
+      'Eine flache Mindmap lässt sich als Kopie in 3D umwandeln – das Original bleibt, wie es ist.',
+      'Projekte sind wie kleine Webseiten mit eigenen Seiten, „Alles zeigen“, Protokoll, Schnellnotiz und Zettel-Box; PDFs mit allen Bildern.',
+    ],
+    itemsEn: [
+      'New: the magnifier. It searches the whole app – for functions and for everything you wrote yourself. A word part is enough, small typos are fine. The icon is at the top of the pages; on a computer press Ctrl + K.',
+      '3D mind map reworked: a control pad for turning, moving and zooming (on phones too), locking the view, more shapes, speech bubbles, photos, backgrounds, layer looks, camera, undo and "hold the current state".',
+      'A flat mind map can be turned into a 3D copy – the original stays as it is.',
+      'Projects are like small websites with their own pages, "Show all", log, quick note and slip box; PDFs with all images.',
+    ],
+  },
+  {
     id: '2026-projekte-3d',
     date: '2026',
     items: [

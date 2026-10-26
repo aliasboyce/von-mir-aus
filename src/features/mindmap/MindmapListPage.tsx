@@ -13,6 +13,8 @@ import { MindmapDrawing } from './MindmapScene';
 import { mindmapRepo, newMap, type MindMap, type Template } from './mindmapModel';
 import { descendantsOf } from './mindmapOps';
 import { NameModal } from './MindmapTools';
+import { deleteVersionsOf } from '../mindmap3d/mm3Versions';
+import { ConvertTo3dModal } from '../mindmap3d/ConvertTo3dModal';
 import { mindmapTexts } from './mindmapTexts';
 import { fmt, xt } from './mindmapExtraTexts';
 
@@ -31,6 +33,7 @@ export function MindmapListPage() {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [actionFor, setActionFor] = useState<string | null>(null);
+  const [convertFor, setConvertFor] = useState<string | null>(null);
   const [moveFor, setMoveFor] = useState<string | null>(null);
   const [subFor, setSubFor] = useState<string | null>(null);
   const [renameFolder, setRenameFolder] = useState<string | null>(null);
@@ -139,6 +142,7 @@ export function MindmapListPage() {
     if (!window.confirm(T.deleteMapConfirm)) return;
     maps.filter((x) => x.parentId === m.id).forEach((x) => mindmapRepo.save({ ...x, parentId: undefined }));
     mindmapRepo.remove(m.id);
+    deleteVersionsOf(m.id);
     setActionFor(null);
     reload();
   }
@@ -343,6 +347,7 @@ export function MindmapListPage() {
               ['move', X.actMove, () => setMoveFor(act.id)],
               ['sub', X.actSub, () => setSubFor(act.id)],
               ['dup', X.actDup, () => duplicate(act)],
+              ...(act.kind === '3d' ? [] : [['to3d', lang === 'en' ? 'Turn into 3D (copy)' : 'In 3D umwandeln (Kopie)', () => { setConvertFor(act.id); setActionFor(null); }] as [string, string, () => void]]),
               ['archive', X.actArchive, () => archive(act)],
               ['delete', X.actDelete, () => remove(act)],
             ] as [string, string, () => void][]).map(([id, label, run]) => (
@@ -353,6 +358,8 @@ export function MindmapListPage() {
           </div>
         )}
       </Modal>
+
+      <ConvertTo3dModal map={get(convertFor) ?? null} onClose={() => setConvertFor(null)} />
 
       <Modal open={!!mv} onClose={() => setMoveFor(null)} title={X.moveTitle} subtitle={mv?.title}>
         {mv && (

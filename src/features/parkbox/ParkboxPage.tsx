@@ -6,6 +6,9 @@ import { Button } from '../../components/ui/Button';
 import { useSettings } from '../../state/SettingsContext';
 import { createId } from '../../services/storage/repository';
 import { appointmentsRepo, calendarCategoriesRepo, dayKey, parseDay, type Appointment } from '../calendar/calendarRepo';
+import { AssignSheet } from './AssignSheet';
+import { SlipScheduler, formatDeliver } from './SlipScheduler';
+import { setSlipDelivery } from './slipDelivery';
 import { PAPER_COLORS, WAIT_CALENDAR_CATEGORY_ID, parkNotesRepo, waitItemsRepo, type ParkNote, type WaitItem, type WaitKind } from './parkboxRepo';
 
 type Prio = 1 | 2 | 3;
@@ -30,12 +33,16 @@ const TXT = {
     del: 'Löschen',
     delSure: 'Wirklich löschen?',
     toWait: 'Ins Wartezimmer',
+    assignTo: 'Zuordnen',
+    flies: 'fliegt',
+    assigned: 'Untergebracht – der Zettel ist aus der Box.',
+    scheduledOk: 'Der Zettel fliegt zur gewählten Zeit auf deine Startseite.',
     waitTitle: 'Wartezimmer',
     waitIntro: 'Ideen, Projekte und Dinge, die du dir wünschst – sie haben hier einen festen Platz und warten, bis ihre Zeit kommt. Du musst nicht alles heute machen, und nichts davon wird vergessen.',
     waitPlaceholder: 'Was möchte irgendwann passieren?',
     waitNeed: 'Welches Bedürfnis steckt dahinter? (optional)',
     waitAdd: 'In den Warteraum setzen',
-    kinds: { idee: '💡 Idee', projekt: '🧩 Projekt', aktivitaet: '🌿 Aktivität' } as Record<WaitKind, string>,
+    kinds: { idee: '💡 Idee', projekt: '🧩 Vorhaben', aktivitaet: '🌿 Aktivität' } as Record<WaitKind, string>,
     place: (n: number) => `Platz ${n}`,
     up: 'Weiter nach vorn',
     down: 'Weiter nach hinten',
@@ -74,12 +81,16 @@ const TXT = {
     del: 'Delete',
     delSure: 'Really delete?',
     toWait: 'To the waiting room',
+    assignTo: 'Assign',
+    flies: 'flies',
+    assigned: 'Placed – the slip has left the box.',
+    scheduledOk: 'The slip will fly onto your start page at the chosen time.',
     waitTitle: 'Waiting room',
     waitIntro: 'Ideas, projects and things you wish for – they have a fixed place here and wait until their time comes. You do not have to do everything today, and none of it is forgotten.',
     waitPlaceholder: 'What would you like to happen some day?',
     waitNeed: 'Which need is behind it? (optional)',
     waitAdd: 'Seat it in the waiting room',
-    kinds: { idee: '💡 Idea', projekt: '🧩 Project', aktivitaet: '🌿 Activity' } as Record<WaitKind, string>,
+    kinds: { idee: '💡 Idea', projekt: '🧩 Undertaking', aktivitaet: '🌿 Activity' } as Record<WaitKind, string>,
     place: (n: number) => `Seat ${n}`,
     up: 'Move forward',
     down: 'Move back',
@@ -143,6 +154,11 @@ export function ParkboxPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [delId, setDelId] = useState<string | null>(null);
+  const [assignNote, setAssignNote] = useState<ParkNote | null>(null);
+  const [assignWait, setAssignWait] = useState<WaitItem | null>(null);
+  const [schedNote, setSchedNote] = useState<ParkNote | null>(null);
+  const [msg, setMsg] = useState('');
+  const say = (m: string) => { setMsg(m); window.setTimeout(() => setMsg(''), 3200); };
 
   const [wTitle, setWTitle] = useState('');
   const [wKind, setWKind] = useState<WaitKind>('idee');
@@ -158,8 +174,8 @@ export function ParkboxPage() {
   const bumpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (bumpTimer.current) clearTimeout(bumpTimer.current); }, []);
 
-  const openNotes = useMemo(() => sortNotes(notes.filter((n) => !n.archived)), [notes]);
-  const archived = useMemo(() => sortNotes(notes.filter((n) => n.archived)), [notes]);
+  const openNotes = useMemo(() => sortNotes(notes.filter((n) => !n.archived && !n.projectId)), [notes]);
+  const archived = useMemo(() => sortNotes(notes.filter((n) => n.archived && !n.projectId)), [notes]);
   const appointments = appointmentsRepo.getAll();
   const apptOf = (w: WaitItem): Appointment | undefined => (w.appointmentId ? appointments.find((a) => a.id === w.appointmentId) : undefined);
   const waiting = wait.filter((w) => !apptOf(w));
@@ -312,6 +328,7 @@ export function ParkboxPage() {
           </div>
         ) : (
           <div className="flex flex-wrap gap-1.5 mt-2.5">
+            {!a && <button type="button" className={`${smallBtn} !bg-[#5f8fb0] !text-white !border-transparent`} onClick={() => setAssignWait(w)} data-testid="wait-assign-sheet">{T.assignTo} →</button>}
             <button type="button" className={smallBtn} onClick={() => openSlot(w)} data-testid="wait-assign"><CalendarPlus size={13} /> {a ? T.changeSlot : T.assign}</button>
             {a && <button type="button" className={smallBtn} onClick={() => unassign(w)}><RotateCcw size={13} /> {T.unassign}</button>}
             {!a && <button type="button" className={smallBtn} onClick={() => move(w.id, -1)} aria-label={T.up}><ArrowUp size={13} /></button>}
@@ -404,7 +421,9 @@ export function ParkboxPage() {
                     ))}
                     {tab === 'archive' && <span className="text-[11.5px] text-[#5c5842]">{T.prio[n.priority]}</span>}
                   </div>
+                  {n.deliverAt && !n.archived && <p className="text-[12px] mt-1 text-[#6b4a22]" data-testid="park-flies">✉️ {T.flies} {formatDeliver(n.deliverAt, settings.language === 'en' ? 'en' : 'de')}</p>}
                   <div className="flex flex-wrap gap-1.5 mt-2">
+                    {tab === 'open' && <button type="button" className={`${smallBtn} !bg-[#3d3a2e] !text-white`} onClick={() => setAssignNote(n)} data-testid="park-assign">{T.assignTo} →</button>}
                     <button type="button" className={smallBtn} onClick={() => { setEditId(n.id); setEditText(n.text); }} data-testid="park-edit"><Pencil size={13} /> {T.edit}</button>
                     {tab === 'open' ? (
                       <button type="button" className={smallBtn} onClick={() => updateNote(n.id, { archived: true })} data-testid="park-archive"><Archive size={13} /> {T.toArchive}</button>
@@ -465,6 +484,37 @@ export function ParkboxPage() {
           )}
         </section>
       </div>
+      {msg && <div className="fixed left-1/2 -translate-x-1/2 bottom-28 z-40 rounded-full px-4 py-2 text-[13.5px] text-white shadow-lg pointer-events-none" style={{ background: 'var(--color-text)' }} role="status" data-testid="park-toast">{msg}</div>}
+      {assignNote && (
+        <AssignSheet
+          text={assignNote.text}
+          source="note"
+          lang={settings.language === 'en' ? 'en' : 'de'}
+          onClose={() => setAssignNote(null)}
+          onAssigned={(m) => { removeNote(assignNote.id); setAssignNote(null); say(m); }}
+          onToWait={() => { noteToWaiting(assignNote); setAssignNote(null); }}
+          onPostfach={() => { setSchedNote(assignNote); setAssignNote(null); }}
+        />
+      )}
+      {schedNote && (
+        <SlipScheduler
+          lang={settings.language === 'en' ? 'en' : 'de'}
+          text={schedNote.text}
+          initial={schedNote.deliverAt}
+          onClose={() => setSchedNote(null)}
+          onSave={(at) => { setSlipDelivery(schedNote.id, at); setNotes(parkNotesRepo.getAll()); setSchedNote(null); say(T.scheduledOk); }}
+        />
+      )}
+      {assignWait && (
+        <AssignSheet
+          text={assignWait.title}
+          source="wait"
+          lang={settings.language === 'en' ? 'en' : 'de'}
+          onClose={() => setAssignWait(null)}
+          onAssigned={(m) => { removeWait(assignWait.id); setAssignWait(null); say(m); }}
+          onCalendarWait={() => { const w = assignWait; setAssignWait(null); openSlot(w); }}
+        />
+      )}
     </div>
   );
 }

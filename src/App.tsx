@@ -1,3 +1,4 @@
+import { SearchPage } from './features/search/SearchPage';
 import { LockGate } from './features/lock/LockGate';
 import { ParkboxPage } from './features/parkbox/ParkboxPage';
 import { NurJetztListPage } from './features/nurJetzt/NurJetztListPage';
@@ -90,6 +91,7 @@ function App() {
               <Routes>
               <Route element={<AppShell />}>
                 <Route path="/" element={<HomePage />} />
+                <Route path="/suche" element={<SearchPage />} />
                 <Route path="/krisenmodus" element={<CrisisModePage />} />
                 <Route path="/parkbox" element={<ParkboxPage />} />
                 <Route path="/nur-jetzt/:kind" element={<NurJetztListPage />} />
@@ -146,7 +148,7 @@ function App() {
                 <Route path="/entdecken/mindmap/importieren" element={<MindmapImportPage />} />
                 <Route path="/entdecken/mindmap/:id" element={<MindmapRoute />} />
                 <Route path="/entdecken/projekte" element={<ProjectsPage />} />
-                <Route path="/entdecken/projekte/:id" element={<ProjectPage />} />
+                <Route path="/entdecken/projekte/:id/*" element={<ProjectPage />} />
                 <Route path="/tag-beginnen" element={<DayFlowPage phase="start" />} />
                 <Route path="/tag-abschliessen" element={<DayFlowPage phase="end" />} />
                 <Route path="/entdecken/routinen" element={<Navigate to="/entdecken/garten" replace />} />

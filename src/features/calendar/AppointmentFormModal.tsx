@@ -9,6 +9,7 @@ import { networkRepo } from '../safetyNet/networkRepo';
 import { PersonAvatar } from './PersonAvatar';
 import { appointmentsRepo, calendarCategoriesRepo, pushHintSeenStore, type Appointment } from './calendarRepo';
 import { PushHintModal } from './PushHintModal';
+import { applyCalendarChange } from '../projects/projectCalendar';
 
 interface Props {
   open: boolean;
@@ -64,7 +65,18 @@ export function AppointmentFormModal({ open, appointment, defaults, onClose, onS
     onSaved(a);
   }
 
+  /** Projekt-Termin: nur Datum/Uhrzeit (oder „erledigt“) – das wird ins Projekt zurückgeschrieben */
+  function saveProjectAppt(done: boolean) {
+    if (!appointment?.projectId) return;
+    const ok = applyCalendarChange(appointment, done ? { done: true } : { date, time }, uiLang);
+    if (!ok) return;
+    const fresh = appointmentsRepo.getById(appointment.id);
+    // abgehakt: der Termin verschwindet aus dem Kalender (er ist im Projekt erledigt)
+    onSaved(fresh ?? { ...appointment, date, time });
+  }
+
   function handleSave() {
+    if (appointment?.projectId) { saveProjectAppt(false); return; }
     if (!effectiveTitle || !date) return;
     const now = new Date().toISOString();
     const base = appointment;
@@ -111,7 +123,7 @@ export function AppointmentFormModal({ open, appointment, defaults, onClose, onS
         <div className="flex flex-col gap-4 pb-2">
           {appointment?.projectId && (
             <div className="rounded-[var(--radius-md)] bg-[var(--color-primary-soft)] px-3 py-2.5 text-[13.5px] text-[var(--color-text)]" data-testid="appt-project-hint">
-              {uiLang === 'en' ? 'This date belongs to a project. Title, date and time are changed there.' : 'Dieser Termin gehört zu einem Projekt. Titel, Datum und Uhrzeit änderst du dort.'}
+              {uiLang === 'en' ? 'This date belongs to a project. You can move it or tick it off here – it is updated in the project, too.' : 'Dieser Termin gehört zu einem Projekt. Du kannst ihn hier verschieben oder abhaken – im Projekt ändert er sich mit.'}
               <button type="button" onClick={() => { onClose(); navigate(`/entdecken/projekte/${appointment.projectId}`); }} className="block mt-1.5 underline underline-offset-2 text-[var(--color-primary)]" data-testid="appt-open-project">{uiLang === 'en' ? 'Open project' : 'Projekt öffnen'}</button>
             </div>
           )}
@@ -121,13 +133,19 @@ export function AppointmentFormModal({ open, appointment, defaults, onClose, onS
 
           <div className="grid grid-cols-2 gap-3">
             <Field label={t.calendar.dateLabel}>
-              <input type="date" disabled={!!appointment?.projectId} className="input" value={date} onChange={(e) => setDate(e.target.value)} />
+              <input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
             </Field>
             <Field label={t.calendar.timeLabel}>
-              <input type="time" disabled={!!appointment?.projectId} className="input" value={time} onChange={(e) => setTime(e.target.value)} />
+              <input type="time" className="input" value={time} onChange={(e) => setTime(e.target.value)} />
             </Field>
           </div>
 
+          {appointment?.projectId && (
+            <button type="button" onClick={() => saveProjectAppt(true)} className="w-full rounded-full py-3 text-[15px] border-2 border-[var(--color-primary)] text-[var(--color-primary)]" data-testid="appt-project-done">
+              ✓ {uiLang === 'en' ? 'Tick off (done)' : 'Abhaken (erledigt)'}
+            </button>
+          )}
+          {!appointment?.projectId && (<>
           <div className="flex flex-col gap-1.5">
             <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.calendar.categoryLabel}</span>
             <div className="flex flex-wrap gap-2">
@@ -176,6 +194,7 @@ export function AppointmentFormModal({ open, appointment, defaults, onClose, onS
             </select>
             <span className="text-[11.5px] text-[var(--color-text-faint)]">{t.calendar.pushHintInline}</span>
           </Field>
+          </>)}
 
           <div className="flex gap-2 mt-1">
             <Button fullWidth onClick={handleSave} disabled={!effectiveTitle || !date}>
@@ -185,7 +204,7 @@ export function AppointmentFormModal({ open, appointment, defaults, onClose, onS
               {t.common.cancel}
             </Button>
           </div>
-          {appointment && onDeleted && (
+          {appointment && onDeleted && !appointment.projectId && (
             <button
               type="button"
               onClick={() => {

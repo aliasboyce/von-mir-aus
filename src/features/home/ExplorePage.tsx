@@ -1,3 +1,4 @@
+import { SearchButton } from '../../components/navigation/SearchButton';
 import { useState } from 'react';
 import { ExploreMap } from './ExploreMap';
 import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network, Sunrise, Moon, Workflow, FolderKanban } from 'lucide-react';
@@ -155,7 +156,10 @@ export function ExplorePage() {
     <div className="px-5 pt-8 pb-6 animate-in">
       <div className="flex items-start justify-between mb-1">
         <h1 className="text-[24px]">{t.nav.explore}</h1>
-        <HelpButton helpKey="entdecken" />
+        <div className="flex items-center gap-1">
+          <SearchButton />
+          <HelpButton helpKey="entdecken" />
+        </div>
       </div>
       <p className="text-[14px] text-[var(--color-text-muted)] mb-3">{t.resources.subtitle}</p>
       <PasteSharedButton className="mb-3" />

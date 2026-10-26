@@ -54,7 +54,7 @@ export interface ProjectTask {
 }
 export interface TasksBlock extends BlockBase { kind: 'tasks'; items: ProjectTask[]; view?: 'list' | 'board' }
 
-export interface MilestoneStep { id: string; text: string; done: boolean; date?: string }
+export interface MilestoneStep { id: string; text: string; done: boolean; date?: string; time?: string }
 export interface Milestone {
   id: string;
   title: string;
@@ -119,7 +119,7 @@ export interface LinksBlock extends BlockBase {
   projects: string[];
 }
 
-export interface ReminderItem { id: string; text: string; date: string; time: string; remind?: Remind }
+export interface ReminderItem { id: string; text: string; date: string; time: string; remind?: Remind; done?: boolean }
 export interface RemindersBlock extends BlockBase { kind: 'reminders'; items: ReminderItem[] }
 
 export interface ImageItem { id: string; src: string; caption?: string }
@@ -128,6 +128,30 @@ export interface ImagesBlock extends BlockBase { kind: 'images'; items: ImageIte
 export type ProjectBlock =
   | TextBlock | TasksBlock | TimelineBlock | TeamBlock | BudgetBlock | ChecklistBlock | RisksBlock | DecisionsBlock
   | PollBlock | ProsConsBlock | TableBlock | LinksBlock | RemindersBlock | ImagesBlock;
+
+/** Ein „nächster Schritt“ – klein, mit Zeitstempel; kann (mit Uhrzeit) in den Kalender übernommen werden. */
+export interface ProjectStep {
+  id: string;
+  text: string;
+  createdAt: string;
+  done: boolean;
+  doneAt?: string;
+  date?: string;
+  time?: string;
+  remind?: Remind;
+}
+
+/** Protokoll: Einträge mit Datum und Uhrzeit, teils automatisch, teils von Hand. */
+export type LogKind = 'created' | 'step' | 'task' | 'insight' | 'note' | 'milestone' | 'status' | 'done' | 'box' | 'decision';
+export interface LogEntry {
+  id: string;
+  /** ISO-Zeitpunkt */
+  at: string;
+  kind: LogKind;
+  text: string;
+  /** Baustein, auf den sich der Eintrag bezieht (zum Anspringen) */
+  blockId?: string;
+}
 
 export interface Project {
   id: string;
@@ -139,8 +163,14 @@ export interface Project {
   status: ProjectStatus;
   start?: string;
   end?: string;
-  /** „Was wäre der kleinste nächste Schritt?“ */
+  /** alt: ein einzelner Schritt als Text – wird beim Öffnen in `steps` übernommen */
   nextStep?: string;
+  /** nächste Schritte (mit Zeitstempel, optional im Kalender) */
+  steps?: ProjectStep[];
+  /** Protokoll */
+  log?: LogEntry[];
+  /** wann das Projekt geschafft wurde */
+  closedAt?: string;
   folder?: string;
   archived?: boolean;
   people: ProjectPerson[];
@@ -173,7 +203,7 @@ export const BLOCK_META: BlockMeta[] = [
   { kind: 'decisions', icon: '🗣️', de: 'Entscheidungen & Absprachen', en: 'Decisions & agreements', subDe: 'Klar festhalten, was beschlossen wurde', subEn: 'Write down clearly what was decided' },
   { kind: 'poll', icon: '🗳️', de: 'Umfrage', en: 'Poll', subDe: 'Für Absprachen mit anderen – oder nur für dich selbst', subEn: 'For agreements with others – or just for yourself' },
   { kind: 'proscons', icon: '⚖️', de: 'Pro & Kontra', en: 'Pros & cons', subDe: 'Abwägen, mit Gewicht', subEn: 'Weigh things up, with weight' },
-  { kind: 'table', icon: '▦', de: 'Tabelle', en: 'Table', subDe: 'Eigene Spalten und Zeilen', subEn: 'Your own columns and rows' },
+  { kind: 'table', icon: '📋', de: 'Tabelle', en: 'Table', subDe: 'Eigene Spalten und Zeilen', subEn: 'Your own columns and rows' },
   { kind: 'links', icon: '🔗', de: 'Verknüpfungen', en: 'Connections', subDe: 'Mindmaps, Tagebuch-Bücher, Routinen, Ressourcen, Menschen, Orte', subEn: 'Mind maps, diary books, routines, resources, people, places' },
   { kind: 'reminders', icon: '🔔', de: 'Erinnerungen', en: 'Reminders', subDe: 'Kommen in dein Postfach und in den Kalender', subEn: 'Arrive in your mailbox and in the calendar' },
   { kind: 'images', icon: '🖼️', de: 'Bilder & Anhänge', en: 'Pictures & attachments', subDe: 'Fotos, Skizzen, Screenshots', subEn: 'Photos, sketches, screenshots' },
@@ -312,3 +342,106 @@ export function statusLabel(s: ProjectStatus, L: (de: string, en: string) => str
   return s === 'idea' ? L('Idee', 'Idea') : s === 'running' ? L('Läuft', 'Running') : s === 'resting' ? L('Ruht gerade', 'Resting for now') : L('Geschafft', 'Done');
 }
 
+
+// ------------------------------------------------------------------ steps & log helpers
+
+export function newStep(text: string): ProjectStep {
+  return { id: id('stp'), text, createdAt: new Date().toISOString(), done: false };
+}
+
+export function logEntry(kind: LogKind, text: string, blockId?: string, at?: string): LogEntry {
+  return { id: id('log'), at: at ?? new Date().toISOString(), kind, text, ...(blockId ? { blockId } : {}) };
+}
+
+export const LOG_ICON: Record<LogKind, string> = {
+  created: '🌱', step: '➡️', task: '✅', insight: '💡', note: '📝', milestone: '🏁', status: '🔄', done: '🎉', box: '🗒️', decision: '🗣️',
+};
+
+/** Nimmt ein altes `nextStep`-Feld in die neue Schrittliste auf (einmalig). */
+export function migrateProject(p: Project): Project {
+  let out = p;
+  if (p.nextStep?.trim() && !(p.steps && p.steps.length)) {
+    out = { ...out, steps: [newStep(p.nextStep.trim())], nextStep: undefined };
+  } else if (p.nextStep !== undefined && !p.nextStep.trim()) {
+    out = { ...out, nextStep: undefined };
+  }
+  return out;
+}
+
+/** der aktuelle nächste Schritt (erster offener) */
+export function currentStep(p: Project): ProjectStep | undefined {
+  return (p.steps ?? []).find((s) => !s.done);
+}
+
+export function stepStats(p: Project): { done: number; total: number } {
+  const s = p.steps ?? [];
+  return { done: s.filter((x) => x.done).length, total: s.length };
+}
+
+/** Zeitstempel für Anzeige: „26.10. 14:05“ */
+export function stamp(iso: string, lang: 'de' | 'en'): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const day = d.toLocaleDateString(lang === 'en' ? 'en-US' : 'de-DE', { day: '2-digit', month: '2-digit' });
+  const time = d.toLocaleTimeString(lang === 'en' ? 'en-US' : 'de-DE', { hour: '2-digit', minute: '2-digit' });
+  return `${day} ${time}`;
+}
+
+/**
+ * Was hat sich zwischen zwei Ständen getan? Daraus entstehen automatische Protokoll-Einträge
+ * (neue/erledigte Aufgaben, Schritte, Meilensteine, Entscheidungen, Statuswechsel).
+ */
+export function diffLog(prev: Project, next: Project, L: (de: string, en: string) => string): LogEntry[] {
+  const out: LogEntry[] = [];
+  const clip = (t: string) => (t.length > 80 ? `${t.slice(0, 79)}…` : t || '…');
+  const prevStep = new Map((prev.steps ?? []).map((s) => [s.id, s]));
+  (next.steps ?? []).forEach((s) => {
+    const o = prevStep.get(s.id);
+    if (!o) out.push(logEntry('step', L(`Nächster Schritt: ${clip(s.text)}`, `Next step: ${clip(s.text)}`)));
+    else if (!o.done && s.done) out.push(logEntry('step', L(`Schritt geschafft: ${clip(s.text)}`, `Step done: ${clip(s.text)}`)));
+    else if (o.done && !s.done) out.push(logEntry('step', L(`Schritt wieder offen: ${clip(s.text)}`, `Step open again: ${clip(s.text)}`)));
+  });
+  const prevBlocks = new Map(prev.blocks.map((b) => [b.id, b]));
+  next.blocks.forEach((b) => {
+    const o = prevBlocks.get(b.id);
+    if (!o || o.kind !== b.kind) return;
+    if (b.kind === 'tasks' && o.kind === 'tasks') {
+      const om = new Map(o.items.map((t) => [t.id, t]));
+      b.items.forEach((t) => {
+        const q = om.get(t.id);
+        if (!q) out.push(logEntry('task', L(`Neue Aufgabe: ${clip(t.text)}`, `New task: ${clip(t.text)}`), b.id));
+        else if (q.status !== 'done' && t.status === 'done') out.push(logEntry('task', L(`Aufgabe erledigt: ${clip(t.text)}`, `Task done: ${clip(t.text)}`), b.id));
+      });
+    }
+    if (b.kind === 'checklist' && o.kind === 'checklist') {
+      const om = new Map(o.items.map((t) => [t.id, t]));
+      b.items.forEach((t) => {
+        const q = om.get(t.id);
+        if (q && !q.done && t.done) out.push(logEntry('task', L(`Abgehakt: ${clip(t.text)}`, `Ticked off: ${clip(t.text)}`), b.id));
+      });
+    }
+    if (b.kind === 'timeline' && o.kind === 'timeline') {
+      const om = new Map(o.milestones.map((m) => [m.id, m]));
+      b.milestones.forEach((m) => {
+        const q = om.get(m.id);
+        if (!q) { out.push(logEntry('milestone', L(`Neuer Meilenstein: ${clip(m.title)}`, `New milestone: ${clip(m.title)}`), b.id)); return; }
+        if (!q.done && m.done) out.push(logEntry('milestone', L(`Meilenstein erreicht: ${clip(m.title)}`, `Milestone reached: ${clip(m.title)}`), b.id));
+        const os = new Map(q.steps.map((s) => [s.id, s]));
+        m.steps.forEach((s) => {
+          const w = os.get(s.id);
+          if (w && !w.done && s.done) out.push(logEntry('milestone', L(`Schritt geschafft: ${clip(s.text)}`, `Step done: ${clip(s.text)}`), b.id));
+        });
+      });
+    }
+    if (b.kind === 'decisions' && o.kind === 'decisions') {
+      const ids = new Set(o.items.map((x) => x.id));
+      b.items.filter((x) => !ids.has(x.id)).forEach((x) => out.push(logEntry('decision', L(`Entschieden: ${clip(x.text)}`, `Decided: ${clip(x.text)}`), b.id)));
+    }
+  });
+  if (prev.status !== next.status && next.status !== 'done') {
+    out.push(logEntry('status', L(`Status: ${statusLabel(next.status, L)}`, `Status: ${statusLabel(next.status, L)}`)));
+  }
+  return out;
+}
+
+export const LOG_MAX = 600;

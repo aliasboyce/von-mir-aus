@@ -8,10 +8,11 @@ const short = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…
 const dayNum = (d: string) => Math.round(new Date(`${d}T12:00:00`).getTime() / 86400000);
 
 /** der Zeitstrahl: Start – Ende, Heute-Marke und die Meilensteine als Punkte */
-export function TimelineStrip({ block, start, end, lang, L }: { block: TimelineBlock; start?: string; end?: string; lang: 'de' | 'en'; L: BlockProps['L'] }) {
+export function TimelineStrip({ block, start, end, lang, L, extra = [] }: { block: TimelineBlock; start?: string; end?: string; lang: 'de' | 'en'; L: BlockProps['L']; extra?: { date: string; done: boolean }[] }) {
   const today = dayKey(new Date());
   const dated = block.milestones.filter((m) => m.date);
-  const all = [...dated.map((m) => m.date as string), ...(start ? [start] : []), ...(end ? [end] : [])];
+  const smalls = [...block.milestones.flatMap((m) => m.steps.filter((x) => x.date).map((x) => ({ date: x.date as string, done: x.done }))), ...extra];
+  const all = [...dated.map((m) => m.date as string), ...smalls.map((x) => x.date), ...(start ? [start] : []), ...(end ? [end] : [])];
   if (all.length === 0) return null;
   const minD = Math.min(...all.map(dayNum), dayNum(today) > Math.max(...all.map(dayNum)) ? Infinity : dayNum(today));
   const maxD = Math.max(...all.map(dayNum), dayNum(today) < Math.min(...all.map(dayNum)) ? -Infinity : dayNum(today));
@@ -33,6 +34,9 @@ export function TimelineStrip({ block, start, end, lang, L }: { block: TimelineB
           <text x={tx} y="32" fontSize="11" fill="var(--color-primary)" textAnchor="middle">{L('heute', 'today')}</text>
         </g>
       )}
+      {smalls.map((sm, i) => (
+        <circle key={`sm${i}`} cx={X(sm.date)} cy="56" r="4.5" fill={sm.done ? 'var(--color-primary)' : 'var(--color-surface)'} stroke="var(--color-primary)" strokeWidth="2" opacity="0.8" />
+      ))}
       {sorted.map((m, i) => {
         const x = X(m.date as string);
         const up = i % 2 === 0;
@@ -60,7 +64,7 @@ export function BlockTimeline({ block, project, L, lang, onChange }: BlockProps<
 
   return (
     <div>
-      <TimelineStrip block={block} start={project.start} end={project.end} lang={lang} L={L} />
+      <TimelineStrip block={block} start={project.start} end={project.end} lang={lang} L={L} extra={(project.steps ?? []).filter((x) => x.date).map((x) => ({ date: x.date as string, done: x.done }))} />
       {block.milestones.length === 0 && <Empty>{L('Noch kein Meilenstein. Ein Meilenstein ist ein Zwischenziel, z. B. „Ort steht fest“ oder „Material ist da“.', 'No milestone yet. A milestone is an interim goal, e.g. "place is fixed" or "material is here".')}</Empty>}
       <ol className="relative flex flex-col gap-2 pl-5" data-testid="milestones" style={{ borderLeft: '3px solid var(--color-border-strong)', marginLeft: 8 }}>
         {sorted.map((m) => {
@@ -101,7 +105,8 @@ export function BlockTimeline({ block, project, L, lang, onChange }: BlockProps<
                         <li key={s.id} className="flex items-center gap-1.5">
                           <button type="button" onClick={() => setStep(m, s.id, { done: !s.done })} aria-pressed={s.done} aria-label={L('Abhaken', 'Tick off')} className="w-6 h-6 shrink-0 rounded-md border-2 flex items-center justify-center text-[13px] text-white" style={{ borderColor: 'var(--color-primary)', background: s.done ? 'var(--color-primary)' : 'transparent' }} data-testid={`step-check-${s.id}`}>{s.done ? '✓' : ''}</button>
                           <input className="flex-1 min-w-0 bg-transparent outline-none text-[14px] py-1" style={{ textDecoration: s.done ? 'line-through' : 'none', opacity: s.done ? 0.6 : 1 }} value={s.text} onChange={(e) => setStep(m, s.id, { text: e.target.value })} aria-label={L('Schritt', 'Step')} />
-                          <input type="date" className="input !h-8 !py-0 !w-[7.6rem] text-[12px]" value={s.date ?? ''} onChange={(e) => setStep(m, s.id, { date: e.target.value || undefined })} aria-label={L('Datum', 'Date')} />
+                          <input type="date" className="input !h-8 !py-0 !w-[7.6rem] text-[12px]" value={s.date ?? ''} onChange={(e) => setStep(m, s.id, { date: e.target.value || undefined, ...(e.target.value ? {} : { time: undefined }) })} aria-label={L('Datum', 'Date')} />
+                          {s.date && <input type="time" className="input !h-8 !py-0 !w-[5.4rem] text-[12px]" value={s.time ?? ''} onChange={(e) => setStep(m, s.id, { time: e.target.value || undefined })} aria-label={L('Uhrzeit', 'Time')} />}
                           <DelBtn onClick={() => patch(m.id, { steps: m.steps.filter((x) => x.id !== s.id) })} L={L} />
                         </li>
                       ))}

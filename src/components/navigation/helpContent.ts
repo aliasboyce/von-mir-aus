@@ -5,7 +5,7 @@ export type HelpKey =
   | 'kontakte' | 'sicherheitsplan' | 'tagebuch' | 'einstellungen' | 'wesenInhalte' | 'favoriten'
   | 'wesenAblenkung' | 'wesenOrientierung' | 'wesenMitteilungen'
   | 'quellen' | 'skills' | 'hilfsmittel' | 'orte' | 'aktivitaeten' | 'skillketten'
-  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf' | 'zugangskanaele' | 'projekte' | 'mindmap3d';
+  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf' | 'zugangskanaele' | 'projekte' | 'mindmap3d' | 'suche';
 
 interface HelpEntry {
   title: string;
@@ -461,8 +461,17 @@ Mindmaps, Tagebuch-Bücher, Routinen, Ressourcen, Menschen aus deinem Netzwerk, 
 ### Ordner, Archiv
 Projekte kannst du in Ordner legen. Ins Archiv legen heißt: nichts geht verloren.
 
+### Projekt-Startseite („Mini-Webseite“)
+Jedes Projekt hat eine Startseite mit Kacheln oder im Kreis (umschaltbar bei „Ansicht“). Jede Kachel öffnet eine **eigene Seite** des Projekts: Aufgaben, Zeitplan, Team, Finanzen und mehr. Über „Seite hinzufügen“ legst du weitere an. Mit „Alles zeigen“ siehst du alle Seiten untereinander auf einmal, mit „Alles zu“ klappt alles wieder ein.
+
+### Nächste Schritte, Kalender, Protokoll
+Schritte bekommen Tag und Uhrzeit und lassen sich „In den Kalender“ legen (und wieder herausnehmen). Das **Protokoll** hält automatisch fest, was wann passiert ist – vieles trägt sich von selbst ein, eigene Einträge gehen auch.
+
+### Schnellnotiz und Zettel-Box
+Die **Schnellnotiz** hält einen Einfall sofort fest – „erst festhalten, später einsortieren“. Du kannst ihn direkt als Schritt, Aufgabe oder Ähnliches einsortieren. Zettel liegen in der **Zettel-Box** des Projekts; „Zettel losfliegen lassen“ schickt einen Zettel zur gewählten Zeit ins Postfach auf der Startseite („für morgen“). In der Parkbox kannst du Zettel und Wartezimmer-Dinge einem Projekt zuordnen und wieder zurücklegen.
+
 ### Teilen und Drucken
-„Teilen / PDF“ macht aus dem Projekt ein PDF über mehrere A4-Seiten, mit allen Texten und den Mindmaps als Bild. Du wählst, was mit soll. Das PDF liegt danach als Datei bei dir.`,
+„Teilen / PDF“ macht aus dem Projekt ein PDF über mehrere A4-Seiten, mit allen Texten, Emojis und Bildern und den Mindmaps als Bild. Du wählst, was mit soll. Das PDF liegt danach als Datei bei dir.`,
     bodyEn: `A place to plan your own undertakings at your own pace – alone or with friends and helpers.
 
 ### How to start
@@ -486,54 +495,131 @@ Mind maps, diary books, routines, resources, people from your network, places an
 ### Folders, archive
 You can put projects into folders. Moving to the archive means: nothing is lost.
 
+### Project home page ("mini website")
+Every project has a home page with tiles or in a circle (switch under "View"). Each tile opens its **own page** of the project: tasks, timeline, team, budget and more. "Add page" creates more. "Show all" shows every page one below the other at once, "Close all" folds everything back.
+
+### Next steps, calendar, log
+Steps get a day and time and can be put "Into the calendar" (and taken out again). The **log** records automatically what happened when – much of it fills itself in, and you can add your own entries.
+
+### Quick note and slip box
+The **quick note** captures an idea right away – "capture first, sort later". You can sort it straight into a step, task and so on. Slips live in the project's **slip box**; "Let slip fly" sends a slip into the Postfach on the home page at the time you choose ("for tomorrow"). In the Park box you can assign slips and waiting-room items to a project and put them back.
+
 ### Share and print
-"Share / PDF" turns the project into a PDF over several A4 pages, with all texts and the mind maps as pictures. You choose what goes along. The PDF is then a file on your device.`,
+"Share / PDF" turns the project into a PDF over several A4 pages, with all texts, emojis and images and the mind maps as pictures. You choose what goes along. The PDF is then a file on your device.`,
   },
   mindmap3d: {
     title: `3D-Mindmap`,
     titleEn: `3D mind map`,
-    body: `Eine Mindmap als Raum: Dinge liegen übereinander, nebeneinander, vorne und hinten – wie ein kleines Universum.
+    body: `Eine Mindmap als Raum: Dinge liegen übereinander, nebeneinander, vorne und hinten – wie ein kleines Universum. Du bestimmst, wie viel sich bewegt.
 
-### Bewegen
-- Mit einem Finger auf die leere Fläche ziehen: den Raum **drehen**.
-- Mit zwei Fingern: **zoomen** (zusammen- oder auseinanderziehen) und den Raum **verschieben**. Am Computer: Mausrad zum Zoomen, rechte Maustaste zum Verschieben.
-- Auf ein Ding tippen: **auswählen**. Dann unten verschieben, färben, umbenennen, Form ändern.
+### Steuerkreuz (Pfeile)
+Unten im Bild liegt das Steuerkreuz – am Handy genauso wie am Computer. Oben wählst du, **was die Pfeile tun**:
+- **Drehen**: Pfeile drehen den Raum in 15°-Schritten (rastet ein), das Plus/Minus daneben zoomt.
+- **Schieben**: Pfeile verschieben den Blick, daneben „höher/tiefer“.
+- **Ding**: Pfeile schieben das ausgewählte Ding in kleinen Schritten.
+Halten wiederholt den Schritt. Mit „✕“ klappst du das Steuerkreuz ein, mit dem Knopf wieder auf. Am Computer gehen auch die Pfeiltasten, Bild↑/Bild↓ und Strg+Z / Strg+Y.
 
-### Verschieben
-Wähle ein Ding und zieh es: „Fläche“ bewegt es vor/zurück und links/rechts, „Höhe“ hoch und runter. Die Pfeil-Knöpfe machen kleine Schritte.
+### Mit den Fingern
+Ein Finger auf die leere Fläche: **drehen** (oder schieben – das stellst du ein). Beim Drehen zählt immer nur eine Richtung: waagrecht **oder** senkrecht – so wackelt nichts. Zwei Finger entscheiden sich einmal: zusammen-/auseinanderziehen = **zoomen**, gemeinsam wischen = **verschieben**. Ein Ding antippen wählt es aus, daran ziehen verschiebt es.
+
+### Festhalten (Sperren)
+In „Ansicht“ kannst du **Drehen**, **Zoomen** und **Verschieben** einzeln sperren, oder alles auf einmal (Schloss-Knopf im Steuerkreuz: „Ansicht einrasten“). Dann kann beim Arbeiten nichts mehr verrutschen. „Frei drehen (Handy)“ erlaubt dem Finger auch schräge Bewegungen.
+
+### Dinge
+Tab „Neu“: Kugel, Würfel, Kegel, Zylinder, Pyramide, Tetraeder, Prisma, Sechseck, Kuppel, Kapsel, Treppe, Pfeil, Ring, Kristall, Stern, Herz, Tafel – und flache Dinge: **nur Text**, **Sprechblase**, **Gedankenblase**, **Ausruf**, **Zettel**, **Foto**. Neue Dinge landen auf der gewählten Ebene an einem freien Platz.
+Ein ausgewähltes Ding ändert du im Tab „Ding“: Name (immer oben), **Aussehen** (Form, Farbe, Größe, Umriss an/aus, Durchsichtigkeit), **Text** (Schriftart, fett, kursiv, Größe), **Lage** (drehen, kippen, Ebene, kleine Schritte), **Mehr** (Link, Notiz).
 
 ### Ebenen
-Ebenen sind waagrechte Scheiben mit Namen und Höhe. Du kannst sie ein- und ausblenden, umbenennen und ein Ding auf eine Ebene setzen: Es rutscht dann auf deren Höhe.
+Ebenen sind waagrechte Scheiben mit Namen und Höhe. Sie lassen sich aus-/einblenden, „nur diese Ebene“ zeigen (alles andere gedimmt – so baust du auf einer Ebene), umbenennen, verschieben, und es gibt viele Farben und Looks (Fläche, Scheibe, Gitter, Rahmen, Platte, keine) mit Durchsichtigkeit und Größe.
 
-### Formen
-Kugel, Würfel, Kegel, Zylinder, Pyramide, Ring, Doppelkegel, Kristall, Stern, Herz, Tafel oder nur Text.
+### Hintergrund
+Viele Farbverläufe (Nacht, Wald, Meer, Sonnenuntergang, Wiese, Papier …) oder ein **eigenes Foto** aus deiner Galerie.
 
 ### Verbinden
-Mit „Verbinden“ tippst du erst ein Ding, dann ein zweites. Verbindungen kannst du beschriften.
+„Verbinden“: erst ein Ding, dann ein zweites antippen. Linien kannst du beschriften.
 
-### Bild, PDF
-Der Foto-Knopf speichert ein Bild des Raums. In Projekten und im PDF erscheint dieses Bild.`,
-    bodyEn: `A mind map as a space: things lie above, beside, in front of and behind each other – like a small universe.
+### Kamera und Stände
+- **Kamera**: speichert einen Schnappschuss der Karte (bis zu 24 pro Karte) – im PDF und in Projekten sichtbar.
+- **Rückgängig / Wiederholen**: 50 Schritte.
+- **Jetzigen Stand festhalten** (Tab „Stände“): speichert den ganzen Zustand mit Namen. Später kannst du frühere Stände **ansehen**, **als Kopie öffnen** oder **zurückholen** – nichts geht verloren (bis zu 30 Stände pro Karte).
 
-### Moving
-- Drag one finger on the empty area: **rotate** the space.
-- Two fingers: **zoom** (pinch) and **move** the space. On a computer: mouse wheel to zoom, right mouse button to move.
-- Tap a thing: **select** it. Then move, colour, rename, change shape below.
+### PDF und Foto
+Das PDF enthält Übersicht, Schnappschüsse, Ebenen mit allen Dingen, Fotos, Links und gespeicherte Stände. „Foto“ speichert ein PNG vom Raum.
 
-### Moving things
-Select a thing and drag it: "Surface" moves it forward/back and left/right, "Height" up and down. The arrow buttons make small steps.
+### Aus einer 2D-Mindmap
+In der Mindmap-Liste (Menü der Karte) und im Editor gibt es „In 3D umwandeln“: Es entsteht eine **Kopie** (Titel mit „(3D)“) – das Original bleibt unverändert. Wähle „nach Ebenen“ (Tiefe im Netz = Höhe) oder „flach“. Rahmen und Zeichnungen werden nicht übernommen.`,
+    bodyEn: `A mind map as a space: things lie above, beside, in front of and behind each other – like a small universe. You decide how much moves.
+
+### Control pad (arrows)
+At the bottom there is a control pad – on a phone just like on a computer. At the top you choose **what the arrows do**:
+- **Turn**: arrows rotate the space in 15° steps (snaps), plus/minus next to it zooms.
+- **Move**: arrows shift the view, next to it "higher/lower".
+- **Thing**: arrows nudge the selected thing in small steps.
+Holding repeats the step. "✕" folds the pad away, the button opens it again. On a computer the arrow keys, Page Up/Down and Ctrl+Z / Ctrl+Y work too.
+
+### With your fingers
+One finger on the empty area: **rotate** (or move – you set it). While rotating only one direction counts: horizontal **or** vertical – so nothing wobbles. Two fingers decide once: pinch = **zoom**, swipe together = **move**. Tapping a thing selects it, dragging it moves it.
+
+### Locking
+Under "View" you can lock **rotate**, **zoom** and **move** one by one, or everything at once (lock button in the control pad: "Lock the view"). Then nothing can slip while you work. "Free turning (phone)" also allows diagonal finger moves.
+
+### Things
+"New" tab: sphere, cube, cone, cylinder, pyramid, tetrahedron, prism, hexagon, dome, capsule, stairs, arrow, ring, crystal, star, heart, plate – and flat things: **text only**, **speech bubble**, **thought bubble**, **shout**, **note**, **photo**. New things land on the chosen layer at a free spot.
+A selected thing is changed in the "Thing" tab: name (always on top), **Look** (shape, colour, size, outline on/off, transparency), **Text** (font, bold, italic, size), **Place** (rotate, tilt, layer, small steps), **More** (link, note).
 
 ### Layers
-Layers are horizontal discs with a name and a height. You can show and hide them, rename them and put a thing on a layer: it then slides to its height.
+Layers are horizontal discs with a name and a height. They can be shown/hidden, "only this layer" (everything else dimmed – build on one layer), renamed, moved, and there are many colours and looks (plane, disc, grid, frame, slab, none) with transparency and size.
 
-### Shapes
-Sphere, cube, cone, cylinder, pyramid, ring, double cone, crystal, star, heart, plate or just text.
+### Background
+Many colour gradients (night, forest, sea, sunset, meadow, paper …) or **your own photo** from your gallery.
 
 ### Connecting
-With "Connect" you tap one thing, then a second. You can label connections.
+"Connect": tap one thing, then a second. Lines can be labelled.
 
-### Picture, PDF
-The photo button saves a picture of the space. This picture appears in projects and in the PDF.`,
+### Camera and states
+- **Camera**: saves a snapshot of the map (up to 24 per map) – visible in the PDF and in projects.
+- **Undo / redo**: 50 steps.
+- **Hold the current state** ("States" tab): saves the whole state with a name. Later you can **view** earlier states, **open them as a copy** or **bring them back** – nothing is lost (up to 30 states per map).
+
+### PDF and photo
+The PDF contains overview, snapshots, layers with all things, photos, links and saved states. "Photo" saves a PNG of the space.
+
+### From a 2D mind map
+In the mind map list (the map's menu) and in the editor there is "Convert to 3D": it makes a **copy** (title with "(3D)") – the original stays unchanged. Choose "by layers" (depth in the web = height) or "flat". Frames and drawings are not carried over.`,
+  },
+  suche: {
+    title: `Lupe (Suche)`,
+    titleEn: `Magnifier (search)`,
+    body: `Die Lupe findet Dinge in der ganzen App.
+
+### Was sie findet
+- **Funktionen der App**: „Sicherung“ führt zum Backup, „Zettel“ zur Parkbox, „3D“ zur 3D-Mindmap.
+- **Alles, was du selbst geschrieben hast**: Tagebuch, Mindmaps (auch die Texte in den Knoten), Projekte, Zettel, Briefe, Brücken, Ressourcen, Termine, Notizen und mehr. Ein Tipp öffnet die passende Stelle.
+- **Anleitungen**: die „?“-Texte der Seiten.
+
+### So suchst du
+Ein Wortanfang oder Wortteil reicht („tage“, „buch“). Umlaute sind egal („fuhlen“), kleine Tippfehler auch („Mindmapp“). Mehrere Wörter müssen zusammen passen; passt nichts zu allen, zeigt die Lupe das Nächstliegende. Oben filterst du nach Funktionen, Von-dir-geschrieben oder Anleitungen.
+
+### Wo ist sie?
+Das Lupen-Symbol oben auf der Startseite und auf den meisten Seiten – oder am Computer **Strg + K** (am Mac ⌘ + K). Zuletzt Gesuchtes steht in der Startansicht.
+
+### Privat
+Gesucht wird nur auf diesem Gerät, nichts wird verschickt. Gesperrte Tagebücher und noch ungeöffnete Briefe bleiben außen vor.`,
+    bodyEn: `The magnifier finds things across the whole app.
+
+### What it finds
+- **App functions**: "backup" leads to the backup, "slip" to the Park box, "3D" to the 3D mind map.
+- **Everything you wrote yourself**: diary, mind maps (including the texts in nodes), projects, slips, letters, bridges, resources, appointments, notes and more. One tap opens the right place.
+- **Guides**: the "?" texts of the pages.
+
+### How to search
+A word beginning or word part is enough ("diar", "book"). Umlauts do not matter, small typos do not either ("Mindmapp"). Several words must fit together; if nothing fits all of them, the magnifier shows the closest. At the top you filter by functions, written by you, or guides.
+
+### Where is it?
+The magnifier icon at the top of the home page and most pages – or on a computer **Ctrl + K** (⌘ + K on a Mac). Recent searches are on the start view.
+
+### Private
+Searching happens on this device only, nothing is sent. Locked diaries and still-unopened letters are left out.`,
   },
   mindmap: {
     title: `Mindmaps`,

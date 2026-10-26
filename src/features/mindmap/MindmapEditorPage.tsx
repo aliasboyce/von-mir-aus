@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE } from 'react';
+import { deleteVersionsOf } from '../mindmap3d/mm3Versions';
+import { ConvertTo3dModal } from '../mindmap3d/ConvertTo3dModal';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, Smile, ChevronLeft, CornerDownRight, Copy, Ellipsis, ExternalLink, FileDown, FolderTree, Image as ImageIcon, Layers, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, Shapes, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload } from 'lucide-react';
+import { Archive, Box, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, Smile, ChevronLeft, CornerDownRight, Copy, Ellipsis, ExternalLink, FileDown, FolderTree, Image as ImageIcon, Layers, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, Shapes, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload } from 'lucide-react';
 import { useCamera } from '../../components/canvas/useCamera';
 import { useSettings } from '../../state/SettingsContext';
 import { useRegisterExternalModalOpen, useRegisterModalOpen } from '../../state/ModalStackContext';
@@ -124,6 +126,7 @@ function Editor({ initial }: { initial: MindMap }) {
   const [tab, setTab] = useState<StyleTab>('shape');
   const [textEdit, setTextEdit] = useState<Sel>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
   const [stickerPick, setStickerPick] = useState(false);
@@ -1233,6 +1236,7 @@ function Editor({ initial }: { initial: MindMap }) {
     // sub maps stay – they just become top level maps
     mindmapRepo.getAll().filter((m) => m.parentId === gone).forEach((m) => mindmapRepo.save({ ...m, parentId: undefined }));
     mindmapRepo.remove(gone);
+    deleteVersionsOf(gone);
     goneRef.current = true;
     goBack(navigate, '/entdecken/mindmap');
   }
@@ -1454,6 +1458,7 @@ function Editor({ initial }: { initial: MindMap }) {
               { id: 'share', icon: <Share2 size={16} />, label: T.share, run: () => void shareLink() },
               { id: 'file', icon: <Download size={16} />, label: T.shareFile, run: () => void shareFile() },
               { id: 'dup', icon: <Copy size={16} />, label: T.duplicateMap, run: duplicateMap },
+              { id: 'to3d', icon: <Box size={16} />, label: lang === 'en' ? 'Turn into 3D (copy)' : 'In 3D umwandeln (Kopie)', run: () => { flush(); setConvertOpen(true); } },
               { id: 'archive', icon: <Archive size={16} />, label: X.menuArchive, run: archiveMap },
               { id: 'del', icon: <Trash2 size={16} />, label: T.deleteMap, run: deleteMap, danger: true },
             ].map((it) => (
@@ -1464,6 +1469,8 @@ function Editor({ initial }: { initial: MindMap }) {
             ))}
           </div>
         )}
+
+        <ConvertTo3dModal map={convertOpen ? mapRef.current : null} onClose={() => setConvertOpen(false)} />
 
         {/* zoom */}
         <div className="absolute right-3 flex flex-col gap-2" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 58px)' }}>

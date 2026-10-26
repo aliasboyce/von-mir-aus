@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { richToPlain } from '../../services/richText';
 import { mindmapRepo } from '../mindmap/mindmapModel';
-import { defaultSelection, linkedMindmapIds, shareProjectPdf, type PdfSelection } from './projectPdf';
+import { defaultSelection, linkedMindmapIds, projectSlips, shareProjectPdf, type PdfSelection } from './projectPdf';
 import { formatDate, metaOf, statusLabel, type Project } from './projectModel';
 import { useL } from './useL';
 
@@ -39,7 +39,7 @@ export function ProjectShareModal({ project, onClose }: { project: Project; onCl
       <span className="text-[14px]">{label}</span>
     </button>
   );
-  const anySelected = sel.header || Object.values(sel.blocks).some(Boolean) || Object.values(sel.mindmaps).some(Boolean);
+  const anySelected = sel.header || sel.steps || sel.log || sel.box || Object.values(sel.blocks).some(Boolean) || Object.values(sel.mindmaps).some(Boolean);
 
   async function makePdf() {
     setBusy(true);
@@ -57,14 +57,18 @@ export function ProjectShareModal({ project, onClose }: { project: Project; onCl
     <Modal open onClose={onClose} title={L('Projekt teilen', 'Share project')} subtitle={L('Was soll mit aufs PDF? Es darf auf mehrere DIN-A4-Seiten.', 'What goes on the PDF? It may run over several A4 pages.')}>
       <div className="flex flex-col gap-2" data-testid="project-share-sheet">
         {row(sel.header, L('Titel, Beschreibung, Daten', 'Title, description, dates'), () => setSel((s) => ({ ...s, header: !s.header })), 'share-header')}
+        {(project.steps ?? []).length > 0 && row(sel.steps, `➡️ ${L('Nächste Schritte', 'Next steps')}`, () => setSel((s) => ({ ...s, steps: !s.steps })), 'share-steps')}
         {project.blocks.map((b, i) => row(!!sel.blocks[b.id], `${metaOf(b.kind).icon} ${b.title}`, () => toggleBlock(b.id), `share-block-${i}`))}
         {maps.map((id) => row(!!sel.mindmaps[id], `🕸️ ${L('Mindmap', 'Mind map')}: ${mindmapRepo.getById(id)?.title || '…'}`, () => toggleMap(id), `share-map-${id}`))}
-        {row(sel.notes, L('Notizen der Bausteine', 'Notes of the blocks'), () => setSel((s) => ({ ...s, notes: !s.notes })), 'share-notes')}
+        {projectSlips(project).length > 0 && row(sel.box, `🗒️ ${L('Zettel-Box', 'Slip box')}`, () => setSel((s) => ({ ...s, box: !s.box })), 'share-box')}
+        {(project.log ?? []).length > 0 && row(sel.log, `📖 ${L('Protokoll', 'Log')}`, () => setSel((s) => ({ ...s, log: !s.log })), 'share-log')}
+        {row(sel.notes, L('Notizen der Seiten', 'Notes of the pages'), () => setSel((s) => ({ ...s, notes: !s.notes })), 'share-notes')}
+        {row(sel.pageBreaks, L('Jeder Teil auf einer eigenen Seite', 'Every part on its own page'), () => setSel((s) => ({ ...s, pageBreaks: !s.pageBreaks })), 'share-pagebreaks')}
         <button type="button" onClick={allOn} className="text-[13px] text-[var(--color-text-muted)] underline self-start py-1">{L('Alles auswählen', 'Select everything')}</button>
         <Button fullWidth disabled={busy || !anySelected} onClick={() => void makePdf()} data-testid="share-pdf">{busy ? L('PDF wird erstellt …', 'Making the PDF …') : L('PDF erstellen und teilen', 'Make PDF and share')}</Button>
         <Button fullWidth variant="secondary" onClick={() => void shareOrCopy({ title: project.title, text: projectText(project, lang) }, L('Der Text ist kopiert.', 'The text is copied.'))} data-testid="share-text">{L('Kurzfassung als Text', 'Short version as text')}</Button>
         {msg && <p className="text-[13px] text-[var(--color-text-muted)]" role="status" data-testid="share-msg">{msg}</p>}
-        <p className="text-[11.5px] text-[var(--color-text-faint)]">{L('Das PDF liegt danach als Datei bei dir: Du kannst es in „Dateien“ sichern, ausdrucken oder verschicken. Emojis erscheinen im PDF nicht.', 'The PDF is then a file on your device: save it to “Files”, print or send it. Emojis do not appear in the PDF.')}</p>
+        <p className="text-[11.5px] text-[var(--color-text-faint)]">{L('Das PDF liegt danach als Datei bei dir: Du kannst es in „Dateien“ sichern, ausdrucken oder verschicken. Farben, Emojis, Bilder und Grafiken sind mit drauf – so wie du sie beim Bearbeiten siehst.', 'The PDF is then a file on your device: save it to “Files”, print or send it. Colours, emojis, pictures and graphics are on it – just as you see them while editing.')}</p>
       </div>
     </Modal>
   );

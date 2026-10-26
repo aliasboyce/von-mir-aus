@@ -84,10 +84,61 @@ export interface TextStyle {
   color?: RGB;
 }
 
+/**
+ * Emoji: the built-in PDF fonts have none, so an emoji is drawn as a small picture. The pictures are made
+ * beforehand (see emojiImages.ts) and handed in with setEmojiImages(); without them an emoji is simply left out.
+ */
+export interface EmojiImg {
+  w: number;
+  h: number;
+  /** raw RGB bytes (w*h*3), maybe deflated (see `flate`) */
+  rgb: Uint8Array;
+  /** raw alpha bytes (w*h), maybe deflated */
+  alpha: Uint8Array;
+  flate: boolean;
+}
+let EMOJI: Map<string, EmojiImg> = new Map();
+export function setEmojiImages(m: Map<string, EmojiImg>): void {
+  EMOJI = m;
+}
+const EMOJI_RE = /(?:\p{Regional_Indicator}{2}|[0-9#*]\uFE0F?\u20E3|\p{Extended_Pictographic}(?:\uFE0F\u20E3|\uFE0F|\u200D\p{Extended_Pictographic}\uFE0F?|[\u{1F3FB}-\u{1F3FF}])*)/gu;
+const TEXTY = new Set([0xa9, 0xae, 0x203c, 0x2049, 0x2122, 0x2139]);
+function isEmojiCluster(c: string): boolean {
+  const cp = c.codePointAt(0) as number;
+  if (cp < 0x80 && !/[\u20E3]/.test(c)) return false;
+  if (TEXTY.has(cp) && !c.includes('\uFE0F')) return false;
+  return true;
+}
+export interface Seg { t: string; emoji: boolean }
+export function splitEmoji(str: string): Seg[] {
+  const out: Seg[] = [];
+  let last = 0;
+  for (const m of str.matchAll(EMOJI_RE)) {
+    const idx = m.index ?? 0;
+    if (!isEmojiCluster(m[0])) continue;
+    if (idx > last) out.push({ t: str.slice(last, idx), emoji: false });
+    out.push({ t: m[0], emoji: true });
+    last = idx + m[0].length;
+  }
+  if (last < str.length) out.push({ t: str.slice(last), emoji: false });
+  return out;
+}
+/** all emoji clusters in a text */
+export function collectEmoji(str: string, into: Set<string> = new Set()): Set<string> {
+  splitEmoji(str).forEach((s) => { if (s.emoji) into.add(s.t); });
+  return into;
+}
+const EMOJI_EM = 1.12;
+
 export function measureText(text: string, size: number, bold = false): number {
   let w = 0;
-  for (const code of toCp1252(text)) w += charWidth(code);
-  return (w * size * (bold ? 1.06 : 1)) / 1000;
+  const segs = EMOJI.size ? splitEmoji(text) : [{ t: text, emoji: false }];
+  let emojiW = 0;
+  for (const sg of segs) {
+    if (sg.emoji) { if (EMOJI.has(sg.t)) emojiW += size * EMOJI_EM; continue; }
+    for (const code of toCp1252(sg.t)) w += charWidth(code);
+  }
+  return (w * size * (bold ? 1.06 : 1)) / 1000 + emojiW;
 }
 
 function hexOf(bytes: number[]): string {
@@ -122,7 +173,7 @@ export class PdfDoc {
   private pages: string[] = [];
   private footerText = '';
   /** JPEG pictures of the document (embedded once) and which of them each page uses */
-  private images: { bytes: Uint8Array; w: number; h: number }[] = [];
+  private images: { bytes: Uint8Array; w: number; h: number; alpha?: Uint8Array; flate?: boolean }[] = [];
   private pageImages: number[][] = [];
 
   constructor(footerText = '') {
@@ -162,9 +213,40 @@ export class PdfDoc {
     const size = style.size ?? 11;
     const font = style.bold ? 'F2' : style.italic ? 'F3' : 'F1';
     const color = style.color ?? [30, 30, 30];
+    if (EMOJI.size) {
+      const segs = splitEmoji(str);
+      if (segs.some((sg) => sg.emoji)) {
+        let cx = x;
+        for (const sg of segs) {
+          if (sg.emoji) {
+            const em = EMOJI.get(sg.t);
+            if (em) {
+              this.imageRgba(em, cx + size * 0.03, yTop - size * 0.1, size * 1.06, size * 1.06);
+              cx += size * EMOJI_EM;
+            }
+          } else if (sg.t) {
+            this.text(cx, yTop, sg.t, style);
+            cx += measureText(sg.t, size, !!style.bold);
+          }
+        }
+        return;
+      }
+    }
     const bytes = toCp1252(str);
     if (bytes.length === 0) return;
     this.emit(`BT ${rgbOps(color, false)} /${font} ${fmt(size)} Tf ${fmt(x)} ${fmt(PAGE_H - yTop - size * 0.8)} Td <${hexOf(bytes)}> Tj ET`);
+  }
+
+  /** an emoji picture with transparent background */
+  imageRgba(em: EmojiImg, x: number, yTop: number, dw: number, dh: number) {
+    let idx = this.images.findIndex((im) => im.bytes === em.rgb);
+    if (idx < 0) {
+      this.images.push({ bytes: em.rgb, w: em.w, h: em.h, alpha: em.alpha, flate: em.flate });
+      idx = this.images.length - 1;
+    }
+    const used = this.pageImages[this.cur()];
+    if (!used.includes(idx)) used.push(idx);
+    this.emit(`q ${fmt(dw)} 0 0 ${fmt(dh)} ${fmt(x)} ${fmt(PAGE_H - yTop - dh)} cm /Im${idx} Do Q`);
   }
 
   /** Wraps `str` to maxWidth and returns the lines (no drawing). */
@@ -290,6 +372,10 @@ export class PdfDoc {
     // 1 catalog, 2 pages, 3-5 fonts, then (page, content) pairs
     const pageObjStart = 6;
     const imgStart = pageObjStart + total * 2;
+    // every picture gets one object number, pictures with transparency a second one for the mask
+    const imgIds: number[] = [];
+    let nextId = imgStart;
+    this.images.forEach((im) => { imgIds.push(nextId); nextId += im.alpha ? 2 : 1; });
     const kids = this.pages.map((_, i) => `${pageObjStart + i * 2} 0 R`).join(' ');
     objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
     objects[2] = `<< /Type /Pages /Kids [${kids}] /Count ${total} >>`;
@@ -304,21 +390,36 @@ export class PdfDoc {
         stream += `BT ${rgbOps([130, 130, 130], false)} /F1 8 Tf ${fmt(this.margin)} 28 Td <${hexOf(bytes)}> Tj ET\n`;
       }
       const pageNo = pageObjStart + i * 2;
-      const xo = this.pageImages[i].length ? ` /XObject << ${this.pageImages[i].map((k) => `/Im${k} ${imgStart + k} 0 R`).join(' ')} >>` : '';
+      const xo = this.pageImages[i].length ? ` /XObject << ${this.pageImages[i].map((k) => `/Im${k} ${imgIds[k]} 0 R`).join(' ')} >>` : '';
       objects[pageNo] =
         `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${fmt(PAGE_W)} ${fmt(PAGE_H)}] ` +
         `/Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >>${xo} >> /Contents ${pageNo + 1} 0 R >>`;
       objects[pageNo + 1] = `<< /Length ${stream.length} >>\nstream\n${stream}endstream`;
     });
 
-    // pictures: JPEG data written as hex text, so the whole file stays plain ASCII
-    this.images.forEach((im, k) => {
+    // pictures: data written as hex text, so the whole file stays plain ASCII
+    const toHex = (bytes: Uint8Array) => {
       let hex = '';
-      for (let i = 0; i < im.bytes.length; i++) hex += (im.bytes[i] < 16 ? '0' : '') + im.bytes[i].toString(16);
-      hex += '>';
-      objects[imgStart + k] =
-        `<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 ` +
-        `/Filter [/ASCIIHexDecode /DCTDecode] /Length ${hex.length} >>\nstream\n${hex}\nendstream`;
+      for (let i = 0; i < bytes.length; i++) hex += (bytes[i] < 16 ? '0' : '') + bytes[i].toString(16);
+      return hex + '>';
+    };
+    this.images.forEach((im, k) => {
+      const id = imgIds[k];
+      const hex = toHex(im.bytes);
+      if (!im.alpha) {
+        objects[id] =
+          `<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 ` +
+          `/Filter [/ASCIIHexDecode /DCTDecode] /Length ${hex.length} >>\nstream\n${hex}\nendstream`;
+      } else {
+        const filt = im.flate ? '[/ASCIIHexDecode /FlateDecode]' : '/ASCIIHexDecode';
+        const ahex = toHex(im.alpha);
+        objects[id] =
+          `<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /SMask ${id + 1} 0 R ` +
+          `/Filter ${filt} /Length ${hex.length} >>\nstream\n${hex}\nendstream`;
+        objects[id + 1] =
+          `<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceGray /BitsPerComponent 8 ` +
+          `/Filter ${filt} /Length ${ahex.length} >>\nstream\n${ahex}\nendstream`;
+      }
     });
 
     let pdf = '%PDF-1.4\n';

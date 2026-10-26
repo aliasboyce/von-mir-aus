@@ -668,7 +668,7 @@ export interface Bookmark {
   updatedAt: string;
 }
 
-export type ActivityType = 'resource' | 'bridge' | 'contact' | 'checkin' | 'grounding' | 'routine';
+export type ActivityType = 'resource' | 'bridge' | 'contact' | 'checkin' | 'grounding' | 'routine' | 'project';
 
 /**
  * A lightweight, shared log of "I used/did this" moments — the single

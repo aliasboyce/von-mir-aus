@@ -54,6 +54,18 @@ function sectionKeyFor(pathname: string): string {
 export function AppShell() {
   const location = useLocation();
   const navType = useNavigationType();
+  // Strg/⌘ + K öffnet die Lupe (Suche in der ganzen App)
+  const searchNav = useNavigate();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchNav('/suche');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [searchNav]);
   // a new page always starts at its top (going back keeps the browser's own scroll position)
   useEffect(() => {
     if (navType !== 'POP') window.scrollTo(0, 0);

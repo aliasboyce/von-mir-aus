@@ -247,6 +247,7 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
                   if (br) return <BridgeTile key={a.id} bridge={br} compact />;
                   if (a.type === 'grounding') return <ItemTile key={a.id} color="#6fbf73" emoji="🧭" title={a.label} compact />;
                   if (a.type === 'routine') return <ItemTile key={a.id} color="#e8a83d" emoji="🔁" title={a.label} compact />;
+                  if (a.type === 'project') return <ItemTile key={a.id} color="#4a8f9e" emoji="🗂️" title={a.label} compact />;
                   const meta = a.type === 'contact' ? { c: '#4a6fa5', e: '🤝' } : { c: '#9a948a', e: '✨' };
                   return <ItemTile key={a.id} color={meta.c} emoji={meta.e} title={a.label} compact />;
                 })}

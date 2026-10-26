@@ -1,65 +1,56 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, Ellipsis, FileDown, Plus, StickyNote, Trash2 } from 'lucide-react';
+import { Archive, Trash2 } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
-import { RichTextEditor } from '../../components/shared/RichTextEditor';
-import { RichText } from '../../components/shared/RichText';
-import { hasFormatting } from '../../services/richText';
 import { dayKey } from '../calendar/calendarRepo';
-import { syncProjectCalendar } from './projectCalendar';
+import { removeProjectCalendar, syncProjectCalendar } from './projectCalendar';
 import {
-  BLOCK_META, PROJECT_COLORS, PROJECT_EMOJIS, metaOf, milestoneStats, newBlock, projectsRepo, statusLabel, taskStats,
+  BLOCK_META, LOG_MAX, PROJECT_COLORS, PROJECT_EMOJIS, diffLog, logEntry, metaOf, migrateProject, newBlock, projectsRepo, statusLabel,
   type BlockKind, type Project, type ProjectBlock, type ProjectStatus,
 } from './projectModel';
-import { chipCls, chipOn, type BlockProps } from './ui';
+import { chipCls, chipOn } from './ui';
 import { useL } from './useL';
-import { BlockText } from './blocks/BlockText';
-import { BlockChecklist, BlockTasks } from './blocks/BlockTasks';
-import { BlockTimeline } from './blocks/BlockTimeline';
-import { BlockTeam } from './blocks/BlockTeam';
-import { BlockBudget } from './blocks/BlockBudget';
-import { BlockDecisions, BlockImages, BlockProsCons, BlockReminders, BlockRisks, BlockTable } from './blocks/BlockLists';
-import { BlockPoll } from './blocks/BlockPoll';
-import { BlockLinks } from './blocks/BlockLinks';
 import { ProjectShareModal } from './ProjectShareModal';
+import { ProjectHub } from './ProjectHub';
+import { ProjectSteps } from './ProjectSteps';
+import { ProjectLog } from './ProjectLog';
+import { ProjectBox } from './ProjectBox';
+import { ProjectBlockView } from './ProjectBlockView';
+import { ProjectAll } from './ProjectAll';
+import { QuickNote } from './QuickNote';
+import { markProjectWorkedOn } from './projectStore';
+import type { ProjectApi } from './projectApi';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-function renderBlock(b: ProjectBlock, props: BlockProps<any>) {
-  switch (b.kind) {
-    case 'text': return <BlockText {...props} />;
-    case 'tasks': return <BlockTasks {...props} />;
-    case 'checklist': return <BlockChecklist {...props} />;
-    case 'timeline': return <BlockTimeline {...props} />;
-    case 'team': return <BlockTeam {...props} />;
-    case 'budget': return <BlockBudget {...props} />;
-    case 'risks': return <BlockRisks {...props} />;
-    case 'decisions': return <BlockDecisions {...props} />;
-    case 'poll': return <BlockPoll {...props} />;
-    case 'proscons': return <BlockProsCons {...props} />;
-    case 'table': return <BlockTable {...props} />;
-    case 'links': return <BlockLinks {...props} />;
-    case 'reminders': return <BlockReminders {...props} />;
-    case 'images': return <BlockImages {...props} />;
-  }
-}
-
+/** Ein Projekt als kleine Mini-Website: Startseite mit Kacheln, jede Kachel eine eigene Seite. */
 export function ProjectPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id;
+  const sub = (params['*'] ?? '').replace(/\/+$/, '');
   const navigate = useNavigate();
   const { L, lang } = useL();
-  const initial = id ? projectsRepo.getById(id) : undefined;
+  const [initial] = useState<Project | undefined>(() => {
+    const raw = id ? projectsRepo.getById(id) : undefined;
+    if (!raw) return undefined;
+    const m = migrateProject(raw);
+    if (m !== raw) projectsRepo.save(m);
+    return m;
+  });
   const ref = useRef<Project | undefined>(initial);
   const [p, setP] = useState<Project | undefined>(initial);
   const timer = useRef<number | null>(null);
-  const [menuFor, setMenuFor] = useState<string | null>(null);
-  const [noteOpen, setNoteOpen] = useState<Set<string>>(() => new Set((initial?.blocks ?? []).filter((b) => b.note?.trim()).map((b) => b.id)));
+  const touched = useRef(false);
   const [adding, setAdding] = useState(false);
   const [looks, setLooks] = useState(false);
+  const [infos, setInfos] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const [scrollTo, setScrollTo] = useState<string | null>(null);
+  const [finishing, setFinishing] = useState(false);
+  const [quick, setQuick] = useState(false);
+  const [toast, setToast] = useState('');
+  const [party, setParty] = useState(false);
+  const today = dayKey(new Date());
 
   const flush = useCallback(() => {
     if (timer.current) {
@@ -68,8 +59,13 @@ export function ProjectPage() {
     }
     const cur = ref.current;
     if (!cur) return;
+    if (!projectsRepo.getById(cur.id)) return; // wurde (z. B. durch „Löschen“) entfernt
     projectsRepo.save(cur);
     syncProjectCalendar(cur, lang);
+    if (touched.current) {
+      touched.current = false;
+      markProjectWorkedOn(cur, lang);
+    }
   }, [lang]);
 
   useEffect(() => {
@@ -83,13 +79,7 @@ export function ProjectPage() {
     };
   }, [flush]);
 
-  useEffect(() => {
-    if (!scrollTo) return;
-    document.querySelector(`[data-block-id="${scrollTo}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setScrollTo(null);
-  }, [scrollTo, p]);
-
-  if (!p) {
+  if (!p || !id) {
     return (
       <div className="px-5 pt-8 text-center">
         <p className="text-[14px] text-[var(--color-text-muted)] mb-3">{L('Dieses Projekt gibt es nicht (mehr).', 'This project does not exist (any more).')}</p>
@@ -98,124 +88,99 @@ export function ProjectPage() {
     );
   }
 
+  const base = `/entdecken/projekte/${p.id}`;
+  const go = (to: string) => navigate(to ? `${base}/${to}` : base);
+  const say = (m: string) => { setToast(m); window.setTimeout(() => setToast(''), 2600); };
+
   const update = (fn: (cur: Project) => Project) => {
     const cur = ref.current as Project;
-    const next = { ...fn(cur), updatedAt: new Date().toISOString() };
+    const changed = fn(cur);
+    const entries = diffLog(cur, changed, L);
+    const next: Project = { ...changed, updatedAt: new Date().toISOString(), ...(entries.length ? { log: [...(changed.log ?? []), ...entries].slice(-LOG_MAX) } : {}) };
     ref.current = next;
+    touched.current = true;
     setP(next);
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(flush, 450);
   };
   const setBlock = (b: ProjectBlock) => update((cur) => ({ ...cur, blocks: cur.blocks.map((x) => (x.id === b.id ? b : x)) }));
-  const move = (bid: string, dir: -1 | 1) => update((cur) => {
-    const i = cur.blocks.findIndex((x) => x.id === bid);
-    const j = i + dir;
-    if (i < 0 || j < 0 || j >= cur.blocks.length) return cur;
-    const blocks = [...cur.blocks];
-    [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
-    return { ...cur, blocks };
-  });
-  const removeBlock = (b: ProjectBlock) => {
-    const filled = JSON.stringify(b).length > 260;
-    if (filled && !window.confirm(L(`„${b.title}“ samt Inhalt entfernen?`, `Remove "${b.title}" with its content?`))) return;
-    update((cur) => ({ ...cur, blocks: cur.blocks.filter((x) => x.id !== b.id) }));
-    setMenuFor(null);
+  const reload = () => {
+    const fresh = projectsRepo.getById(p.id);
+    if (fresh) { ref.current = fresh; setP(fresh); }
   };
+
+  const api: ProjectApi = {
+    p, L, lang, update, setBlock, flush, reload, go, today,
+    quickNote: () => { flush(); setQuick(true); },
+  };
+
   const addBlock = (kind: BlockKind) => {
     const m = metaOf(kind);
     const nb = newBlock(kind, L(m.de, m.en));
     update((cur) => ({ ...cur, blocks: [...cur.blocks, nb] }));
     setAdding(false);
-    setScrollTo(nb.id);
+    go(`b/${nb.id}`);
   };
-  const ts = taskStats(p);
-  const ms = milestoneStats(p);
   const hasTeam = p.blocks.some((b) => b.kind === 'team');
+
+  const finish = (how: 'keep' | 'archive' | 'delete') => {
+    if (how === 'delete') {
+      if (!window.confirm(L('Dieses Projekt wirklich löschen? Das lässt sich nicht rückgängig machen.', 'Really delete this project? This cannot be undone.'))) return;
+      if (timer.current) { window.clearTimeout(timer.current); timer.current = null; }
+      removeProjectCalendar(p.id);
+      projectsRepo.remove(p.id);
+      navigate('/entdecken/projekte', { replace: true });
+      return;
+    }
+    const now = new Date().toISOString();
+    update((cur) => ({ ...cur, status: 'done', closedAt: now, ...(how === 'archive' ? { archived: true } : {}), log: [...(cur.log ?? []), logEntry('done', L('Projekt geschafft 🎉', 'Project completed 🎉'))].slice(-LOG_MAX) }));
+    flush();
+    setFinishing(false);
+    setParty(true);
+    window.setTimeout(() => setParty(false), 2600);
+    if (how === 'archive') window.setTimeout(() => navigate('/entdecken/projekte'), 1800);
+  };
+
+  let body;
+  if (sub === '') {
+    body = (
+      <ProjectHub
+        api={api}
+        onLooks={() => setLooks(true)}
+        onInfos={() => setInfos(true)}
+        onShare={() => { flush(); setSharing(true); }}
+        onFinish={() => setFinishing(true)}
+        onAddBlock={() => setAdding(true)}
+        onCreate={(kind) => {
+          const m = metaOf(kind);
+          const nb = newBlock(kind, kind === 'team' ? L('Beteiligte', 'People involved') : L(m.de, m.en));
+          update((cur) => ({ ...cur, blocks: [...cur.blocks, nb] }));
+          go(`b/${nb.id}`);
+        }}
+      />
+    );
+  } else if (sub === 'schritte') body = <ProjectSteps api={api} />;
+  else if (sub === 'protokoll') body = <ProjectLog api={api} />;
+  else if (sub === 'zettel') body = <ProjectBox api={api} />;
+  else if (sub === 'alles') body = <ProjectAll api={api} />;
+  else if (sub.startsWith('b/')) body = <ProjectBlockView api={api} blockId={sub.slice(2)} />;
+  else body = <div className="px-5 pt-8 text-center"><button type="button" className="underline text-[var(--color-primary)]" onClick={() => go('')}>{L('Zur Projekt-Startseite', 'To the project home')}</button></div>;
+
   const statuses: ProjectStatus[] = ['idea', 'running', 'resting', 'done'];
 
   return (
-    <div className="animate-in">
-      <TopBar onBack={() => { flush(); navigate('/entdecken/projekte'); }} action={<HelpButton helpKey="projekte" />} />
-      <div className="px-5 pb-10" data-testid="project-page">
-        <div className="flex items-start gap-3 mb-2">
-          <button type="button" onClick={() => setLooks(true)} className="w-14 h-14 shrink-0 rounded-2xl text-[28px] flex items-center justify-center" style={{ background: `${p.color}26`, border: `2px solid ${p.color}` }} aria-label={L('Symbol und Farbe ändern', 'Change symbol and colour')} data-testid="project-looks">{p.emoji}</button>
-          <input className="flex-1 min-w-0 bg-transparent outline-none text-[24px] leading-tight pt-2" value={p.title} placeholder={L('Name des Projekts', 'Project name')} onChange={(e) => update((c) => ({ ...c, title: e.target.value }))} data-testid="project-title" />
-        </div>
-        <textarea className="input mb-2" rows={2} value={p.summary} placeholder={L('Worum geht es? Was wollen wir machen – und warum?', 'What is it about? What do we want to do – and why?')} onChange={(e) => update((c) => ({ ...c, summary: e.target.value }))} data-testid="project-summary" />
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {statuses.map((s) => <button key={s} type="button" onClick={() => update((c) => ({ ...c, status: s }))} aria-pressed={p.status === s} className={chipCls(p.status === s)} style={p.status === s ? chipOn : undefined} data-testid={`project-status-${s}`}>{statusLabel(s, L)}</button>)}
-        </div>
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <label><span className="block text-[12px] text-[var(--color-text-muted)] mb-0.5">{L('Start', 'Start')}</span><input type="date" className="input" value={p.start ?? ''} onChange={(e) => update((c) => ({ ...c, start: e.target.value || undefined }))} data-testid="project-start" /></label>
-          <label><span className="block text-[12px] text-[var(--color-text-muted)] mb-0.5">{L('Ziel-Datum (optional)', 'Target date (optional)')}</span><input type="date" className="input" value={p.end ?? ''} onChange={(e) => update((c) => ({ ...c, end: e.target.value || undefined }))} data-testid="project-end" /></label>
-        </div>
-        <label className="block mb-3">
-          <span className="block text-[12px] text-[var(--color-text-muted)] mb-0.5">{L('Der kleinste nächste Schritt', 'The smallest next step')}</span>
-          <input className="input" value={p.nextStep ?? ''} placeholder={L('Was wäre jetzt ein winziger Schritt?', 'What would be a tiny step now?')} onChange={(e) => update((c) => ({ ...c, nextStep: e.target.value }))} data-testid="project-nextstep" />
-        </label>
+    <div className="animate-in" data-testid="project-page">
+      <TopBar onBack={() => { flush(); if (sub) go(''); else navigate('/entdecken/projekte'); }} action={<HelpButton helpKey="projekte" />} />
+      {body}
 
-        {(ts.total > 0 || ms.total > 0) && (
-          <div className="mb-4 text-[12.5px] text-[var(--color-text-muted)]" data-testid="project-progress">
-            {ts.total > 0 && (
-              <div className="mb-1.5">
-                <div className="flex justify-between"><span>{L('Aufgaben', 'Tasks')}</span><span>{ts.done}/{ts.total}</span></div>
-                <div className="h-2 rounded-full bg-[var(--color-surface-muted)] overflow-hidden"><div className="h-full" style={{ width: `${(ts.done / ts.total) * 100}%`, background: p.color }} /></div>
-              </div>
-            )}
-            {ms.total > 0 && (
-              <div>
-                <div className="flex justify-between"><span>{L('Meilensteine', 'Milestones')}</span><span>{ms.done}/{ms.total}</span></div>
-                <div className="h-2 rounded-full bg-[var(--color-surface-muted)] overflow-hidden"><div className="h-full" style={{ width: `${(ms.done / ms.total) * 100}%`, background: p.color }} /></div>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex gap-2 mb-5">
-          <button type="button" onClick={() => { flush(); setSharing(true); }} className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[14px]" data-testid="project-share"><FileDown size={16} />{L('Teilen / PDF', 'Share / PDF')}</button>
+      {toast && <div className="fixed left-1/2 -translate-x-1/2 bottom-40 z-40 rounded-full px-4 py-2 text-[13.5px] text-white shadow-lg pointer-events-none" style={{ background: 'var(--color-text)' }} role="status" data-testid="project-toast">{toast}</div>}
+      {party && (
+        <div className="fixed inset-0 z-[60] pointer-events-none flex items-center justify-center" aria-hidden="true" data-testid="project-party">
+          {['🎉', '✨', '🌟', '🎊', '✨', '🌿', '💫'].map((e, i) => <span key={i} className="absolute text-[34px]" style={{ left: `${14 + i * 12}%`, top: `${48 + (i % 3) * 6}%`, animation: `proj-spark 2.2s ease-out ${i * 120}ms both` }}>{e}</span>)}
         </div>
+      )}
 
-        <div className="flex flex-col gap-4" data-testid="project-blocks">
-          {p.blocks.length === 0 && <p className="text-[14px] text-[var(--color-text-muted)] text-center py-4">{L('Noch leer. Füge einen Baustein hinzu – mehr braucht es nicht.', 'Still empty. Add a block – that is all it takes.')}</p>}
-          {p.blocks.map((b, i) => {
-            const meta = metaOf(b.kind);
-            const props: BlockProps<any> = { block: b, project: p, L, lang, onChange: setBlock, onProject: update };
-            const noteShown = noteOpen.has(b.id);
-            return (
-              <section key={b.id} data-block-id={b.id} data-testid={`block-${b.kind}`} className="rounded-[var(--radius-lg)] bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[var(--shadow-sm)]" style={{ borderTop: `4px solid ${p.color}` }}>
-                <div className="flex items-center gap-1.5 px-3 pt-2.5">
-                  <span aria-hidden="true" className="text-[18px]">{meta.icon}</span>
-                  <input className="flex-1 min-w-0 bg-transparent outline-none text-[16.5px] py-1" value={b.title} onChange={(e) => setBlock({ ...b, title: e.target.value })} aria-label={L('Titel des Bausteins', 'Block title')} data-testid={`block-title-${i}`} />
-                  <button type="button" onClick={() => setBlock({ ...b, collapsed: !b.collapsed })} aria-expanded={!b.collapsed} aria-label={b.collapsed ? L('Aufklappen', 'Expand') : L('Zuklappen', 'Collapse')} className="w-9 h-9 flex items-center justify-center text-[var(--color-text-muted)]" data-testid={`block-collapse-${i}`}>{b.collapsed ? <ChevronRight size={18} /> : <ChevronDown size={18} />}</button>
-                  <button type="button" onClick={() => setMenuFor(b.id)} aria-label={L('Mehr', 'More')} className="w-9 h-9 flex items-center justify-center text-[var(--color-text-muted)]" data-testid={`block-menu-${i}`}><Ellipsis size={18} /></button>
-                </div>
-                {!b.collapsed && (
-                  <div className="px-3 pb-3 pt-1">
-                    {renderBlock(b, props)}
-                    <div className="mt-3">
-                      {!noteShown && !b.note?.trim() ? (
-                        <button type="button" onClick={() => setNoteOpen((s) => new Set(s).add(b.id))} className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)]" data-testid={`block-note-open-${i}`}><StickyNote size={14} />{L('Notiz dazu', 'Add a note')}</button>
-                      ) : (
-                        <div data-testid={`block-note-${i}`}>
-                          <span className="block text-[12px] text-[var(--color-text-muted)] mb-1">{L('Notiz', 'Note')}</span>
-                          <RichTextEditor value={b.note ?? ''} onChange={(note) => setBlock({ ...b, note })} placeholder={L('Eigene Gedanken dazu …', 'Your own thoughts on this …')} minRows={2} testId={`block-note-editor-${i}`} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {b.collapsed && b.note?.trim() && hasFormatting(b.note) === false && <p className="px-4 pb-3 text-[12.5px] text-[var(--color-text-faint)] truncate">{b.note}</p>}
-                {b.collapsed && b.note?.trim() && hasFormatting(b.note) && <div className="px-4 pb-3 text-[12.5px] text-[var(--color-text-faint)]"><RichText text={b.note} maxLines={2} /></div>}
-              </section>
-            );
-          })}
-        </div>
-
-        <button type="button" onClick={() => setAdding(true)} className="w-full mt-5 flex items-center justify-center gap-2 rounded-full py-3 text-[15px] text-white" style={{ background: 'var(--color-primary)' }} data-testid="project-add-block"><Plus size={18} />{L('Baustein hinzufügen', 'Add a block')}</button>
-        <p className="text-[12px] text-[var(--color-text-faint)] text-center mt-2">{L('Alles ist freiwillig. Dein Projekt darf klein bleiben.', 'Everything is optional. Your project may stay small.')}</p>
-      </div>
-
-      <Modal open={adding} onClose={() => setAdding(false)} title={L('Baustein hinzufügen', 'Add a block')} subtitle={L('Was braucht dein Projekt gerade?', 'What does your project need right now?')}>
+      <Modal open={adding} onClose={() => setAdding(false)} title={L('Seite hinzufügen', 'Add a page')} subtitle={L('Was braucht dein Projekt gerade?', 'What does your project need right now?')}>
         <div className="flex flex-col gap-2" data-testid="project-block-picker">
           {BLOCK_META.filter((m) => !(m.kind === 'team' && hasTeam)).map((m) => (
             <button key={m.kind} type="button" onClick={() => addBlock(m.kind)} className="flex items-start gap-3 text-left rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2.5" data-testid={`add-block-${m.kind}`}>
@@ -226,21 +191,6 @@ export function ProjectPage() {
         </div>
       </Modal>
 
-      <Modal open={!!menuFor} onClose={() => setMenuFor(null)} title={L('Baustein', 'Block')} subtitle={p.blocks.find((b) => b.id === menuFor)?.title}>
-        {menuFor && (() => {
-          const b = p.blocks.find((x) => x.id === menuFor);
-          if (!b) return null;
-          const idx = p.blocks.indexOf(b);
-          return (
-            <div className="flex flex-col gap-2" data-testid="block-menu-sheet">
-              <button type="button" disabled={idx === 0} onClick={() => move(b.id, -1)} className="flex items-center gap-2 text-left rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-muted)] text-[14.5px] disabled:opacity-40" data-testid="block-up"><ArrowUp size={16} />{L('Nach oben', 'Move up')}</button>
-              <button type="button" disabled={idx === p.blocks.length - 1} onClick={() => move(b.id, 1)} className="flex items-center gap-2 text-left rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-muted)] text-[14.5px] disabled:opacity-40" data-testid="block-down"><ArrowDown size={16} />{L('Nach unten', 'Move down')}</button>
-              <button type="button" onClick={() => removeBlock(b)} className="flex items-center gap-2 text-left rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-muted)] text-[14.5px] text-[var(--color-danger)]" data-testid="block-remove"><Trash2 size={16} />{L('Baustein entfernen', 'Remove block')}</button>
-            </div>
-          );
-        })()}
-      </Modal>
-
       <Modal open={looks} onClose={() => setLooks(false)} title={L('Symbol und Farbe', 'Symbol and colour')}>
         <div className="flex flex-col gap-4" data-testid="project-looks-sheet">
           <div className="flex flex-wrap gap-2">{PROJECT_EMOJIS.map((e) => <button key={e} type="button" onClick={() => update((c) => ({ ...c, emoji: e }))} aria-pressed={p.emoji === e} className="w-11 h-11 rounded-xl text-[24px] border" style={{ borderColor: p.emoji === e ? p.color : 'var(--color-border)', background: p.emoji === e ? `${p.color}22` : 'transparent' }}>{e}</button>)}</div>
@@ -249,7 +199,33 @@ export function ProjectPage() {
         </div>
       </Modal>
 
-      {sharing && <ProjectShareModal project={p} onClose={() => setSharing(false)} today={dayKey(new Date())} />}
+      <Modal open={infos} onClose={() => setInfos(false)} title={L('Projekt-Infos', 'Project info')}>
+        <div className="flex flex-col gap-3" data-testid="project-infos-sheet">
+          <label className="block">
+            <span className="block text-[12px] text-[var(--color-text-muted)] mb-0.5">{L('Worum geht es? Was wollen wir machen – und warum?', 'What is it about? What do we want to do – and why?')}</span>
+            <textarea className="input" rows={3} value={p.summary} onChange={(e) => update((c) => ({ ...c, summary: e.target.value }))} data-testid="project-summary" />
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {statuses.map((s) => <button key={s} type="button" onClick={() => update((c) => ({ ...c, status: s, ...(s === 'done' ? { closedAt: new Date().toISOString() } : { closedAt: undefined }) }))} aria-pressed={p.status === s} className={chipCls(p.status === s)} style={p.status === s ? chipOn : undefined} data-testid={`project-status-${s}`}>{statusLabel(s, L)}</button>)}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <label><span className="block text-[12px] text-[var(--color-text-muted)] mb-0.5">{L('Start', 'Start')}</span><input type="date" className="input" value={p.start ?? ''} onChange={(e) => update((c) => ({ ...c, start: e.target.value || undefined }))} data-testid="project-start" /></label>
+            <label><span className="block text-[12px] text-[var(--color-text-muted)] mb-0.5">{L('Ziel-Datum (optional)', 'Target date (optional)')}</span><input type="date" className="input" value={p.end ?? ''} onChange={(e) => update((c) => ({ ...c, end: e.target.value || undefined }))} data-testid="project-end" /></label>
+          </div>
+          <Button fullWidth onClick={() => setInfos(false)}>{L('Fertig', 'Done')}</Button>
+        </div>
+      </Modal>
+
+      <Modal open={finishing} onClose={() => setFinishing(false)} title={L('Projekt abschließen', 'Complete project')} subtitle={L('Was darf damit passieren?', 'What may happen to it?')}>
+        <div className="flex flex-col gap-2" data-testid="project-finish-sheet">
+          <button type="button" onClick={() => finish('keep')} className="rounded-xl border-2 px-4 py-3 text-left" style={{ borderColor: p.color }} data-testid="finish-keep"><span className="block text-[15px]">🎉 {L('Geschafft – und gespeichert lassen', 'Done – and keep it saved')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Bleibt in deiner Liste, mit allem Drin. Termine im Kalender enden.', 'Stays in your list with everything in it. Calendar dates end.')}</span></button>
+          <button type="button" onClick={() => finish('archive')} className="rounded-xl border border-[var(--color-border-strong)] px-4 py-3 text-left flex items-center gap-2" data-testid="finish-archive"><Archive size={16} /><span><span className="block text-[15px]">{L('Geschafft – ins Archiv legen', 'Done – move to the archive')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Aufgeräumt, aber nichts ist weg.', 'Tidied away, but nothing is gone.')}</span></span></button>
+          <button type="button" onClick={() => finish('delete')} className="rounded-xl border border-[var(--color-border)] px-4 py-3 text-left flex items-center gap-2 text-[var(--color-danger)]" data-testid="finish-delete"><Trash2 size={16} /><span className="text-[15px]">{L('Löschen', 'Delete')}</span></button>
+        </div>
+      </Modal>
+
+      {quick && <QuickNote project={p} L={L} lang={lang} onClose={() => setQuick(false)} onSaved={(m) => { setQuick(false); reload(); say(m); }} />}
+      {sharing && <ProjectShareModal project={p} onClose={() => setSharing(false)} today={today} />}
     </div>
   );
 }

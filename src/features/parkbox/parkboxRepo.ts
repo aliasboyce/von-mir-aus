@@ -10,6 +10,12 @@ export interface ParkNote {
   paper: number;
   /** slight rotation in degrees – only for looks */
   tilt: number;
+  /** Project.id – the slip lies in that project's own box (not in the main box) */
+  projectId?: string;
+  /** 'YYYY-MM-DDTHH:MM' (local) – the slip flies into the Postfach / Home at that moment */
+  deliverAt?: string;
+  /** set once the slip has arrived on the start page; it then waits there until the person decides */
+  deliveredAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,6 +32,8 @@ export interface WaitItem {
   note?: string;
   /** Appointment.id once a period was assigned in the calendar */
   appointmentId?: string;
+  /** Project.id once the item was given to a project */
+  projectId?: string;
   createdAt: string;
   updatedAt: string;
 }

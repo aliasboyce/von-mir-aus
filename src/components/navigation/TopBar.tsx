@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
+import { SearchButton } from './SearchButton';
 import { goBack } from '../../services/navigation';
 import { useNavigate } from 'react-router-dom';
 import type { ReactNode } from 'react';
@@ -28,7 +29,10 @@ export function TopBar({ onBack, action, transparent = false }: TopBarProps) {
       >
         <ChevronLeft size={22} />
       </button>
-      <div>{action}</div>
+      <div className="flex items-center gap-1">
+        {action}
+        <SearchButton />
+      </div>
     </div>
   );
 }

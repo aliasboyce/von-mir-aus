@@ -473,6 +473,14 @@ Es gibt offenbar mehrere PARALLELE/AELTERE Implementierungen derselben Konzepte 
 - Einstieg/Anleitung erweitert: Zugang- und Entdecken-Tourstopps ergänzt, Datenschutz-Hinweis im Abschluss
 - Echte Lücke geschlossen: "Ich bin gerade nicht richtig da"-Shortcut existierte nirgends — jetzt auf der Startseite
 
+## 🟢 Erledigt (Sitzung 26.10. — 3D-Mindmap, 2D→3D, Lupe, Projekte als Mini-Webseiten)
+- Projekte: Startseite mit Kacheln/Kreis, eigene Unterseiten, „Alles zeigen“, Protokoll, Kalender-Anbindung, Schnellnotiz, Zettel-Box je Projekt, Zuordnung Parkbox/Wartezimmer, Zettel „für morgen“ ins Postfach, PDF mit allen Emojis/Bildern
+- 3D-Mindmap überarbeitet: Steuerkreuz (Drehen/Schieben/Ding, Halten wiederholt, 15°-Rasten), Sperren/Einrasten, achsengetrennte Touch-Gesten, größere Greifflächen, viele neue Formen (Pyramide, Prisma, Kuppel, Treppe …), flache Dinge (Text, Sprechblase, Gedankenblase, Ausruf, Zettel, Foto), Umriss/Durchsichtigkeit/Schrift/Drehung pro Ding, „Nur auf einer Ebene bauen“, Ebenen-Looks und 14 Farben, 14 Hintergründe inkl. eigenes Foto, Kamera (Schnappschüsse je Karte, max. 24), Rückgängig/Wiederholen (50), „Jetzigen Stand festhalten“ + Ansehen/Kopie/Zurückholen (max. 30), PDF mit allem
+- 2D-Mindmap → 3D als Kopie (nach Ebenen oder flach), Original unverändert
+- Lupe: Suche in der ganzen App (Funktionen, Anleitungen, alle eigenen Texte), Wortteile/Tippfehler/Umlaute, letzte Suchen, Strg+K, Lupen-Symbol auf Seiten; gesperrte Tagebücher und ungeöffnete Briefe ausgenommen
+- App-Überblick, Anleitungen (3D-Mindmap, Projekte, Lupe), Änderungsprotokoll aktualisiert
+- Grenzen: Hintergrundfoto/Fotos nur Bilddateien; Speicher ~5 MB im Browser geteilt (volle Speicher werden gemeldet); Rahmen/Zeichnungen werden bei 2D→3D nicht übernommen
+
 ## 🟢 Erledigt (vorherige Sitzung — Grundstruktur, Resonanz und neue Funktionen)
 - Sechs neue, vollständig verbundene Entdecken-Seiten für die Zugang-Bausteine: Nervensystem, Körperwahrnehmung, Schutzstrategien, Gefühle, Glaubenssätze (neue Architektur), Wertekompass — alle bauen auf bestehenden Zugang-Daten auf, keine Dopplungen
 - Bedürfnis-Seite geprüft: bewusste Zweiteilung (13 handlungsverknüpfte Richtungen + volle GFK-Liste als Ergänzung) bestätigt sinnvoll, keine Dopplung

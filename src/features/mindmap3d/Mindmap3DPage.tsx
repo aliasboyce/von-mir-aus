@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Box, Camera, ChevronLeft, Copy, Eye, EyeOff, Layers, Link2, List, Maximize2, Minus, Move, MoveVertical, Plus, Redo2, Settings2, Trash2, Undo2, Unlink,
+  Box, Camera, ChevronLeft, Eye, Layers, List, Maximize2, Minus, Move, MoveVertical, Plus, PlusCircle, Redo2, Save, Settings2, Undo2, Unlink, X,
 } from 'lucide-react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useRegisterExternalModalOpen, useRegisterModalOpen } from '../../state/ModalStackContext';
@@ -11,25 +11,30 @@ import { createId } from '../../services/storage/repository';
 import { mindmapRepo, type MindMap } from '../mindmap/mindmapModel';
 import { useL } from '../projects/useL';
 import {
-  COLORS3D, LAYER_COLORS, SHAPES3D, newEdge3, newLayer3, newNode3, sanitizeSpace,
-  type Edge3D, type Layer3D, type Node3D, type Shape3D, type Space3D,
+  COLORS3D, bgInfo, isFlat, newEdge3, newLayer3, newNode3, sanitizeSpace,
+  type BgId, type Edge3D, type Layer3D, type Node3D, type Shape3D, type Shot3D, type Space3D, type Version3D,
 } from './space3dModel';
-import { SpaceView, webglAvailable, type Cam, type DragMode } from './spaceView';
+import { SpaceView, webglAvailable, type Cam, type DragMode, type Locks } from './spaceView';
+import { ControlDock, type Dir, type DockMode } from './ControlDock';
+import { AddPanel, LayersPanel, ListPanel, SavesPanel, ThingPanel, ViewPanel, type PanelCtx, type Sel, type SubTab } from './panels3d';
+import { fileToSmallImage } from './mm3Media';
+import { deleteVersion, saveVersion, versionsOf } from './mm3Versions';
+import { shareMindmap3dPdf } from './mindmap3dPdf';
 
-type Tab = 'thing' | 'layers' | 'view' | 'list';
-type Sel = { kind: 'node' | 'edge'; id: string } | null;
+type Tab = 'thing' | 'add' | 'layers' | 'view' | 'list' | 'saves';
 
 const ctlBtn = 'w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)] disabled:opacity-40';
-const chip = (on: boolean) => `px-3 py-1.5 rounded-full text-[13px] border shrink-0 ${on ? 'bg-[var(--color-primary-soft)] border-[var(--color-primary)] text-[var(--color-primary)]' : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)]'}`;
-const field = 'w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[14px] text-[var(--color-text)] outline-none';
 const r1 = (v: number) => Math.round(v * 100) / 100;
+const DOCK_KEY = 'innerpath:mm3-dock';
 
 export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
   const { L, lang } = useL();
   const navigate = useNavigate();
   useRegisterModalOpen(true);
   useRegisterExternalModalOpen(true);
-  const fromDiary = (useLocation().state as { fromDiary?: string } | null)?.fromDiary;
+  const locState = useLocation().state as { fromDiary?: string; converted?: number } | null;
+  const fromDiary = locState?.fromDiary;
+  const convertedSkipped = locState?.converted;
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<SpaceView | null>(null);
   const [gl] = useState(() => webglAvailable());
@@ -41,11 +46,21 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
   const thumbRef = useRef<string | undefined>(initial.thumb);
   const [sel, setSel] = useState<Sel>(null);
   const [selLayer, setSelLayer] = useState<string | null>(null);
+  const [onlyLayer, setOnlyLayer] = useState(false);
   const [connectFrom, setConnectFrom] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('thing');
+  const [sub, setSub] = useState<SubTab>('look');
   const [panelOpen, setPanelOpen] = useState(true);
   const [dragMode, setDragMode] = useState<DragMode>('plane');
+  const [dockOpen, setDockOpenState] = useState(() => { try { return window.localStorage.getItem(DOCK_KEY) !== '0'; } catch { return true; } });
+  const [dockMode, setDockMode] = useState<DockMode>('turn');
+  const [locks, setLocks] = useState<Locks>({ rotate: false, zoom: false, pan: false });
+  const [freeOrbit, setFreeOrbit] = useState(false);
   const [toast, setToast] = useState('');
+  const [preview, setPreview] = useState<Version3D | null>(null);
+  const [versions, setVersions] = useState<Version3D[]>(() => versionsOf(initial.id));
+  const [stateName, setStateName] = useState('');
+  const [pdfBusy, setPdfBusy] = useState(false);
   const past = useRef<Space3D[]>([]);
   const future = useRef<Space3D[]>([]);
   const [, bump] = useState(0);
@@ -54,11 +69,32 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
   const thumbDirty = useRef(false);
   const saveTimer = useRef<number>(0);
   const thumbTimer = useRef<number>(0);
+  const toastTimer = useRef<number>(0);
   const dragUndone = useRef(false);
+  const warnedFull = useRef(false);
+  const camBeforePreview = useRef<Cam | null>(null);
+  const previewRef = useRef<Version3D | null>(null);
+  previewRef.current = preview;
+  const focusLayer = onlyLayer && selLayer ? selLayer : null;
 
-  const say = (m: string) => {
+  const say = useCallback((m: string) => {
     setToast(m);
-    window.setTimeout(() => setToast(''), 3200);
+    window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(''), 3400);
+  }, []);
+  const sayRef = useRef(say);
+  sayRef.current = say;
+  const LRef = useRef(L);
+  LRef.current = L;
+
+  useEffect(() => {
+    if (convertedSkipped) say(L(`Kopie als 3D-Raum angelegt. ${convertedSkipped} Rahmen/Zeichnungen wurden nicht übernommen – die Fläche behält sie.`, `Copy made as a 3D space. ${convertedSkipped} frames/drawings were not carried over – the flat map keeps them.`));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const setDockOpen = (v: boolean) => {
+    setDockOpenState(v);
+    try { window.localStorage.setItem(DOCK_KEY, v ? '1' : '0'); } catch { /* ohne Speicher */ }
   };
 
   /* ------------------------------------------------------------- saving */
@@ -67,10 +103,14 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
     if (!dirty.current) return;
     dirty.current = false;
     const base = mindmapRepo.getById(initial.id) ?? initial;
-    mindmapRepo.trySave({
+    const ok = mindmapRepo.trySave({
       ...base, kind: '3d', title: titleRef.current, space: { ...spaceRef.current, cam: camRef.current },
       thumb: thumbRef.current, updatedAt: new Date().toISOString(),
     });
+    if (!ok && !warnedFull.current) {
+      warnedFull.current = true;
+      sayRef.current(LRef.current('Speichern geht gerade nicht – der Speicher dieses Geräts ist voll. Alte Fotos oder Stände zu löschen schafft Platz.', 'Saving is not possible right now – this device’s storage is full. Deleting old pictures or states makes room.'));
+    }
   }, [initial]);
   const schedule = useCallback(() => {
     dirty.current = true;
@@ -79,13 +119,14 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
     saveTimer.current = window.setTimeout(writeNow, 450);
     window.clearTimeout(thumbTimer.current);
     thumbTimer.current = window.setTimeout(() => {
+      if (previewRef.current) return;
       const url = viewRef.current?.snapshotFit(1100, 800, 0.8);
       if (url) { thumbRef.current = url; thumbDirty.current = false; dirty.current = true; writeNow(); }
     }, 1800);
   }, [writeNow]);
   const flush = useCallback((withThumb: boolean) => {
     window.clearTimeout(thumbTimer.current);
-    if (withThumb && (thumbDirty.current || !thumbRef.current)) {
+    if (withThumb && !previewRef.current && (thumbDirty.current || !thumbRef.current)) {
       const url = viewRef.current?.snapshotFit(1100, 800, 0.8);
       if (url) { thumbRef.current = url; thumbDirty.current = false; dirty.current = true; }
     }
@@ -139,6 +180,7 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
   /* ------------------------------------------------------------- the view */
   const cbRef = useRef<{ pickNode(id: string): void }>({ pickNode: () => undefined });
   cbRef.current.pickNode = (id: string) => {
+    if (previewRef.current) return;
     if (connectFrom && connectFrom !== id) {
       const exists = spaceRef.current.edges.find((e) => (e.from === connectFrom && e.to === id) || (e.from === id && e.to === connectFrom));
       if (exists) {
@@ -167,7 +209,7 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
     try {
       view = new SpaceView(hostRef.current, {
         onPickNode: (id) => cbRef.current.pickNode(id),
-        onPickEdge: (id) => { setConnectFrom(null); setSel({ kind: 'edge', id }); setTab('thing'); setPanelOpen(true); },
+        onPickEdge: (id) => { if (previewRef.current) return; setConnectFrom(null); setSel({ kind: 'edge', id }); setTab('thing'); setPanelOpen(true); },
         onPickNone: () => { setSel(null); setConnectFrom(null); },
         onDragStart: (id) => {
           const cur = spaceRef.current;
@@ -212,9 +254,17 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
   }, [gl]);
 
   useEffect(() => {
-    viewRef.current?.update(space, { selNode: sel?.kind === 'node' ? sel.id : null, selEdge: sel?.kind === 'edge' ? sel.id : null, selLayer, connectFrom });
-  }, [space, sel, selLayer, connectFrom]);
+    const shown = preview ? sanitizeSpace(preview.space, lang) : space;
+    viewRef.current?.update(shown, {
+      selNode: !preview && sel?.kind === 'node' ? sel.id : null,
+      selEdge: !preview && sel?.kind === 'edge' ? sel.id : null,
+      selLayer, connectFrom, focusLayer, readOnly: !!preview,
+    });
+  }, [space, sel, selLayer, connectFrom, focusLayer, preview, lang]);
   useEffect(() => { viewRef.current?.setDragMode(dragMode); }, [dragMode]);
+  useEffect(() => { viewRef.current?.setLocks(locks); }, [locks]);
+  useEffect(() => { viewRef.current?.setOneFinger(dockMode === 'move' ? 'pan' : 'turn'); }, [dockMode]);
+  useEffect(() => { viewRef.current?.setFreeOrbit(freeOrbit); }, [freeOrbit]);
   useEffect(() => {
     const onHide = () => flush(false);
     window.addEventListener('pagehide', onHide);
@@ -222,25 +272,79 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
   }, [flush]);
 
   /* ---------------------------------------------------------------- items */
-  const node = sel?.kind === 'node' ? space.nodes.find((n) => n.id === sel.id) : undefined;
-  const edge = sel?.kind === 'edge' ? space.edges.find((e) => e.id === sel.id) : undefined;
-  const layerName = (id?: string) => space.layers.find((l) => l.id === id)?.name ?? '';
+  const node = sel?.kind === 'node' && !preview ? space.nodes.find((n) => n.id === sel.id) : undefined;
+  const edge = sel?.kind === 'edge' && !preview ? space.edges.find((e) => e.id === sel.id) : undefined;
   const otherMaps = useMemo(() => mindmapRepo.getAll().filter((m) => m.id !== initial.id && !m.archived), [initial.id]);
 
   const snapY = (y: number): { y: number; layerId?: string } => {
     for (const l of spaceRef.current.layers) if (Math.abs(l.y - y) < 0.55) return { y: l.y, layerId: l.id };
     return { y };
   };
-  function addThing(shape: Shape3D = 'sphere') {
+  const SHAPE_DEFAULT: Partial<Record<Shape3D, { text: string; color: string }>> = {
+    bubble: { text: L('Hallo!', 'Hello!'), color: '#f4f1ea' },
+    thought: { text: L('Hmm …', 'Hmm …'), color: '#cfe3f3' },
+    shout: { text: L('Achtung!', 'Look out!'), color: '#f2d16b' },
+    note: { text: L('Notiz', 'Note'), color: '#f2d16b' },
+    photo: { text: '', color: '#f4f1ea' },
+  };
+  function addThing(shape: Shape3D = 'sphere', extra: Partial<Node3D> = {}) {
     const t = viewRef.current?.target() ?? { x: 0, y: 0, z: 0 };
-    const lay = selLayer ? space.layers.find((l) => l.id === selLayer) : undefined;
-    const j = () => (Math.random() - 0.5) * 3;
+    const lay = selLayer ? spaceRef.current.layers.find((l) => l.id === selLayer) : undefined;
     const base = lay ? { y: lay.y, layerId: lay.id } : snapY(t.y);
-    const n = newNode3({ text: L('Neu', 'New'), shape, color: COLORS3D[space.nodes.length % COLORS3D.length], x: r1(t.x + j()), z: r1(t.z + j()), ...base });
+    const spot = freeSpot(t.x, t.z, base.y);
+    const d = SHAPE_DEFAULT[shape];
+    const textColor = bgInfo(spaceRef.current).dark ? '#f4f1ea' : '#2b2a28';
+    const n = newNode3({
+      text: d?.text ?? L('Neu', 'New'),
+      shape,
+      color: shape === 'text' ? textColor : d?.color ?? COLORS3D[spaceRef.current.nodes.length % COLORS3D.length],
+      x: spot.x, z: spot.z, ...base, ...extra,
+    });
     mutate((s) => ({ ...s, nodes: [...s.nodes, n] }));
     setSel({ kind: 'node', id: n.id });
     setTab('thing');
+    setSub('look');
     setPanelOpen(true);
+    return n;
+  }
+  /** ein freier Platz in der Nähe der Bildmitte – neue Dinge stapeln sich nicht aufeinander */
+  function freeSpot(cx: number, cz: number, y: number) {
+    const near = spaceRef.current.nodes.filter((n) => Math.abs(n.y - y) < 1.6);
+    const free = (x: number, z: number) => near.every((n) => Math.hypot(n.x - x, n.z - z) > 2.6);
+    for (const ring of [0, 3, 5.5, 8, 11]) {
+      const steps = ring === 0 ? 1 : Math.round(ring * 2.2);
+      for (let i = 0; i < steps; i++) {
+        const a = (i / steps) * Math.PI * 2 + ring * 0.7;
+        const x = r1(cx + Math.cos(a) * ring);
+        const z = r1(cz + Math.sin(a) * ring);
+        if (free(x, z)) return { x, z };
+      }
+    }
+    return { x: r1(cx + (Math.random() - 0.5) * 6), z: r1(cz + (Math.random() - 0.5) * 6) };
+  }
+  function addChild() {
+    if (!node) return;
+    const dir = viewRef.current?.axisDir('right') ?? { x: 1, z: 0 };
+    const off = 3.2 + nodeSpan(node);
+    const c = newNode3({
+      text: L('Neu', 'New'), shape: isFlat(node.shape) ? 'sphere' : node.shape, color: node.color, size: Math.max(1, (node.size || 2) - 0.5),
+      x: r1(node.x + dir.x * off + (dir.x ? 0 : 0.8)), z: r1(node.z + dir.z * off + (dir.z ? 0 : 0.8)), y: node.y, layerId: node.layerId,
+    });
+    const e = newEdge3(node.id, c.id);
+    mutate((s) => ({ ...s, nodes: [...s.nodes, c], edges: [...s.edges, e] }));
+    setSel({ kind: 'node', id: c.id });
+    setSub('look');
+  }
+  function nodeSpan(n: Node3D) { return 0.45 + 0.25 * (n.size || 2); }
+  async function addPhoto(file: File) {
+    const img = await fileToSmallImage(file, 640, 0.78);
+    if (!img) { say(L('Dieses Bild ließ sich nicht öffnen.', 'This picture could not be opened.')); return; }
+    addThing('photo', { image: img.dataUrl, ar: img.ar, text: '' });
+  }
+  async function setNodePhoto(id: string, file: File) {
+    const img = await fileToSmallImage(file, 640, 0.78);
+    if (!img) { say(L('Dieses Bild ließ sich nicht öffnen.', 'This picture could not be opened.')); return; }
+    setNode(id, { image: img.dataUrl, ar: img.ar, shape: 'photo' });
   }
   function removeNode(id: string) {
     mutate((s) => ({ ...s, nodes: s.nodes.filter((n) => n.id !== id), edges: s.edges.filter((e) => e.from !== id && e.to !== id) }));
@@ -253,6 +357,7 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
   }
   function nudge(n: Node3D, dx: number, dy: number, dz: number) {
     if (dy) {
+      if (focusLayer) { say(L('Du baust nur auf einer Ebene – „Nur auf dieser Ebene bauen“ ausschalten, um die Höhe zu ändern.', 'You are building on one layer only – switch “Build only on this layer” off to change the height.')); return; }
       const s = snapY(n.y + dy);
       setNode(n.id, { y: r1(s.y), layerId: s.layerId });
     } else setNode(n.id, { x: r1(n.x + dx), z: r1(n.z + dz) });
@@ -276,8 +381,105 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
     mutate((s) => ({ ...s, layers: s.layers.filter((x) => x.id !== l.id), nodes: s.nodes.map((n) => (n.layerId === l.id ? { ...n, layerId: undefined } : n)) }));
     setSelLayer(null);
   }
+  function chooseLayer(id: string | null) {
+    setSelLayer(id);
+    if (!id) setOnlyLayer(false);
+  }
+  function toggleOnly(v: boolean) {
+    setOnlyLayer(v);
+    if (v && selLayer) {
+      const l = spaceRef.current.layers.find((x) => x.id === selLayer);
+      if (l) viewRef.current?.goTo({ ty: l.y, phi: 0.75 });
+      say(L('Du baust jetzt nur auf dieser Ebene.', 'You are building on this layer only.'));
+    }
+  }
 
-  async function takePhoto() {
+  /* ---------------------------------------------------------- Steuerkreuz */
+  const anyLocked = locks.rotate || locks.zoom || locks.pan;
+  const toggleLockAll = () => setLocks(anyLocked ? { rotate: false, zoom: false, pan: false } : { rotate: true, zoom: true, pan: true });
+  function arrow(d: Dir) {
+    const v = viewRef.current;
+    if (!v || preview && dockMode === 'thing') return;
+    const sx = d === 'r' ? 1 : d === 'l' ? -1 : 0;
+    const sy = d === 'd' ? 1 : d === 'u' ? -1 : 0;
+    if (dockMode === 'turn') {
+      if (!locks.rotate) v.turnSnap(sx, sy);
+    } else if (dockMode === 'move') {
+      if (locks.pan) return;
+      const step = Math.min(4, Math.max(0.6, v.getCam().dist * 0.08));
+      v.moveFocus(sx * step, -sy * step, 0);
+    } else if (node) {
+      const right = v.axisDir('right');
+      const fwd = v.axisDir('forward');
+      const f = -sy; // oben = in den Raum hinein
+      const step = 0.5;
+      const snap = (x: number) => Math.round(x * 2) / 2;
+      setNode(node.id, { x: snap(node.x + right.x * sx * step + fwd.x * f * step), z: snap(node.z + right.z * sx * step + fwd.z * f * step) }, `pad-${node.id}`);
+    }
+  }
+  function side(d: 'up' | 'down') {
+    const v = viewRef.current;
+    if (!v) return;
+    if (dockMode === 'turn') {
+      if (!locks.zoom) v.zoom(d === 'up' ? 0.8 : 1.25);
+    } else if (dockMode === 'move') {
+      if (locks.pan) return;
+      v.moveFocus(0, 0, (d === 'up' ? 1 : -1) * Math.min(3, Math.max(0.6, v.getCam().dist * 0.06)));
+    } else if (node && !preview) nudge(node, 0, d === 'up' ? 1 : -1, 0);
+  }
+  function center() {
+    if (dockMode === 'thing' && node) viewRef.current?.focus(node.x, node.y, node.z);
+    else viewRef.current?.fitAll();
+  }
+  const act = useRef({ undo, redo, arrow, side, removeNode });
+  act.current = { undo, redo, arrow, side, removeNode };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      const k = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); if (e.shiftKey) act.current.redo(); else act.current.undo(); return; }
+      if ((e.ctrlKey || e.metaKey) && k === 'y') { e.preventDefault(); act.current.redo(); return; }
+      const dirs: Record<string, Dir> = { arrowleft: 'l', arrowright: 'r', arrowup: 'u', arrowdown: 'd' };
+      if (dirs[k]) { e.preventDefault(); act.current.arrow(dirs[k]); return; }
+      if (k === 'pageup') { e.preventDefault(); act.current.side('up'); return; }
+      if (k === 'pagedown') { e.preventDefault(); act.current.side('down'); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  /* ------------------------------------------------------ Ansicht & Fotos */
+  function goView(p: { theta?: number; phi?: number }) { viewRef.current?.goTo(p); }
+  function setBg(id: BgId) { mutate((s) => ({ ...s, bg: id })); }
+  async function pickBgImage(file: File) {
+    const img = await fileToSmallImage(file, 1400, 0.72);
+    if (!img) { say(L('Dieses Bild ließ sich nicht öffnen. Als Hintergrund gehen Bilddateien (Foto, Screenshot, Grafik).', 'This picture could not be opened. Image files work as a background (photo, screenshot, graphic).')); return; }
+    mutate((s) => ({ ...s, bg: 'photo', bgImage: img.dataUrl, bgTone: img.tone }));
+    say(L('Dein Foto ist jetzt der Hintergrund.', 'Your photo is now the background.'));
+  }
+  function takeShot() {
+    const v = viewRef.current;
+    if (!v) return;
+    const url = v.snapshotClean(720);
+    if (!url) { say(L('Das Foto ließ sich auf diesem Gerät nicht erstellen.', 'The picture could not be made on this device.')); return; }
+    const n = (spaceRef.current.shots?.length ?? 0) + 1;
+    const shot: Shot3D = { id: createId('sh'), at: new Date().toISOString(), name: L(`Ansicht ${n}`, `View ${n}`), img: url, cam: v.getCam() };
+    mutate((s) => ({ ...s, shots: [...(s.shots ?? []), shot].slice(-24) }), false);
+    say(L('Foto gespeichert – du findest es unter „Ansicht“.', 'Picture saved – you find it under “View”.'));
+  }
+  function openShot(s: Shot3D) { viewRef.current?.goTo(s.cam, 420); }
+  function renameShot(id: string, name: string) {
+    mutate((s) => ({ ...s, shots: (s.shots ?? []).map((x) => (x.id === id ? { ...x, name } : x)) }), false);
+  }
+  function deleteShot(id: string) { mutate((s) => ({ ...s, shots: (s.shots ?? []).filter((x) => x.id !== id) }), false); }
+  async function downloadShot(s: Shot3D) {
+    const blob = await (await fetch(s.img)).blob();
+    const r = await deliverImage(blob, `${(title || '3D').replace(/[^\p{L}\p{N}_-]+/gu, '_')}-${(s.name || 'foto').replace(/[^\p{L}\p{N}_-]+/gu, '_')}.jpg`, s.name || title || '3D');
+    if (r === 'shared') say(L('Bild ist bereit – im Teilen-Menü sichern.', 'Picture ready – save it from the share menu.'));
+    else if (r === 'downloaded') say(L('Bild wurde in deinen Downloads gespeichert.', 'Picture saved to your downloads.'));
+  }
+  async function downloadPng() {
     flush(false);
     const url = viewRef.current?.snapshot(1800, 'image/png');
     if (!url) { say(L('Das Bild ließ sich auf diesem Gerät nicht erstellen.', 'The picture could not be made on this device.')); return; }
@@ -286,6 +488,74 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
     if (r === 'shared') say(L('Bild ist bereit – im Teilen-Menü sichern.', 'Picture ready – save it from the share menu.'));
     else if (r === 'downloaded') say(L('Bild wurde in deinen Downloads gespeichert.', 'Picture saved to your downloads.'));
   }
+  async function sharePdf() {
+    setPdfBusy(true);
+    try {
+      flush(false);
+      const overview = viewRef.current?.snapshotFit(1500, 1050, 0.86) ?? thumbRef.current ?? null;
+      const r = await shareMindmap3dPdf(initial.id, titleRef.current, spaceRef.current, versionsOf(initial.id), { overview, shots: true, versions: true, details: true }, lang);
+      if (r === 'shared') say(L('PDF ist bereit – im Teilen-Menü sichern.', 'PDF ready – save it from the share menu.'));
+      else if (r === 'downloaded') say(L('PDF wurde in deinen Downloads gespeichert.', 'PDF saved to your downloads.'));
+      else if (r === 'failed') say(L('Das PDF ließ sich nicht erstellen.', 'The PDF could not be made.'));
+    } catch {
+      say(L('Das PDF ließ sich nicht erstellen.', 'The PDF could not be made.'));
+    } finally {
+      setPdfBusy(false);
+    }
+  }
+
+  /* ------------------------------------------------------------- Stände */
+  const refreshVersions = () => setVersions(versionsOf(initial.id));
+  function holdState(name: string) {
+    flush(false);
+    const v = viewRef.current;
+    const thumb = v?.snapshotFit(480, 340, 0.7) ?? undefined;
+    const nm = name.trim() || L(`Stand ${new Date().toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`, `State ${new Date().toLocaleString('en-GB', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`);
+    const r = saveVersion(initial.id, nm, spaceRef.current, thumb);
+    refreshVersions();
+    setStateName('');
+    if (!r.ok) say(L('Der Stand ließ sich nicht festhalten – der Speicher ist voll. Ältere Stände oder Fotos löschen schafft Platz.', 'The state could not be kept – storage is full. Deleting older states or pictures makes room.'));
+    else say(r.dropped ? L('Festgehalten. (Der älteste Stand wurde ersetzt – es bleiben 30.)', 'Kept. (The oldest state was replaced – 30 stay.)') : L('Stand festgehalten – du kannst jetzt ruhig weiterbauen.', 'State kept – go ahead and keep building.'));
+  }
+  function previewVersion(v: Version3D) {
+    if (!previewRef.current) camBeforePreview.current = viewRef.current?.getCam() ?? null;
+    setSel(null);
+    setConnectFrom(null);
+    setPreview(v);
+    viewRef.current?.goTo(sanitizeSpace(v.space, lang).cam, 0);
+  }
+  function exitPreview() {
+    setPreview(null);
+    if (camBeforePreview.current) viewRef.current?.goTo(camBeforePreview.current, 0);
+  }
+  function restoreVersion(v: Version3D) {
+    if (!window.confirm(L('Diesen Stand zurückholen? Den jetzigen Stand halte ich vorher automatisch fest.', 'Bring this state back? I keep the current one first, automatically.'))) return;
+    flush(false);
+    saveVersion(initial.id, L('Vor dem Zurückholen', 'Before bringing back'), spaceRef.current, viewRef.current?.snapshotFit(480, 340, 0.7) ?? undefined);
+    const keepShots = spaceRef.current.shots;
+    mutate(() => ({ ...sanitizeSpace(v.space, lang), shots: keepShots }));
+    setPreview(null);
+    refreshVersions();
+    viewRef.current?.goTo(sanitizeSpace(v.space, lang).cam, 0);
+    say(L('Der Stand ist zurück. Mit „Rückgängig“ oder unter „Stände“ kommst du wieder zum vorherigen.', 'The state is back. With “Undo” or under “States” you can return to the previous one.'));
+  }
+  function copyVersion(v: Version3D) {
+    const base = mindmapRepo.getById(initial.id) ?? initial;
+    const now = new Date().toISOString();
+    const copy: MindMap = {
+      ...base, id: createId('mm'), title: `${titleRef.current || '3D'} · ${v.name}`, createdAt: now, updatedAt: now, kind: '3d',
+      space: { ...sanitizeSpace(v.space, lang), shots: undefined }, thumb: v.thumb, nodes: [], edges: [], parentId: undefined, archived: undefined, archivedAt: undefined,
+    };
+    const ok = mindmapRepo.trySave(copy);
+    say(ok ? L('Kopie angelegt – du findest sie in der Mindmap-Liste.', 'Copy created – you find it in the mind map list.') : L('Die Kopie ließ sich nicht speichern – der Speicher ist voll.', 'The copy could not be saved – storage is full.'));
+  }
+  function removeVersion(v: Version3D) {
+    if (!window.confirm(L('Diesen festgehaltenen Stand löschen?', 'Delete this kept state?'))) return;
+    deleteVersion(v.id);
+    if (previewRef.current?.id === v.id) exitPreview();
+    refreshVersions();
+  }
+
   const goBackNow = () => {
     flush(true);
     if (fromDiary) navigate(`/sicherheit/tagebuch?entry=${fromDiary}`, { replace: true });
@@ -293,172 +563,26 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
   };
 
   /* ---------------------------------------------------------------- panels */
-  const thingPanel = () => {
-    if (edge) {
-      const a = space.nodes.find((n) => n.id === edge.from);
-      const b = space.nodes.find((n) => n.id === edge.to);
-      return (
-        <div className="space-y-3" data-testid="mm3-edge-panel">
-          <p className="text-[13px] text-[var(--color-text-muted)]">{L('Verbindung', 'Link')}: {a?.text} → {b?.text}</p>
-          <input className={field} value={edge.label ?? ''} onChange={(e) => setEdge(edge.id, { label: e.target.value }, `el-${edge.id}`)} placeholder={L('Beschriftung (z. B. „führt zu“)', 'Label (e.g. “leads to”)')} data-testid="mm3-edge-label" />
-          <div className="flex flex-wrap gap-2">
-            {['#c9c4b8', ...COLORS3D.slice(0, 7)].map((c) => (
-              <button key={c} type="button" onClick={() => setEdge(edge.id, { color: c })} className="w-8 h-8 rounded-full border-2" style={{ background: c, borderColor: edge.color === c ? 'var(--color-primary)' : 'transparent' }} aria-label={c} />
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" className={chip(!!edge.dashed)} onClick={() => setEdge(edge.id, { dashed: !edge.dashed })}>{L('gestrichelt', 'dashed')}</button>
-            <button type="button" className={chip(!!edge.arrow)} onClick={() => setEdge(edge.id, { arrow: !edge.arrow })}>{L('mit Pfeil', 'arrow')}</button>
-            <button type="button" className={chip(false)} onClick={() => setEdge(edge.id, { from: edge.to, to: edge.from })}>{L('Richtung drehen', 'flip direction')}</button>
-            <button type="button" className={`${chip(false)} text-[var(--color-danger,#b4472f)]`} onClick={() => { mutate((s) => ({ ...s, edges: s.edges.filter((e) => e.id !== edge.id) })); setSel(null); }} data-testid="mm3-edge-delete"><Trash2 size={13} className="inline -mt-0.5 mr-1" />{L('Verbindung löschen', 'Delete link')}</button>
-          </div>
-        </div>
-      );
-    }
-    if (!node) {
-      return (
-        <div className="space-y-3 text-[14px] text-[var(--color-text-muted)]" data-testid="mm3-empty-panel">
-          <p>{L('Tippe ein Ding an, um es zu bearbeiten. Mit einem Finger drehst du den Raum, mit zwei Fingern zoomst und verschiebst du ihn.', 'Tap a thing to edit it. One finger turns the space, two fingers zoom and move it.')}</p>
-          <p className="text-[13px]">{L('Ein Ding anfassen und ziehen verschiebt es – „Fläche“ bewegt es auf seiner Ebene, „Höhe“ nach oben oder unten.', 'Drag a thing to move it – “Floor” moves it on its layer, “Height” up or down.')}</p>
-          <div className="flex flex-wrap gap-2">
-            {SHAPES3D.map((s) => (
-              <button key={s.id} type="button" className={chip(false)} onClick={() => addThing(s.id)} data-testid={`mm3-add-${s.id}`}>{s.icon} {L(s.de, s.en)}</button>
-            ))}
-          </div>
-        </div>
-      );
-    }
-    return (
-      <div className="space-y-3" data-testid="mm3-node-panel">
-        <input className={field} value={node.text} onChange={(e) => setNode(node.id, { text: e.target.value }, `nt-${node.id}`)} placeholder={L('Name des Dings', 'Name of the thing')} data-testid="mm3-node-text" />
-        <div>
-          <p className="text-[12px] text-[var(--color-text-muted)] mb-1">{L('Form', 'Shape')}</p>
-          <div className="flex gap-1.5 overflow-x-auto pb-1">
-            {SHAPES3D.map((s) => (
-              <button key={s.id} type="button" className={chip(node.shape === s.id)} onClick={() => setNode(node.id, { shape: s.id })} data-testid={`mm3-shape-${s.id}`}>{s.icon} {L(s.de, s.en)}</button>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {COLORS3D.map((c) => (
-            <button key={c} type="button" onClick={() => setNode(node.id, { color: c })} className="w-8 h-8 rounded-full border-2" style={{ background: c, borderColor: node.color === c ? 'var(--color-primary)' : 'transparent' }} aria-label={c} data-testid={`mm3-color-${c.slice(1)}`} />
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] text-[var(--color-text-muted)]">{L('Größe', 'Size')}</span>
-          {[1, 2, 3, 4].map((n) => (
-            <button key={n} type="button" className={chip(node.size === n)} onClick={() => setNode(node.id, { size: n })} data-testid={`mm3-size-${n}`}>{['S', 'M', 'L', 'XL'][n - 1]}</button>
-          ))}
-          <input className={`${field} !w-16 text-center`} value={node.symbol ?? ''} maxLength={4} onChange={(e) => setNode(node.id, { symbol: e.target.value.trim() || undefined }, `ns-${node.id}`)} placeholder="🙂" aria-label={L('Symbol', 'Symbol')} />
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <label className="text-[12px] text-[var(--color-text-muted)]">{L('Ebene', 'Layer')}
-            <select className={`${field} mt-1`} value={node.layerId ?? ''} onChange={(e) => {
-              const l = space.layers.find((x) => x.id === e.target.value);
-              setNode(node.id, l ? { layerId: l.id, y: l.y } : { layerId: undefined });
-            }} data-testid="mm3-node-layer">
-              <option value="">{L('keine', 'none')}</option>
-              {space.layers.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-            </select>
-          </label>
-          <label className="text-[12px] text-[var(--color-text-muted)]">{L('Mindmap dahinter', 'Mind map behind it')}
-            <select className={`${field} mt-1`} value={node.link ?? ''} onChange={(e) => setNode(node.id, { link: e.target.value || undefined })} data-testid="mm3-node-link">
-              <option value="">{L('keine', 'none')}</option>
-              {otherMaps.map((m) => <option key={m.id} value={m.id}>{m.kind === '3d' ? '🧊 ' : ''}{m.title || L('Ohne Titel', 'Untitled')}</option>)}
-            </select>
-          </label>
-        </div>
-        {node.link && mindmapRepo.getById(node.link) && (
-          <button type="button" className={chip(false)} onClick={() => { flush(true); navigate(`/entdecken/mindmap/${node.link}`); }} data-testid="mm3-open-link">{L('Mindmap öffnen', 'Open mind map')} ↗</button>
-        )}
-        <textarea className={`${field} min-h-[56px]`} value={node.note ?? ''} onChange={(e) => setNode(node.id, { note: e.target.value || undefined }, `nn-${node.id}`)} placeholder={L('Notiz zu diesem Ding …', 'Note on this thing …')} data-testid="mm3-node-note" />
-        <div>
-          <p className="text-[12px] text-[var(--color-text-muted)] mb-1">{L('Fein verschieben', 'Nudge')} · x {node.x} · {L('Höhe', 'height')} {node.y} · z {node.z}</p>
-          <div className="flex flex-wrap gap-1.5">
-            <button type="button" className={chip(false)} onClick={() => nudge(node, -1, 0, 0)} data-testid="mm3-nudge-left">← {L('links', 'left')}</button>
-            <button type="button" className={chip(false)} onClick={() => nudge(node, 1, 0, 0)} data-testid="mm3-nudge-right">{L('rechts', 'right')} →</button>
-            <button type="button" className={chip(false)} onClick={() => nudge(node, 0, 0, -1)}>↑ {L('hinten', 'back')}</button>
-            <button type="button" className={chip(false)} onClick={() => nudge(node, 0, 0, 1)}>↓ {L('vorn', 'front')}</button>
-            <button type="button" className={chip(false)} onClick={() => nudge(node, 0, 1, 0)} data-testid="mm3-nudge-up">⬆ {L('höher', 'higher')}</button>
-            <button type="button" className={chip(false)} onClick={() => nudge(node, 0, -1, 0)} data-testid="mm3-nudge-down">⬇ {L('tiefer', 'lower')}</button>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className={chip(connectFrom === node.id)} onClick={() => { setConnectFrom(connectFrom === node.id ? null : node.id); }} data-testid="mm3-connect"><Link2 size={13} className="inline -mt-0.5 mr-1" />{connectFrom === node.id ? L('Tippe das Ziel an …', 'Tap the target …') : L('Verbinden mit …', 'Link to …')}</button>
-          <button type="button" className={chip(false)} onClick={() => viewRef.current?.focus(node.x, node.y, node.z)}>{L('Hierhin schauen', 'Look here')}</button>
-          <button type="button" className={chip(false)} onClick={() => duplicateNode(node)}><Copy size={13} className="inline -mt-0.5 mr-1" />{L('Kopie', 'Copy')}</button>
-          <button type="button" className={`${chip(false)} text-[var(--color-danger,#b4472f)]`} onClick={() => removeNode(node.id)} data-testid="mm3-node-delete"><Trash2 size={13} className="inline -mt-0.5 mr-1" />{L('Löschen', 'Delete')}</button>
-        </div>
-      </div>
-    );
+  const ctx: PanelCtx = {
+    L, lang, space, node, edge, sel, sub, setSub, selLayer, setSelLayer: chooseLayer, onlyLayer: !!focusLayer, setOnlyLayer: toggleOnly,
+    connectFrom, setConnectFrom, locks, setLocks, freeOrbit, setFreeOrbit, setNode, setEdge, setLayer, mutate, setSel, setTab,
+    addThing: (s, x) => { addThing(s, x); }, addChild, addPhoto: (f) => void addPhoto(f), setNodePhoto: (id, f) => void setNodePhoto(id, f), removeNode, duplicateNode, nudge,
+    addLayer, moveLayer, removeLayer, focusNode: (n) => viewRef.current?.focus(n.x, n.y, n.z), goView, fitAll: () => viewRef.current?.fitAll(),
+    otherMaps, openMap: (id) => { flush(true); navigate(`/entdecken/mindmap/${id}`); },
+    setBg, pickBgImage: (f) => void pickBgImage(f), takeShot, openShot, renameShot, deleteShot, downloadShot: (s) => void downloadShot(s),
+    downloadPng: () => void downloadPng(), sharePdf: () => void sharePdf(), pdfBusy,
+    versions, holdState, previewVersion, restoreVersion, copyVersion, removeVersion, previewId: preview?.id ?? null, stateName, setStateName,
   };
-
-  const layersPanel = () => (
-    <div className="space-y-3" data-testid="mm3-layers-panel">
-      <p className="text-[13px] text-[var(--color-text-muted)]">{L('Ebenen sind sichtbare, beschriftete Scheiben im Raum. Verschiebst du eine Ebene, gehen ihre Dinge mit.', 'Layers are visible, labelled slices of the space. When you move a layer, its things move with it.')}</p>
-      {[...space.layers].sort((a, b) => b.y - a.y).map((l) => (
-        <div key={l.id} className={`rounded-[var(--radius-md)] border p-2.5 space-y-2 ${selLayer === l.id ? 'border-[var(--color-primary)]' : 'border-[var(--color-border)]'}`} data-testid={`mm3-layer-${l.id}`}>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setLayer(l.id, { visible: !l.visible })} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)]" aria-label={l.visible ? L('ausblenden', 'hide') : L('einblenden', 'show')} data-testid="mm3-layer-vis">{l.visible ? <Eye size={17} /> : <EyeOff size={17} />}</button>
-            <input className={field} value={l.name} onChange={(e) => setLayer(l.id, { name: e.target.value }, `ln-${l.id}`)} aria-label={L('Name der Ebene', 'Layer name')} data-testid="mm3-layer-name" />
-            <button type="button" className={chip(selLayer === l.id)} onClick={() => setSelLayer(selLayer === l.id ? null : l.id)} data-testid="mm3-layer-pick">{selLayer === l.id ? L('aktiv', 'active') : L('wählen', 'pick')}</button>
-          </div>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[12px] text-[var(--color-text-muted)]">{L('Höhe', 'Height')} {l.y}</span>
-            <button type="button" className={chip(false)} onClick={() => moveLayer(l, r1(l.y - 1))} data-testid="mm3-layer-down"><Minus size={13} /></button>
-            <button type="button" className={chip(false)} onClick={() => moveLayer(l, r1(l.y + 1))} data-testid="mm3-layer-up"><Plus size={13} /></button>
-            {LAYER_COLORS.map((c) => (
-              <button key={c} type="button" onClick={() => setLayer(l.id, { color: c })} className="w-6 h-6 rounded-full border-2" style={{ background: c, borderColor: l.color === c ? 'var(--color-text)' : 'transparent' }} aria-label={c} />
-            ))}
-            <button type="button" className={chip(l.plane)} onClick={() => setLayer(l.id, { plane: !l.plane })}>{L('Fläche', 'plane')}</button>
-            <button type="button" className={chip(false)} onClick={() => removeLayer(l)} aria-label={L('Ebene entfernen', 'Remove layer')} data-testid="mm3-layer-delete"><Trash2 size={13} /></button>
-          </div>
-        </div>
-      ))}
-      <button type="button" className={chip(false)} onClick={addLayer} data-testid="mm3-layer-add"><Plus size={13} className="inline -mt-0.5 mr-1" />{L('Neue Ebene', 'New layer')}</button>
-    </div>
-  );
-
-  const viewPanel = () => (
-    <div className="space-y-3" data-testid="mm3-view-panel">
-      <div>
-        <p className="text-[12px] text-[var(--color-text-muted)] mb-1">{L('Hintergrund', 'Background')}</p>
-        <div className="flex gap-2">
-          {(['dark', 'dusk', 'light'] as const).map((b) => (
-            <button key={b} type="button" className={chip(space.bg === b)} onClick={() => mutate((s) => ({ ...s, bg: b }))} data-testid={`mm3-bg-${b}`}>{b === 'dark' ? L('Nacht', 'Night') : b === 'dusk' ? L('Dämmerung', 'Dusk') : L('Hell', 'Light')}</button>
-          ))}
-        </div>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <button type="button" className={chip(space.grid)} onClick={() => mutate((s) => ({ ...s, grid: !s.grid }))} data-testid="mm3-grid">{L('Raster am Boden', 'Floor grid')}</button>
-        <button type="button" className={chip(false)} onClick={() => viewRef.current?.fitAll()} data-testid="mm3-fit">{L('Alles im Blick', 'Show everything')}</button>
-        <button type="button" className={chip(false)} onClick={() => { viewRef.current?.setCam({ theta: 0.7, phi: 1.15 }); camRef.current = viewRef.current!.getCam(); schedule(); }}>{L('Schräg von oben', 'From above')}</button>
-        <button type="button" className={chip(false)} onClick={() => { viewRef.current?.setCam({ theta: 0, phi: 1.5 }); camRef.current = viewRef.current!.getCam(); schedule(); }}>{L('Von vorn', 'Front')}</button>
-        <button type="button" className={chip(false)} onClick={() => { viewRef.current?.setCam({ theta: 0, phi: 0.06 }); camRef.current = viewRef.current!.getCam(); schedule(); }}>{L('Von oben', 'Top')}</button>
-        <button type="button" className={chip(false)} onClick={() => void takePhoto()} data-testid="mm3-photo"><Camera size={13} className="inline -mt-0.5 mr-1" />{L('Bild speichern', 'Save picture')}</button>
-      </div>
-      <p className="text-[12px] text-[var(--color-text-muted)]">{L('Das Bild für Liste und PDF zeigt alles, was sichtbar ist – aus dem Blickwinkel, in dem du zuletzt geschaut hast.', 'The picture for the list and PDFs shows everything visible – from the angle you last looked from.')}</p>
-    </div>
-  );
-
-  const listPanel = () => (
-    <div className="space-y-1.5" data-testid="mm3-list-panel">
-      {space.nodes.length === 0 && <p className="text-[13px] text-[var(--color-text-muted)]">{L('Noch nichts im Raum.', 'Nothing in the space yet.')}</p>}
-      {[...space.nodes].sort((a, b) => b.y - a.y).map((n) => (
-        <button key={n.id} type="button" onClick={() => { setSel({ kind: 'node', id: n.id }); setTab('thing'); viewRef.current?.focus(n.x, n.y, n.z); }} className={`w-full text-left rounded-[var(--radius-md)] border px-3 py-2 text-[14px] ${sel?.id === n.id ? 'border-[var(--color-primary)]' : 'border-[var(--color-border)]'} bg-[var(--color-surface)]`} data-testid="mm3-list-item">
-          <span style={{ color: n.color }}>●</span> {n.symbol} {n.text || L('Ohne Namen', 'Unnamed')}
-          <span className="text-[12px] text-[var(--color-text-muted)]"> · {layerName(n.layerId) || `${L('Höhe', 'height')} ${n.y}`}</span>
-        </button>
-      ))}
-    </div>
-  );
 
   const tabs: { id: Tab; icon: typeof Box; de: string; en: string }[] = [
     { id: 'thing', icon: Box, de: 'Ding', en: 'Thing' },
+    { id: 'add', icon: PlusCircle, de: 'Neu', en: 'New' },
     { id: 'layers', icon: Layers, de: 'Ebenen', en: 'Layers' },
     { id: 'list', icon: List, de: 'Liste', en: 'List' },
     { id: 'view', icon: Settings2, de: 'Ansicht', en: 'View' },
+    { id: 'saves', icon: Save, de: 'Stände', en: 'States' },
   ];
+  const activeLayerName = focusLayer ? space.layers.find((l) => l.id === focusLayer)?.name : '';
 
   return (
     <div className="fixed inset-0 z-[150] no-print select-none flex flex-col" style={{ background: 'var(--color-bg)' }} data-testid="mindmap3d-editor">
@@ -479,24 +603,53 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
             data-testid="mm3-title"
             className="flex-1 min-w-0 h-10 rounded-full px-4 text-[15px] outline-none bg-[var(--color-surface)] shadow-[var(--shadow-sm)] text-[var(--color-text)]"
           />
-          <button type="button" onClick={undo} disabled={!past.current.length} aria-label={L('Rückgängig', 'Undo')} className={ctlBtn} data-testid="mm3-undo"><Undo2 size={17} /></button>
-          <button type="button" onClick={redo} disabled={!future.current.length} aria-label={L('Wiederholen', 'Redo')} className={ctlBtn} data-testid="mm3-redo"><Redo2 size={17} /></button>
+          <button type="button" onClick={undo} disabled={!past.current.length || !!preview} aria-label={L('Rückgängig', 'Undo')} className={ctlBtn} data-testid="mm3-undo"><Undo2 size={17} /></button>
+          <button type="button" onClick={redo} disabled={!future.current.length || !!preview} aria-label={L('Wiederholen', 'Redo')} className={ctlBtn} data-testid="mm3-redo"><Redo2 size={17} /></button>
           <HelpButton helpKey="mindmap3d" />
         </div>
-        {fromDiary && (
-          <button type="button" onClick={goBackNow} className="absolute left-3 z-10 px-3.5 py-2 rounded-full text-[13px] font-medium shadow-md" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 54px)', background: 'var(--color-primary)', color: 'var(--color-surface)' }} data-testid="mm3-back-diary">
-            ← {L('Zurück zum Tagebucheintrag', 'Back to the diary entry')}
-          </button>
-        )}
-        {/* Bewegen: Fläche / Höhe + Zoom */}
-        <div className="absolute right-3 flex flex-col gap-2 items-end" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 56px)' }}>
-          <div className="flex rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] p-1" role="group" aria-label={L('Beim Ziehen bewegen', 'Dragging moves')}>
-            <button type="button" onClick={() => setDragMode('plane')} className={`px-3 h-8 rounded-full text-[12.5px] flex items-center gap-1 ${dragMode === 'plane' ? 'bg-[var(--color-primary)] text-[var(--color-surface)]' : 'text-[var(--color-text-muted)]'}`} data-testid="mm3-drag-plane"><Move size={13} />{L('Fläche', 'Floor')}</button>
-            <button type="button" onClick={() => setDragMode('height')} className={`px-3 h-8 rounded-full text-[12.5px] flex items-center gap-1 ${dragMode === 'height' ? 'bg-[var(--color-primary)] text-[var(--color-surface)]' : 'text-[var(--color-text-muted)]'}`} data-testid="mm3-drag-height"><MoveVertical size={13} />{L('Höhe', 'Height')}</button>
+
+        {/* Hinweise oben links: Zustand der Ansicht, nur-eine-Ebene, früherer Stand */}
+        <div className="absolute left-3 flex flex-col items-start gap-1.5 max-w-[calc(100%-84px)]" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 52px)' }}>
+          {fromDiary && (
+            <button type="button" onClick={goBackNow} className="px-3.5 py-2 rounded-full text-[13px] font-medium shadow-md" style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }} data-testid="mm3-back-diary">
+              ← {L('Zurück zum Tagebucheintrag', 'Back to the diary entry')}
+            </button>
+          )}
+          {anyLocked && (
+            <button type="button" onClick={toggleLockAll} className="px-3 py-1.5 rounded-full text-[12.5px] bg-[var(--color-surface)] border border-[var(--color-primary)] text-[var(--color-primary)] shadow-[var(--shadow-sm)]" data-testid="mm3-lock-badge">
+              🔒 {locks.rotate && locks.zoom && locks.pan ? L('Ansicht eingerastet', 'View locked') : L('Teile der Ansicht gesperrt', 'Part of the view locked')} · {L('antippen = lösen', 'tap to release')}
+            </button>
+          )}
+          {focusLayer && (
+            <button type="button" onClick={() => toggleOnly(false)} className="px-3 py-1.5 rounded-full text-[12.5px] bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] shadow-[var(--shadow-sm)] flex items-center gap-1.5" data-testid="mm3-only-badge">
+              <Layers size={13} />{L(`Baut nur auf „${activeLayerName}“`, `Building only on “${activeLayerName}”`)}<X size={13} />
+            </button>
+          )}
+        </div>
+        {preview && (
+          <div className="absolute left-3 right-3 rounded-[16px] bg-[var(--color-surface)] border border-[var(--color-primary)] shadow-md p-3 flex flex-col gap-2" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 56px)' }} data-testid="mm3-preview-banner">
+            <p className="text-[13px] text-[var(--color-text)]">👁 {L('Du siehst einen früheren Stand:', 'You are viewing an earlier state:')} <b>{preview.name}</b> <span className="text-[var(--color-text-muted)]">· {L('nur ansehen, nichts wird verändert', 'view only, nothing changes')}</span></p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="px-3 py-1.5 rounded-full bg-[var(--color-primary)] text-[var(--color-surface)] text-[13px]" onClick={exitPreview} data-testid="mm3-preview-exit">{L('Zurück zur Arbeit', 'Back to my work')}</button>
+              <button type="button" className="px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[13px] text-[var(--color-text-muted)]" onClick={() => restoreVersion(preview)} data-testid="mm3-preview-restore">{L('Zurückholen', 'Bring back')}</button>
+              <button type="button" className="px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[13px] text-[var(--color-text-muted)]" onClick={() => copyVersion(preview)} data-testid="mm3-preview-copy">{L('Als Kopie', 'As copy')}</button>
+            </div>
           </div>
-          <button type="button" onClick={() => viewRef.current?.zoom(0.8)} className={ctlBtn} aria-label={L('Näher', 'Zoom in')} data-testid="mm3-zoom-in"><Plus size={18} /></button>
-          <button type="button" onClick={() => viewRef.current?.zoom(1.25)} className={ctlBtn} aria-label={L('Weiter weg', 'Zoom out')} data-testid="mm3-zoom-out"><Minus size={18} /></button>
-          <button type="button" onClick={() => viewRef.current?.fitAll()} className={ctlBtn} aria-label={L('Alles im Blick', 'Show everything')}><Maximize2 size={16} /></button>
+        )}
+
+        {/* rechts oben: Ziehen-Art + Zoom */}
+        <div className="absolute right-3 flex flex-col gap-2 items-end" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 56px)' }}>
+          {!preview && (
+            <div className={`flex rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] p-1 ${focusLayer ? 'opacity-60' : ''}`} role="group" aria-label={L('Ein Ding ziehen: auf der Fläche oder in der Höhe', 'Dragging a thing: on the floor or in height')}>
+              <button type="button" onClick={() => setDragMode('plane')} className={`px-3 h-8 rounded-full text-[12.5px] flex items-center gap-1 ${dragMode === 'plane' || focusLayer ? 'bg-[var(--color-primary)] text-[var(--color-surface)]' : 'text-[var(--color-text-muted)]'}`} data-testid="mm3-drag-plane"><Move size={13} />{L('Fläche', 'Floor')}</button>
+              <button type="button" disabled={!!focusLayer} onClick={() => setDragMode('height')} className={`px-3 h-8 rounded-full text-[12.5px] flex items-center gap-1 ${dragMode === 'height' && !focusLayer ? 'bg-[var(--color-primary)] text-[var(--color-surface)]' : 'text-[var(--color-text-muted)]'}`} data-testid="mm3-drag-height"><MoveVertical size={13} />{L('Höhe', 'Height')}</button>
+            </div>
+          )}
+        </div>
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-2">
+          <button type="button" onClick={() => viewRef.current?.zoom(0.8)} disabled={locks.zoom} className={ctlBtn} aria-label={L('Näher', 'Zoom in')} data-testid="mm3-zoom-in"><Plus size={18} /></button>
+          <button type="button" onClick={() => viewRef.current?.zoom(1.25)} disabled={locks.zoom} className={ctlBtn} aria-label={L('Weiter weg', 'Zoom out')} data-testid="mm3-zoom-out"><Minus size={18} /></button>
+          <button type="button" onClick={() => viewRef.current?.fitAll()} disabled={locks.pan} className={ctlBtn} aria-label={L('Alles im Blick', 'Show everything')} data-testid="mm3-fit-btn"><Maximize2 size={16} /></button>
         </div>
         {connectFrom && (
           <div className="absolute left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] shadow-md flex items-center gap-2 pointer-events-none" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 100px)' }} data-testid="mm3-connect-hint">
@@ -504,29 +657,38 @@ export default function Mindmap3DPage({ initial }: { initial: MindMap }) {
             <button type="button" className="pointer-events-auto" onClick={() => setConnectFrom(null)} aria-label={L('Abbrechen', 'Cancel')}><Unlink size={14} /></button>
           </div>
         )}
-        {toast && <div className="absolute left-1/2 -translate-x-1/2 bottom-3 px-4 py-2 rounded-full text-[13px] bg-[var(--color-text)] text-[var(--color-surface)] shadow-md pointer-events-none" data-testid="mm3-toast">{toast}</div>}
-        <div className="absolute left-3 bottom-3 flex gap-2">
-          <button type="button" onClick={() => addThing()} className="h-11 px-4 rounded-full bg-[var(--color-primary)] text-[var(--color-surface)] shadow-md flex items-center gap-1.5 text-[14px] font-medium" data-testid="mm3-add"><Plus size={17} />{L('Ding', 'Thing')}</button>
-          <button type="button" onClick={() => void takePhoto()} className={`${ctlBtn} !w-11 !h-11`} aria-label={L('Bild speichern', 'Save picture')} data-testid="mm3-snapshot"><Camera size={18} /></button>
+        {toast && <div className="absolute left-1/2 -translate-x-1/2 bottom-3 max-w-[88%] text-center px-4 py-2 rounded-[18px] text-[13px] bg-[var(--color-text)] text-[var(--color-surface)] shadow-md pointer-events-none z-10" data-testid="mm3-toast">{toast}</div>}
+
+        <div className="absolute left-3 bottom-3 flex flex-col gap-2 items-start">
+          <button type="button" onClick={() => void takeShot()} className={`${ctlBtn} !w-11 !h-11`} aria-label={L('Foto aus diesem Blickwinkel speichern', 'Save a picture from this angle')} title={L('Foto aus diesem Blickwinkel speichern', 'Save a picture from this angle')} data-testid="mm3-snapshot"><Camera size={18} /></button>
+          {!preview && <button type="button" onClick={() => addThing()} className="h-11 px-4 rounded-full bg-[var(--color-primary)] text-[var(--color-surface)] shadow-md flex items-center gap-1.5 text-[14px] font-medium" data-testid="mm3-add"><Plus size={17} />{L('Ding', 'Thing')}</button>}
+        </div>
+        <div className="absolute right-3 bottom-3">
+          <ControlDock
+            L={L} open={dockOpen} setOpen={setDockOpen} mode={dockMode} setMode={setDockMode} locks={locks} onLockAll={toggleLockAll}
+            thingOk={!!node && !preview} heightOk={!focusLayer} onArrow={arrow} onSide={side} onCenter={center}
+          />
         </div>
       </div>
 
       {/* Werkzeugleiste + Fläche zum Bearbeiten */}
       <div className="bg-[var(--color-surface)] border-t border-[var(--color-border)]" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
-        <div className="flex items-center gap-1 px-2 pt-1.5">
+        <div className="flex items-center gap-0.5 px-1.5 pt-1.5">
           {tabs.map((t) => (
-            <button key={t.id} type="button" onClick={() => { setTab(t.id); setPanelOpen(true); }} className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[var(--radius-md)] text-[13px] ${tab === t.id && panelOpen ? 'text-[var(--color-primary)] bg-[var(--color-primary-soft)]' : 'text-[var(--color-text-muted)]'}`} data-testid={`mm3-tab-${t.id}`}>
-              <t.icon size={15} />{L(t.de, t.en)}
+            <button key={t.id} type="button" onClick={() => { setTab(t.id); setPanelOpen(true); }} className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-[var(--radius-md)] text-[10.5px] ${tab === t.id && panelOpen ? 'text-[var(--color-primary)] bg-[var(--color-primary-soft)]' : 'text-[var(--color-text-muted)]'}`} data-testid={`mm3-tab-${t.id}`}>
+              <t.icon size={16} /><span className="truncate max-w-full">{L(t.de, t.en)}</span>
             </button>
           ))}
-          <button type="button" onClick={() => setPanelOpen((v) => !v)} className="px-3 py-2 text-[12px] text-[var(--color-text-muted)]" aria-label={panelOpen ? L('Einklappen', 'Collapse') : L('Aufklappen', 'Expand')} data-testid="mm3-panel-toggle">{panelOpen ? '▾' : '▴'}</button>
+          <button type="button" onClick={() => setPanelOpen((v) => !v)} className="px-2.5 py-2 text-[12px] text-[var(--color-text-muted)]" aria-label={panelOpen ? L('Einklappen', 'Collapse') : L('Aufklappen', 'Expand')} data-testid="mm3-panel-toggle">{panelOpen ? '▾' : '▴'}</button>
         </div>
         {panelOpen && (
-          <div className="px-4 py-3 max-h-[40vh] overflow-y-auto" data-testid="mm3-panel">
-            {tab === 'thing' && thingPanel()}
-            {tab === 'layers' && layersPanel()}
-            {tab === 'view' && viewPanel()}
-            {tab === 'list' && listPanel()}
+          <div className="px-4 py-3 max-h-[38vh] overflow-y-auto" data-testid="mm3-panel">
+            {tab === 'thing' && (preview ? <p className="text-[13px] text-[var(--color-text-muted)] flex items-center gap-1.5"><Eye size={14} />{L('Beim Ansehen eines früheren Standes lässt sich nichts bearbeiten.', 'Nothing can be edited while viewing an earlier state.')}</p> : <ThingPanel c={ctx} />)}
+            {tab === 'add' && <AddPanel c={ctx} />}
+            {tab === 'layers' && <LayersPanel c={ctx} />}
+            {tab === 'view' && <ViewPanel c={ctx} />}
+            {tab === 'list' && <ListPanel c={ctx} />}
+            {tab === 'saves' && <SavesPanel c={ctx} />}
           </div>
         )}
       </div>
