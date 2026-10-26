@@ -1,10 +1,50 @@
 import { createRepository } from '../../services/storage/repository';
 import type { Bridge } from '../../data/types';
 import { DEMO_BRIDGES } from '../../data/seed/bridges.seed';
+import { BRIDGES_EN } from '../../data/seed/bridges.en';
+import { getUiLanguage } from '../../services/uiLanguage';
 import { LEGACY_CATEGORY_MIGRATION } from './bridgeMeta';
 import { migrateAccessChannelValues } from '../zugangskanaele/accessChannels';
 
-export const bridgesRepo = createRepository<Bridge>('bridges');
+const baseRepo = createRepository<Bridge>('bridges');
+
+/** the example bridges are stored in German; unchanged texts are SHOWN in English in English mode and never stored as English (see resourcesRepo) */
+const SEED_DE = new Map(DEMO_BRIDGES.map((b) => [b.id, b]));
+
+function swap(b: Bridge, to: 'en' | 'de'): Bridge {
+  const de = SEED_DE.get(b.id);
+  const en = BRIDGES_EN[b.id];
+  if (!de || !en) return b;
+  const from = to === 'en' ? de : en;
+  const dest = to === 'en' ? en : de;
+  const pick = (cur: string | undefined, a: string | undefined, z: string | undefined) => (cur === a ? z ?? cur : cur);
+  const levels = b.levels.map((l, i) => {
+    const fl = (from.levels as { title: string; description?: string }[])[i];
+    const dl = (dest.levels as { title: string; description?: string }[])[i];
+    if (!fl || !dl) return l;
+    return { ...l, title: pick(l.title, fl.title, dl.title) as string, description: pick(l.description, fl.description, dl.description) as string };
+  });
+  return {
+    ...b,
+    title: pick(b.title, from.title, dest.title) as string,
+    description: pick(b.description, from.description, dest.description) as string,
+    tip: pick(b.tip, from.tip, dest.tip),
+    levels,
+  };
+}
+const showBridge = (b: Bridge) => (getUiLanguage() === 'en' ? swap(b, 'en') : b);
+
+export const bridgesRepo = {
+  ...baseRepo,
+  getAll: () => baseRepo.getAll().map(showBridge),
+  getById: (id: string) => {
+    const b = baseRepo.getById(id);
+    return b ? showBridge(b) : undefined;
+  },
+  save: (b: Bridge) => showBridge(baseRepo.save(swap(b, 'de'))),
+  trySave: (b: Bridge) => baseRepo.trySave(swap(b, 'de')),
+  replaceAll: (items: Bridge[]) => baseRepo.replaceAll(items.map((b) => swap(b, 'de'))),
+};
 
 /** Called once on app start so a first-time user sees real example content. */
 export function seedBridgesIfEmpty() {

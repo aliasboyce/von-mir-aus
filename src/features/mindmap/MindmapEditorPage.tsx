@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, Smile, ChevronLeft, CornerDownRight, Copy, Ellipsis, ExternalLink, FileDown, FolderTree, Image as ImageIcon, Layers, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, Shapes, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload } from 'lucide-react';
 import { useCamera } from '../../components/canvas/useCamera';
 import { useSettings } from '../../state/SettingsContext';
@@ -13,7 +13,8 @@ import { shareOrCopy } from '../../services/shareOrCopy';
 import { buildShareText } from '../../services/sharedLinks';
 import { deliverTextFile } from '../../services/fileShare';
 import { createId } from '../../services/storage/repository';
-import { resizeImageFile } from '../../services/imageResize';
+import { resizeImageFile, resizeImageKeepAlpha } from '../../services/imageResize';
+import { fetchImageFile, fromAsyncClipboard, fromDataTransfer, imageUrlFromText, imageUrlsFromHtml, type ClipContent } from '../../services/clipboardImport';
 import { EmojiPicker } from '../../components/shared/SymbolColorPicker';
 import {
   BG_KINDS,
@@ -95,6 +96,9 @@ function Editor({ initial }: { initial: MindMap }) {
   const T = mindmapTexts(lang);
   const X = xt(lang);
   const navigate = useNavigate();
+  /** opened from a diary entry → one tap leads back to exactly that entry */
+  const fromDiary = (useLocation().state as { fromDiary?: string } | null)?.fromDiary;
+  const backToDiary = () => navigate(`/sicherheit/tagebuch?entry=${fromDiary}`, { replace: true });
   useRegisterModalOpen(true);
   useRegisterExternalModalOpen(true);
 
@@ -385,12 +389,12 @@ function Editor({ initial }: { initial: MindMap }) {
   }
 
   /** photos: resized small, kept inside the map (so print and "as file" include them) */
-  async function addPhotos(files: File[]) {
+  async function addPhotos(files: File[]): Promise<number> {
     let added = 0;
     for (const f of files.slice(0, 8)) {
       if (!f.type.startsWith('image/')) continue;
       try {
-        const url = await resizeImageFile(f, 720, 0.78);
+        const { url, transparent } = await resizeImageKeepAlpha(f, 720, 0.78);
         const ar = await new Promise<number>((resolve) => {
           const im = new window.Image();
           im.onload = () => resolve(im.naturalWidth / Math.max(1, im.naturalHeight));
@@ -398,7 +402,7 @@ function Editor({ initial }: { initial: MindMap }) {
           im.src = url;
         });
         const p = viewCentre();
-        addNodeAt(p.x + added * 30, p.y + added * 30, { shape: 'image', img: url, ar, size: 2, color: '#ffffff', look: 'solid', imgStyle: 'plain' }, false);
+        addNodeAt(p.x + added * 30, p.y + added * 30, { shape: 'image', img: url, ar, size: 2, color: '#ffffff', look: transparent ? 'outline' : 'solid', imgStyle: 'plain', ...(transparent ? { border: 'none' as const } : {}) }, false);
         added += 1;
       } catch {
         // skip unreadable file
@@ -406,6 +410,7 @@ function Editor({ initial }: { initial: MindMap }) {
     }
     if (added) say(T.photoAdded);
     else say(T.photoFail);
+    return added;
   }
   function addSticker(emoji: string) {
     const p = viewCentre();
@@ -484,26 +489,62 @@ function Editor({ initial }: { initial: MindMap }) {
     feedback('select');
     if (inst.nodes.length > 1) say(fmt(X.duplicated, { n: inst.nodes.length }));
   }
+  /** one place for everything that is pasted: pictures (file, web page piece or picture link), stickers, text */
+  const [pasting, setPasting] = useState(false);
+  async function importClip(c: ClipContent): Promise<boolean> {
+    if (c.files.length) {
+      setInsertOpen(false);
+      await addPhotos(c.files);
+      return true;
+    }
+    const urls = imageUrlsFromHtml(c.html);
+    const single = imageUrlFromText(c.text);
+    if (single && !urls.includes(single)) urls.push(single);
+    if (urls.length) {
+      setPasting(true);
+      const got: File[] = [];
+      for (const u of urls.slice(0, 4)) {
+        const f = await fetchImageFile(u);
+        if (f) got.push(f);
+      }
+      setPasting(false);
+      if (got.length) {
+        setInsertOpen(false);
+        await addPhotos(got);
+        return true;
+      }
+      // the other site does not let the app load the picture: keep the link as a note, and say how to do it instead
+      say(X.clipImageFail);
+      const textOnly = c.text.trim() || urls[0];
+      if (textOnly && !/^data:/i.test(textOnly)) {
+        const p = viewCentre();
+        addNodeAt(p.x, p.y, { text: `${X.clipLinkNote}\n${textOnly}`.slice(0, 600), shape: 'note', color: '#e8a83d', look: 'soft', size: 3 }, false);
+        setInsertOpen(false);
+      }
+      return false;
+    }
+    if (c.text.trim()) {
+      setInsertOpen(false);
+      handlePasted(c.text);
+      return true;
+    }
+    say(X.clipNothing);
+    return false;
+  }
   // paste on the canvas (Ctrl+V, long-press → Paste): copied elements, text becomes a note, pictures become photos
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
       if (e.target instanceof Element && e.target.closest('input,textarea')) return;
-      const files = Array.from(e.clipboardData?.files ?? []).filter((f) => f.type.startsWith('image/'));
-      if (files.length) {
-        e.preventDefault();
-        void addPhotos(files);
-        return;
-      }
-      const text = e.clipboardData?.getData('text/plain');
+      const content = fromDataTransfer(e.clipboardData);
       const clip = getClip();
-      if (clip && (!text?.trim() || text === clip.text)) {
+      if (!content.files.length && !imageUrlsFromHtml(content.html).length && clip && (!content.text.trim() || content.text === clip.text)) {
         e.preventDefault();
         pasteClip();
         return;
       }
-      if (text?.trim()) {
+      if (content.files.length || content.html || content.text.trim()) {
         e.preventDefault();
-        handlePasted(text);
+        void importClip(content);
       }
     };
     document.addEventListener('paste', onPaste);
@@ -511,14 +552,19 @@ function Editor({ initial }: { initial: MindMap }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [box.w, box.h]);
   async function pasteFromClipboard() {
+    const c = await fromAsyncClipboard();
+    if (c) {
+      await importClip(c);
+      return;
+    }
+    // the browser does not allow reading pictures here: plain text may still work, otherwise point to the long-press field
     try {
       const text = await navigator.clipboard.readText();
-      if (!text.trim()) {
-        say(T.pasteEmpty);
+      if (text.trim()) {
+        await importClip({ files: [], html: '', text });
         return;
       }
-      setInsertOpen(false);
-      handlePasted(text);
+      say(T.pasteEmpty);
     } catch {
       say(T.pasteDenied);
     }
@@ -1362,9 +1408,21 @@ function Editor({ initial }: { initial: MindMap }) {
           </svg>
         </div>
 
+        {fromDiary && (
+          <button
+            type="button"
+            onClick={() => { flush(); backToDiary(); }}
+            className="absolute left-3 z-10 px-3.5 py-2 rounded-full text-[13px] font-medium shadow-md"
+            style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 54px)', background: 'var(--color-primary)', color: 'var(--color-surface)' }}
+            data-testid="mm-back-diary"
+          >
+            ← {lang === 'en' ? 'Back to the diary entry' : 'Zurück zum Tagebucheintrag'}
+          </button>
+        )}
+
         {/* top bar */}
         <div className="absolute left-0 right-0 top-0 flex items-center gap-2 px-3" style={{ paddingTop: 'max(10px, env(safe-area-inset-top))' }}>
-          <button type="button" onClick={() => { flush(); goBack(navigate, '/entdecken/mindmap'); }} aria-label={T.back} className={ctlBtn} data-testid="mm-back"><ChevronLeft size={20} /></button>
+          <button type="button" onClick={() => { flush(); if (fromDiary) backToDiary(); else goBack(navigate, '/entdecken/mindmap'); }} aria-label={fromDiary ? (lang === 'en' ? 'Back to the diary entry' : 'Zurück zum Tagebucheintrag') : T.back} className={ctlBtn} data-testid="mm-back"><ChevronLeft size={20} /></button>
           <input
             value={map.title}
             onChange={(e) => commit((m) => ({ ...m, title: e.target.value }), 'title')}
@@ -1581,6 +1639,19 @@ function Editor({ initial }: { initial: MindMap }) {
                 <ClipboardPaste size={20} className="mt-0.5 text-[var(--color-primary)]" />
                 <span><span className="block text-[14.5px] text-[var(--color-text)]">{T.insertPaste}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{T.insertPasteSub}</span></span>
               </button>
+              <div
+                contentEditable
+                suppressContentEditableWarning
+                role="textbox"
+                aria-label={X.clipField}
+                onBeforeInput={(e) => e.preventDefault()}
+                onKeyDown={(e) => { if (!(e.ctrlKey || e.metaKey)) e.preventDefault(); }}
+                className="rounded-[var(--radius-md)] px-4 py-3 text-[13px] text-[var(--color-text-muted)] border border-dashed border-[var(--color-border-strong)] text-center"
+                data-testid="mm-insert-paste-field"
+              >
+                {pasting ? X.clipWorking : X.clipField}
+              </div>
+              <p className="text-[12px] text-[var(--color-text-faint)]">{X.clipHow}</p>
             </>
           ) : (
             <EmojiPicker value="" onChange={addSticker} />

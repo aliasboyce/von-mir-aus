@@ -101,7 +101,9 @@ export function SafetyNetPage() {
   const [categoryEditorOpen, setCategoryEditorOpen] = useState(false);
   const [backgroundPickerOpen, setBackgroundPickerOpen] = useState(false);
   const [networkBackground, setNetworkBackground] = useState<NetworkBackground>(() => networkBackgroundStore.get());
-  const [centerNode, setCenterNode] = useState<CenterNodeConfig>(() => centerNodeStore.get() ?? DEFAULT_CENTER_NODE);
+  const [centerNodeRaw, setCenterNode] = useState<CenterNodeConfig>(() => centerNodeStore.get() ?? DEFAULT_CENTER_NODE);
+  // the preset centre label “ICH” reads “ME” in English (an own label the person typed is never touched)
+  const centerNode = centerNodeRaw.label === DEFAULT_CENTER_NODE.label && settings.language === 'en' ? { ...centerNodeRaw, label: t.network.you } : centerNodeRaw;
   const [centerEditorOpen, setCenterEditorOpen] = useState(false);
 
   function saveCenterNode(config: CenterNodeConfig) {

@@ -121,6 +121,9 @@ export class PdfDoc {
   y = 48;
   private pages: string[] = [];
   private footerText = '';
+  /** JPEG pictures of the document (embedded once) and which of them each page uses */
+  private images: { bytes: Uint8Array; w: number; h: number }[] = [];
+  private pageImages: number[][] = [];
 
   constructor(footerText = '') {
     this.footerText = footerText;
@@ -133,6 +136,7 @@ export class PdfDoc {
 
   addPage() {
     this.pages.push('');
+    this.pageImages.push([]);
     this.y = this.margin;
   }
 
@@ -254,12 +258,38 @@ export class PdfDoc {
     this.emit(`${parts.join(' ')} ${path} ${paint}`);
   }
 
+  /**
+   * Draws a JPEG picture (bytes of a .jpg file) at an absolute position, scaled to dw x dh points.
+   * The same bytes are stored only once if `key` repeats.
+   */
+  image(bytes: Uint8Array, w: number, h: number, x: number, yTop: number, dw: number, dh: number) {
+    let idx = this.images.findIndex((im) => im.bytes === bytes);
+    if (idx < 0) {
+      this.images.push({ bytes, w, h });
+      idx = this.images.length - 1;
+    }
+    const used = this.pageImages[this.cur()];
+    if (!used.includes(idx)) used.push(idx);
+    this.emit(`q ${fmt(dw)} 0 0 ${fmt(dh)} ${fmt(x)} ${fmt(PAGE_H - yTop - dh)} cm /Im${idx} Do Q`);
+  }
+
+  /** Puts a picture at the current position, as wide as fits (max `maxW` x `maxH`), starting a new page if needed. */
+  imageFlow(bytes: Uint8Array, w: number, h: number, maxW = this.contentWidth, maxH = 520, center = true) {
+    const k = Math.min(maxW / w, maxH / h, 1.5);
+    const dw = w * k;
+    const dh = h * k;
+    this.ensure(dh + 4);
+    this.image(bytes, w, h, this.margin + (center ? (this.contentWidth - dw) / 2 : 0), this.y, dw, dh);
+    this.y += dh + 8;
+  }
+
   /** Serialises the document to PDF bytes. */
   toBytes(): Uint8Array {
     const total = this.pages.length;
     const objects: string[] = [];
     // 1 catalog, 2 pages, 3-5 fonts, then (page, content) pairs
     const pageObjStart = 6;
+    const imgStart = pageObjStart + total * 2;
     const kids = this.pages.map((_, i) => `${pageObjStart + i * 2} 0 R`).join(' ');
     objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
     objects[2] = `<< /Type /Pages /Kids [${kids}] /Count ${total} >>`;
@@ -274,10 +304,21 @@ export class PdfDoc {
         stream += `BT ${rgbOps([130, 130, 130], false)} /F1 8 Tf ${fmt(this.margin)} 28 Td <${hexOf(bytes)}> Tj ET\n`;
       }
       const pageNo = pageObjStart + i * 2;
+      const xo = this.pageImages[i].length ? ` /XObject << ${this.pageImages[i].map((k) => `/Im${k} ${imgStart + k} 0 R`).join(' ')} >>` : '';
       objects[pageNo] =
         `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${fmt(PAGE_W)} ${fmt(PAGE_H)}] ` +
-        `/Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >> >> /Contents ${pageNo + 1} 0 R >>`;
+        `/Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R >>${xo} >> /Contents ${pageNo + 1} 0 R >>`;
       objects[pageNo + 1] = `<< /Length ${stream.length} >>\nstream\n${stream}endstream`;
+    });
+
+    // pictures: JPEG data written as hex text, so the whole file stays plain ASCII
+    this.images.forEach((im, k) => {
+      let hex = '';
+      for (let i = 0; i < im.bytes.length; i++) hex += (im.bytes[i] < 16 ? '0' : '') + im.bytes[i].toString(16);
+      hex += '>';
+      objects[imgStart + k] =
+        `<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 ` +
+        `/Filter [/ASCIIHexDecode /DCTDecode] /Length ${hex.length} >>\nstream\n${hex}\nendstream`;
     });
 
     let pdf = '%PDF-1.4\n';

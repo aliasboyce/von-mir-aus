@@ -46,6 +46,7 @@ import { gardenRepo } from '../garden/gardenRepo';
 import { useSettings } from '../../state/SettingsContext';
 import type { ZugangSurvivalState, ZugangEntry, PolyvagalZone } from '../../data/types';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { zl } from './zugangEn';
 
 const STEP_COUNT = 12; // 0..11, see render switch below
 /** the last step: the short look back + save */
@@ -1136,16 +1137,16 @@ export function ZugangPage() {
           <div>
             <h1 className="text-[20px] text-center mb-5">{t.zugang.step11Title2}</h1>
             <div className="flex flex-col gap-2 mb-6 text-[13px] text-[var(--color-text-muted)]">
-              {body.length > 0 && <SummaryRow label={t.zugang.step1Title} value={body.join(', ')} />}
+              {body.length > 0 && <SummaryRow label={t.zugang.step1Title} value={body.map(zl).join(', ')} />}
               <SummaryRow label={t.tension.valueLabel} value={`${tensionValue}%`} />
               {survivalState && <SummaryRow label={t.zugang.step2Title} value={isEnLang(settings) ? SURVIVAL_STATE_META[survivalState].labelEn : SURVIVAL_STATE_META[survivalState].label} />}
-              {feelings.length > 0 && <SummaryRow label={t.zugang.step3Title} value={feelings.join(', ')} />}
-              {protectionStrategy.length > 0 && <SummaryRow label={t.zugang.step4Title} value={protectionStrategy.join(', ')} />}
-              {careWish.length > 0 && <SummaryRow label={t.zugang.step5Title} value={careWish.join(', ')} />}
-              {need.length > 0 && <SummaryRow label={t.zugang.step6Title} value={need.join(', ')} />}
-              {obstacle.length > 0 && <SummaryRow label={t.zugang.step7Title} value={obstacle.join(', ')} />}
-              {connection.length > 0 && <SummaryRow label={t.zugang.step9Title} value={connection.join(', ')} />}
-              {regulateTried.length > 0 && <SummaryRow label={t.zugang.reviewRegulateTried} value={regulateTried.join(', ')} />}
+              {feelings.length > 0 && <SummaryRow label={t.zugang.step3Title} value={feelings.map(zl).join(', ')} />}
+              {protectionStrategy.length > 0 && <SummaryRow label={t.zugang.step4Title} value={protectionStrategy.map(zl).join(', ')} />}
+              {careWish.length > 0 && <SummaryRow label={t.zugang.step5Title} value={careWish.map(zl).join(', ')} />}
+              {need.length > 0 && <SummaryRow label={t.zugang.step6Title} value={need.map(zl).join(', ')} />}
+              {obstacle.length > 0 && <SummaryRow label={t.zugang.step7Title} value={obstacle.map(zl).join(', ')} />}
+              {connection.length > 0 && <SummaryRow label={t.zugang.step9Title} value={connection.map(zl).join(', ')} />}
+              {regulateTried.length > 0 && <SummaryRow label={t.zugang.reviewRegulateTried} value={regulateTried.map(zl).join(', ')} />}
               {action && <SummaryRow label={t.zugang.step10Title} value={action} />}
             </div>
             <label className="flex flex-col gap-1.5 mb-4">

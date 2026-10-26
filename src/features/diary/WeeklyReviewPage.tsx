@@ -31,6 +31,8 @@ import { accessGapRepo } from '../zugang/accessGapRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { distinctCheckInDays } from '../garden/gardenGrowth';
 import type { PolyvagalZone } from '../../data/types';
+import { isBookLocked } from './bookLock';
+import { richToPlain } from '../../services/richText';
 
 const PERIOD_DAYS = { week: 7, month: 30 } as const;
 
@@ -83,7 +85,7 @@ export function WeeklyReviewPage() {
     const resourceNames = groupByLabel('resource');
     const bridgeNames = groupByLabel('bridge');
 
-    const diaryEntries = diaryRepo.getAll().filter((e) => new Date(e.createdAt).getTime() >= cutoff);
+    const diaryEntries = diaryRepo.getAll().filter((e) => !isBookLocked(e.categoryId) && new Date(e.createdAt).getTime() >= cutoff).map((e) => ({ ...e, content: richToPlain(e.content) }));
     const achievementCategoryId = diaryCategoriesStore.getAll().find((c) => c.label === 'Erfolge')?.id;
     const achievements = achievementCategoryId
       ? diaryEntries.filter((e) => e.categoryId === achievementCategoryId)

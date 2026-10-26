@@ -294,7 +294,11 @@ function Player({ routine, energy }: { routine: Routine; energy?: EnergyLevel })
     if (leaving) return;
     setLeaving(true);
     const done = dir === 1;
-    playSound(done ? 'select' : 'close', settings);
+    // wischen löst keinen Klick aus – deshalb hier derselbe App-Klick wie bei Buttons (+ der helle Erledigt-Ton)
+    if (done) {
+      playSound('click', settings);
+      window.setTimeout(() => playSound('select', settings), 60);
+    } else playSound('close', settings);
     triggerHaptic('tap', settings);
     if (done && !reduce) burstSparks();
     if (reduce) {

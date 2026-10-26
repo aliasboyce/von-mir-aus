@@ -10,7 +10,9 @@ const TXT = {
   de: {
     title: 'Kurz was an Boycie melden',
     goesTo: 'Das geht an Boycie:',
-    sub: 'Ein Tipp reicht. Alles andere ist freiwillig.',
+    sub: 'Das ist die Kurzform: ein Tipp reicht, alles andere ist freiwillig.',
+    longHint: 'Boycie freut sich sehr, wenn du ab und zu auch das längere Formular ausfüllst – da steckt am meisten drin.',
+    mailBtn: 'Per Mail senden',
     options: { helps: 'Das hilft', weighs: 'Das drückt / stört', missing: 'Das fehlt mir', broken: 'Das geht nicht' } as Record<QuickFeedbackKind, string>,
     notePh: 'Wenn du magst: ein Satz dazu …',
     context: 'Mitgeschickt werden nur: diese Seite, Version, Gerätetyp. Nichts Persönliches, nichts aus deinen Einträgen.',
@@ -18,13 +20,15 @@ const TXT = {
     sendHint: 'Öffnet das Teilen-Menü (z. B. WhatsApp, Signal, Mail) – du suchst selbst aus, wohin es geht. Ohne Teilen-Menü wird es kopiert.',
     thanks: 'Danke dir. Das hilft.',
     copied: 'Kopiert – du kannst es jetzt einfügen, wo du es hinschicken möchtest.',
-    long: 'Lieber ausführlicher? Zum Formular',
+    long: 'Längeres Formular ausfüllen',
     close: 'Schließen',
   },
   en: {
     title: 'Quick note to Boycie',
     goesTo: 'This goes to Boycie:',
-    sub: 'One tap is enough. Everything else is optional.',
+    sub: 'This is the short form: one tap is enough, everything else is optional.',
+    longHint: 'Boycie would be very happy if you also fill in the longer form now and then – that is where the most useful detail is.',
+    mailBtn: 'Send by mail',
     options: { helps: 'This helps', weighs: 'This weighs on me / bothers me', missing: 'I miss something', broken: 'This does not work' } as Record<QuickFeedbackKind, string>,
     notePh: 'If you like: one sentence …',
     context: 'Only sent along: this screen, version, device type. Nothing personal, nothing from your entries.',
@@ -32,7 +36,7 @@ const TXT = {
     sendHint: 'Opens the share menu (e.g. WhatsApp, Signal, mail) – you choose where it goes. Without a share menu it is copied.',
     thanks: 'Thank you. That helps.',
     copied: 'Copied – you can paste it wherever you want to send it.',
-    long: 'Prefer more detail? To the form',
+    long: 'Fill in the longer form',
     close: 'Close',
   },
 };
@@ -98,6 +102,15 @@ export function QuickFeedbackSheet({ open, onClose }: { open: boolean; onClose: 
             <input className="input mb-2" maxLength={240} placeholder={T.notePh} value={note} onChange={(e) => setNote(e.target.value)} data-testid="quick-feedback-note" />
             <p className="text-[11.5px] text-[var(--color-text-faint)] leading-snug mb-3">{T.context}</p>
             <Button fullWidth onClick={send} disabled={!kind && !note.trim()} data-testid="quick-feedback-send">{T.send}</Button>
+            {QUICK_FEEDBACK_MAIL && (
+              <a
+                href={`mailto:${QUICK_FEEDBACK_MAIL}?subject=${encodeURIComponent(T.title)}&body=${encodeURIComponent(quickFeedbackText(kind, note, pathname, en))}`}
+                className="block text-center mt-2 text-[13px] text-[var(--color-primary)] underline underline-offset-2"
+                data-testid="quick-feedback-mailto"
+              >
+                {T.mailBtn}
+              </a>
+            )}
             <p className="text-[11.5px] text-[var(--color-text-faint)] leading-snug mt-2">{T.sendHint}</p>
             {QUICK_FEEDBACK_MAIL && (
               <p className="text-[12.5px] text-[var(--color-text-muted)] mt-2" data-testid="quick-feedback-mail">{T.goesTo} <a href={`mailto:${QUICK_FEEDBACK_MAIL}`} className="underline text-[var(--color-primary)]">{QUICK_FEEDBACK_MAIL}</a></p>
@@ -110,9 +123,12 @@ export function QuickFeedbackSheet({ open, onClose }: { open: boolean; onClose: 
             <Button fullWidth variant="secondary" onClick={close}>{T.close}</Button>
           </div>
         )}
-        <a href={TEST_FEEDBACK_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)]">
-          <ExternalLink size={13} /> {T.long}
-        </a>
+        <div className="mt-4 pt-3 border-t border-[var(--color-border)]">
+          <p className="text-[12.5px] text-[var(--color-text-muted)] leading-snug mb-2" data-testid="quick-feedback-long-hint">{T.longHint}</p>
+          <a href={TEST_FEEDBACK_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] underline underline-offset-2" data-testid="quick-feedback-long-link">
+            <ExternalLink size={13} /> {T.long}
+          </a>
+        </div>
       </div>
     </Modal>
   );

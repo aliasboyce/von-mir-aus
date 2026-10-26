@@ -154,6 +154,13 @@ const DE = {
   oneElement: '1 Element',
   listNoFolder: 'Ohne Ordner',
   listFolderToggle: 'Ordner auf- oder zuklappen',
+  clipTitle: 'Etwas von Pinterest, Google oder WhatsApp einfügen',
+  clipHow: 'Kopiere dort das Bild, den Sticker oder den Text (Bild lange drücken → „Kopieren“). Tippe dann auf „Einfügen“ – oder drücke im gestrichelten Feld lange und wähle „Einfügen“.',
+  clipField: 'Hier lange drücken → „Einfügen“',
+  clipImageFail: 'Das Bild ließ sich von dieser Seite nicht direkt übernehmen. Speichere es kurz auf deinem Gerät (Bild lange drücken → „Bild sichern“) und nimm dann „Foto“.',
+  clipNothing: 'In der Zwischenablage ist nichts, was ich einfügen kann.',
+  clipWorking: 'Wird eingefügt …',
+  clipLinkNote: 'Link zum Bild',
 };
 
 
@@ -304,6 +311,13 @@ const EN: typeof DE = {
   oneElement: '1 element',
   listNoFolder: 'No folder',
   listFolderToggle: 'Open or close folder',
+  clipTitle: 'Paste something from Pinterest, Google or WhatsApp',
+  clipHow: 'Copy the picture, sticker or text there (press the picture, then “Copy”). Then tap “Paste” – or press and hold in the dashed field and choose “Paste”.',
+  clipField: 'Press and hold here → “Paste”',
+  clipImageFail: 'That picture could not be taken over directly from this site. Save it to your device first (press the picture → “Save image”) and then use “Photo”.',
+  clipNothing: 'There is nothing on the clipboard that I can paste.',
+  clipWorking: 'Pasting …',
+  clipLinkNote: 'Link to the picture',
 };
 
 

@@ -34,6 +34,7 @@ import { networkRepo } from '../safetyNet/networkRepo';
 import { PersonLine } from '../calendar/PersonAvatar';
 import { skillUseLine, skillUseTime, skillUseIsSuccess } from '../resources/skillUseText';
 import type { DiaryEntry } from '../../data/types';
+import { richToPlain } from '../../services/richText';
 
 interface DailyReviewProps {
   diaryEntries: DiaryEntry[];
@@ -323,7 +324,7 @@ export function DailyReview({ diaryEntries }: DailyReviewProps) {
                   <p
                     className={expandedIds.has(entry.id) ? 'text-[13px] text-[var(--color-text)]' : 'text-[13px] text-[var(--color-text)] line-clamp-2'}
                   >
-                    „{entry.content}"
+                    „{richToPlain(entry.content)}"
                   </p>
                   {entry.content.length > 90 && (
                     <button

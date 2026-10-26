@@ -100,10 +100,12 @@ function scheduleClick(audioCtx: AudioContext) {
   // "Zu hart, soll weicher sein"-Auftrag — chosen in the sound
   // workshop (variant B): lower starting cutoff (600 vs 1600) and
   // lower gain (0.055 vs 0.13) than the previous version.
-  filter.frequency.setValueAtTime(600, now);
-  filter.frequency.exponentialRampToValueAtTime(200, now + 0.035);
+  // "Klick am Handy kaum zu hoeren"-Fund — Handy-Lautsprecher geben unter ca. 350 Hz fast nichts wieder; der Klick lag
+  // bei 600 -> 200 Hz und verschwand dort. Jetzt 1800 -> 700 Hz (immer noch weich, aber hoerbar) und etwas lauter.
+  filter.frequency.setValueAtTime(1800, now);
+  filter.frequency.exponentialRampToValueAtTime(700, now + 0.035);
   const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(0.055, now);
+  gain.gain.setValueAtTime(0.075, now);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
   source.connect(filter);
   filter.connect(gain);
@@ -118,17 +120,20 @@ function scheduleClick(audioCtx: AudioContext) {
  * die untere Hauptnavigation eigenstaendig anfuehlt. */
 function scheduleMenu(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
-  const osc = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = 'sine';
-  osc.frequency.value = 180;
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.09, now + 0.015);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start(now);
-  osc.stop(now + 0.1);
+  // 180 Hz war am Handy nicht hoerbar -> 360 Hz plus eine leise Oberschwingung bei 720 Hz
+  [[360, 0.085], [720, 0.03]].forEach(([f, g]) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(g, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.1);
+  });
 }
 
 /** "Extra Ton fuer Kreuz/Schliessen"-Auftrag — gewaehlt: Variante A,
@@ -141,8 +146,8 @@ function scheduleClose(audioCtx: AudioContext) {
   source.buffer = getNoiseBuffer(audioCtx);
   const filter = audioCtx.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(300, now);
-  filter.frequency.exponentialRampToValueAtTime(900, now + 0.04);
+  filter.frequency.setValueAtTime(700, now);
+  filter.frequency.exponentialRampToValueAtTime(1800, now + 0.04);
   const gain = audioCtx.createGain();
   gain.gain.setValueAtTime(0.09, now);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
@@ -380,8 +385,13 @@ export function playSound(kind: SoundKind, settings: Pick<UserSettings, 'soundsE
   // until a user gesture resumes it. resume() is async — scheduling
   // immediately without waiting for it meant the very first tap (and
   // sometimes every tap) was silently dropped on many phones.
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().then(schedule).catch(schedule);
+  // iOS reports 'interrupted' (after a call / app switch) – that needs a resume just like 'suspended'; wait at most 300 ms.
+  if (audioCtx.state !== 'running') {
+    Promise.race([audioCtx.resume(), new Promise((resolve) => setTimeout(resolve, 300))])
+      .then(() => {
+        if (audioCtx.state === 'running') schedule();
+      })
+      .catch(() => {});
   } else {
     schedule();
   }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ExploreMap } from './ExploreMap';
-import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network, Sunrise, Moon, Workflow } from 'lucide-react';
+import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network, Sunrise, Moon, Workflow, FolderKanban } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
@@ -123,7 +123,7 @@ export function ExplorePage() {
   // — the lesezeichen tile that used to live here moved to the new
   // Ressourcen hub (/entdecken/ressourcen) instead of staying
   // duplicated in two places.
-  const writingTiles: Tile[] = [{ key: 'mindmap', to: '/entdecken/mindmap', icon: Workflow, title: lang === 'en' ? 'Mind maps' : 'Mindmaps', subtitle: lang === 'en' ? 'Your own thought maps and clusters.' : 'Eigene Gedanken-Karten und Cluster.', color: 'var(--color-accent-sky)' }, { key: 'briefAnMich', to: '/entdecken/brief-an-mich', icon: Mail, title: t.briefAnMich.title, subtitle: t.briefAnMich.subtitle, color: 'var(--color-accent-sky)' }];
+  const writingTiles: Tile[] = [{ key: 'mindmap', to: '/entdecken/mindmap', icon: Workflow, title: lang === 'en' ? 'Mind maps' : 'Mindmaps', subtitle: lang === 'en' ? 'Your own thought maps and clusters.' : 'Eigene Gedanken-Karten und Cluster.', color: 'var(--color-accent-sky)' }, { key: 'projekte', to: '/entdecken/projekte', icon: FolderKanban, title: lang === 'en' ? 'My projects' : 'Meine Projekte', subtitle: lang === 'en' ? 'Plan your own undertakings, alone or with others.' : 'Eigene Vorhaben planen, allein oder mit anderen.', color: 'var(--color-accent-sky)' }, { key: 'briefAnMich', to: '/entdecken/brief-an-mich', icon: Mail, title: t.briefAnMich.title, subtitle: t.briefAnMich.subtitle, color: 'var(--color-accent-sky)' }];
   const supportTiles: Tile[] = [
     { key: 'favoriten', to: '/favoriten', icon: Star, title: t.favorites.title, subtitle: t.favorites.subtitle, color: 'var(--color-accent-clay)' },
     { key: 'helfermodusLink', to: '/helfermodus', icon: LifeBuoy, title: t.helperMode.homeCta, subtitle: t.explore.helferSubtitle, color: 'var(--color-accent-clay)' },

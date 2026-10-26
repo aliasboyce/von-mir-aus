@@ -11,6 +11,7 @@ import { bridgeNeeds, needsForValues, resourcesForNeeds } from '../bridges/bridg
 import { networkRepo } from '../safetyNet/networkRepo';
 import { ACTION_EXAMPLES_DE } from './zugangContent';
 import type { Bridge, Resource } from '../../data/types';
+import { zl } from './zugangEn';
 
 const FIRST = 6;
 const MAX = 18;
@@ -115,7 +116,7 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
     <div>
       {needWords.length > 0 && (
         <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed mb-4 text-center">
-          {z.branchNeedSummary.replace('{need}', needWords.slice(0, 4).join(', '))}
+          {z.branchNeedSummary.replace('{need}', needWords.slice(0, 4).map(zl).join(', '))}
           {isFitFilterActive(filter) ? ` · ${z.suggestFilteredNote}` : ''}
         </p>
       )}

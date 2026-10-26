@@ -93,6 +93,11 @@ export interface MindMap {
   folder?: string;
   archived?: boolean;
   archivedAt?: string;
+  /** '3d' = Raum-Mindmap (Inhalt in `space`); sonst die gewohnte Fläche */
+  kind?: '3d';
+  space?: import('../mindmap3d/space3dModel').Space3D;
+  /** Vorschaubild der 3D-Mindmap (kleines JPEG) */
+  thumb?: string;
 }
 
 export const mindmapRepo = createRepository<MindMap>('mindmaps');

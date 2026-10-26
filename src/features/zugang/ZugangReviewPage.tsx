@@ -19,6 +19,7 @@ import { availableChannels, timeLabel } from '../../content/fitCriteria';
 import type { AccessChannel } from '../../data/types';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import type { ZugangEntry } from '../../data/types';
+import { zl } from './zugangEn';
 
 /**
  * Point 7/8 — a plain chronological list, plus (per the
@@ -162,8 +163,8 @@ export function ZugangReviewPage() {
                       </p>
                     )}
                     {e.ichJetzt && <Row label={t.zugang.step0Title} value={e.ichJetzt} />}
-                    {e.feelings.length > 0 && <Row label={t.zugang.step3Title} value={e.feelings.join(', ')} />}
-                    {e.need.length > 0 && <Row label={t.zugang.step6Title} value={e.need.join(', ')} />}
+                    {e.feelings.length > 0 && <Row label={t.zugang.step3Title} value={e.feelings.map(zl).join(', ')} />}
+                    {e.need.length > 0 && <Row label={t.zugang.step6Title} value={e.need.map(zl).join(', ')} />}
                     {bridge && (
                       <Row
                         label={t.zugang.step8Title}

@@ -5,7 +5,7 @@ export type HelpKey =
   | 'kontakte' | 'sicherheitsplan' | 'tagebuch' | 'einstellungen' | 'wesenInhalte' | 'favoriten'
   | 'wesenAblenkung' | 'wesenOrientierung' | 'wesenMitteilungen'
   | 'quellen' | 'skills' | 'hilfsmittel' | 'orte' | 'aktivitaeten' | 'skillketten'
-  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf' | 'zugangskanaele';
+  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf' | 'zugangskanaele' | 'projekte' | 'mindmap3d';
 
 interface HelpEntry {
   title: string;
@@ -435,6 +435,106 @@ Die Stoppuhr zählt nur mit. Es gibt kein Ende, das du erreichen musst.`,
 
 The stopwatch simply counts along. There is no end you have to reach.`,
   },
+  projekte: {
+    title: `Meine Projekte`,
+    titleEn: `My projects`,
+    body: `Ein Ort, um eigene Vorhaben in deinem Tempo zu planen – allein oder mit Freunden und Helfern.
+
+### So fängst du an
+Tippe „Neues Projekt“, gib einen Namen ein und such dir einen Start: leer, für dich allein, mit Freunden oder das ganze Heft. Alles daran darfst du ändern.
+
+### Bausteine
+Ein Projekt besteht aus Bausteinen, die du selbst hinzufügst: Text, Aufgaben, Zeitplan mit Meilensteinen, Team & Rollen, Finanzplan, Checkliste, Risiken, Entscheidungen, Umfrage, Pro & Kontra, Tabelle, Verknüpfungen, Erinnerungen und Bilder. Jeder Baustein hat eine eigene Notiz, wie im Tagebuch. Mit „…“ verschiebst du ihn oder entfernst ihn.
+
+### Zeit und Kalender
+Meilensteine, kleine Schritte, Aufgaben und Erinnerungen mit Datum stehen auch im Kalender. Das Datum änderst du im Projekt. Eine Erinnerung kommt in dein Postfach.
+
+### Der kleinste nächste Schritt
+Oben steht ein Feld für den winzigen nächsten Schritt. Es ist die Frage, die am meisten hilft, wenn viel zu tun ist.
+
+### Umfrage
+Du kannst sie nur für dich selbst nutzen (zum Entscheiden) oder mit anderen: Dann schickst du die Frage per Teilen-Menü weg und trägst die Antworten selbst ein. Die App hat keinen Server.
+
+### Verknüpfungen
+Mindmaps, Tagebuch-Bücher, Routinen, Ressourcen, Menschen aus deinem Netzwerk, Orte und andere Projekte lassen sich verbinden. Ein Tipp öffnet sie.
+
+### Ordner, Archiv
+Projekte kannst du in Ordner legen. Ins Archiv legen heißt: nichts geht verloren.
+
+### Teilen und Drucken
+„Teilen / PDF“ macht aus dem Projekt ein PDF über mehrere A4-Seiten, mit allen Texten und den Mindmaps als Bild. Du wählst, was mit soll. Das PDF liegt danach als Datei bei dir.`,
+    bodyEn: `A place to plan your own undertakings at your own pace – alone or with friends and helpers.
+
+### How to start
+Tap "New project", enter a name and choose a start: empty, just for you, with friends or the whole notebook. You can change all of it.
+
+### Blocks
+A project consists of blocks that you add yourself: text, tasks, timeline with milestones, team & roles, budget, checklist, risks, decisions, poll, pros & cons, table, connections, reminders and pictures. Each block has its own note, like in the diary. With "…" you move or remove it.
+
+### Time and calendar
+Milestones, small steps, tasks and reminders with a date are also in the calendar. You change the date in the project. A reminder arrives in your mailbox.
+
+### The smallest next step
+At the top there is a field for the tiny next step. It is the question that helps most when there is a lot to do.
+
+### Poll
+You can use it just for yourself (to decide) or with others: then you send the question via the share menu and enter the answers yourself. The app has no server.
+
+### Connections
+Mind maps, diary books, routines, resources, people from your network, places and other projects can be connected. One tap opens them.
+
+### Folders, archive
+You can put projects into folders. Moving to the archive means: nothing is lost.
+
+### Share and print
+"Share / PDF" turns the project into a PDF over several A4 pages, with all texts and the mind maps as pictures. You choose what goes along. The PDF is then a file on your device.`,
+  },
+  mindmap3d: {
+    title: `3D-Mindmap`,
+    titleEn: `3D mind map`,
+    body: `Eine Mindmap als Raum: Dinge liegen übereinander, nebeneinander, vorne und hinten – wie ein kleines Universum.
+
+### Bewegen
+- Mit einem Finger auf die leere Fläche ziehen: den Raum **drehen**.
+- Mit zwei Fingern: **zoomen** (zusammen- oder auseinanderziehen) und den Raum **verschieben**. Am Computer: Mausrad zum Zoomen, rechte Maustaste zum Verschieben.
+- Auf ein Ding tippen: **auswählen**. Dann unten verschieben, färben, umbenennen, Form ändern.
+
+### Verschieben
+Wähle ein Ding und zieh es: „Fläche“ bewegt es vor/zurück und links/rechts, „Höhe“ hoch und runter. Die Pfeil-Knöpfe machen kleine Schritte.
+
+### Ebenen
+Ebenen sind waagrechte Scheiben mit Namen und Höhe. Du kannst sie ein- und ausblenden, umbenennen und ein Ding auf eine Ebene setzen: Es rutscht dann auf deren Höhe.
+
+### Formen
+Kugel, Würfel, Kegel, Zylinder, Pyramide, Ring, Doppelkegel, Kristall, Stern, Herz, Tafel oder nur Text.
+
+### Verbinden
+Mit „Verbinden“ tippst du erst ein Ding, dann ein zweites. Verbindungen kannst du beschriften.
+
+### Bild, PDF
+Der Foto-Knopf speichert ein Bild des Raums. In Projekten und im PDF erscheint dieses Bild.`,
+    bodyEn: `A mind map as a space: things lie above, beside, in front of and behind each other – like a small universe.
+
+### Moving
+- Drag one finger on the empty area: **rotate** the space.
+- Two fingers: **zoom** (pinch) and **move** the space. On a computer: mouse wheel to zoom, right mouse button to move.
+- Tap a thing: **select** it. Then move, colour, rename, change shape below.
+
+### Moving things
+Select a thing and drag it: "Surface" moves it forward/back and left/right, "Height" up and down. The arrow buttons make small steps.
+
+### Layers
+Layers are horizontal discs with a name and a height. You can show and hide them, rename them and put a thing on a layer: it then slides to its height.
+
+### Shapes
+Sphere, cube, cone, cylinder, pyramid, ring, double cone, crystal, star, heart, plate or just text.
+
+### Connecting
+With "Connect" you tap one thing, then a second. You can label connections.
+
+### Picture, PDF
+The photo button saves a picture of the space. This picture appears in projects and in the PDF.`,
+  },
   mindmap: {
     title: `Mindmaps`,
     titleEn: `Mind maps`,
@@ -446,7 +546,7 @@ The stopwatch simply counts along. There is no end you have to reach.`,
 - **Stil**: Form (Rechteck, Oval, Wolke …), Farbe, Symbol, Größe.
 - **Linien** antippen: Farbe, Stil (durchgezogen, gestrichelt, gepunktet), Stärke, Pfeil, Beschriftung – und am Punkt in der Mitte biegen.
 - **Rahmen** fassen Dinge zu einem Cluster zusammen; zieht man den Rahmen, wandert der Inhalt mit.
-- **Einfügen**: eigene Fotos (aus Galerie oder Kamera), Sticker (große Symbole) und kopierte Texte. Du kannst auch einfach Text oder ein Bild in die Fläche einfügen. Fotos bleiben in der Mindmap auf deinem Gerät; im Link sind sie weggelassen, „Als Datei teilen“ nimmt sie mit.
+- **Einfügen**: eigene Fotos (aus Galerie oder Kamera), Sticker (große Symbole) und kopierte Texte. Du kannst auch einfach Text oder ein Bild in die Fläche einfügen: kopiere es in Pinterest, Google oder WhatsApp (Bild lange drücken → „Kopieren“) und wähle hier „Einfügen“. Durchsichtige Sticker bleiben durchsichtig. Fotos bleiben in der Mindmap auf deinem Gerät; im Link sind sie weggelassen, „Als Datei teilen“ nimmt sie mit.
 - Mit zwei Fingern oder den Knöpfen zoomen, auf der Fläche ziehen zum Verschieben – so weit du magst.
 
 ### Doodles, Stift und Bewegung
@@ -473,7 +573,7 @@ Im Vollbild speichert das Foto-Symbol ein Bild der Mindmap. Das PDF enthält die
 - **Style**: shape (rectangle, oval, cloud …), colour, symbol, size.
 - Tap **lines**: colour, style (solid, dashed, dotted), weight, arrow, label – and bend them with the dot in the middle.
 - **Frames** gather things into a cluster; when you drag the frame, its contents move along.
-- **Insert**: your own photos (gallery or camera), stickers (big symbols) and copied text. You can also simply paste text or a picture onto the canvas. Photos stay in the mind map on your device; the link leaves them out, “Share as file” includes them.
+- **Insert**: your own photos (gallery or camera), stickers (big symbols) and copied text. You can also simply paste text or a picture onto the canvas: copy it in Pinterest, Google or WhatsApp (long-press the image → "Copy") and choose "Paste" here. Transparent stickers stay transparent. Photos stay in the mind map on your device; the link leaves them out, “Share as file” includes them.
 - Zoom with two fingers or the buttons, drag the canvas to move – as far as you like.
 
 ### Doodles, pen and motion
@@ -729,6 +829,15 @@ Per plan you choose what goes along: the plan, your details, the hospital part �
 ### Einträge
 Du schreibst selbst. Vorlagen helfen dir: vorausschauend (zum Beispiel Tagesplan, DBT-Tageskarte) oder rückblickend (zum Beispiel Schematagebuch, Verhaltensanalyse). Schrift und Farbe kannst du je Kategorie gestalten.
 
+### Formatieren
+Beim Schreiben: fett, kursiv, unterstrichen, Überschrift und Listen mit Punkten, Herzchen oder Sternen. „Einrücken“ schiebt einen Punkt eine Stufe nach rechts, so entstehen Unterpunkte wie in der Notiz-App. Suche, PDF und Rückblick zeigen den Text einfach ohne Formatzeichen.
+
+### Mindmap verbinden
+Unter dem Text kannst du eine deiner Mindmaps an den Eintrag hängen. Ein Tipp öffnet sie, „Zurück zum Tagebuch“ bringt dich zum Eintrag zurück.
+
+### Eigenes Wort für ein Tagebuch
+Wenn du magst, schützt du einzelne Tagebücher (Kategorien) mit einem eigenen Wort. Das ist ein Sichtschutz, keine Verschlüsselung. Vergessen? Mit deiner App-PIN lässt sich das Wort entfernen, die Einträge bleiben.
+
 ### Tagesrückblick
 Über den zweiten Reiter siehst du, was am Tag passiert ist: Check-ins, Skills, Termine. Das ist getrennt von deinen Einträgen.
 
@@ -741,6 +850,15 @@ Der Link darunter führt zu Briefen an dein zukünftiges Ich.`,
 
 ### Entries
 You write yourself. Templates help: forward-looking (for example day plan, DBT daily card) or looking back (for example schema diary, behaviour analysis). You can shape font and colour per category.
+
+### Formatting
+While writing: bold, italic, underline, heading and lists with dots, hearts or stars. "Indent" moves a point one level to the right, so you get sub-points like in a notes app. Search, PDF and review simply show the text without format marks.
+
+### Connect a mind map
+Below the text you can attach one of your mind maps to the entry. One tap opens it, "Back to diary" brings you back to the entry.
+
+### Your own word for a diary
+If you like, you protect single diaries (categories) with your own word. It is a privacy screen, not encryption. Forgotten? Your app PIN can remove the word, the entries stay.
 
 ### Daily review
 The second tab shows what happened during the day: check-ins, skills, appointments. This is separate from your entries.

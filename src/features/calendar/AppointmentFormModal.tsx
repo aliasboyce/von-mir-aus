@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getUiLanguage } from '../../services/uiLanguage';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
@@ -37,6 +39,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  */
 export function AppointmentFormModal({ open, appointment, defaults, onClose, onSaved, onDeleted }: Props) {
   const t = useT();
+  const navigate = useNavigate();
+  const uiLang = getUiLanguage();
   const people = networkRepo.getAll().filter((e) => e.category === 'person');
   const categories = calendarCategoriesRepo.getAll();
   const today = new Date();
@@ -105,16 +109,22 @@ export function AppointmentFormModal({ open, appointment, defaults, onClose, onS
     <>
       <Modal open={open && !hintOpen} onClose={onClose} title={appointment ? t.calendar.formTitleEdit : t.calendar.formTitleNew}>
         <div className="flex flex-col gap-4 pb-2">
+          {appointment?.projectId && (
+            <div className="rounded-[var(--radius-md)] bg-[var(--color-primary-soft)] px-3 py-2.5 text-[13.5px] text-[var(--color-text)]" data-testid="appt-project-hint">
+              {uiLang === 'en' ? 'This date belongs to a project. Title, date and time are changed there.' : 'Dieser Termin gehört zu einem Projekt. Titel, Datum und Uhrzeit änderst du dort.'}
+              <button type="button" onClick={() => { onClose(); navigate(`/entdecken/projekte/${appointment.projectId}`); }} className="block mt-1.5 underline underline-offset-2 text-[var(--color-primary)]" data-testid="appt-open-project">{uiLang === 'en' ? 'Open project' : 'Projekt öffnen'}</button>
+            </div>
+          )}
           <Field label={t.calendar.titleLabel}>
-            <input autoFocus className="input" placeholder={person ? t.calendar.withPerson.replace('{name}', person.name) : t.calendar.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input autoFocus disabled={!!appointment?.projectId} className="input" placeholder={person ? t.calendar.withPerson.replace('{name}', person.name) : t.calendar.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
             <Field label={t.calendar.dateLabel}>
-              <input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
+              <input type="date" disabled={!!appointment?.projectId} className="input" value={date} onChange={(e) => setDate(e.target.value)} />
             </Field>
             <Field label={t.calendar.timeLabel}>
-              <input type="time" className="input" value={time} onChange={(e) => setTime(e.target.value)} />
+              <input type="time" disabled={!!appointment?.projectId} className="input" value={time} onChange={(e) => setTime(e.target.value)} />
             </Field>
           </div>
 

@@ -1,3 +1,4 @@
+import { getUiLanguage } from '../../services/uiLanguage';
 import { useState, useEffect } from 'react';
 import { goBack } from '../../services/navigation';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +20,21 @@ import { SourceLibraryPrintView } from './SourceLibraryPrintView';
  * actually used for in the app, not just a bare link — matching the
  * brief's explicit "nicht einfach rohe URLs überall hinschreiben".
  */
+const USED_FOR_EN: [RegExp, string][] = [
+  [/Nervensystem-Seite/g, 'nervous-system page'], [/Zustandsmodell im Zugang/g, 'state model in Zugang'], [/Tageskurve/g, 'daily curve'],
+  [/Regenbogen-Regler in Zugang und Check-in/g, 'rainbow slider in Zugang and check-in'], [/Regenbogen-Regler/g, 'rainbow slider'],
+  [/6-Stufen-Erregungsmodell in Zugang und Check-in/g, '6-step arousal model in Zugang and check-in'], [/6-Stufen-Erregungsmodell/g, '6-step arousal model'],
+  [/Grenzzone \(Zone 3\) im/g, 'border zone (zone 3) in the'], [/Fenster-Kalibrierung/g, 'window calibration'], [/Fake-Ruhe-Zustand/g, 'false-calm state'],
+  [/erweiterte Reaktionsmuster/g, 'extended response patterns'], [/Faint-Reaktion/g, 'faint response'], [/"Was kann mir helfen"/g, '"What can help me"'],
+  [/Ressourcen-Seite/g, 'resources page'], [/Helfermodus/g, 'helper mode'], [/Gefühle-Seite/g, 'feelings page'], [/Gefühlsrad/g, 'feelings wheel'],
+  [/Bedürfnisse-Seite/g, 'needs page'], [/vollständigere Liste/g, 'fuller list'], [/Denkmaschine-Übungen/g, 'thought-machine exercises'], [/Wertekompass/g, 'values compass'],
+  [/Plakatwand, Anker/g, 'billboard, anchor'], [/Zugang, Check-in/g, 'Zugang, check-in'],
+];
+function usedForText(v: string): string {
+  if (getUiLanguage() !== 'en') return v;
+  return USED_FOR_EN.reduce((acc, [re, to]) => acc.replace(re, to), v);
+}
+
 export function SourceLibraryPage() {
   const t = useT();
   const navigate = useNavigate();
@@ -45,6 +61,7 @@ export function SourceLibraryPage() {
         <p className="text-[12px] text-[var(--color-text-faint)] mb-3">
           {t.sourceLibrary.totalCountLabel.replace('{count}', String(APP_SOURCES.length))}
         </p>
+        {t.sourceLibrary.langNote && <p className="text-[12px] text-[var(--color-text-faint)] mb-3 leading-relaxed">{t.sourceLibrary.langNote}</p>}
         <button
           onClick={() => {
             setPrinting(true);
@@ -70,7 +87,7 @@ export function SourceLibraryPage() {
                     <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{s.author}</p>
                     <p className="text-[12px] text-[var(--color-text-muted)] leading-relaxed mb-1.5">{s.description}</p>
                     <p className="text-[11px] text-[var(--color-text-faint)]">
-                      {t.sourceLibrary.usedForLabel}: {s.usedFor}
+                      {t.sourceLibrary.usedForLabel}: {usedForText(s.usedFor)}
                     </p>
                   </Card>
                 </a>

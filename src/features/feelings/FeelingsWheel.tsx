@@ -159,7 +159,8 @@ export function FeelingsWheel({ openId, onSelect, colorVersion }: { openId: stri
             {FEELING_GROUPS.map((g, i) => {
               const active = openId === g.id;
               const pos = labelPos(i, total);
-              const words = (g.label.includes('/') ? g.label.split('/').map((w) => w.trim()) : g.label.split(' ')).flatMap(breakLongWord);
+              const gLabel = isEn ? g.labelEn : g.label;
+              const words = (gLabel.includes('/') ? gLabel.split('/').map((w) => w.trim()) : gLabel.split(' ')).flatMap(breakLongWord);
               const longestWord = Math.max(...words.map((w) => w.length));
               const fontSize = longestWord > 10 ? 9 : longestWord > 7 ? 10 : 11.5;
               return (

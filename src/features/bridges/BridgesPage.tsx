@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { goBack } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
+import { getUiLanguage } from '../../services/uiLanguage';
+import { zl } from '../zugang/zugangEn';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Heart, Plus, Compass, FileDown, ChevronLeft, ChevronDown } from 'lucide-react';
 import { Chip } from '../../components/ui/Chip';
@@ -58,6 +60,7 @@ function emptyBridge(value: string | null, need: string | null): Bridge {
 
 export function BridgesPage() {
   const t = useT();
+  const isEnUi = getUiLanguage() === 'en';
   const say = useCompanionSay();
   const location = useLocation();
   const navigate = useNavigate();
@@ -187,7 +190,7 @@ export function BridgesPage() {
         </Chip>
         {valueChips.map((vc) => (
           <Chip key={vc.value} selected={value === vc.value} onClick={() => setFilter('wert', value === vc.value ? null : vc.value)}>
-            {vc.value}
+            {zl(vc.value)}
             {vc.count > 0 && <span className="opacity-60"> · {vc.count}</span>}
           </Chip>
         ))}
@@ -197,7 +200,7 @@ export function BridgesPage() {
           <summary className="cursor-pointer list-none flex items-center justify-between gap-3 text-[13px] text-[var(--color-text)]">
             <span>
               {t.bridges.filterNeedTitle}
-              {need && <span className="text-[var(--color-primary)]"> · {need}</span>}
+              {need && <span className="text-[var(--color-primary)]"> · {zl(need)}</span>}
             </span>
             <ChevronDown size={16} className="text-[var(--color-text-faint)] transition-transform group-open:rotate-180" />
           </summary>
@@ -205,12 +208,12 @@ export function BridgesPage() {
             {needGroups.map((g) => (
               <div key={g.id}>
                 <p className="text-[11.5px] uppercase tracking-wide text-[var(--color-text-faint)] mb-1.5">
-                  {g.emoji} {g.label}
+                  {g.emoji} {isEnUi ? g.labelEn : g.label}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {g.items.map((n) => (
                     <Chip key={n} selected={need === n} onClick={() => setFilter('beduerfnis', need === n ? null : n)}>
-                      {n}
+                      {zl(n)}
                     </Chip>
                   ))}
                 </div>
@@ -267,7 +270,7 @@ export function BridgesPage() {
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {bridge.connectionTags.slice(0, 2).map((tag) => (
                       <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-                        {tag}
+                        {zl(tag)}
                       </span>
                     ))}
                   </div>

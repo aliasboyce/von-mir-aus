@@ -13,6 +13,7 @@ import { skillkettenRepo } from '../resources/skillkettenRepo';
 import { chainSteps } from '../resources/chainFit';
 import { countHiddenUnmarked, isFitFilterActive } from '../../content/fitCriteria';
 import type { ArousalBand } from '../polyvagal/arousalBands';
+import { zl } from './zugangEn';
 
 export type ZugangIntent = 'regulate' | 'act' | null;
 
@@ -76,7 +77,7 @@ export function ZugangBranch({
       <div>
         <h2 className="text-[20px] mb-1.5">{b.title}</h2>
         {zoneLabel && <p className="text-[13px] text-[var(--color-text-muted)] mb-1">{b.nowIn.replace('{zone}', zoneLabel)}</p>}
-        {needWords.length > 0 && <p className="text-[13px] text-[var(--color-text)] mb-1.5">{t.zugang.branchNeedSummary.replace('{need}', needWords.slice(0, 4).join(', '))}</p>}
+        {needWords.length > 0 && <p className="text-[13px] text-[var(--color-text)] mb-1.5">{t.zugang.branchNeedSummary.replace('{need}', needWords.slice(0, 4).map(zl).join(', '))}</p>}
         <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mb-5">{b.intro}</p>
         <div className="flex flex-col gap-3">
           {doors.map((d) => (

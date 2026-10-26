@@ -4,6 +4,7 @@ import { useSettings } from '../../state/SettingsContext';
 import { BODY_REGION_ORDER, BODY_REGION_SENSATIONS, type BodyRegion } from './bodyRegions';
 import { colorForSensation, bandForSensation } from '../zugang/sensationZones';
 import { SURVIVAL_STATE_META } from '../zugang/zugangContent';
+import { zl } from '../zugang/zugangEn';
 import { SENSATION_DESCRIPTIONS_DE, SENSATION_DESCRIPTIONS_EN } from '../zugang/sensationDescriptions';
 
 /**
@@ -105,7 +106,7 @@ export function BodySilhouette() {
                   : { background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }
               }
             >
-              {s}
+              {zl(s)}
             </button>
           );
         })}
@@ -125,7 +126,7 @@ export function BodySilhouette() {
           return (
             <div className="rounded-[var(--radius-lg)] p-3.5 mb-3 animate-in" style={{ background: `${band.color}14` }}>
               <p className="text-[13px] font-medium mb-1" style={{ color: band.color }}>
-                {selectedSensation} · {zoneT.label}
+                {zl(selectedSensation)} · {zoneT.label}
               </p>
               <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-2">{bespoke ?? zoneT.hint}</p>
               <p className="text-[11.5px] text-[var(--color-text-faint)] mb-1.5">{t.bodyAwarenessRef.mayRelateToLabel}</p>

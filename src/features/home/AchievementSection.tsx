@@ -10,6 +10,7 @@ import { localDayKey } from '../../services/groupByDay';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { useT } from '../../i18n';
+import { isBookLocked } from '../diary/bookLock';
 
 const ACHIEVEMENT_CATEGORY_LABEL = 'Erfolge';
 
@@ -38,7 +39,7 @@ export function AchievementSection() {
     if (!catId) return [];
     return diaryRepo
       .getAll()
-      .filter((e) => e.categoryId === catId)
+      .filter((e) => e.categoryId === catId && !isBookLocked(e.categoryId))
       .map((e) => ({ id: e.id, content: e.content, createdAt: e.createdAt }));
   });
   const today = localDayKey(new Date().toISOString());

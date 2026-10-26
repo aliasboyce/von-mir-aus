@@ -1,3 +1,4 @@
+import { useTr } from '../../hooks/useTr';
 /**
  * "Nur die reine Leiter, groesser/klarer"-Auftrag — the anatomical
  * head/neck/torso silhouette from the previous version is removed
@@ -8,6 +9,7 @@
  * nothing repeats the earlier clipping bug.
  */
 export function PolyvagalLadderIllustration() {
+  const tr = useTr();
   const rungY = [48, 88, 128, 168, 208, 248, 288, 328];
   const railX1 = 190;
   const railX2 = 250;
@@ -20,16 +22,16 @@ export function PolyvagalLadderIllustration() {
 
       {/* labels, left of the ladder, larger now that there's room */}
       <text x="28" y="46" fontSize="15" fontWeight="700" fill="var(--color-primary)">Ventral-vagal</text>
-      <text x="28" y="66" fontSize="12" fill="var(--color-text-faint)">Sicherheit,</text>
-      <text x="28" y="83" fontSize="12" fill="var(--color-text-faint)">Verbundenheit</text>
+      <text x="28" y="66" fontSize="12" fill="var(--color-text-faint)">{tr('Sicherheit,', 'Safety,')}</text>
+      <text x="28" y="83" fontSize="12" fill="var(--color-text-faint)">{tr('Verbundenheit', 'connection')}</text>
 
-      <text x="28" y="160" fontSize="15" fontWeight="700" fill="var(--color-accent-sun)">Sympathisch</text>
-      <text x="28" y="180" fontSize="12" fill="var(--color-text-faint)">Mobilisierung,</text>
-      <text x="28" y="197" fontSize="12" fill="var(--color-text-faint)">Kampf / Flucht</text>
+      <text x="28" y="160" fontSize="15" fontWeight="700" fill="var(--color-accent-sun)">{tr('Sympathisch', 'Sympathetic')}</text>
+      <text x="28" y="180" fontSize="12" fill="var(--color-text-faint)">{tr('Mobilisierung,', 'Mobilisation,')}</text>
+      <text x="28" y="197" fontSize="12" fill="var(--color-text-faint)">{tr('Kampf / Flucht', 'Fight / flight')}</text>
 
       <text x="28" y="274" fontSize="15" fontWeight="700" fill="var(--color-text)">Dorsal-vagal</text>
-      <text x="28" y="294" fontSize="12" fill="var(--color-text-faint)">Immobilisierung,</text>
-      <text x="28" y="311" fontSize="12" fill="var(--color-text-faint)">Erstarren</text>
+      <text x="28" y="294" fontSize="12" fill="var(--color-text-faint)">{tr('Immobilisierung,', 'Immobilisation,')}</text>
+      <text x="28" y="311" fontSize="12" fill="var(--color-text-faint)">{tr('Erstarren', 'Freezing')}</text>
 
       {/* the ladder itself — wider rails, bigger rungs */}
       <line x1={railX1} y1="30" x2={railX1} y2="336" stroke="var(--color-text-faint)" strokeWidth="5" strokeLinecap="round" />
@@ -60,10 +62,10 @@ export function PolyvagalLadderIllustration() {
        * first attempt let the two captions collide into unreadable
        * overlapping text */}
       <path d="M 310 45 L 310 330" stroke="var(--color-accent-sun)" strokeWidth="3" fill="none" markerEnd="url(#pvLadderDownBig)" opacity="0.85" />
-      <text x="310" y="358" textAnchor="middle" fontSize="11" fill="var(--color-accent-sun)">bei Stress ↓</text>
+      <text x="310" y="358" textAnchor="middle" fontSize="11" fill="var(--color-accent-sun)">{tr('bei Stress ↓', 'under stress ↓')}</text>
 
       <path d="M 400 330 L 400 45" stroke="var(--color-primary)" strokeWidth="3" fill="none" markerEnd="url(#pvLadderUpBig)" opacity="0.85" />
-      <text x="400" y="358" textAnchor="middle" fontSize="11" fill="var(--color-primary)">Rückweg ↑</text>
+      <text x="400" y="358" textAnchor="middle" fontSize="11" fill="var(--color-primary)">{tr('Rückweg ↑', 'way back ↑')}</text>
 
       <defs>
         {/* Marker default shape points right; orient="auto" then

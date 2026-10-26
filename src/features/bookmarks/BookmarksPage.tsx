@@ -13,7 +13,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { bookmarksRepo, bookmarkCategoriesStore, seedDefaultSources } from './bookmarksRepo';
+import { bookmarksRepo, bookmarkCategoriesStore, seedDefaultSources, bookmarkCategoryText } from './bookmarksRepo';
 import { BookmarksPrintView } from './BookmarksPrintView';
 import { useSettings } from '../../state/SettingsContext';
 import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
@@ -65,7 +65,7 @@ export function BookmarksPage() {
   );
 
   function categoryLabel(id: string): string {
-    return categories.find((c) => c.id === id)?.label ?? t.bookmarks.uncategorized;
+    return bookmarkCategoryText(categories.find((c) => c.id === id)?.label ?? '') || t.bookmarks.uncategorized;
   }
 
   function refresh() {
@@ -177,7 +177,7 @@ export function BookmarksPage() {
           </Chip>
           {categories.map((c) => (
             <Chip key={c.id} selected={filter === c.id} onClick={() => setFilter(c.id)}>
-              {c.label}
+              {bookmarkCategoryText(c.label)}
             </Chip>
           ))}
           {/* "Bei den gespeicherten Quellen soll man selber Kategorien hinzufuegen
@@ -283,7 +283,7 @@ export function BookmarksPage() {
               >
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.label}
+                    {bookmarkCategoryText(c.label)}
                   </option>
                 ))}
               </select>
@@ -332,7 +332,7 @@ export function BookmarksPage() {
                 </>
               ) : (
                 <>
-                  <span className="flex-1 text-[14px] text-[var(--color-text)]">{c.label}</span>
+                  <span className="flex-1 text-[14px] text-[var(--color-text)]">{bookmarkCategoryText(c.label)}</span>
                   <button
                     onClick={() => startRename(c.id, c.label)}
                     aria-label={t.common.edit}

@@ -3849,6 +3849,7 @@ const en: TranslationDictionary = {
     totalCountLabel: 'Currently {count} sources, maintained on an ongoing basis.',
     exportCta: 'Export as PDF',
     usedForLabel: 'Used for',
+    langNote: 'Most of these sources are German-language pages, so their titles and short descriptions are in German. The links open the originals.',
     disclaimer: "This app summarizes content and links to the original sources — it doesn't replace your own research or professional advice.",
   },
 };

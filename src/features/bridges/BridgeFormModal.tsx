@@ -9,6 +9,7 @@ import { resizeImageFile } from '../../services/imageResize';
 import { ImageCropModal } from '../../components/shared/ImageCropModal';
 import { suggestedImageOptions } from '../../services/suggestedImages';
 import { CONNECTION_ITEMS_DE, NEED_CATEGORY_GROUPS, OBSTACLES_DE } from '../zugang/zugangContent';
+import { zl } from '../zugang/zugangEn';
 import { getCustomSuggestions, addCustomSuggestion } from '../zugang/zugangSuggestions';
 import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { ConditionsPicker } from './ConditionsPicker';
@@ -294,7 +295,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
             <div className="flex flex-wrap gap-2">
               {[...OBSTACLES_DE, ...customObstacles].map((v) => (
                 <PickChip key={v} selected={(draft.linkedObstacles ?? []).includes(v)} onClick={() => setDraft({ ...draft, linkedObstacles: toggleIn(draft.linkedObstacles ?? [], v) })}>
-                  {v}
+                  {zl(v)}
                 </PickChip>
               ))}
               {/* Eigene Hindernisse ergänzen, app-weit verfügbar — saved through the shared

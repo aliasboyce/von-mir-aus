@@ -36,6 +36,7 @@ import { createId } from '../../services/storage/repository';
 import type { Bridge } from '../../data/types';
 import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
 import { umstandLabel } from './conditions';
+import { zl } from '../zugang/zugangEn';
 
 migrateBridgeCategoriesIfNeeded();
 migrateBridgeAccessChannelsIfNeeded();
@@ -298,7 +299,7 @@ export function BridgeDetailPage() {
           <div className="flex flex-wrap gap-1.5 mb-3">
             {bridge.connectionTags.map((v) => (
               <span key={v} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-                {v}
+                {zl(v)}
               </span>
             ))}
           </div>

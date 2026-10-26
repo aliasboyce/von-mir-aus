@@ -1,4 +1,5 @@
 import type { CompanionCategory } from './companionRegistry';
+import { localizeBeings } from './beingTextsEn';
 
 export type LichtwesenMovement =
   | 'bounce-joy'
@@ -70,7 +71,7 @@ export interface LichtwesenConfig {
  * but these axes combine to make every being read as genuinely its own
  * small creature with its own voice, not just a different color.
  */
-export const LICHTWESEN: LichtwesenConfig[] = [
+export const LICHTWESEN: LichtwesenConfig[] = localizeBeings<LichtwesenConfig>([
   { id: 'froehlich', name: 'Fröhlich', color: '#E8B23D', glow: '#FBE7B8', trait: 'Springt gern und freut sich über Kleinigkeiten.', movement: 'bounce-joy', eyeStyle: 'round', preferredCategories: ['positiv', 'humorvoll'] },
   { id: 'gemuetlich', name: 'Gemütlich', color: '#C48A5C', glow: '#EBD3B8', trait: 'Mag es langsam, warm und ohne Eile.', movement: 'sway-slow', eyeStyle: 'half-closed', preferredCategories: ['beruhigend', 'positiv'] },
   { id: 'besinnlich', name: 'Besinnlich', color: '#7B93A8', glow: '#D3DEE7', trait: 'Schaut gern still nach innen.', movement: 'still-deep', eyeStyle: 'soft-closed', preferredCategories: ['erklaerung', 'beruhigend'] },
@@ -87,7 +88,7 @@ export const LICHTWESEN: LichtwesenConfig[] = [
   { id: 'naechtlich', name: 'Nächtlich', color: '#3F4C7A', glow: '#C3C9E3', trait: 'Ist auch im Dunkeln ganz entspannt.', movement: 'still-deep', eyeStyle: 'soft-closed', preferredCategories: ['beruhigend', 'kontext'] },
   { id: 'verlaesslich', name: 'Verlässlich', color: '#3E7C63', glow: '#C4E0D3', trait: 'Bleibt einfach da, egal was ist.', movement: 'tilt-steady', eyeStyle: 'steady-trust', preferredCategories: ['ermutigung', 'beruhigend'] },
   { id: 'dringlich', name: 'Dringlich', color: '#C4473F', glow: '#F0C7C3', trait: 'Merkt schnell, wenn etwas wichtig ist.', movement: 'quick-alert', eyeStyle: 'sharp-focused', preferredCategories: ['kontext', 'funktionshinweis'] },
-];
+]);
 
 export function getLichtwesen(id: string | undefined): LichtwesenConfig {
   return LICHTWESEN.find((l) => l.id === id) ?? LICHTWESEN[0];

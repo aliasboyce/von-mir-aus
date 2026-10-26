@@ -49,6 +49,9 @@ async function derive(pin: string, salt: string): Promise<string> {
   return 'f' + (h >>> 0).toString(16);
 }
 
+/** salted, slow hash of a secret (PIN or word) – also used for the optional word of a single diary */
+export const hashSecret = derive;
+
 export const validPin = (pin: string) => /^\d{4,6}$/.test(pin);
 
 /* ───── small crypto helpers (AES-GCM, keys from PBKDF2) – only used for the old PINs and the security question ───── */

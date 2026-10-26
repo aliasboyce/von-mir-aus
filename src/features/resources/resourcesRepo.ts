@@ -1,10 +1,51 @@
 import { createRepository } from '../../services/storage/repository';
 import { SEED_SKILL_ZONES } from '../../content/seedSkillZones';
 import type { Resource } from '../../data/types';
-import { DEMO_RESOURCES, DBT_SKILL_RESOURCES } from '../../data/seed/resources.seed';
+import { DEMO_RESOURCES, DBT_SKILL_RESOURCES, STARTER_AKTIVITAETEN } from '../../data/seed/resources.seed';
+import { RESOURCES_EN } from '../../data/seed/resources.en';
+import { getUiLanguage } from '../../services/uiLanguage';
 import { migrateAccessChannelValues } from '../zugangskanaele/accessChannels';
 
-export const resourcesRepo = createRepository<Resource>('resources');
+const baseRepo = createRepository<Resource>('resources');
+
+/**
+ * The starter library is stored in German. In English mode the unchanged starter texts are SHOWN in English;
+ * whatever the person edited stays exactly as written, and nothing English is ever written back over the German
+ * original (save() swaps unchanged English texts back before storing).
+ */
+const SEED_DE = new Map<string, { title: string; description?: string }>();
+[...DBT_SKILL_RESOURCES, ...DEMO_RESOURCES, ...STARTER_AKTIVITAETEN].forEach((r) => SEED_DE.set(r.id, { title: r.title, description: r.description }));
+
+function showResource(r: Resource): Resource {
+  if (getUiLanguage() !== 'en') return r;
+  const de = SEED_DE.get(r.id);
+  const en = RESOURCES_EN[r.id];
+  if (!de || !en) return r;
+  const title = r.title === de.title ? en.title : r.title;
+  const description = r.description === de.description ? en.description : r.description;
+  return title === r.title && description === r.description ? r : { ...r, title, description };
+}
+
+function storeResource(r: Resource): Resource {
+  const de = SEED_DE.get(r.id);
+  const en = RESOURCES_EN[r.id];
+  if (!de || !en) return r;
+  const title = r.title === en.title ? de.title : r.title;
+  const description = r.description === en.description ? de.description : r.description;
+  return title === r.title && description === r.description ? r : { ...r, title, description };
+}
+
+export const resourcesRepo = {
+  ...baseRepo,
+  getAll: () => baseRepo.getAll().map(showResource),
+  getById: (id: string) => {
+    const r = baseRepo.getById(id);
+    return r ? showResource(r) : undefined;
+  },
+  save: (r: Resource) => showResource(baseRepo.save(storeResource(r))),
+  trySave: (r: Resource) => baseRepo.trySave(storeResource(r)),
+  replaceAll: (items: Resource[]) => baseRepo.replaceAll(items.map(storeResource)),
+};
 
 let resourcesReady = false;
 /**

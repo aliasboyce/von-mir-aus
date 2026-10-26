@@ -1,6 +1,7 @@
 import type { TimeOfDay, WeatherMood } from './homeContext';
 import { getCustomLines, currentTimeOfDay, getDeactivatedIds } from '../../components/companion/companionContentManagement';
 import { textFor } from '../../components/companion/companionRegistry';
+import { getUiLanguage } from '../../services/uiLanguage';
 
 /**
  * Extensible contextual sayings for the Home hero companion. To add a new
@@ -41,6 +42,23 @@ export const WEATHER_LINES: Record<Exclude<WeatherMood, null>, string[]> = {
   schnee: ['Es schneit gerade — falls du kurz rausschaust, lohnt es sich.'],
 };
 
+
+/* English versions of the same pools */
+const TIME_OF_DAY_LINES_EN: Record<TimeOfDay, string[]> = {
+  morgen: ['Good morning. A new day, with no requirements.', 'The morning is still completely unwritten.', 'Coffee, tea, or just being here — all of it counts.'],
+  tag: ['Middle of the day — a short breath counts, too.', 'How does this moment feel right now?'],
+  abend: ['The evening may become quieter.', 'A good moment to let the day settle for a bit.'],
+  nacht: ['It is late. Be gentle with yourself.', 'Even the night may simply be night.'],
+};
+const WEEKEND_LINES_EN: string[] = ['Weekend — maybe a little less plan today.', 'No appointment pressure today, if you don’t want it.'];
+const WEATHER_LINES_EN: Record<Exclude<WeatherMood, null>, string[]> = {
+  sonnig: ['The sun is out right now — maybe a reason for a short look outside.', 'Sunny today. That, too, may simply be noticed.'],
+  regen: ['It is raining outside — which makes it especially cosy in here.', 'Rainy weather. A good day for a warm cup of something.'],
+  bewoelkt: ['Cloudy sky today — perhaps just right for a calm day.'],
+  schnee: ['It is snowing right now — worth a quick look out, if you like.'],
+};
+const namedLinesEn = (name: string) => [`Hello ${name}, lovely to hear from you.`, `${name}, you’re here again today.`, `${name}, maybe a small step is enough today.`, `Nice to see you, ${name}.`];
+
 /** Uses the person's name if they gave one at first launch (see
  * FirstNameStep) — deliberately a small, separate pool with its own low
  * inclusion chance in pickHomeContextLine, so the name shows up
@@ -65,13 +83,14 @@ export function pickHomeContextLine(
   weather: WeatherMood,
   userName?: string,
 ): string {
-  const pool: string[] = [...TIME_OF_DAY_LINES[timeOfDay]];
-  if (isWeekend) pool.push(...WEEKEND_LINES);
-  if (weather) pool.push(...WEATHER_LINES[weather]);
+  const en = getUiLanguage() === 'en';
+  const pool: string[] = [...(en ? TIME_OF_DAY_LINES_EN : TIME_OF_DAY_LINES)[timeOfDay]];
+  if (isWeekend) pool.push(...(en ? WEEKEND_LINES_EN : WEEKEND_LINES));
+  if (weather) pool.push(...(en ? WEATHER_LINES_EN : WEATHER_LINES)[weather]);
   // Only a ~20% chance to even offer the named lines as candidates — keeps
   // the name feeling occasional rather than constant, on top of it already
   // competing for a random pick against every other line in the pool.
-  if (userName && Math.random() < 0.2) pool.push(...namedLines(userName));
+  if (userName && Math.random() < 0.2) pool.push(...(en ? namedLinesEn(userName) : namedLines(userName)));
 
   const candidates = pool.filter((line) => line !== lastShown);
   const chosen = (candidates.length > 0 ? candidates : pool)[Math.floor(Math.random() * (candidates.length > 0 ? candidates.length : pool.length))];

@@ -1,3 +1,4 @@
+import { getUiLanguage } from '../../services/uiLanguage';
 import type { ZugangSurvivalState, PolyvagalZone } from '../../data/types';
 
 // ---------------------------------------------------------------------
@@ -88,6 +89,11 @@ export const SURVIVAL_STATE_META: Record<ZugangSurvivalState, SurvivalStateMeta>
   unruhe: { emoji: '〰️', label: 'Unruhe', labelEn: 'Restlessness', group: 'aktiviert', explanationKey: 'unruhe' },
   blockiert: { emoji: '🔒', label: 'Blockiert', labelEn: 'Blocked', group: 'aktiviert', explanationKey: 'blockiert' },
 };
+// `label` follows the app language everywhere (places that read `labelEn` explicitly keep working).
+for (const meta of Object.values(SURVIVAL_STATE_META)) {
+  const de = meta.label;
+  Object.defineProperty(meta, 'label', { enumerable: true, get: () => (getUiLanguage() === 'en' ? meta.labelEn : de) });
+}
 
 // ---------------------------------------------------------------------
 // Step 3 — Gefühl (GFK/NVC-style: Obergefühl → Untergefühle)

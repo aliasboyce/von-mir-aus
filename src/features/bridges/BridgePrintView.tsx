@@ -3,6 +3,7 @@ import type { Bridge, StepExtras } from '../../data/types';
 import { useT } from '../../i18n';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
+import { zl } from '../zugang/zugangEn';
 
 function extrasText(e?: StepExtras): string {
   if (!e) return '';
@@ -57,7 +58,7 @@ export function BridgePrintView({ bridges, title }: BridgePrintViewProps) {
               marginBottom: 12,
             }}
           >
-            {(bridge.connectionTags ?? []).join(' · ')}
+            {(bridge.connectionTags ?? []).map(zl).join(' · ')}
           </span>
           )}
 

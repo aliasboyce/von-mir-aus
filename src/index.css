@@ -909,3 +909,17 @@ button {
 .park-land {
   animation: park-land 0.4s ease-out both;
 }
+
+/* Tagebuch-Schreibfeld & Anzeige: Überschrift, Aufzählungen (Punkt / Herz / Stern) mit Einrückung */
+.rte-lines > div { position: relative; min-height: 1.2em; }
+.rte-lines > div[data-h] { font-size: 1.22em; font-weight: 700; line-height: 1.35; margin: 0.35em 0 0.15em; }
+.rte-lines > div[data-m] { padding-left: calc(1.45em + var(--rte-l, 0) * 1.5em); }
+.rte-lines > div[data-m]::before { position: absolute; left: calc(0.15em + var(--rte-l, 0) * 1.5em); top: 0; width: 1.2em; text-align: center; color: var(--color-primary); }
+.rte-lines > div[data-m='dot']::before { content: '•'; }
+.rte-lines > div[data-m='heart']::before { content: '♥'; font-size: 0.85em; top: 0.1em; }
+.rte-lines > div[data-m='star']::before { content: '★'; font-size: 0.85em; top: 0.1em; }
+.rte-lines > div[data-l='0'] { --rte-l: 0; }
+.rte-lines > div[data-l='1'] { --rte-l: 1; }
+.rte-lines > div[data-l='2'] { --rte-l: 2; }
+.rte-lines > div[data-l='3'] { --rte-l: 3; }
+.rte-editor { outline: none; }

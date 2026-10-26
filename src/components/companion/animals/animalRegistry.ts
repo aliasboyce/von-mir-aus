@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import { localizeBeings } from '../beingTextsEn';
 import type { CompanionCategory } from '../companionRegistry';
 import type { LichtwesenMovement } from '../lichtwesen';
 import type { ArtOpts, ArtProps, Pal } from './kit';
@@ -60,7 +61,7 @@ export interface AnimalConfig {
 const v = (id: string, name: string, pal: Partial<Pal>, opt?: ArtOpts): AnimalVariant => ({ id, name, pal, opt });
 
 /** every animal's variants are complete palettes (so previews and swatches never depend on a base) */
-export const ANIMALS: AnimalConfig[] = [
+export const ANIMALS: AnimalConfig[] = localizeBeings<AnimalConfig>([
   {
     id: 'wolf', name: 'Wolf', color: '#8d9bb3', glow: '#dbe3ef', trait: 'Treu und wachsam – bleibt an deiner Seite.', movement: 'tilt-steady', gait: 'trot', idle: 'wolf', extras: ['blattkrone'], items: ['mond'], preferredCategories: ['ermutigung', 'beruhigend'], Art: Wolf,
     variants: [
@@ -245,7 +246,7 @@ export const ANIMALS: AnimalConfig[] = [
       v('meise', 'Blaumeise', { body: '#f0dc52', belly: '#fbf2a8', dark: '#4a86d0', accent: '#3b3b44', iris: '#3a2c3a', x1: '#ffffff', x2: '#5b97dc' }),
     ],
   },
-];
+]);
 
 export const getAnimal = (id: string | undefined): AnimalConfig | undefined => ANIMALS.find((a) => a.id === id);
 

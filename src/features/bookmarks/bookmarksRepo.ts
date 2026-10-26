@@ -1,3 +1,4 @@
+import { getUiLanguage } from '../../services/uiLanguage';
 import { createRepository, createId } from '../../services/storage/repository';
 import { createCustomCategoryStore } from '../../services/customCategories';
 import type { Bookmark } from '../../data/types';
@@ -16,6 +17,15 @@ export const bookmarkCategoriesStore = createCustomCategoryStore('bookmark-categ
   'Hilfsangebote',
   'Sonstiges',
 ]);
+
+const CATEGORY_EN: Record<string, string> = {
+  Inspiration: 'Inspiration', 'Wissen & Verstehen': 'Knowledge & understanding', Übungen: 'Exercises', Hilfsangebote: 'Support services',
+  Sonstiges: 'Other', Anlaufstellen: 'Contact points', 'Fachliche Hintergründe': 'Professional background',
+};
+/** shows a stored (German) default category name in the app language; own names pass through */
+export function bookmarkCategoryText(label: string): string {
+  return getUiLanguage() === 'en' ? CATEGORY_EN[label] ?? label : label;
+}
 
 interface DefaultSource {
   title: string;

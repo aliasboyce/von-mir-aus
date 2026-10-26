@@ -939,6 +939,8 @@ export interface DiaryEntry {
    * instruction). The "max 1 per day" rule is enforced in the UI by
    * only offering the photo picker on a day's first/primary entry. */
   photo?: string;
+  /** Mindmaps, die mit diesem Eintrag verbunden sind (Klick öffnet die Mindmap, ein Klick bringt zurück zum Eintrag) */
+  mindmapIds?: string[];
 }
 
 // ---------------------------------------------------------------------------

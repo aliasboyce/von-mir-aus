@@ -12,6 +12,7 @@
  * `pickLine()` rather than importing raw arrays.
  */
 
+import { setUiLanguage } from '../../services/uiLanguage';
 import { getDeactivatedIds, getCustomLines, currentTimeOfDay, expandByFrequency } from './companionContentManagement';
 
 export type CompanionCategory =
@@ -75,6 +76,7 @@ export interface CompanionLine {
 let currentLanguage: 'de' | 'en' = 'de';
 export function setCompanionLanguage(lang: 'de' | 'en'): void {
   currentLanguage = lang;
+  setUiLanguage(lang);
 }
 export function textFor(line: CompanionLine): string {
   return currentLanguage === 'en' ? line.textEn : line.text;

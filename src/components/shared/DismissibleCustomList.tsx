@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Plus, Pencil, Trash2, RotateCcw } from 'lucide-react';
 import { useT } from '../../i18n';
+import { zl } from '../../features/zugang/zugangEn';
 import { createDismissibleListManager } from '../../services/dismissibleListManager';
 
 export function DismissibleCustomList({
@@ -49,7 +50,7 @@ export function DismissibleCustomList({
           return (
             <div key={item} className="flex items-center rounded-full overflow-hidden" style={chipStyle(marked)}>
               <button onClick={() => onTapBuiltin?.(item)} className="pl-3 pr-1.5 py-2 text-[13px]">
-                {item}
+                {zl(item)}
               </button>
               <button
                 onClick={() => {
@@ -179,7 +180,7 @@ export function DismissibleCustomList({
               }}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text-faint)]"
             >
-              <RotateCcw size={11} /> {item}
+              <RotateCcw size={11} /> {zl(item)}
             </button>
           ))}
         </div>

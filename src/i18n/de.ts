@@ -3852,6 +3852,7 @@ const de = {
     totalCountLabel: 'Aktuell {count} Quellen, laufend gepflegt.',
     exportCta: 'Als PDF exportieren',
     usedForLabel: 'Verwendet für',
+    langNote: '',
     disclaimer: 'Diese App fasst Inhalte zusammen und verlinkt zu den Originalquellen — sie ersetzt keine eigene Recherche oder fachliche Beratung.',
   },
 };

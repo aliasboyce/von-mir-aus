@@ -13,6 +13,8 @@ import { distinctCheckInDays } from '../garden/gardenGrowth';
 import { lettersRepo, type LetterToSelf } from '../briefAnMich/lettersRepo';
 import { groupByDay } from '../../services/groupByDay';
 import type { PolyvagalCheckIn, SkillUse, DiaryEntry, WeatherCheckIn, MediLogEntry } from '../../data/types';
+import { isBookLocked } from '../diary/bookLock';
+import { richToPlain } from '../../services/richText';
 
 export interface ReviewDay {
   day: string; // local 'YYYY-MM-DD'
@@ -46,7 +48,7 @@ export function dayKeyOf(date: Date): string {
 export function gatherReviewDays(fromDay: string, toDay: string): ReviewDay[] {
   const inRange = (key: string) => key >= fromDay && key <= toDay;
   const achievementCategoryId = diaryCategoriesStore.getAll().find((c) => c.label === 'Erfolge')?.id;
-  const allDiary = diaryRepo.getAll();
+  const allDiary = diaryRepo.getAll().filter((d) => !isBookLocked(d.categoryId)).map((d) => ({ ...d, content: richToPlain(d.content) }));
   // only entries the person chose to include (switch on the entry)
   const general = allDiary.filter((d) => d.inReview === true);
   const achievements = achievementCategoryId ? allDiary.filter((d) => d.categoryId === achievementCategoryId) : [];

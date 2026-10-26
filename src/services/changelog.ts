@@ -16,6 +16,40 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-projekte-3d',
+    date: '2026',
+    items: [
+      'Neu: „Meine Projekte“ – eigene Vorhaben (allein oder mit Freund*innen) in Ruhe planen: Ziele, Zeitplan mit kleinen Schritten, Aufgaben, Rollen, Finanzplan, Entscheidungen, Umfrage, Pro & Contra. Alles lässt sich mit Kalender, Mindmaps, Tagebuch und Routinen verbinden.',
+      'Projekte lassen sich als PDF teilen oder drucken – du wählst, was mit soll. Erinnerungen kommen in dein Postfach.',
+      'Mindmaps: eigene Ordner (auch leer) und eine neue Art: der 3D-Raum, in dem du Dinge auf benannten Ebenen übereinander und nebeneinander setzt, drehst und zoomst.',
+    ],
+    itemsEn: [
+      'New: "My projects" – plan your own undertakings (alone or with friends) calmly: goals, timeline with small steps, tasks, roles, budget, decisions, poll, pros & cons. Everything can be connected to the calendar, mind maps, diary and routines.',
+      'Projects can be shared or printed as a PDF – you choose what goes in. Reminders arrive in your mailbox.',
+      'Mind maps: your own folders (even empty ones) and a new kind: the 3D space, where you place things on named layers above and beside each other, turn and zoom.',
+    ],
+  },
+  {
+    id: '2026-tagebuch-schreiben',
+    date: '2026',
+    items: [
+      'Tagebuch schreiben wie in einer Notiz-App: fett, kursiv, unterstrichen, Überschrift und Listen mit Punkten, Herzchen oder Sternen – mit „Einrücken“ für Unterpunkte.',
+      'Ein Tagebucheintrag kann eine deiner Mindmaps verbinden: ein Tipp öffnet die Mindmap, ein Tipp auf „Zurück zum Tagebuch“ bringt dich genau dorthin zurück.',
+      'Für einzelne Tagebücher kannst du ein eigenes Wort festlegen. Es ist ein Sichtschutz, keine Verschlüsselung; vergessen? Dann lässt es sich mit deiner App-PIN wieder entfernen, die Einträge bleiben.',
+      'In Mindmaps lässt sich jetzt einfach „Einfügen“: Fotos, Sticker (auch durchsichtige), Bilder und Texte aus Pinterest, Google oder WhatsApp.',
+      'Routinen-Karten machen beim Nach-rechts-Wischen den Klick der App. Die Klicks sind insgesamt auf Handy-Lautsprechern besser hörbar.',
+      '„Kurz was melden“ ist als Kurzform erkennbar, mit freundlichem Hinweis auf das längere Formular. Dazu viele englische Texte nachgezogen.',
+    ],
+    itemsEn: [
+      'Write your diary like in a notes app: bold, italic, underline, heading and lists with dots, hearts or stars – with "Indent" for sub-points.',
+      'A diary entry can connect one of your mind maps: one tap opens the mind map, one tap on "Back to diary" brings you right back.',
+      'You can set your own word for single diaries. It is a privacy screen, not encryption; forgotten? Then it can be removed with your app PIN, the entries stay.',
+      'Mind maps now take "Paste" easily: photos, stickers (also transparent ones), pictures and text from Pinterest, Google or WhatsApp.',
+      'Routine cards make the app click when you swipe them to the right. Clicks are easier to hear on phone speakers overall.',
+      '"Quick message" is clearly the short form, with a friendly note about the longer form. Many English texts were also brought up to date.',
+    ],
+  },
+  {
     id: '2026-verbindungen',
     date: '2026',
     items: [

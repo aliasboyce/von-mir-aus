@@ -1,4 +1,5 @@
 import type { DiaryEntry } from '../../data/types';
+import { richToPlain } from '../../services/richText';
 
 interface DiaryPrintViewProps {
   entries: DiaryEntry[];
@@ -40,7 +41,7 @@ export function DiaryPrintView({ entries, categoryLabel, labels, formatDate, fro
           <p style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>
             {formatDate(entry.createdAt)} · {categoryLabel(entry.categoryId)}
           </p>
-          <p style={{ fontSize: 14, lineHeight: 1.7, color: '#1a1a1a', whiteSpace: 'pre-wrap' }}>{entry.content}</p>
+          <p style={{ fontSize: 14, lineHeight: 1.7, color: '#1a1a1a', whiteSpace: 'pre-wrap' }}>{richToPlain(entry.content)}</p>
         </div>
       ))}
     </div>

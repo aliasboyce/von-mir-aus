@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Archive, ChevronDown, ChevronRight, Ellipsis, Folder, FolderTree, Plus, RotateCcw } from 'lucide-react';
+import { Archive, Box, ChevronDown, ChevronRight, Ellipsis, Folder, FolderKanban, FolderPlus, FolderTree, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Modal } from '../../components/ui/Modal';
 import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
 import { useSettings } from '../../state/SettingsContext';
 import { createId } from '../../services/storage/repository';
+import { createKeyValueStore } from '../../services/storage/keyValueStore';
+import { emptySpace } from '../mindmap3d/space3dModel';
 import { MindmapDrawing } from './MindmapScene';
 import { mindmapRepo, newMap, type MindMap, type Template } from './mindmapModel';
 import { descendantsOf } from './mindmapOps';
@@ -14,6 +16,8 @@ import { NameModal } from './MindmapTools';
 import { mindmapTexts } from './mindmapTexts';
 import { fmt, xt } from './mindmapExtraTexts';
 
+/** Ordner, auch wenn noch nichts darin liegt */
+export const mindmapFoldersStore = createKeyValueStore<string[]>('mindmap-folders', []);
 const byNewest = (a: MindMap, b: MindMap) => b.updatedAt.localeCompare(a.updatedAt);
 type Row = { map: MindMap; depth: number };
 
@@ -33,6 +37,9 @@ export function MindmapListPage() {
   const [closedFolders, setClosedFolders] = useState<Set<string>>(new Set());
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [newFolder, setNewFolder] = useState('');
+  const [storedFolders, setStoredFolders] = useState<string[]>(() => mindmapFoldersStore.get());
+  const [folderModal, setFolderModal] = useState(false);
+  const [createFolder, setCreateFolder] = useState('');
   const [toast, setToast] = useState('');
 
   const reload = () => setMaps(mindmapRepo.getAll());
@@ -70,16 +77,27 @@ export function MindmapListPage() {
     const reached = new Set(rowsFor([...tops]).map((r) => r.map.id));
     const stray = live.filter((m) => !reached.has(m.id));
     const all = [...tops, ...stray];
-    const folderNames = [...new Set(all.map((m) => m.folder).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b));
+    const folderNames = [...new Set([...all.map((m) => m.folder).filter(Boolean) as string[], ...storedFolders])].sort((a, b) => a.localeCompare(b));
     return {
       loose: rowsFor(all.filter((m) => !m.folder)),
       folders: folderNames.map((f) => ({ name: f, rows: rowsFor(all.filter((m) => m.folder === f)) })),
     };
-  }, [live, liveIds]);
+  }, [live, liveIds, storedFolders]);
   const folderNames = folders.map((f) => f.name);
 
-  function create(template: Template) {
-    const m = newMap(name.trim() || T.untitled, template, lang);
+  function addStoredFolder(f: string) {
+    const list = mindmapFoldersStore.get();
+    if (!list.includes(f)) mindmapFoldersStore.set([...list, f]);
+    setStoredFolders(mindmapFoldersStore.get());
+  }
+  function create(template: Template | '3d') {
+    const m = newMap(name.trim() || T.untitled, template === '3d' ? 'empty' : template, lang);
+    if (template === '3d') {
+      m.nodes = [];
+      m.kind = '3d';
+      m.space = emptySpace(lang);
+    }
+    if (createFolder) m.folder = createFolder;
     mindmapRepo.save(m);
     navigate(`/entdecken/mindmap/${m.id}`);
   }
@@ -125,6 +143,7 @@ export function MindmapListPage() {
     reload();
   }
   function moveTo(m: MindMap, dest: { folder?: string; parentId?: string }) {
+    if (dest.folder) addStoredFolder(dest.folder);
     save({ ...m, folder: dest.folder || undefined, parentId: dest.parentId || undefined });
     setMoveFor(null);
     setActionFor(null);
@@ -142,9 +161,22 @@ export function MindmapListPage() {
     reload();
     say(X.subCreated);
   }
+  function removeFolder(f: string) {
+    const inside = maps.filter((m) => m.folder === f);
+    const msg = lang === 'en'
+      ? (inside.length ? `Remove the folder “${f}”? Its ${inside.length} mind map(s) stay – they just move out of the folder.` : `Remove the empty folder “${f}”?`)
+      : (inside.length ? `Ordner „${f}“ entfernen? Die ${inside.length} Mindmap(s) darin bleiben erhalten – sie liegen dann nur nicht mehr im Ordner.` : `Den leeren Ordner „${f}“ entfernen?`);
+    if (!window.confirm(msg)) return;
+    inside.forEach((m) => mindmapRepo.save({ ...m, folder: undefined }));
+    mindmapFoldersStore.set(mindmapFoldersStore.get().filter((x) => x !== f));
+    setStoredFolders(mindmapFoldersStore.get());
+    reload();
+  }
   function renameFolderTo(from: string, to: string) {
     if (!to) return;
     maps.filter((m) => m.folder === from).forEach((m) => mindmapRepo.save({ ...m, folder: to }));
+    mindmapFoldersStore.set(mindmapFoldersStore.get().map((x) => (x === from ? to : x)));
+    setStoredFolders(mindmapFoldersStore.get());
     setRenameFolder(null);
     reload();
   }
@@ -158,12 +190,15 @@ export function MindmapListPage() {
         <div className="flex-1 min-w-0 flex items-center gap-3 rounded-[var(--radius-lg)] bg-[var(--color-surface)] shadow-[var(--shadow-sm)] pr-1 overflow-hidden">
           <button type="button" onClick={() => navigate(`/entdecken/mindmap/${m.id}`)} className="flex-1 min-w-0 flex items-center gap-3 text-left" data-testid={`mindmap-card-${m.id}`}>
             <div className="w-[84px] h-[64px] shrink-0 overflow-hidden" style={{ background: '#fff' }} aria-hidden="true">
-              {m.nodes.length > 0 ? <MindmapDrawing map={m} maxHeight="64px" pad={14} /> : <div className="h-full" style={{ background: 'var(--color-surface-muted)' }} />}
+              {m.kind === '3d' ? (
+                m.thumb ? <img src={m.thumb} alt="" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center" style={{ background: 'var(--color-surface-muted)' }}><Box size={22} className="text-[var(--color-text-faint)]" /></div>
+              ) : m.nodes.length > 0 ? <MindmapDrawing map={m} maxHeight="64px" pad={14} /> : <div className="h-full" style={{ background: 'var(--color-surface-muted)' }} />}
             </div>
             <div className="min-w-0 py-2">
               <p className="text-[15px] text-[var(--color-text)] truncate">{m.title || T.untitled}</p>
               <p className="text-[12px] text-[var(--color-text-faint)]">
-                {m.nodes.length === 1 ? X.oneElement : T.elements.replace('{n}', String(m.nodes.length))} · {T.edited.replace('{d}', date(m.updatedAt))}
+                {m.kind === '3d' && <span className="text-[var(--color-primary)]" data-testid={`mindmap-3d-badge-${m.id}`}>3D · </span>}
+                {(() => { const n = m.kind === '3d' ? m.space?.nodes.length ?? 0 : m.nodes.length; return n === 1 ? X.oneElement : T.elements.replace('{n}', String(n)); })()} · {T.edited.replace('{d}', date(m.updatedAt))}
                 {childN > 0 && ` · ${fmt(X.subCount, { n: childN })}`}
               </p>
               {depth === 0 && parent && <p className="text-[11.5px] text-[var(--color-text-faint)] truncate">{fmt(X.subOf, { t: parent.title })}</p>}
@@ -192,7 +227,16 @@ export function MindmapListPage() {
           <Plus size={18} /> {T.newMap}
         </button>
 
-        {live.length === 0 ? (
+        <div className="flex gap-2 mb-5 -mt-2">
+          <button type="button" onClick={() => { setCreateFolder(''); setFolderModal(true); }} className="flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" data-testid="mindmap-folder-new">
+            <FolderPlus size={16} /> {lang === 'en' ? 'New folder' : 'Neuer Ordner'}
+          </button>
+          <button type="button" onClick={() => navigate('/entdecken/projekte')} className="flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" data-testid="mindmap-to-projects">
+            <FolderKanban size={16} /> {lang === 'en' ? 'My projects' : 'Meine Projekte'}
+          </button>
+        </div>
+
+        {live.length === 0 && folderNames.length === 0 ? (
           <p className="text-[14px] text-[var(--color-text-muted)] text-center py-8" data-testid="mindmap-empty">{T.empty}</p>
         ) : (
           <div data-testid="mindmap-list" className="flex flex-col gap-4">
@@ -216,7 +260,9 @@ export function MindmapListPage() {
                       <span className="text-[12px] text-[var(--color-text-faint)]">({f.rows.length})</span>
                     </button>
                     <button type="button" onClick={() => setRenameFolder(f.name)} className="text-[12.5px] px-2 py-1 text-[var(--color-text-muted)] underline underline-offset-2" data-testid={`mindmap-folder-rename-${f.name}`}>{X.folderRename}</button>
+                    <button type="button" onClick={() => removeFolder(f.name)} aria-label={lang === 'en' ? 'Remove folder' : 'Ordner entfernen'} className="w-8 h-8 flex items-center justify-center text-[var(--color-text-muted)]" data-testid={`mindmap-folder-delete-${f.name}`}><Trash2 size={14} /></button>
                   </div>
+                  {open && f.rows.length === 0 && <p className="text-[13px] text-[var(--color-text-faint)] pl-7 pb-1" data-testid={`mindmap-folder-empty-${f.name}`}>{lang === 'en' ? 'Empty – move mind maps in via “…” → “Move”, or create one here.' : 'Leer – Mindmaps kommst du über „…“ → „Verschieben“ hinein, oder lege hier eine neue an.'}</p>}
                   {open && <ul className="flex flex-col gap-2.5">{f.rows.map(renderRow)}</ul>}
                 </section>
               );
@@ -261,14 +307,32 @@ export function MindmapListPage() {
             <label className="block text-[12.5px] text-[var(--color-text-muted)] mb-1" htmlFor="mm-new-name">{T.nameLabel}</label>
             <input id="mm-new-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={T.namePh} data-testid="mindmap-new-name" className="w-full rounded-[var(--radius-md)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2.5 text-[15px] outline-none" />
           </div>
+          {folderNames.length > 0 && (
+            <div>
+              <label className="block text-[12.5px] text-[var(--color-text-muted)] mb-1" htmlFor="mm-new-folder">{lang === 'en' ? 'Folder' : 'Ordner'}</label>
+              <select id="mm-new-folder" value={createFolder} onChange={(e) => setCreateFolder(e.target.value)} data-testid="mindmap-new-folder" className="w-full rounded-[var(--radius-md)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2.5 text-[15px] outline-none">
+                <option value="">{lang === 'en' ? 'no folder' : 'kein Ordner'}</option>
+                {folderNames.map((f) => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+          )}
           {templates.map(([id, title, sub2]) => (
             <button key={id} type="button" onClick={() => create(id)} className="text-left rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] px-4 py-3" data-testid={`mindmap-template-${id}`}>
               <p className="text-[15px] text-[var(--color-text)]">{title}</p>
               <p className="text-[12.5px] text-[var(--color-text-muted)]">{sub2}</p>
             </button>
           ))}
+          <button type="button" onClick={() => create('3d')} className="text-left rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] px-4 py-3 flex items-start gap-3" data-testid="mindmap-template-3d">
+            <Box size={20} className="text-[var(--color-primary)] mt-0.5 shrink-0" />
+            <span>
+              <span className="block text-[15px] text-[var(--color-text)]">{lang === 'en' ? '3D space' : '3D-Raum'}</span>
+              <span className="block text-[12.5px] text-[var(--color-text-muted)]">{lang === 'en' ? 'Things float in space on named layers – turn, zoom, place them above and beside each other.' : 'Dinge schweben im Raum auf benannten Ebenen – drehen, zoomen, übereinander und nebeneinander setzen.'}</span>
+            </span>
+          </button>
         </div>
       </Modal>
+
+      {folderModal && <NameModal key="newfolder" open onClose={() => setFolderModal(false)} title={lang === 'en' ? 'New folder' : 'Neuer Ordner'} label={X.folderName} initial="" cta={X.moveCreateFolder} onSubmit={(n) => { const f = n.trim(); if (f) addStoredFolder(f); setFolderModal(false); }} testId="mindmap-newfolder" />}
 
       {/* what can be done with one map */}
       <Modal open={!!act && !moveFor && !subFor} onClose={() => setActionFor(null)} title={act?.title || T.untitled} subtitle={X.actTitle}>

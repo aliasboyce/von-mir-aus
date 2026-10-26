@@ -1,3 +1,4 @@
+import { zl } from '../zugang/zugangEn';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useProtectionTexts } from './protectionTexts';
@@ -25,7 +26,7 @@ export function StrategyLinkField({ value, onChange, defaultName }: { value: Str
         <select className={sel} value={value.alternativeFor ?? ''} onChange={(e) => onChange({ ...value, alternativeFor: e.target.value || undefined })} data-testid="link-old-select">
           <option value="">{px.linkNone}</option>
           {olds.map((s) => (
-            <option key={s} value={s}>{s}</option>
+            <option key={s} value={s}>{zl(s)}</option>
           ))}
           {value.alternativeFor && !olds.includes(value.alternativeFor) && <option value={value.alternativeFor}>{value.alternativeFor}</option>}
         </select>
@@ -47,7 +48,7 @@ export function StrategyLinkField({ value, onChange, defaultName }: { value: Str
         <select className={sel} value={value.forObstacle ?? ''} onChange={(e) => onChange({ ...value, forObstacle: e.target.value || undefined })} data-testid="link-obstacle-select">
           <option value="">{px.linkNone}</option>
           {obstacles.map((s) => (
-            <option key={s} value={s}>{s}</option>
+            <option key={s} value={s}>{zl(s)}</option>
           ))}
           {value.forObstacle && !obstacles.includes(value.forObstacle) && <option value={value.forObstacle}>{value.forObstacle}</option>}
         </select>

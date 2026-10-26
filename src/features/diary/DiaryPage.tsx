@@ -4,8 +4,16 @@ import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
 import { buildReviewPdf, buildDiaryEntriesPdf } from '../reviews/reviewPdf';
 import { gatherReviewDays } from '../reviews/reviewData';
 import { localDayKey } from '../../services/groupByDay';
-import { Plus, Search, Trash2, X, Tag, Type, FileDown, FileText, Mail, Image as ImageIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Plus, Search, Trash2, X, Tag, Type, FileDown, FileText, Mail, Image as ImageIcon, Network, Lock } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { RichTextEditor } from '../../components/shared/RichTextEditor';
+import { RichText } from '../../components/shared/RichText';
+import { richToPlain } from '../../services/richText';
+import { mindmapRepo } from '../mindmap/mindmapModel';
+import { MindmapPickerModal } from './MindmapPickerModal';
+import { BookCodeModal } from './BookCodeModal';
+import { BookUnlockCard } from './BookUnlockCard';
+import { hasBookCode, isBookLocked, useBookLocks } from './bookLock';
 import { TemplatePickerModal } from './TemplatePickerModal';
 import { Card } from '../../components/ui/Card';
 import { Chip } from '../../components/ui/Chip';
@@ -62,7 +70,7 @@ const ACHIEVEMENT_CATEGORY_LABEL = 'Erfolge';
  */
 function buildReviewDays(fromDate: string, toDate: string) {
   const achievementCategoryId = diaryCategoriesStore.getAll().find((c) => c.label === ACHIEVEMENT_CATEGORY_LABEL)?.id;
-  const allDiary = diaryRepo.getAll();
+  const allDiary = diaryRepo.getAll().filter((d) => !isBookLocked(d.categoryId)).map((d) => ({ ...d, content: richToPlain(d.content) }));
   const generalEntries = allDiary.filter((d) => d.inReview === true);
   const achievementEntries = achievementCategoryId ? allDiary.filter((d) => d.categoryId === achievementCategoryId) : [];
 
@@ -119,6 +127,8 @@ function buildReviewDays(fromDate: string, toDate: string) {
 
 export function DiaryPage() {
   const t = useT();
+  const navigate = useNavigate();
+  const lockVer = useBookLocks();
   const say = useCompanionSay();
   const { settings, updateSettings } = useSettings();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
@@ -165,6 +175,7 @@ export function DiaryPage() {
       const filteredForExport = diaryRepo.getAll().filter((e) => {
         const day = localDayKey(e.createdAt);
         if (day < choice.fromDate || day > choice.toDate) return false;
+        if (isBookLocked(e.categoryId)) return false;
         if (choice.categoryId === 'all') return true;
         return effectiveDiaryCategory(e.categoryId) === choice.categoryId;
       });
@@ -172,7 +183,7 @@ export function DiaryPage() {
         title: t.diary.title,
         fromDay: choice.fromDate,
         toDay: choice.toDate,
-        entries: filteredForExport.map((e) => ({ createdAt: e.createdAt, content: e.content, categoryLabel: categoryLabel(effectiveDiaryCategory(e.categoryId)) })),
+        entries: filteredForExport.map((e) => ({ createdAt: e.createdAt, content: richToPlain(e.content), categoryLabel: categoryLabel(effectiveDiaryCategory(e.categoryId)) })),
         locale: loc,
         exportedOn: t.reviewSummary.pdfExportedOn,
       });
@@ -207,7 +218,7 @@ export function DiaryPage() {
     return shuffled.slice(0, 4);
   });
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'all' | string>('all');
+  const [activeCategory, setActiveCategory] = useState<'all' | string>(() => new URLSearchParams(window.location.search).get('cat') ?? 'all');
   const [query, setQuery] = useState('');
   const [composing, setComposing] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
@@ -216,6 +227,10 @@ export function DiaryPage() {
   const [draftCategory, setDraftCategory] = useState<string>(DIARY_DEFAULT_CATEGORY_ID);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftInReview, setDraftInReview] = useState(false);
+  const [draftMaps, setDraftMaps] = useState<string[]>([]);
+  const [mapPickerOpen, setMapPickerOpen] = useState(false);
+  const [bookCodeOpen, setBookCodeOpen] = useState(false);
+  const langEn = settings.language === 'en';
   // /sicherheit/tagebuch?tab=review opens straight on the Tagesrueckblick (used by "Heute bisher" on Home)
   const [view, setView] = useState<'entries' | 'review' | 'letters'>(() => {
     const tab = new URLSearchParams(window.location.search).get('tab');
@@ -228,17 +243,24 @@ export function DiaryPage() {
     return customCategories.find((c) => c.id === id)?.label ?? id;
   }
 
+  const visibleEntries = useMemo(
+    () => entries.filter((e) => !isBookLocked(e.categoryId)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [entries, lockVer],
+  );
+  const hiddenInLocked = entries.length - visibleEntries.length;
+
   const filtered = useMemo(() => {
-    let list = entries;
+    let list = visibleEntries;
     if (activeCategory !== 'all') {
       list = list.filter((e) => effectiveDiaryCategory(e.categoryId) === activeCategory);
     }
     if (query.trim()) {
       const q = query.toLowerCase();
-      list = list.filter((e) => e.content.toLowerCase().includes(q));
+      list = list.filter((e) => richToPlain(e.content).toLowerCase().includes(q));
     }
     return list;
-  }, [entries, activeCategory, query]);
+  }, [visibleEntries, activeCategory, query]);
 
   function refresh() {
     setEntries(diaryRepo.getAll().sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
@@ -258,6 +280,8 @@ export function DiaryPage() {
     setEditingId(null);
     setDraftText('');
     setDraftPhoto(undefined);
+    setDraftMaps([]);
+    setDraftInReview(false);
     setDraftCategory(activeCategory === 'all' ? DIARY_DEFAULT_CATEGORY_ID : activeCategory);
     setComposing(true);
   }
@@ -266,6 +290,7 @@ export function DiaryPage() {
     setEditingId(null);
     setDraftText(startingText);
     setDraftPhoto(undefined);
+    setDraftMaps([]);
     setDraftCategory(activeCategory === 'all' ? DIARY_DEFAULT_CATEGORY_ID : activeCategory);
     setComposing(true);
   }
@@ -290,27 +315,61 @@ export function DiaryPage() {
     setDraftInReview(entry.inReview === true);
     setDraftText(entry.content);
     setDraftPhoto(entry.photo);
+    setDraftMaps(entry.mindmapIds ?? []);
     setDraftCategory(effectiveDiaryCategory(entry.categoryId));
     setComposing(true);
   }
 
-  function save() {
-    if (!draftText.trim()) return;
+  // ?entry=<id> (coming back from a connected mind map) opens that entry again
+  const entryParamDone = useRef(false);
+  useEffect(() => {
+    if (entryParamDone.current) return;
+    const id = new URLSearchParams(window.location.search).get('entry');
+    if (!id) return;
+    entryParamDone.current = true;
+    const e = diaryRepo.getById(id);
+    if (e && !isBookLocked(e.categoryId)) startEdit(e);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** writes the draft; returns the id (also used silently before jumping to a connected mind map) */
+  function persistDraft(): string | null {
+    if (!draftText.trim() && draftMaps.length === 0) return null;
     const now = new Date().toISOString();
+    const cleanMaps = draftMaps.filter((id) => mindmapRepo.getById(id));
+    const mindmapIds = cleanMaps.length ? cleanMaps : undefined;
     if (editingId) {
       const existing = diaryRepo.getById(editingId);
       if (existing) {
-        diaryRepo.save({ ...existing, content: draftText, categoryId: draftCategory, photo: draftPhoto, inReview: draftInReview, updatedAt: now });
+        diaryRepo.save({ ...existing, content: draftText, categoryId: draftCategory, photo: draftPhoto, inReview: draftInReview, mindmapIds, updatedAt: now });
+        return editingId;
       }
-    } else {
-      diaryRepo.save({ id: createId('diary'), createdAt: now, updatedAt: now, content: draftText, categoryId: draftCategory, photo: draftPhoto, inReview: draftInReview });
     }
+    const id = createId('diary');
+    diaryRepo.save({ id, createdAt: now, updatedAt: now, content: draftText, categoryId: draftCategory, photo: draftPhoto, inReview: draftInReview, mindmapIds });
+    return id;
+  }
+
+  function save() {
+    const wasEditing = !!editingId;
+    if (!persistDraft()) return;
     setComposing(false);
     setDraftText('');
     setDraftPhoto(undefined);
+    setDraftMaps([]);
     setEditingId(null);
     refresh();
-    say(pickLine({ page: '/sicherheit/tagebuch', trigger: 'speichern' }), { joy: !editingId });
+    say(pickLine({ page: '/sicherheit/tagebuch', trigger: 'speichern' }), { joy: !wasEditing });
+  }
+
+  /** opens a connected mind map; the entry is saved first so that one tap leads back to exactly this entry */
+  function openMap(mapId: string, entryId?: string) {
+    let id = entryId ?? null;
+    if (composing) {
+      id = persistDraft();
+      refresh();
+    }
+    navigate(`/entdecken/mindmap/${mapId}`, { state: id ? { fromDiary: id } : undefined });
   }
 
   function remove(id: string) {
@@ -396,7 +455,7 @@ export function DiaryPage() {
             <LettersList />
           </div>
         ) : view === 'review' ? (
-          <DailyReview diaryEntries={entries} />
+          <DailyReview diaryEntries={visibleEntries} />
         ) : (
           <>
             <div className="chip-row no-scrollbar mb-5 -mx-5 px-5">
@@ -444,33 +503,73 @@ export function DiaryPage() {
             </div>
 
             {activeCategory !== 'all' && (
-              <button
-                onClick={() => setStylingCategoryId(activeCategory)}
-                className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-4 py-2 px-3 -mx-3 rounded-[var(--radius-md)] active:bg-[var(--color-primary-soft)]"
-              >
-                <Type size={14} />
-                {t.diary.styleThisCategoryCta}
-              </button>
+              <div className="flex flex-wrap gap-x-4 mb-4">
+                <button
+                  onClick={() => setStylingCategoryId(activeCategory)}
+                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] py-2 px-3 -mx-3 rounded-[var(--radius-md)] active:bg-[var(--color-primary-soft)]"
+                >
+                  <Type size={14} />
+                  {t.diary.styleThisCategoryCta}
+                </button>
+                <button
+                  onClick={() => setBookCodeOpen(true)}
+                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] py-2 px-3 -mx-3 rounded-[var(--radius-md)] active:bg-[var(--color-primary-soft)]"
+                  data-testid="book-code-open"
+                >
+                  <Lock size={14} />
+                  {hasBookCode(activeCategory) ? (langEn ? 'Own word (set)' : 'Eigenes Wort (gesetzt)') : langEn ? 'Protect with an own word' : 'Mit eigenem Wort schützen'}
+                </button>
+              </div>
             )}
+
+            {activeCategory === 'all' && hiddenInLocked > 0 && (
+              <p className="text-[12.5px] text-[var(--color-text-muted)] mb-4 flex items-center gap-1.5" data-testid="diary-hidden-note">
+                <Lock size={13} /> {langEn ? `${hiddenInLocked} ${hiddenInLocked === 1 ? 'entry is' : 'entries are'} hidden in closed diaries. Open the diary to see ${hiddenInLocked === 1 ? 'it' : 'them'}.` : `${hiddenInLocked} ${hiddenInLocked === 1 ? 'Eintrag ist' : 'Einträge sind'} in verschlossenen Tagebüchern verborgen. Öffne das jeweilige Tagebuch, um ${hiddenInLocked === 1 ? 'ihn' : 'sie'} zu sehen.`}
+              </p>
+            )}
+
+            {activeCategory !== 'all' && isBookLocked(activeCategory) ? (
+              <BookUnlockCard categoryId={activeCategory} label={categoryLabel(activeCategory)} count={entries.filter((e) => effectiveDiaryCategory(e.categoryId) === activeCategory).length} />
+            ) : (
+              <>
 
             {composing ? (
               <Card className="mb-5">
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {allCategoryChips.map((c) => (
+                  {allCategoryChips.filter((c) => c.id === draftCategory || !isBookLocked(c.id)).map((c) => (
                     <Chip key={c.id} selected={draftCategory === c.id} onClick={() => setDraftCategory(c.id)} icon={<Tag size={12} />}>
                       {c.label}
                     </Chip>
                   ))}
                 </div>
-                <textarea
-                  autoFocus
-                  className="input mb-3"
-                  rows={6}
-                  placeholder={t.diary.placeholder}
+                <RichTextEditor
+                  key={editingId ?? 'new'}
                   value={draftText}
-                  onChange={(e) => setDraftText(e.target.value)}
+                  onChange={setDraftText}
+                  placeholder={t.diary.placeholder}
                   style={styleForCategory(draftCategory)}
+                  autoFocus
+                  testId="diary-rte"
                 />
+
+                {/* Mindmap(s) mit dem Eintrag verbinden */}
+                <div className="mb-3">
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {draftMaps.map((id) => {
+                      const m = mindmapRepo.getById(id);
+                      if (!m) return null;
+                      return (
+                        <span key={id} className="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[13px]" data-testid="diary-draft-map">
+                          <button type="button" onClick={() => openMap(id, editingId ?? undefined)} className="inline-flex items-center gap-1" data-testid="diary-draft-map-open"><Network size={13} /> {m.title || (langEn ? 'Mind map' : 'Mindmap')}</button>
+                          <button type="button" onClick={() => setDraftMaps(draftMaps.filter((x) => x !== id))} aria-label={langEn ? 'Disconnect' : 'Lösen'} className="w-6 h-6 flex items-center justify-center"><X size={13} /></button>
+                        </span>
+                      );
+                    })}
+                    <button type="button" onClick={() => setMapPickerOpen(true)} className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] py-1.5" data-testid="diary-connect-map">
+                      <Network size={15} /> {draftMaps.length ? (langEn ? 'Connect another' : 'Weitere verbinden') : langEn ? 'Connect a mind map' : 'Eine Mindmap verbinden'}
+                    </button>
+                  </div>
+                </div>
 
                 {/* "Das Einzige, wo man entscheidet, ob es in den Rueckblick
                  * uebernommen wird": a switch per entry */}
@@ -582,13 +681,14 @@ export function DiaryPage() {
                         <Trash2 size={14} />
                       </button>
                     </div>
-                    <p
-                      className={expandedIds.has(entry.id) ? 'text-[var(--color-text)] whitespace-pre-wrap' : 'text-[var(--color-text)] line-clamp-3 whitespace-pre-wrap'}
+                    <RichText
+                      text={entry.content}
+                      className="text-[var(--color-text)]"
                       style={styleForCategory(effectiveDiaryCategory(entry.categoryId))}
-                    >
-                      {entry.content}
-                    </p>
-                    {entry.content.length > 140 && (
+                      maxLines={expandedIds.has(entry.id) ? undefined : 3}
+                      testId="diary-entry-text"
+                    />
+                    {(entry.content.length > 140 || entry.content.split('\n').length > 3) && (
                       <button
                         onClick={(e) => {
                           // "Funktioniert auf dem Handy nicht"-Auftrag —
@@ -617,6 +717,29 @@ export function DiaryPage() {
                         {expandedIds.has(entry.id) ? t.diary.showLess : t.diary.showMore}
                       </button>
                     )}
+                    {entry.mindmapIds && entry.mindmapIds.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {entry.mindmapIds.map((mid) => {
+                          const m = mindmapRepo.getById(mid);
+                          if (!m) return null;
+                          return (
+                            <button
+                              key={mid}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openMap(mid, entry.id);
+                              }}
+                              data-no-tap-feedback
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[13px]"
+                              data-testid="diary-entry-map"
+                            >
+                              <Network size={13} /> {m.title || (langEn ? 'Mind map' : 'Mindmap')}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                     {entry.photo && (
                       <img src={entry.photo} alt="" className="mt-2 rounded-[var(--radius-md)] max-h-[120px] max-w-full object-cover" />
                     )}
@@ -628,6 +751,8 @@ export function DiaryPage() {
                   </Card>
                 ))}
               </div>
+            )}
+              </>
             )}
           </>
         )}
@@ -678,6 +803,10 @@ export function DiaryPage() {
             setStylingCategoryId(null);
           }}
         />
+      )}
+      <MindmapPickerModal open={mapPickerOpen} onClose={() => setMapPickerOpen(false)} selected={draftMaps} onChange={setDraftMaps} />
+      {activeCategory !== 'all' && (
+        <BookCodeModal open={bookCodeOpen} onClose={() => setBookCodeOpen(false)} categoryId={activeCategory} label={categoryLabel(activeCategory)} />
       )}
       <TemplatePickerModal
         open={templatePickerOpen}

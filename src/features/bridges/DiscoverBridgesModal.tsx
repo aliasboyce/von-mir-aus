@@ -11,6 +11,7 @@ import { createId } from '../../services/storage/repository';
 import { getAdoptedBridgeImpulses, markBridgeImpulseAdopted } from '../../services/adoptedImpulsesStore';
 import type { Bridge, StepExtras } from '../../data/types';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
+import { zl } from '../zugang/zugangEn';
 
 interface DiscoverBridgesModalProps {
   open: boolean;
@@ -69,7 +70,7 @@ export function DiscoverBridgesModal({ open, onClose, onAdopted }: DiscoverBridg
     }, 1200);
   }
 
-  const valueLabels = (current.connectionTags ?? valuesForLegacyCategory(current.category)).join(' · ');
+  const valueLabels = (current.connectionTags ?? valuesForLegacyCategory(current.category)).map(zl).join(' · ');
 
   return (
     <Modal open={open} onClose={onClose} title={t.bridges.discoverTitle} subtitle={t.bridges.discoverSubtitle}>

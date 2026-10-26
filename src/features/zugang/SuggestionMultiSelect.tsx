@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, X, Pencil, Check } from 'lucide-react';
 import { useT } from '../../i18n';
+import { zl } from './zugangEn';
 
 interface SuggestionMultiSelectProps {
   suggestions: string[];
@@ -88,7 +89,7 @@ export function SuggestionMultiSelect({
                   }
             }
           >
-            {s}
+            {zl(s)}
           </button>
         );
       })}

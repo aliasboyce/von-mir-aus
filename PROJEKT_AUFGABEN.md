@@ -392,6 +392,23 @@ Es gibt offenbar mehrere PARALLELE/AELTERE Implementierungen derselben Konzepte 
 ## 🟢 Erledigt (diese Sitzung — Gefühle-Rad, Phase 4 größtenteils abgeschlossen)
 - Neues antippbares Gefühlsrad mit acht Segmenten, positions- statt farbbasierte Unterscheidung, synchron mit der bestehenden Akkordeon-Detailliste
 
+## 🟢 Erledigt (diese Sitzung — Meine Projekte, Mindmap-Ordner, 3D-Mindmap)
+- **Meine Projekte** (/entdecken/projekte): Projekte mit Ordnern, Archiv, Kopieren; Startvorlagen (leer / für mich / mit anderen / ganz ausführlich). Bausteine frei wählbar, verschiebbar, einklappbar, je mit eigener Notiz (Rich-Text wie im Tagebuch): Text, Aufgaben (Liste/Board), Abhak-Liste, Zeitplan (Zeitstrahl + Meilensteine + Babysteps), Team & Rollen (aus dem Netzwerk wählbar), Finanzplan, Risiken & Plan B, Entscheidungen, Umfrage (nur für mich / mit Gruppe), Pro & Contra, Tabelle, Erinnerungen, Bilder, Verknüpfungen (Mindmaps inkl. 3D, Tagebuch-Bücher, Routinen, Ressourcen, Menschen, Orte, andere Projekte).
+- Kalender: Aufgaben/Meilensteine/Babysteps/Erinnerungen mit Datum erscheinen im Kalender (Kategorie „Projekte“, Termin-ID prj-…); Erinnerungen laufen ins eigene Postfach. Beim Archivieren/Erledigen verschwinden die Termine wieder.
+- Teilen: PDF (A4, mehrere Seiten, Auswahl was mit soll – Kopf, jeder Baustein, jede Mindmap, Notizen) oder Kurztext. PDF-Baukasten kann jetzt JPEG-Bilder (Mindmap-Seiten, 3D-Vorschau, Bilder-Baustein). Leere Bausteine sind vorab abgewählt.
+- **Mindmap-Ordner:** sichtbarer „Neuer Ordner“-Knopf (auch leere Ordner bleiben), Ordner beim Anlegen wählbar, umbenennen/entfernen (Inhalt bleibt), Verschieben wie bisher.
+- **3D-Mindmap („Raum“):** beim Anlegen wählbar (3D-Raum). three.js, nur bei Bedarf geladen. 12 Formen, Farben, Größen, Symbole, Notiz, Mindmap „dahinter“, benannte sichtbare Ebenen (Höhe, Farbe, Fläche an/aus, ein-/ausblenden – Verschieben nimmt Dinge mit), Verbinden mit Beschriftung/Pfeil/gestrichelt, Ziehen auf Fläche oder in der Höhe (rastet an Ebenen ein), Feinschritte, Liste aller Dinge, Rückgängig/Wiederholen, Hintergrund Nacht/Dämmerung/Hell, Raster, Ansichten, Bild speichern, Vorschau für Liste/PDF/Projekte. Ohne WebGL: freundlicher Hinweis, Inhalte bleiben bearbeitbar über Liste/Ebenen.
+- Offene Grenzen: Umfragen sind lokal (keine Server-Abstimmung zwischen Geräten – Ergebnis wird per Text geteilt); Emojis erscheinen nicht im PDF; im PDF ist Text nur einfach formatiert (Listen/Überschriften ja, fett/kursiv eingeebnet); 3D auf sehr alten Handys ungeprüft; Mindmap-Wort (Buch-Wort) gilt weiter nur fürs Tagebuch.
+
+## 🟢 Erledigt (diese Sitzung — Tagebuch schreiben, Mindmap-Verbindung, Buch-Wort, Einfügen, Englisch)
+- Kurz-Meldung klar als Kurzform (Hinweis aufs lange Formular); Mail-Knopf erscheint, sobald QUICK_FEEDBACK_MAIL gesetzt ist.
+- Klick-Töne: mehr Anteil über ~350 Hz (Handy-Lautsprecher), Resume-Behandlung für 'interrupted'. Auf echten Handys nicht prüfbar → im Test beobachten.
+- Routinen-Karten: Klick beim Nach-rechts-Wischen; Abschluss „Geschafft“ nach der letzten Karte (nicht als defekt reproduzierbar).
+- Tagebuch: Rich-Text (fett, kursiv, unterstrichen, Überschrift, Listen Punkt/Herz/Stern mit 3 Ebenen), als ein Markup-String gespeichert → Suche/PDF/Rückblick unverändert (richToPlain). Briefe bleiben ohne Formatierung.
+- Tagebuch ↔ Mindmap verbinden (mit Rücksprung); eigenes Wort pro Tagebuch (gesalzener Hash, Sichtschutz; Vergessen → App-PIN).
+- Mindmap: Einfügen aus Zwischenablage (Dateien, HTML-Bild, Bild-URL, Text), durchsichtige Sticker bleiben PNG.
+- Englisch: Wesen/Tiere/Illustrationen/Zugang-Listen/Ressourcen/Brücken-Seeds/Heimat-Sätze/Gefühlsrad/Körper-/Schutzlisten/Lesezeichen-Kategorien/Wesen-Inhalte. Bewusst deutsch bleiben: Quellen-Titel und -Beschreibungen (deutschsprachige Seiten, Hinweis im EN-Text), Lesezeichen mit deutschen Hilfsangeboten.
+
 ## 🟢 Erledigt (diese Sitzung — Loslassen/Denkmaschine bei langen Texten, echte Speicher-Bestätigung)
 - Loslassen: zwei echte Fehler bei längeren Texten gefunden und behoben (harte Text-Abschneidung in der Illustration, fehlende Zeilenumbruch-Erhaltung in der Liste), Eingabefeld wächst jetzt mit
 - Denkmaschine: dasselbe fehlende-Bestätigung-Problem auch beim Notiz-Feld behoben (vorher nur bei Neuformulierung), alle Textfelder wachsen mit, Zeilenumbrüche an fünf Anzeigestellen korrigiert
@@ -554,6 +571,7 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Low-Capacity-Prinzip: Oberfläche passt sich interaktionsbasiert an geringere Kapazität an
 - Mehr Sprüche-Vorlagen und mehr Prompt-Vorlagen
 - Weitere Insider-Texte fürs Wesen-Spiel (die ersten Sätze nach Zeit-Kategorien sind drin: <8 s / 8–20 s / 20–35 s / ab 35 s — Schwellen mit dem Nutzer abstimmen)
+- Tagebuch-Formatierung in Briefen an mich (bisher nur Tagebuch); Buch-Wort auch für Mindmaps?
 - Mail-Adresse für „Kurz was an Boycie melden“ eintragen (QUICK_FEEDBACK_MAIL in services/testSupport.ts; wird dann im Dialog angezeigt)
 - Rechte der 8 Ablenkungsbilder (public/ablenkung) klären, bevor die App über den geschlossenen Test hinaus verteilt wird (fremde Memes, Figuren, ein Foto einer realen Person)
 

@@ -314,7 +314,7 @@ export function CompanionContentPage() {
             return (
               <Card key={line.id} className="flex flex-col gap-1.5" style={{ opacity: active ? 1 : 0.55 }}>
                 <div className="flex items-start justify-between gap-3">
-                  <p className="text-[14px] text-[var(--color-text)] flex-1">{line.text}</p>
+                  <p className="text-[14px] text-[var(--color-text)] flex-1">{en ? (line.textEn || line.text) : line.text}</p>
                   <button
                     role="switch"
                     aria-checked={active}
