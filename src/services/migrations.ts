@@ -1,3 +1,4 @@
+import { storageAdapter } from './storage/StorageAdapter';
 import { createKeyValueStore } from './storage/keyValueStore';
 import { resourcesRepo, ensureResourcesReady } from '../features/resources/resourcesRepo';
 import { bridgesRepo } from '../features/bridges/bridgesRepo';
@@ -294,7 +295,24 @@ function migrateRoutineExamples() {
   routineExamplesFlag.set(true);
 }
 
+const legacy3dFlag = createKeyValueStore<boolean>('migration-legacy-3d-v1', false);
+
+/** Die 3D-Mindmap gibt es nicht mehr. Schon angelegte 3D-Karten verschwinden aus der Mindmap-Liste, werden aber nicht
+ * gelöscht: Sie liegen unverändert in einem eigenen Speicherplatz (und in jeder Sicherung). */
+function migrateLegacy3dMaps() {
+  if (legacy3dFlag.get()) return;
+  const all = storageAdapter.getItem<Record<string, unknown>[]>('mindmaps') ?? [];
+  const old = all.filter((m) => m && (m as { kind?: string }).kind === '3d');
+  if (old.length) {
+    const kept = storageAdapter.getItem<unknown[]>('legacy-3d-maps') ?? [];
+    if (storageAdapter.setItem('legacy-3d-maps', [...kept, ...old])) storageAdapter.setItem('mindmaps', all.filter((m) => !old.includes(m)));
+    else return; // Speicher voll: beim nächsten Start noch einmal versuchen
+  }
+  legacy3dFlag.set(true);
+}
+
 export function runStartupMigrations() {
+  migrateLegacy3dMaps();
   ensureResourcesReady();
   migrateEnergyScale();
   migrateHilfsmittelAndSkills();

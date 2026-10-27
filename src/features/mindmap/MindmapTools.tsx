@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Check, Eraser, Highlighter, Pencil, PenLine } from 'lucide-react';
+import { Check, Droplets, Eraser, Highlighter, Pencil, PenLine } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { DOODLES, DOODLE_GROUPS } from './doodles';
 import { DoodleThumb, Slider } from './MindmapPanels';
+import { ColorField } from './MindmapColor';
 import type { MMPen, MindMap } from './mindmapModel';
 import type { MindmapExtraTexts } from './mindmapExtraTexts';
 
@@ -12,6 +13,10 @@ export interface PenState {
   sw: number;
   erase: boolean;
   whole: boolean;
+  /** how much of the paint shows: 0.1 – 1 */
+  alpha: number;
+  /** new strokes go behind everything (a painted background) and are fixed in place */
+  behind: boolean;
 }
 export const PEN_COLORS = ['#26231f', '#e07a5f', '#e8a83d', '#7a9e4a', '#4a8f9e', '#3e6bb0', '#9a7bc4', '#d9778a', '#ffffff'];
 const chip = (active: boolean) => `px-3 py-1.5 rounded-full text-[13px] border transition-colors ${active ? 'text-white border-transparent' : 'text-[var(--color-text-muted)] border-[var(--color-border-strong)]'}`;
@@ -23,13 +28,17 @@ export function PenBar({ pen, setPen, onDone, onUndo, canUndo, X, lang }: { pen:
     ['pen', X.penPen, <PenLine key="p" size={18} />],
     ['pencil', X.penPencil, <Pencil key="c" size={18} />],
     ['marker', X.penMarker, <Highlighter key="m" size={18} />],
+    ['water', lang === 'en' ? 'Watercolour' : 'Aquarell', <Droplets key="w" size={18} />],
   ];
+  const [more, setMore] = useState(false);
+  const water = pen.kind === 'water';
+  const maxSw = water ? 140 : 24;
   const btn = (active: boolean) => `flex flex-col items-center gap-0.5 min-w-[62px] py-1.5 px-2 rounded-[var(--radius-md)] text-[11.5px] ${active ? 'text-[var(--color-primary)] bg-[var(--color-primary-soft)]' : 'text-[var(--color-text-muted)]'}`;
   return (
     <div className="px-3 pt-2 pb-1" data-testid="mm-pen-bar">
       <div className="flex items-center gap-1 overflow-x-auto">
         {kinds.map(([id, label, icon]) => (
-          <button key={id} type="button" onClick={() => setPen({ ...pen, kind: id, erase: false })} className={btn(!pen.erase && pen.kind === id)} data-testid={`mm-penbar-${id}`}>
+          <button key={id} type="button" onClick={() => setPen({ ...pen, kind: id, erase: false, color: id === 'water' && pen.color.toLowerCase() === '#26231f' ? '#8fc1e3' : pen.color, alpha: id === 'water' && pen.alpha === 1 ? 0.5 : pen.alpha })} className={btn(!pen.erase && pen.kind === id)} data-testid={`mm-penbar-${id}`}>
             {icon}
             {label}
           </button>
@@ -54,7 +63,7 @@ export function PenBar({ pen, setPen, onDone, onUndo, canUndo, X, lang }: { pen:
           </div>
         </div>
       ) : (
-        <div className="mt-1.5 flex flex-col gap-1.5">
+        <div className="mt-1.5 flex flex-col gap-1.5 max-h-[34vh] overflow-y-auto">
           <div className="flex items-center gap-2 flex-wrap">
             {PEN_COLORS.map((c) => (
               <button key={c} type="button" onClick={() => setPen({ ...pen, color: c })} className="w-7 h-7 rounded-full shrink-0" style={{ background: c, border: '1.5px solid rgba(0,0,0,0.18)', outline: pen.color === c ? '3px solid var(--color-primary)' : 'none', outlineOffset: 2 }} aria-label={c} data-testid={`mm-pen-color-${c.slice(1)}`} />
@@ -63,7 +72,16 @@ export function PenBar({ pen, setPen, onDone, onUndo, canUndo, X, lang }: { pen:
               <input type="color" value={/^#[0-9a-f]{6}$/i.test(pen.color) ? pen.color : '#26231f'} onChange={(e) => setPen({ ...pen, color: e.target.value })} className="absolute inset-0 opacity-0 cursor-pointer" aria-label={lang === 'en' ? 'Own colour' : 'Eigene Farbe'} data-testid="mm-pen-color-custom" />
             </label>
           </div>
-          <Slider label={X.penSize} value={pen.sw} min={1} max={24} step={1} onChange={(sw) => setPen({ ...pen, sw })} testId="mm-pen-size" />
+          <button type="button" onClick={() => setMore((v) => !v)} className="self-start text-[12.5px] underline underline-offset-2 text-[var(--color-primary)]" data-testid="mm-pen-more-colors">{more ? (lang === 'en' ? 'Fewer colours' : 'Weniger Farben') : (lang === 'en' ? 'More colours & palettes' : 'Mehr Farben & Paletten')}</button>
+          {more && <ColorField value={pen.color} onChange={(color) => setPen({ ...pen, color })} lang={lang} testId="mm-pen-pal" />}
+          <Slider label={water ? (lang === 'en' ? 'Brush size (up to huge)' : 'Pinselgröße (bis riesig)') : X.penSize} value={Math.min(pen.sw, maxSw)} min={1} max={maxSw} step={1} onChange={(sw) => setPen({ ...pen, sw })} testId="mm-pen-size" />
+          <Slider label={lang === 'en' ? 'Transparency' : 'Durchsichtigkeit'} value={pen.alpha} min={0.1} max={1} step={0.05} onChange={(alpha) => setPen({ ...pen, alpha })} testId="mm-pen-alpha" format={(v) => `${Math.round(v * 100)} %`} />
+          {water && (
+            <label className="flex items-center gap-2 text-[13px] text-[var(--color-text)]">
+              <input type="checkbox" checked={pen.behind} onChange={(e) => setPen({ ...pen, behind: e.target.checked })} data-testid="mm-pen-behind" />
+              {lang === 'en' ? 'Paint behind everything and fix it (for backgrounds)' : 'Hinter alles malen und fixieren (z. B. für Hintergründe)'}
+            </label>
+          )}
         </div>
       )}
     </div>

@@ -8,7 +8,7 @@ import { diaryCategoriesStore, DIARY_DEFAULT_CATEGORY_ID, DIARY_DEFAULT_CATEGORY
 import { routinesRepo } from '../../routines/routinesRepo';
 import { resourcesRepo } from '../../resources/resourcesRepo';
 import { networkRepo } from '../../safetyNet/networkRepo';
-import { projectsRepo, type LinksBlock } from '../projectModel';
+import { emojiOf, projectsRepo, type LinksBlock } from '../projectModel';
 import { AddRow, Empty, SmallLabel, type BlockProps } from '../ui';
 
 type Kind = 'mindmaps' | 'categories' | 'routines' | 'resources' | 'people' | 'projects';
@@ -21,12 +21,12 @@ export function BlockLinks({ block, project, L, onChange }: BlockProps<LinksBloc
 
   const options = (k: Kind): Opt[] => {
     switch (k) {
-      case 'mindmaps': return mindmapRepo.getAll().filter((m) => !m.archived).map((m) => ({ id: m.id, label: `${m.kind === '3d' ? '🧊 ' : '🕸️ '}${m.title || L('Mindmap ohne Namen', 'Mind map without a name')}`, to: `/entdecken/mindmap/${m.id}` }));
+      case 'mindmaps': return mindmapRepo.getAll().filter((m) => !m.archived).map((m) => ({ id: m.id, label: `${'🕸️ '}${m.title || L('Mindmap ohne Namen', 'Mind map without a name')}`, to: `/entdecken/mindmap/${m.id}` }));
       case 'categories': return [{ id: DIARY_DEFAULT_CATEGORY_ID, label: `📓 ${DIARY_DEFAULT_CATEGORY_LABEL}`, to: `/sicherheit/tagebuch?cat=${DIARY_DEFAULT_CATEGORY_ID}` }, ...diaryCategoriesStore.getAll().map((c) => ({ id: c.id, label: `📓 ${c.label}`, to: `/sicherheit/tagebuch?cat=${c.id}` }))];
       case 'routines': return routinesRepo.getAll().map((r) => ({ id: r.id, label: `🌱 ${r.title || L('Routine', 'Routine')}`, to: `/entdecken/routinen/${r.id}/bearbeiten` }));
       case 'resources': return resourcesRepo.getAll().map((r) => ({ id: r.id, label: `🧰 ${r.title}`, to: `/entdecken/ressourcen?open=${r.id}` }));
       case 'people': return networkRepo.getAll().map((n) => ({ id: n.id, label: `🤝 ${n.name}`, to: '/sicherheit/netzwerk' }));
-      case 'projects': return projectsRepo.getAll().filter((p) => p.id !== project.id && !p.archived).map((p) => ({ id: p.id, label: `${p.emoji} ${p.title}`, to: `/entdecken/projekte/${p.id}` }));
+      case 'projects': return projectsRepo.getAll().filter((p) => p.id !== project.id && !p.archived).map((p) => ({ id: p.id, label: `${emojiOf(p)} ${p.title}`, to: `/entdecken/projekte/${p.id}` }));
     }
   };
   const titles: Record<Kind, string> = {

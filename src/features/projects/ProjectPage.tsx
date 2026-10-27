@@ -8,10 +8,11 @@ import { Button } from '../../components/ui/Button';
 import { dayKey } from '../calendar/calendarRepo';
 import { removeProjectCalendar, syncProjectCalendar } from './projectCalendar';
 import {
-  BLOCK_META, LOG_MAX, PROJECT_COLORS, PROJECT_EMOJIS, diffLog, logEntry, metaOf, migrateProject, newBlock, projectsRepo, statusLabel,
+  BLOCK_META, LOG_MAX, PROJECT_COLORS, PROJECT_EMOJI_GROUPS, diffLog, logEntry, metaOf, migrateProject, newBlock, projectsRepo, statusLabel,
   type BlockKind, type Project, type ProjectBlock, type ProjectStatus,
 } from './projectModel';
-import { chipCls, chipOn } from './ui';
+import { chipCls, chipOn, ProjectIcon } from './ui';
+import { fileToSmallImage } from '../mindmap/mindmapMedia';
 import { useL } from './useL';
 import { ProjectShareModal } from './ProjectShareModal';
 import { ProjectHub } from './ProjectHub';
@@ -20,6 +21,9 @@ import { ProjectLog } from './ProjectLog';
 import { ProjectBox } from './ProjectBox';
 import { ProjectBlockView } from './ProjectBlockView';
 import { ProjectAll } from './ProjectAll';
+import { ProjectRetro } from './ProjectRetro';
+import { WESEN_CHEERS } from './retro';
+import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { QuickNote } from './QuickNote';
 import { markProjectWorkedOn } from './projectStore';
 import type { ProjectApi } from './projectApi';
@@ -31,6 +35,7 @@ export function ProjectPage() {
   const sub = (params['*'] ?? '').replace(/\/+$/, '');
   const navigate = useNavigate();
   const { L, lang } = useL();
+  const sayCompanion = useCompanionSay();
   const [initial] = useState<Project | undefined>(() => {
     const raw = id ? projectsRepo.getById(id) : undefined;
     if (!raw) return undefined;
@@ -44,12 +49,12 @@ export function ProjectPage() {
   const touched = useRef(false);
   const [adding, setAdding] = useState(false);
   const [looks, setLooks] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [infos, setInfos] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [quick, setQuick] = useState(false);
   const [toast, setToast] = useState('');
-  const [party, setParty] = useState(false);
   const today = dayKey(new Date());
 
   const flush = useCallback(() => {
@@ -136,9 +141,9 @@ export function ProjectPage() {
     update((cur) => ({ ...cur, status: 'done', closedAt: now, ...(how === 'archive' ? { archived: true } : {}), log: [...(cur.log ?? []), logEntry('done', L('Projekt geschafft 🎉', 'Project completed 🎉'))].slice(-LOG_MAX) }));
     flush();
     setFinishing(false);
-    setParty(true);
-    window.setTimeout(() => setParty(false), 2600);
-    if (how === 'archive') window.setTimeout(() => navigate('/entdecken/projekte'), 1800);
+    // das Wesen jubelt gleich auf der Rückblick-Seite weiter
+    sayCompanion(WESEN_CHEERS(L, p.title)[0], { joy: true });
+    navigate(`${base}/rueckblick`);
   };
 
   let body;
@@ -163,6 +168,7 @@ export function ProjectPage() {
   else if (sub === 'protokoll') body = <ProjectLog api={api} />;
   else if (sub === 'zettel') body = <ProjectBox api={api} />;
   else if (sub === 'alles') body = <ProjectAll api={api} />;
+  else if (sub === 'rueckblick') body = <ProjectRetro api={api} onShare={() => { flush(); setSharing(true); }} onReopen={() => { update((c) => ({ ...c, status: 'running', closedAt: undefined })); go(''); }} />;
   else if (sub.startsWith('b/')) body = <ProjectBlockView api={api} blockId={sub.slice(2)} />;
   else body = <div className="px-5 pt-8 text-center"><button type="button" className="underline text-[var(--color-primary)]" onClick={() => go('')}>{L('Zur Projekt-Startseite', 'To the project home')}</button></div>;
 
@@ -174,12 +180,6 @@ export function ProjectPage() {
       {body}
 
       {toast && <div className="fixed left-1/2 -translate-x-1/2 bottom-40 z-40 rounded-full px-4 py-2 text-[13.5px] text-white shadow-lg pointer-events-none" style={{ background: 'var(--color-text)' }} role="status" data-testid="project-toast">{toast}</div>}
-      {party && (
-        <div className="fixed inset-0 z-[60] pointer-events-none flex items-center justify-center" aria-hidden="true" data-testid="project-party">
-          {['🎉', '✨', '🌟', '🎊', '✨', '🌿', '💫'].map((e, i) => <span key={i} className="absolute text-[34px]" style={{ left: `${14 + i * 12}%`, top: `${48 + (i % 3) * 6}%`, animation: `proj-spark 2.2s ease-out ${i * 120}ms both` }}>{e}</span>)}
-        </div>
-      )}
-
       <Modal open={adding} onClose={() => setAdding(false)} title={L('Seite hinzufügen', 'Add a page')} subtitle={L('Was braucht dein Projekt gerade?', 'What does your project need right now?')}>
         <div className="flex flex-col gap-2" data-testid="project-block-picker">
           {BLOCK_META.filter((m) => !(m.kind === 'team' && hasTeam)).map((m) => (
@@ -191,10 +191,33 @@ export function ProjectPage() {
         </div>
       </Modal>
 
-      <Modal open={looks} onClose={() => setLooks(false)} title={L('Symbol und Farbe', 'Symbol and colour')}>
+      <Modal open={looks} onClose={() => setLooks(false)} title={L('Symbol und Farbe', 'Symbol and colour')} subtitle={L('Alles ist freiwillig: nur eine Farbe, ein Symbol – oder dein eigenes Bild.', 'All optional: just a colour, a symbol – or your own picture.')}>
         <div className="flex flex-col gap-4" data-testid="project-looks-sheet">
-          <div className="flex flex-wrap gap-2">{PROJECT_EMOJIS.map((e) => <button key={e} type="button" onClick={() => update((c) => ({ ...c, emoji: e }))} aria-pressed={p.emoji === e} className="w-11 h-11 rounded-xl text-[24px] border" style={{ borderColor: p.emoji === e ? p.color : 'var(--color-border)', background: p.emoji === e ? `${p.color}22` : 'transparent' }}>{e}</button>)}</div>
-          <div className="flex flex-wrap gap-2">{PROJECT_COLORS.map((c) => <button key={c} type="button" onClick={() => update((cur) => ({ ...cur, color: c }))} aria-label={c} className="w-9 h-9 rounded-full" style={{ background: c, outline: p.color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} />)}</div>
+          <div className="flex items-center gap-3">
+            <span className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center" style={{ background: `${p.color}26`, border: `2px solid ${p.color}` }} data-testid="looks-preview"><ProjectIcon p={p} size={34} /></span>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => update((c) => ({ ...c, emoji: '', image: undefined }))} aria-pressed={!p.emoji && !p.image} className={chipCls(!p.emoji && !p.image)} style={!p.emoji && !p.image ? chipOn : undefined} data-testid="looks-none">{L('Ohne Symbol', 'No symbol')}</button>
+              <button type="button" onClick={() => fileRef.current?.click()} className={chipCls(!!p.image)} style={p.image ? chipOn : undefined} data-testid="looks-image">🖼️ {p.image ? L('Anderes Bild', 'Another picture') : L('Eigenes Bild', 'Own picture')}</button>
+              {p.image && <button type="button" onClick={() => update((c) => ({ ...c, image: undefined }))} className={chipCls(false)} data-testid="looks-image-remove">{L('Bild entfernen', 'Remove picture')}</button>}
+            </div>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; try { const r = await fileToSmallImage(f, 360, 0.8); if (!r) throw new Error('x'); update((c) => ({ ...c, image: r.dataUrl })); } catch { say(L('Das Bild konnte nicht geladen werden.', 'The picture could not be loaded.')); } }} data-testid="looks-file" />
+          </div>
+          {PROJECT_EMOJI_GROUPS.map((g) => (
+            <div key={g.id}>
+              <p className="text-[12px] text-[var(--color-text-muted)] mb-1">{L(g.de, g.en)}</p>
+              <div className="flex flex-wrap gap-1.5">{g.items.map((e) => <button key={e} type="button" onClick={() => update((c) => ({ ...c, emoji: e, image: undefined }))} aria-pressed={p.emoji === e && !p.image} className="w-10 h-10 rounded-xl text-[22px] border" style={{ borderColor: p.emoji === e && !p.image ? p.color : 'var(--color-border)', background: p.emoji === e && !p.image ? `${p.color}22` : 'transparent' }}>{e}</button>)}</div>
+            </div>
+          ))}
+          <div>
+            <p className="text-[12px] text-[var(--color-text-muted)] mb-1">{L('Farbe', 'Colour')}</p>
+            <div className="flex flex-wrap gap-2 items-center">
+              {PROJECT_COLORS.map((c) => <button key={c} type="button" onClick={() => update((cur) => ({ ...cur, color: c }))} aria-label={c} aria-pressed={p.color === c} className="w-9 h-9 rounded-full" style={{ background: c, outline: p.color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} />)}
+              <label className="inline-flex items-center gap-1.5 text-[12.5px] text-[var(--color-text-muted)] ml-1">
+                <input type="color" value={/^#[0-9a-f]{6}$/i.test(p.color) ? p.color : '#4a8f9e'} onChange={(e) => update((cur) => ({ ...cur, color: e.target.value }))} className="w-9 h-9 rounded-full border-0 p-0 bg-transparent" aria-label={L('Eigene Farbe wählen', 'Pick your own colour')} data-testid="looks-color-custom" />
+                {L('eigene Farbe', 'own colour')}
+              </label>
+            </div>
+          </div>
           <Button fullWidth onClick={() => setLooks(false)}>{L('Fertig', 'Done')}</Button>
         </div>
       </Modal>
@@ -218,7 +241,7 @@ export function ProjectPage() {
 
       <Modal open={finishing} onClose={() => setFinishing(false)} title={L('Projekt abschließen', 'Complete project')} subtitle={L('Was darf damit passieren?', 'What may happen to it?')}>
         <div className="flex flex-col gap-2" data-testid="project-finish-sheet">
-          <button type="button" onClick={() => finish('keep')} className="rounded-xl border-2 px-4 py-3 text-left" style={{ borderColor: p.color }} data-testid="finish-keep"><span className="block text-[15px]">🎉 {L('Geschafft – und gespeichert lassen', 'Done – and keep it saved')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Bleibt in deiner Liste, mit allem Drin. Termine im Kalender enden.', 'Stays in your list with everything in it. Calendar dates end.')}</span></button>
+          <button type="button" onClick={() => finish('keep')} className="rounded-xl border-2 px-4 py-3 text-left" style={{ borderColor: p.color }} data-testid="finish-keep"><span className="block text-[15px]">🎉 {L('Geschafft – zu den beendeten Projekten', 'Done – to the finished projects')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Du bekommst einen Rückblick mit allem, was war, und drei Fragen zum Nachspüren. Alles bleibt gespeichert, Termine im Kalender enden.', 'You get a look back at everything that happened and three questions to reflect on. Everything stays saved, calendar dates end.')}</span></button>
           <button type="button" onClick={() => finish('archive')} className="rounded-xl border border-[var(--color-border-strong)] px-4 py-3 text-left flex items-center gap-2" data-testid="finish-archive"><Archive size={16} /><span><span className="block text-[15px]">{L('Geschafft – ins Archiv legen', 'Done – move to the archive')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Aufgeräumt, aber nichts ist weg.', 'Tidied away, but nothing is gone.')}</span></span></button>
           <button type="button" onClick={() => finish('delete')} className="rounded-xl border border-[var(--color-border)] px-4 py-3 text-left flex items-center gap-2 text-[var(--color-danger)]" data-testid="finish-delete"><Trash2 size={16} /><span className="text-[15px]">{L('Löschen', 'Delete')}</span></button>
         </div>

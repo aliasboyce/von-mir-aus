@@ -171,6 +171,13 @@ Es gibt offenbar mehrere PARALLELE/AELTERE Implementierungen derselben Konzepte 
 24. Navigation/Zurueck-Pfade pruefen
 25. Quellen-Transparenz erweitern
 
+## 🟢 Erledigt (Sitzung 27.10. — Mindmap-Überarbeitung ohne 3D, Budget-Planer)
+- 3D-Mindmap komplett aus der Oberfläche entfernt (bereits angelegte 3D-Karten bleiben unter `legacy-3d-maps` gesichert, aber unsichtbar)
+- Mindmap: „frühere Zustände“ (festhalten, ansehen, zurückholen, als Kopie öffnen; automatisch beim Verlassen), Ebenen-Liste (Reihenfolge ziehen, nur bei Überlagerung wichtig), Merknotiz nur im Seitenfenster, Auswahl „Was möchtest du hinzufügen?“ beim „+“, Formen eckig mit Abrundung, „ohne“ bei Rahmen/Farbe/Rand, mehr Pfeile/Spitzen/Linienarten (Welle, Winkel, Bogen), Texthintergrund mit Transparenz, eigene Farbpaletten mit Namen + Beispiele (Pastellblau …), Duplizieren-Griff, To-do/Tabelle/Pro-Contra, Karten aus der App (Hilfsmittel, Skill, Kontakt, Brief …), Buchstaben/Zahlen/Zeichen als Symbole, Strichmännchen/Glühbirne/Stift/Karton/Zahnrad/Buch, Aquarell-Stift (groß, durchsichtig, „hinter alles“ + fixiert), Zettel an Mindmap
+- Budget-Planer (`/budget`): Übersicht (Hatte / Schon bezahlt / Noch offen / Übrig + pro Tag), 7 Ordner als eigene Seiten mit eigener Farbe: Einnahmen & feste Kosten (Abhaken je Monat, Betrag „ab diesem Monat“), Rechnungen (Foto nur lokal, Ablageort, Kalender + Erinnerung), Ausgaben & Töpfe (Monatsbudget je Bereich), Konten & Bargeld (Stand + Verlauf), Sparschwein (Münzen/Schein fallen hinein, Ort wo das Geld liegt) & Rücklagen mit Ziel, Verträge & Abos (Kundennummer kopieren, Kündigungsfrist im Kalender), Rückblicke Woche/Monat/Monate als PDF mit Balken und Linie
+- Budget in Suche, Wegweiser, Hilfe, Änderungs-Hinweis, Backup und „alles löschen“ eingebunden
+- Bewusst offen: Budget-Zahlen sind Orientierung (kein Bank-Abgleich); Fotos nur im Browser-Speicher dieses Geräts
+
 ## 🟢 Erledigt (grosser "Feintuning-Auftrag": Nervensystem final + Anspannungsskala-Gestaltung + alle Fs + Rueckblick - VOLLSTAENDIG abgeschlossen)
 - Nervensystem-Seite final: erste Grafik entfernt, mittlerer Erregungs-Pfeil entfernt, zwei Saetze korrigiert
 - Anspannungsskala neu gestaltet: fluessiger Regenbogen-Verlauf statt Farbbloecke, keine Beschreibung bei Zugang, sanfte GFK-artige Frage beim Check-in

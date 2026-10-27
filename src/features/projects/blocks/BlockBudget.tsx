@@ -1,6 +1,7 @@
 import { budgetSums, money, newId, type BudgetBlock, type BudgetItem } from '../projectModel';
 import { DelBtn, Empty, PersonSelect, SmallLabel, chipCls, chipOn, type BlockProps } from '../ui';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 /** Finanzplan: Kosten und Einnahmen, wer zahlt was, Budgetrahmen */
 export function BlockBudget({ block, project, L, lang, onChange }: BlockProps<BudgetBlock>) {
@@ -62,6 +63,7 @@ export function BlockBudget({ block, project, L, lang, onChange }: BlockProps<Bu
         <input className="input !w-20" inputMode="decimal" value={amount} placeholder="0" onChange={(e) => setAmount(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && add()} data-testid="bud-new-amount" />
         <button type="button" onClick={add} disabled={!label.trim() || !amount.trim()} className="h-11 px-3.5 rounded-full text-white disabled:opacity-40 text-[14px]" style={{ background: 'var(--color-primary)' }} data-testid="bud-new-add">+</button>
       </div>
+      <p className="text-[12px] text-[var(--color-text-faint)] mt-3" data-testid="budget-planner-note">{L('Das ist nur der Finanzplan dieses Projekts. Dein Geld im Alltag: ', 'This is only this project’s finance plan. Your everyday money: ')}<Link to="/budget" className="underline underline-offset-2 text-[var(--color-primary)]">{L('Budget-Planer', 'Budget planner')}</Link></p>
       {sums.cost > 0 && (
         <div className="mt-4" data-testid="budget-share">
           <SmallLabel>{L('Wer zahlt was', 'Who pays what')}</SmallLabel>

@@ -1,6 +1,6 @@
 /**
  * Zusatz-Wörter für die Lupe: Wörter, unter denen man etwas SUCHT, die aber nicht im Titel stehen
- * („Sicherung“ für das Backup, „Zettel“ für die Parkbox, „Räume“ für die 3D-Mindmap …).
+ * („Sicherung“ für das Backup, „Zettel“ für die Parkbox, „Karte“ für die Mindmap …).
  * Schlüssel = id des Eintrags in appOverviewData.ts. Deutsch und Englisch stehen zusammen,
  * die Suche ist ohnehin tolerant.
  */
@@ -23,7 +23,8 @@ export const OVERVIEW_KEYWORDS: Record<string, string> = {
   bruecken: 'brücken schritte tun aktivierung bridges',
   werte: 'werte wertekompass values',
   garten: 'garten routinen gewohnheiten pflanzen blumen routines garden',
-  mindmap: 'mindmap karte gedankenkarte 2d 3d raum räume zeichnen knoten ebenen kamera foto hintergrund rückgängig sicherung stand festhalten kopie umwandeln mind map',
+  mindmap: 'mindmap karte gedankenkarte zeichnen knoten ebenen to-do tabelle pro contra aquarell notiz frühere zustände festhalten mind map',
+  budget: 'budget geld finanzen einnahmen ausgaben rechnung rechnungen miete fixkosten kosten sparschwein sparen rücklage konto kontostand bargeld abo abos vertrag verträge streaming netflix kündigung kündigungsfrist gehalt arbeitslosengeld kindergeld bürgergeld haushaltsbuch money bills savings piggy bank subscription contract',
   projekte: 'projekte projekt mini webseite unterseiten protokoll pdf kalender schritte zettel box wartezimmer morgen postfach alles zeigen projects',
   kalender: 'kalender termine termin planen wünsche calendar appointments',
   kalenderuebersicht: 'terminübersicht alle termine liste',
@@ -107,26 +108,10 @@ export const STATIC_FUNCS: StaticFunc[] = [
   {
     id: 'f-pdf',
     emoji: '📄',
-    de: ['PDF erstellen', 'Sicherheitsplan, Projekte, 3D-Mindmaps, Rückblicke und mehr gibt es als PDF – mit Emojis und Bildern.'],
-    en: ['Create a PDF', 'Safety plan, projects, 3D mind maps, reviews and more are available as PDF — with emojis and images.'],
+    de: ['PDF erstellen', 'Sicherheitsplan, Projekte, Mindmaps, Rückblicke und mehr gibt es als PDF – mit Emojis und Bildern.'],
+    en: ['Create a PDF', 'Safety plan, projects, mind maps, reviews and more are available as PDF — with emojis and images.'],
     to: '/entdecken',
     kw: 'pdf drucken export ausdrucken speichern teilen seite',
-  },
-  {
-    id: 'f-3d',
-    emoji: '🧊',
-    de: ['3D-Mindmap (Raum-Mindmap)', 'Gedanken im Raum anordnen: Ebenen, Formen, Sprechblasen, Fotos, Kamera, Stände festhalten. Mit Pfeil-Tasten steuerbar.'],
-    en: ['3D mind map (space)', 'Arrange thoughts in space: layers, shapes, speech bubbles, photos, camera, saved states. Controllable with arrow keys.'],
-    to: '/entdecken/mindmap',
-    kw: 'dreid 3d raum würfel kugel pyramide ebene ebenen sprechblase foto kamera hintergrund rückgängig wiederholen stand festhalten drehen zoom sperren einrasten mindmap',
-  },
-  {
-    id: 'f-to3d',
-    emoji: '🪄',
-    de: ['2D-Mindmap in 3D umwandeln (als Kopie)', 'Aus einer flachen Mindmap eine 3D-Kopie machen – das Original bleibt unverändert.'],
-    en: ['Turn a 2D mind map into 3D (as a copy)', 'Make a 3D copy of a flat mind map — the original stays untouched.'],
-    to: '/entdecken/mindmap',
-    kw: 'umwandeln konvertieren kopie 2d 3d mindmap ebenen',
   },
   {
     id: 'f-slips',

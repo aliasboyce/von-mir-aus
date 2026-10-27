@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowUp, CalendarPlus, Check, ChevronDown, ChevronRight, Trash2, Undo2 } from 'lucide-react';
 import { newStep, stamp, type ProjectStep } from './projectModel';
-import { AddRow, RemindSelect, SmallLabel } from './ui';
+import { AddModeToggle, AddRow, RemindSelect, SmallLabel } from './ui';
 import { KIND_COLOR } from './tiles';
 import { ProjectSubShell } from './ProjectSubShell';
 import type { ProjectApi } from './projectApi';
@@ -42,6 +42,7 @@ function StepCard({ s, first, api, onChange, onDone, onUp, onDelete }: { s: Proj
 export function ProjectSteps({ api }: { api: ProjectApi }) {
   const { p, L, lang, update } = api;
   const [showDone, setShowDone] = useState(false);
+  const [addDone, setAddDone] = useState(false);
   const steps = p.steps ?? [];
   const open = steps.filter((s) => !s.done);
   const done = steps.filter((s) => s.done).sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? ''));
@@ -58,7 +59,8 @@ export function ProjectSteps({ api }: { api: ProjectApi }) {
   });
   return (
     <ProjectSubShell api={api} current="schritte" icon="➡️" title={L('Nächste Schritte', 'Next steps')} color={KIND_COLOR.steps}>
-      <AddRow placeholder={L('Was wäre ein kleiner nächster Schritt?', 'What would be a small next step?')} onAdd={(t) => update((c) => ({ ...c, steps: [...(c.steps ?? []), newStep(t)] }))} testId="step-add" />
+      <AddModeToggle done={addDone} onChange={setAddDone} L={L} testId="step-mode" />
+      <AddRow placeholder={addDone ? L('Was hast du schon geschafft?', 'What have you already done?') : L('Was wäre ein kleiner nächster Schritt?', 'What would be a small next step?')} onAdd={(t) => { if (addDone) { setShowDone(true); update((c) => ({ ...c, steps: [...(c.steps ?? []), { ...newStep(t), done: true, doneAt: new Date().toISOString() }] })); } else update((c) => ({ ...c, steps: [...(c.steps ?? []), newStep(t)] })); }} testId="step-add" />
       <div className="flex flex-col gap-2.5 mt-4" data-testid="step-list">
         {open.length === 0 && <p className="text-center text-[14px] text-[var(--color-text-muted)] py-6">{steps.length ? `🎉 ${L('Alle Schritte geschafft.', 'All steps done.')}` : L('Noch kein Schritt. Ein winziger reicht.', 'No step yet. A tiny one is enough.')}</p>}
         {open.map((s, i) => (

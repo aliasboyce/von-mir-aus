@@ -11,7 +11,10 @@ export function SlipScheduler({ lang, text, initial, onSave, onClose }: { lang: 
   return (
     <Modal open onClose={onClose} title={L('Zettel losfliegen lassen', 'Let the slip fly off')} subtitle={text.length > 90 ? `${text.slice(0, 89)}…` : text}>
       <div className="flex flex-col gap-3" data-testid="slip-scheduler">
-        <p className="text-[13.5px] text-[var(--color-text-muted)]">{L('Dann landet er auf deiner Startseite. Du kannst ihn nicht wegklicken – er wartet, bis du entscheidest: zurück in die Box, erledigt oder löschen.', 'Then it lands on your start page. You cannot click it away – it waits until you decide: back into the box, done or delete.')}</p>
+        <div className="rounded-xl p-3 text-[13.5px] leading-relaxed" style={{ background: 'var(--color-surface-muted)' }} data-testid="slip-fly-explain">
+          <p className="mb-1.5"><strong>{L('Was passiert dann?', 'What happens then?')}</strong></p>
+          <p>{L('Der Zettel wird zu einer Erinnerung: Zur gewählten Zeit landet er auf deiner Startseite und bleibt dort liegen. Er lässt sich nicht wegklicken – du entscheidest dann: erledigt, zurück in die Box oder löschen. Bis dahin liegt er in der Box – mit einem ✉️-Vermerk.', 'The slip becomes a reminder: at the time you choose it lands on your start page and stays there. It can’t be clicked away – you then decide: done, back into the box or delete. Until then it stays in the box – marked with ✉️.')}</p>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           <label><span className="block text-[12px] text-[var(--color-text-muted)] mb-0.5">{L('Tag', 'Day')}</span><input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} data-testid="slip-date" /></label>
           <label><span className="block text-[12px] text-[var(--color-text-muted)] mb-0.5">{L('Uhrzeit', 'Time')}</span><input type="time" className="input" value={time} onChange={(e) => setTime(e.target.value)} data-testid="slip-time" /></label>

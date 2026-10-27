@@ -83,3 +83,20 @@ export const chipOn = { background: 'var(--color-primary)' };
 export function Empty({ children }: { children: ReactNode }) {
   return <p className="text-[13px] text-[var(--color-text-faint)] py-1">{children}</p>;
 }
+
+/** Das Zeichen eines Projekts: eigenes Bild, Symbol – oder (ohne beides) nur ein Farbpunkt. */
+export function ProjectIcon({ p, size = 28 }: { p: Pick<Project, 'emoji' | 'image' | 'color'>; size?: number }) {
+  if (p.image) return <img src={p.image} alt="" className="rounded-[inherit] object-cover" style={{ width: '100%', height: '100%' }} />;
+  if (p.emoji) return <span style={{ fontSize: size }} className="leading-none">{p.emoji}</span>;
+  return <span className="rounded-full block" style={{ width: size * 0.7, height: size * 0.7, background: p.color }} aria-hidden="true" />;
+}
+
+/** „Steht an“ oder „Schon erledigt“ – damit man auch Geschafftes nachtragen kann. */
+export function AddModeToggle({ done, onChange, L, testId }: { done: boolean; onChange: (done: boolean) => void; L: Lfn; testId: string }) {
+  return (
+    <div className="flex gap-1.5 mt-2" role="group" aria-label={L('Wie eintragen?', 'How to add?')}>
+      <button type="button" onClick={() => onChange(false)} aria-pressed={!done} className={chipCls(!done)} style={!done ? chipOn : undefined} data-testid={`${testId}-open`}>{L('Steht an', 'Coming up')}</button>
+      <button type="button" onClick={() => onChange(true)} aria-pressed={done} className={chipCls(done)} style={done ? chipOn : undefined} data-testid={`${testId}-done`}>✓ {L('Schon erledigt', 'Already done')}</button>
+    </div>
+  );
+}

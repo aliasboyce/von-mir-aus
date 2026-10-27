@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeftToLine, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Modal } from '../../components/ui/Modal';
-import { parkNotesRepo, PAPER_COLORS, type ParkNote } from '../parkbox/parkboxRepo';
-import { createId } from '../../services/storage/repository';
+import { parkNotesRepo, slipColor, type ParkNote } from '../parkbox/parkboxRepo';
+import { newSlip, slipToPark, slipToWait } from '../parkbox/slipAttach';
 import { projectsRepo } from './projectModel';
 import { ASSIGN_TARGETS, assignToProject, logBoxSlip, type AssignTarget } from './projectAssign';
 import { KIND_COLOR } from './tiles';
@@ -27,8 +28,7 @@ export function ProjectBox({ api }: { api: ProjectApi }) {
   const say = (m: string) => { setMsg(m); window.setTimeout(() => setMsg(''), 2600); };
 
   const add = (t: string) => {
-    const now = new Date().toISOString();
-    parkNotesRepo.save({ id: createId('park'), text: t, priority: 2, archived: false, paper: Math.floor(Math.random() * PAPER_COLORS.length), tilt: Math.round((Math.random() * 6 - 3) * 10) / 10, projectId: p.id, createdAt: now, updatedAt: now });
+    parkNotesRepo.save(newSlip(t, 'project', { projectId: p.id }));
     flush();
     logBoxSlip(projectsRepo.getById(p.id) ?? p, t, lang);
     reload();
@@ -44,26 +44,34 @@ export function ProjectBox({ api }: { api: ProjectApi }) {
     say(L('Zugeordnet – der Zettel ist jetzt Teil des Projekts.', 'Assigned – the slip is now part of the project.'));
   };
   const toMain = (n: ParkNote) => {
-    parkNotesRepo.save({ ...n, projectId: undefined, updatedAt: new Date().toISOString() });
+    if (n.origin === 'wait') {
+      slipToWait(n.id);
+      say(L('Zurück ins Wartezimmer gelegt (Seite „Parkbox & Wartezimmer“).', 'Put back into the waiting room (page “Park box & waiting room”).'));
+    } else {
+      slipToPark(n.id);
+      say(L('In die allgemeine Parkbox gelegt – die liegt außerhalb dieses Projekts.', 'Put into the general Park box – it lies outside this project.'));
+    }
     bump();
-    say(L('Zurück in die Haupt-Box gelegt.', 'Put back into the main box.'));
   };
 
   return (
     <ProjectSubShell api={api} current="zettel" icon="🗒️" title={L('Zettel-Box', 'Slip box')} color={KIND_COLOR.box}>
       <p className="text-[13px] text-[var(--color-text-muted)] mb-2">{L('Hier landen Einfälle zu diesem Projekt. Später legst du sie an den richtigen Platz.', 'Ideas for this project land here. Later you put them in the right place.')}</p>
+      <div className="rounded-xl p-3 mb-3 text-[12.5px] leading-relaxed" style={{ background: 'var(--color-surface-muted)' }} data-testid="pbox-explain">
+        <p>{L('🟩 Grüne Zettel gehören nur zu diesem Projekt. ', '🟩 Green slips belong to this project only. ')}<strong>{L('Außerhalb', 'Outside')}</strong>{L(' gibt es die allgemeine Parkbox (gelbe Zettel) und das Wartezimmer (blaue Zettel) – das sind eigene Orte für alles, was zu keinem Projekt gehört. Mit dem Pfeil ← legst du einen Zettel dorthin zurück.', ' there is the general Park box (yellow slips) and the waiting room (blue slips) – separate places for everything that belongs to no project. The arrow ← puts a slip back there.')} <Link to="/parkbox" className="underline text-[var(--color-primary)]" data-testid="pbox-to-park">{L('Zur Parkbox', 'To the Park box')} →</Link></p>
+      </div>
       <AddRow placeholder={L('Zettel schreiben …', 'Write a slip …')} onAdd={add} testId="pbox-add" />
       {msg && <p className="text-[13px] mt-2" style={{ color: 'var(--color-primary)' }} role="status">{msg}</p>}
       <div className="grid grid-cols-2 gap-3 mt-4" data-testid="pbox-list">
         {notes.length === 0 && <p className="col-span-2 text-center text-[14px] text-[var(--color-text-faint)] py-6">{L('Die Box ist leer. Das ist gut so.', 'The box is empty. That is fine.')}</p>}
         {notes.map((n, i) => (
-          <div key={n.id} className="proj-pop rounded-md p-3 shadow-sm flex flex-col gap-2" style={{ background: PAPER_COLORS[n.paper % PAPER_COLORS.length], transform: `rotate(${n.tilt}deg)`, animationDelay: `${i * 40}ms`, color: '#3a3226' }} data-testid="pbox-note">
+          <div key={n.id} className="proj-pop rounded-md p-3 shadow-sm flex flex-col gap-2" style={{ background: slipColor(n).bg, transform: `rotate(${n.tilt}deg)`, animationDelay: `${i * 40}ms`, color: slipColor(n).ink }} data-testid="pbox-note">
             <p className="text-[14px] leading-snug whitespace-pre-line break-words">{n.text}</p>
             {n.deliverAt && <p className="text-[11.5px]" data-testid="pbox-flies">✉️ {formatDeliver(n.deliverAt, lang)}</p>}
             <div className="flex gap-1 mt-auto">
               <button type="button" onClick={() => setAssign(n)} className="flex-1 rounded-full py-1.5 text-[12.5px] bg-white/70" data-testid="pbox-assign">{L('Zuordnen', 'Assign')} →</button>
-              <button type="button" onClick={() => setSched(n)} className="w-8 h-8 rounded-full bg-white/60 flex items-center justify-center text-[14px]" aria-label={L('Zettel losfliegen lassen', 'Let the slip fly off')} title={L('Losfliegen lassen', 'Let it fly')} data-testid="pbox-fly">✉️</button>
-              <button type="button" onClick={() => toMain(n)} className="w-8 h-8 rounded-full bg-white/60 flex items-center justify-center" aria-label={L('Zurück in die Haupt-Box', 'Back to main box')} title={L('Zurück in die Haupt-Box', 'Back to main box')}><ArrowLeftToLine size={14} /></button>
+              <button type="button" onClick={() => setSched(n)} className="w-8 h-8 rounded-full bg-white/60 flex items-center justify-center text-[14px]" aria-label={L('Zettel losfliegen lassen – wird zur Erinnerung', 'Let the slip fly off – becomes a reminder')} title={L('Losfliegen lassen – wird zur Erinnerung auf der Startseite', 'Let it fly – becomes a reminder on the start page')} data-testid="pbox-fly">✉️</button>
+              <button type="button" onClick={() => toMain(n)} className="w-8 h-8 rounded-full bg-white/60 flex items-center justify-center" aria-label={n.origin === 'wait' ? L('Zurück ins Wartezimmer (außerhalb des Projekts)', 'Back to the waiting room (outside the project)') : L('Zurück in die allgemeine Parkbox (außerhalb des Projekts)', 'Back to the general Park box (outside the project)')} title={n.origin === 'wait' ? L('Zurück ins Wartezimmer', 'Back to the waiting room') : L('Zurück in die allgemeine Parkbox', 'Back to the general Park box')} data-testid="pbox-back"><ArrowLeftToLine size={14} /></button>
               <button type="button" onClick={() => { parkNotesRepo.remove(n.id); bump(); }} className="w-8 h-8 rounded-full bg-white/60 flex items-center justify-center" aria-label={L('Löschen', 'Delete')}><Trash2 size={14} /></button>
             </div>
           </div>

@@ -12,6 +12,8 @@ import { networkRepo } from '../safetyNet/networkRepo';
 import { PersonLine } from './PersonAvatar';
 import { AppointmentFormModal } from './AppointmentFormModal';
 import { CategoriesModal } from './CategoriesModal';
+import { useL } from '../projects/useL';
+import { SlipsHere } from '../parkbox/SlipsHere';
 import { PushHintModal } from './PushHintModal';
 import {
   appointmentsOnDay,
@@ -41,6 +43,7 @@ seedCalendarCategoriesIfEmpty();
  */
 export function CalendarPage() {
   const t = useT();
+  const { L } = useL();
   const { settings } = useSettings();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
   const days = useMemo(() => nextSevenDays(), []);
@@ -188,6 +191,7 @@ export function CalendarPage() {
             <Tag size={14} /> {t.calendar.categories}
           </button>
         </div>
+        <p className="text-[12px] text-[var(--color-text-faint)] -mt-1 mb-3" data-testid="cal-cat-hint">🎨 {L('Du kannst eigene Kategorien anlegen und ihre Farben selbst wählen – tippe auf „Kategorien“.', 'You can create your own categories and pick their colours – tap “Categories”.')}</p>
 
         {/* "Echte Erinnerungen auch bei geschlossener App": hand the appointments to the
          * phone's own calendar. The notice is verbatim — it matters. */}
@@ -210,7 +214,9 @@ export function CalendarPage() {
             const person = a.personId ? people.find((p) => p.id === a.personId) : undefined;
             const carry = carryNotesFor(a);
             return (
-              <button key={a.id} onClick={() => openEdit(a)} className="text-left rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface)', border: `1px solid var(--color-border)`, borderLeft: `5px solid ${colorOf(a)}` }}>
+              <div key={a.id}>
+              <SlipsHere kind="appointment" id={a.id} compact />
+              <button onClick={() => openEdit(a)} className="w-full text-left rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface)', border: `1px solid var(--color-border)`, borderLeft: `5px solid ${colorOf(a)}` }}>
                 <p className="text-[12px] tabular-nums text-[var(--color-text-faint)]">
                   {a.time}{a.endTime ? `–${a.endTime}` : ''}
                   {categories.find((c) => c.id === a.categoryId) && <span style={{ color: colorOf(a) }}> · {categories.find((c) => c.id === a.categoryId)!.label}</span>}
@@ -235,6 +241,7 @@ export function CalendarPage() {
                   </div>
                 )}
               </button>
+              </div>
             );
           })}
         </div>

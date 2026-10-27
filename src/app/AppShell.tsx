@@ -34,6 +34,7 @@ import { StorageErrorBanner } from './StorageErrorBanner';
 import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
 import { MailboxSync } from '../components/shared/MailboxSync';
 import { CalendarSync } from '../features/calendar/CalendarSync';
+import { BudgetSync } from '../features/budget/budgetCalendar';
 import { ReviewMailSync } from '../features/reviews/ReviewMailSync';
 import { GentleRemindersSync } from '../components/shared/GentleRemindersSync';
 import { registerIOSPrintFallbackListener } from '../services/iosPrintFallbackBus';
@@ -372,6 +373,7 @@ export function AppShell() {
       <StorageErrorBanner />
       <MailboxSync />
       <CalendarSync />
+      <BudgetSync />
       <ReviewMailSync />
       <GentleRemindersSync />
       {showPrintFallback && <IOSPrintFallbackModal onClose={() => setShowPrintFallback(false)} />}

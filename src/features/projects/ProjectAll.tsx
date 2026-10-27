@@ -6,7 +6,7 @@ import { LOG_ICON, formatDate, metaOf, milestoneStats, stamp, statusLabel, stepS
 import { renderBlock } from './blockRender';
 import { KIND_COLOR, boxCount } from './tiles';
 import { ProjectSubShell } from './ProjectSubShell';
-import type { BlockProps } from './ui';
+import { ProjectIcon, type BlockProps } from './ui';
 import type { ProjectApi } from './projectApi';
 
 function Bar({ label, v, t, color }: { label: string; v: number; t: number; color: string }) {
@@ -43,7 +43,7 @@ export function ProjectAll({ api }: { api: ProjectApi }) {
       <article className="flex flex-col gap-4" data-testid="project-all">
         <header className="rounded-3xl p-4" style={{ background: `color-mix(in srgb, ${p.color} 14%, var(--color-surface))`, border: `2px solid ${p.color}` }}>
           <div className="flex items-center gap-3">
-            <span className="text-[34px]" aria-hidden="true">{p.emoji}</span>
+            <span className="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center" style={{ background: `${p.color}26`, border: `2px solid ${p.color}` }} aria-hidden="true"><ProjectIcon p={p} size={30} /></span>
             <div className="min-w-0">
               <p className="text-[22px] leading-tight text-[var(--color-text)] break-words">{p.title || L('Projekt', 'Project')}</p>
               <p className="text-[12.5px] text-[var(--color-text-muted)]">{statusLabel(p.status, L)}{p.start ? ` · ${formatDate(p.start, lang, false)}` : ''}{p.end ? ` → ${formatDate(p.end, lang, false)}` : ''}</p>

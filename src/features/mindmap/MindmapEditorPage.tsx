@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE } from 'react';
-import { deleteVersionsOf } from '../mindmap3d/mm3Versions';
-import { ConvertTo3dModal } from '../mindmap3d/ConvertTo3dModal';
+import { deleteVersionsOf, saveVersion, versionsOf, type MapVersion } from './mindmapVersions';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Archive, Box, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, Smile, ChevronLeft, CornerDownRight, Copy, Ellipsis, ExternalLink, FileDown, FolderTree, Image as ImageIcon, Layers, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, Shapes, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload } from 'lucide-react';
+import { Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, ChevronLeft, CornerDownRight, Copy, CopyPlus, Ellipsis, ExternalLink, FileDown, FolderTree, History, Image as ImageIcon, Layers, ListChecks, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload } from 'lucide-react';
 import { useCamera } from '../../components/canvas/useCamera';
 import { useSettings } from '../../state/SettingsContext';
 import { useRegisterExternalModalOpen, useRegisterModalOpen } from '../../state/ModalStackContext';
@@ -17,7 +16,6 @@ import { deliverTextFile } from '../../services/fileShare';
 import { createId } from '../../services/storage/repository';
 import { resizeImageFile, resizeImageKeepAlpha } from '../../services/imageResize';
 import { fetchImageFile, fromAsyncClipboard, fromDataTransfer, imageUrlFromText, imageUrlsFromHtml, type ClipContent } from '../../services/clipboardImport';
-import { EmojiPicker } from '../../components/shared/SymbolColorPicker';
 import {
   BG_KINDS,
   BG_TONES,
@@ -43,6 +41,8 @@ import {
   strokeNode,
   strokePath,
   toPayload,
+  isBlock,
+  fontW,
   type LayerMove,
   type MMEdge,
   type MMNode,
@@ -51,6 +51,15 @@ import {
 import { doodleOf } from './doodles';
 import { BackgroundPattern, EdgeLabel, EdgeView, MapItems, NodeView, SceneDefs, SceneProvider, orderedItems, useMapLookup, useSceneUid } from './MindmapScene';
 import { EdgeStyleSheet, NodeStyleSheet, tabsFor, type StyleActions, type StyleTab } from './MindmapPanels';
+import { MindmapAddSheet } from './MindmapAddSheet';
+import { MindmapBlockEditor } from './MindmapBlockEditor';
+import { LayersPanel, MemoWindow, SlipsOnMap, reorderZ } from './MindmapSidePanels';
+import { VersionsModal } from './MindmapVersions';
+import { MapColorsContext } from './MindmapColor';
+import { colorsOfMap } from './mindmapPalettes';
+import { dragEdgeHandle } from './mindmapRoutes';
+import { todoLayout } from './mindmapBlocks';
+import { refreshSnaps, routeOfRef } from './appRefs';
 import { DoodlePickerModal, MapPickModal, NameModal, PenBar, type PenState } from './MindmapTools';
 import { MindmapPrintView } from './MindmapPrintView';
 import { mindmapPrintImages, mindmapSnapshotPng } from './mindmapSnapshot';
@@ -60,7 +69,10 @@ import { fmt, xt } from './mindmapExtraTexts';
 import { clipText, copyOf, getClip, instantiate, mapPartsFor, rotateNodes, scaleNodes, selectionBounds, setClip, withGroupMates } from './mindmapOps';
 
 const NODE_COLORS = ['#6aa08a', '#4a8f9e', '#e8a83d', '#e07a5f', '#9a7bc4', '#d9778a', '#7a9e4a'];
-const REGULAR_SHAPES = new Set(['rounded', 'pill', 'oval', 'circle', 'diamond', 'hexagon', 'cloud', 'note', 'plain', 'frame']);
+/** shapes that may be swapped for another shape (not drawings, photos, doodles, cards) */
+const NO_RESHAPE = new Set(['draw', 'doodle', 'image', 'maplink', 'todo', 'table', 'proscons', 'appcard']);
+/** the parts of the look that a new element can take over from another one */
+const STYLE_KEYS = ['color', 'look', 'size', 'font', 'bold', 'italic', 'fc', 'bc', 'tc', 'nofill', 'fop', 'op', 'round', 'border', 'sw'] as const;
 type Sel = { kind: 'node' | 'edge'; id: string } | null;
 type Tool = 'select' | 'connect' | 'multi' | 'draw';
 interface Snap {
@@ -74,7 +86,7 @@ const rotPt = (n: { x: number; y: number; rot?: number }, lx: number, ly: number
   const r = ((n.rot ?? 0) * Math.PI) / 180;
   return { x: n.x + lx * Math.cos(r) - ly * Math.sin(r), y: n.y + lx * Math.sin(r) + ly * Math.cos(r) };
 };
-const hasText = (n: MMNode) => n.shape !== 'draw' && (n.shape !== 'doodle' || !!doodleOf(n.doodle).text);
+const hasText = (n: MMNode) => n.shape !== 'draw' && !isBlock(n) && (n.shape !== 'doodle' || !!doodleOf(n.doodle).text);
 
 export function MindmapEditorPage() {
   const { id } = useParams();
@@ -118,7 +130,7 @@ function Editor({ initial }: { initial: MindMap }) {
   const [tool, setTool] = useState<Tool>('select');
   const toolRef = useRef<Tool>('select');
   toolRef.current = tool;
-  const [pen, setPen] = useState<PenState>({ kind: 'pen', color: '#26231f', sw: 4, erase: false, whole: false });
+  const [pen, setPen] = useState<PenState>({ kind: 'pen', color: '#26231f', sw: 4, erase: false, whole: false, alpha: 1, behind: false });
   const penRef = useRef(pen);
   penRef.current = pen;
   const [connectFrom, setConnectFrom] = useState<string | null>(null);
@@ -126,10 +138,14 @@ function Editor({ initial }: { initial: MindMap }) {
   const [tab, setTab] = useState<StyleTab>('shape');
   const [textEdit, setTextEdit] = useState<Sel>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [convertOpen, setConvertOpen] = useState(false);
   const [bgOpen, setBgOpen] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
-  const [stickerPick, setStickerPick] = useState(false);
+  /** where the next new element goes: next to a parent (connected) and/or at a spot */
+  const [addCtx, setAddCtx] = useState<{ parent?: string; at?: { x: number; y: number } } | null>(null);
+  const [copyStyle, setCopyStyle] = useState(false);
+  const [blockEdit, setBlockEdit] = useState<string | null>(null);
+  const [layersOpen, setLayersOpen] = useState(false);
+  const [versionsOpen, setVersionsOpen] = useState(false);
   const [doodleOpen, setDoodleOpen] = useState(false);
   const [mapPickOpen, setMapPickOpen] = useState(false);
   const [subOpen, setSubOpen] = useState(false);
@@ -153,7 +169,7 @@ function Editor({ initial }: { initial: MindMap }) {
   const [dragPos, setDragPos] = useState<Record<string, { x: number; y: number }>>({});
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [linkDrag, setLinkDrag] = useState<{ from: string; x: number; y: number } | null>(null);
-  const [bendDrag, setBendDrag] = useState<{ id: string; bend: number } | null>(null);
+  const [bendDrag, setBendDrag] = useState<{ id: string; bend: number; amp?: number } | null>(null);
   const [resizeDrag, setResizeDrag] = useState<{ id: string; fw: number; fh: number } | null>(null);
   const [scaleDrag, setScaleDrag] = useState<{ id: string; sc: number } | null>(null);
   const [rotDrag, setRotDrag] = useState<{ id: string; rot: number } | null>(null);
@@ -187,7 +203,7 @@ function Editor({ initial }: { initial: MindMap }) {
       setMenuOpen(false);
       if (dbl) {
         const p = camRef.current!.toWorld(cx, cy);
-        addNodeAt(p.x, p.y);
+        openAdd({ at: { x: p.x, y: p.y } });
         return;
       }
       clearSelection();
@@ -225,6 +241,25 @@ function Editor({ initial }: { initial: MindMap }) {
     saveTimer.current = window.setTimeout(flush, 350);
   }, [flush]);
   useEffect(() => () => flush(), [flush]);
+
+  // ---- earlier states ----
+  /** versions never carry the background photo (it would fill the storage) */
+  const versionMap = (m: MindMap): MindMap => ({ ...m, bg: { kind: m.bg.kind, tone: m.bg.tone } });
+  const openedJson = useRef(JSON.stringify({ n: initial.nodes, e: initial.edges, b: initial.bg.tone + initial.bg.kind, t: initial.title }));
+  useEffect(() => {
+    // a map that has no earlier state yet: keep how it was when opened, so there is something to go back to
+    if (initial.nodes.length && !versionsOf(initial.id).length) saveVersion(versionMap(initial), '', 'auto');
+    // cards from the app show their current state
+    const fresh = refreshSnaps(mapRef.current.nodes, lang);
+    if (fresh) quiet((m) => ({ ...m, nodes: fresh }));
+    return () => {
+      if (goneRef.current) return;
+      const m = mapRef.current;
+      const now = JSON.stringify({ n: m.nodes, e: m.edges, b: m.bg.tone + m.bg.kind, t: m.title });
+      if (now !== openedJson.current && now.length < 400_000) saveVersion(versionMap(m), '', 'auto');
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     // keep the last camera position too (cheap): save once the user stops moving
     scheduleSave();
@@ -349,39 +384,84 @@ function Editor({ initial }: { initial: MindMap }) {
     }
     return n;
   }
-  function viewCentre() {
+  /** the middle of what is on screen right now (a little above the bottom bar) */
+  function viewMid() {
     const rect = containerRef.current?.getBoundingClientRect();
-    const p = camRef.current!.toWorld((rect?.left ?? 0) + box.w / 2, (rect?.top ?? 0) + box.h / 2 - 60);
+    return camRef.current!.toWorld((rect?.left ?? 0) + box.w / 2, (rect?.top ?? 0) + box.h / 2 - 60);
+  }
+  /** a free place near the middle of the screen, so a new element does not land on top of another one */
+  function freeSpot(n: MMNode): { x: number; y: number } {
+    const base = viewMid();
+    if (n.shape === 'frame') return { x: Math.round(base.x), y: Math.round(base.y) };
+    const l = layoutNode(n);
+    const others = mapRef.current.nodes.filter((o) => o.shape !== 'frame' && o.shape !== 'draw').map((o) => ({ o, l: layoutNode(o) }));
+    const clash = (x: number, y: number) => others.some(({ o, l: ol }) => Math.abs(o.x - x) < (ol.w + l.w) / 2 + 16 && Math.abs(o.y - y) < (ol.h + l.h) / 2 + 16);
+    if (!clash(base.x, base.y)) return { x: Math.round(base.x), y: Math.round(base.y) };
+    const step = Math.max(70, Math.min(l.w, 200) * 0.6);
+    const cands: { x: number; y: number; d: number }[] = [];
+    for (let r = 1; r <= 8; r++) for (let k = 0; k < 8 * r; k++) {
+      const a = (k / (8 * r)) * Math.PI * 2;
+      const x = base.x + Math.cos(a) * r * step * 1.15;
+      const y = base.y + Math.sin(a) * r * step * 0.8;
+      cands.push({ x, y, d: Math.hypot(x - base.x, (y - base.y) * 1.2) });
+    }
+    cands.sort((a, b) => a.d - b.d);
+    const hit = cands.find((c) => !clash(c.x, c.y));
+    return hit ? { x: Math.round(hit.x), y: Math.round(hit.y) } : { x: Math.round(base.x), y: Math.round(base.y) };
+  }
+  function viewCentre() {
+    const p = viewMid();
     const c = mapRef.current.nodes.length;
+    if (!c) return { x: Math.round(p.x), y: Math.round(p.y) };
     return { x: Math.round(p.x + ((c % 5) - 2) * 36), y: Math.round(p.y + ((c % 4) - 1.5) * 36) };
   }
-  const addNode = () => {
-    const p = viewCentre();
-    addNodeAt(p.x, p.y);
-  };
-  const addNote = () => {
-    const p = viewCentre();
-    addNodeAt(p.x, p.y, { shape: 'note', color: '#e8a83d', look: 'soft' });
-  };
-  const addFrame = () => {
-    const p = viewCentre();
-    addNodeAt(p.x, p.y, { shape: 'frame', color: '#4a8f9e', fw: 340, fh: 240 });
-  };
-  /** free text: no box, no shape */
-  const addFreeText = () => {
-    const p = viewCentre();
-    addNodeAt(p.x, p.y, { shape: 'plain', look: 'soft', size: 3 });
+  /** open the "what do you want to add?" sheet (optionally for a child of an element, or at a spot) */
+  function openAdd(ctx: { parent?: string; at?: { x: number; y: number } } | null = null) {
+    setAddCtx(ctx);
+    setCopyStyle(false);
+    setMenuOpen(false);
+    setStyleOpen(false);
+    setLayersOpen(false);
+    setInsertOpen(true);
+  }
+  /**
+   * Put a new element on the map. The kind of element was chosen first; nothing is taken over from
+   * what was set before – unless "take the look of …" was ticked for a child.
+   */
+  function place(patch: Partial<MMNode>, opts: { edit?: 'text' | 'content' } = {}) {
+    const ctx = addCtx;
+    setAddCtx(null);
     setInsertOpen(false);
-  };
-  function addDoodle(id: string) {
-    const p = viewCentre();
-    const d = doodleOf(id);
-    const n = addNodeAt(p.x, p.y, { shape: 'doodle', doodle: id, look: d.text ? 'soft' : 'outline', size: 2 }, false);
+    const parent = ctx?.parent ? mapRef.current.nodes.find((n) => n.id === ctx.parent) : undefined;
+    const cnt = mapRef.current.nodes.length;
+    const probe = newNode({ x: 0, y: 0, ...patch });
+    const spot = ctx?.at ?? (parent ? childSpot(parent) : freeSpot(probe));
+    const copy: Partial<MMNode> = {};
+    if (parent && copyStyle && patch.shape !== 'appcard' && patch.shape !== 'sticker') {
+      for (const k of STYLE_KEYS) if (parent[k] !== undefined) (copy as Record<string, unknown>)[k] = parent[k];
+    }
+    const n = newNode({ color: NODE_COLORS[cnt % NODE_COLORS.length], ...patch, ...copy, x: Math.round(spot.x), y: Math.round(spot.y) });
+    const edge = parent ? newEdge(parent.id, n.id, { color: NEUTRAL.has(parent.shape) ? '#8a8478' : parent.color, width: 2 }) : null;
+    commit((m) => ({ ...m, nodes: [...m.nodes, n], edges: edge ? [...m.edges, edge] : m.edges }));
+    markPop(n.id);
+    spark(n.x, n.y);
+    feedback('select');
     setSel({ kind: 'node', id: n.id });
     setExtra([]);
-    if (d.text) setTextEdit({ kind: 'node', id: n.id });
+    setStyleOpen(false);
+    setTextEdit(opts.edit === 'text' ? { kind: 'node', id: n.id } : null);
+    if (opts.edit === 'content') setBlockEdit(n.id);
+    return n;
+  }
+  const addNode = () => place({ shape: 'rect', round: false }, { edit: 'text' });
+  const addNote = () => place({ shape: 'note', color: '#e8a83d', look: 'soft', round: false }, { edit: 'text' });
+  const addFrame = () => place({ shape: 'frame', color: '#4a8f9e', fw: 340, fh: 240, round: false });
+  /** free text: no box, no shape */
+  const addFreeText = () => place({ shape: 'plain', look: 'soft', size: 3 }, { edit: 'text' });
+  function addDoodle(id: string) {
+    const d = doodleOf(id);
+    place({ shape: 'doodle', doodle: id, look: d.text ? 'soft' : 'outline', size: 2 }, d.text ? { edit: 'text' } : {});
     setDoodleOpen(false);
-    setInsertOpen(false);
   }
   function addMapLink(target: MindMap, at?: { x: number; y: number }) {
     const p = at ?? viewCentre();
@@ -414,14 +494,6 @@ function Editor({ initial }: { initial: MindMap }) {
     if (added) say(T.photoAdded);
     else say(T.photoFail);
     return added;
-  }
-  function addSticker(emoji: string) {
-    const p = viewCentre();
-    const n = addNodeAt(p.x, p.y, { shape: 'sticker', symbol: emoji, size: 2 }, false);
-    setSel({ kind: 'node', id: n.id });
-    setExtra([]);
-    setStickerPick(false);
-    setInsertOpen(false);
   }
   function addPastedText(text: string, perLine: boolean) {
     const clean = text.replace(/\r/g, '').trim();
@@ -589,28 +661,10 @@ function Editor({ initial }: { initial: MindMap }) {
     }
     return { x: parent.x + lp.w / 2 + 150, y: parent.y + 90 };
   }
-  const NEUTRAL = new Set(['frame', 'image', 'sticker', 'draw', 'doodle', 'maplink']);
+  const NEUTRAL = new Set(['frame', 'image', 'sticker', 'draw', 'doodle', 'maplink', 'todo', 'table', 'proscons', 'appcard']);
+  /** a new element next to this one, connected to it – first the kind is chosen */
   function addChild(parent: MMNode, at?: { x: number; y: number }) {
-    const spot = at ?? childSpot(parent);
-    const neutral = NEUTRAL.has(parent.shape);
-    const child = newNode({
-      x: spot.x,
-      y: spot.y,
-      color: neutral ? NODE_COLORS[mapRef.current.nodes.length % NODE_COLORS.length] : parent.color,
-      shape: neutral || parent.shape === 'note' ? 'rounded' : parent.shape === 'circle' || parent.shape === 'diamond' ? 'pill' : parent.shape,
-      look: parent.look === 'solid' ? 'soft' : parent.look,
-      size: Math.max(1, parent.size - (parent.size > 2 ? 1 : 0)) as MMNode['size'],
-      font: neutral ? undefined : parent.font,
-    });
-    const edge = newEdge(parent.id, child.id, { color: neutral ? '#8a8478' : parent.color, width: 2 });
-    commit((m) => ({ ...m, nodes: [...m.nodes, child], edges: [...m.edges, edge] }));
-    markPop(child.id);
-    spark(spot.x, spot.y);
-    feedback('select');
-    setSel({ kind: 'node', id: child.id });
-    setExtra([]);
-    setTextEdit({ kind: 'node', id: child.id });
-    setStyleOpen(false);
+    openAdd({ parent: parent.id, at });
   }
   function connect(a: string, b: string) {
     if (a === b) return;
@@ -646,8 +700,8 @@ function Editor({ initial }: { initial: MindMap }) {
           nodes: m.nodes.map((n) => {
             if (!ids.has(n.id)) return n;
             const q: Partial<MMNode> = { ...patch };
-            if ('shape' in q && !REGULAR_SHAPES.has(n.shape)) delete q.shape;
-            if (('look' in q || 'font' in q || 'bold' in q || 'italic' in q) && (n.shape === 'draw' || n.shape === 'sticker' || n.shape === 'image')) {
+            if ('shape' in q && NO_RESHAPE.has(n.shape)) delete q.shape;
+            if (('look' in q || 'font' in q || 'bold' in q || 'italic' in q) && (n.shape === 'draw' || n.shape === 'image')) {
               delete q.look;
               delete q.font;
               delete q.bold;
@@ -706,6 +760,24 @@ function Editor({ initial }: { initial: MindMap }) {
       commit((m) => ({ ...m, nodes: m.nodes.map((n) => (ids.has(n.id) ? { ...n, grp: g } : n)) }));
       say(X.groupHint);
     }
+  }
+
+  // ---- earlier states: bring back / open as copy ----
+  function restoreVersion(v: MapVersion) {
+    // the current state is kept first – bringing something back never loses anything
+    saveVersion(versionMap(mapRef.current), lang === 'en' ? 'Before bringing an earlier state back' : 'Vor dem Zurückholen', 'auto');
+    commit((m) => ({ ...m, title: v.map.title, bg: { ...v.map.bg, img: m.bg.img, imgDim: m.bg.imgDim }, nodes: JSON.parse(JSON.stringify(v.map.nodes)), edges: JSON.parse(JSON.stringify(v.map.edges)) }));
+    clearSelection();
+    setTextEdit(null);
+    say(lang === 'en' ? 'Earlier state is back. (Undo brings the other one back.)' : 'Der frühere Zustand ist zurück. (Mit „Rückgängig“ kommt der andere wieder.)');
+  }
+  function copyVersion(v: MapVersion) {
+    flush();
+    const now = new Date().toISOString();
+    const copy: MindMap = { ...mapRef.current, id: createId('mm'), title: `${v.map.title || mapRef.current.title} (${lang === 'en' ? 'earlier' : 'früher'})`, createdAt: now, updatedAt: now, parentId: undefined, nodes: JSON.parse(JSON.stringify(v.map.nodes)), edges: JSON.parse(JSON.stringify(v.map.edges)), bg: { ...v.map.bg }, view: undefined };
+    mindmapRepo.save(copy);
+    setVersionsOpen(false);
+    navigate(`/entdecken/mindmap/${copy.id}`);
   }
 
   // ---- to a new mind map / sub maps ----
@@ -837,9 +909,17 @@ function Editor({ initial }: { initial: MindMap }) {
           if (pts.length >= 4) pts = [...pts, p.x, p.y];
           const simple = simplifyPts(pts, 0.7 / scale);
           const s = penRef.current;
-          const node = strokeNode(simple, { color: s.color, sw: Math.round((s.sw / scale) * 10) / 10, pen: s.kind });
+          const made = strokeNode(simple, { color: s.color, sw: Math.round((s.sw / scale) * 10) / 10, pen: s.kind });
           setLiveStroke(null);
-          if (node) commit((m) => ({ ...m, nodes: [...m.nodes, node] }));
+          if (made) {
+            const behind = s.kind === 'water' && s.behind;
+            const node: MMNode = { ...made, ...(s.alpha < 1 ? { op: Math.round(s.alpha * 100) / 100 } : {}), ...(behind ? { lock: true } : {}) };
+            commit((m) => {
+              if (!behind) return { ...m, nodes: [...m.nodes, node] };
+              const lo = Math.min(0, ...ensureZ(m.nodes).map((x) => x.z ?? 0));
+              return { ...m, nodes: [{ ...node, z: lo - 1 }, ...ensureZ(m.nodes)] };
+            });
+          }
         },
         cancel: () => setLiveStroke(null),
       };
@@ -1029,13 +1109,47 @@ function Editor({ initial }: { initial: MindMap }) {
     lastNodeTap.current = { t: now, id: n.id };
     const wasOnly = sel?.kind === 'node' && sel.id === n.id && count === 1;
     selectNodes([n.id], true);
+    if (n.shape === 'todo' && tickTodoAt(e, n)) {
+      lastNodeTap.current = { t: 0, id: '' };
+      return;
+    }
     if (n.shape === 'maplink') {
       if (dbl) openLinked(n);
+    } else if (n.shape === 'appcard') {
+      if (dbl) openRef(n);
+    } else if (isBlock(n)) {
+      if (dbl) setBlockEdit(n.id);
     } else if (hasText(n) && (dbl || (wasOnly && !styleOpen))) setTextEdit({ kind: 'node', id: n.id });
     setMenuOpen(false);
   }
   const dragPosRef = useRef(dragPos);
   dragPosRef.current = dragPos;
+
+  /** a tap on a circle of a to-do list ticks it off (or back) */
+  function tickTodoAt(e: RPE<SVGGElement>, n: MMNode): boolean {
+    const p = camRef.current!.toWorld(e.clientX, e.clientY);
+    const r = (-(n.rot ?? 0) * Math.PI) / 180;
+    const dx = p.x - n.x;
+    const dy = p.y - n.y;
+    const lx = dx * Math.cos(r) - dy * Math.sin(r);
+    const ly = dx * Math.sin(r) + dy * Math.cos(r);
+    const l = layoutNode(n);
+    const T = todoLayout(n, l.fs, fontW(n));
+    const row = T.rows.find((q) => Math.abs(ly - q.cy) <= q.h / 2);
+    if (!row || lx > T.textX - T.cr * 0.4) return false;
+    patchNode(n.id, { items: (n.items ?? []).map((it) => (it.id === row.id ? { ...it, done: it.done ? undefined : true } : it)) });
+    feedback(row.done ? 'close' : 'settle');
+    return true;
+  }
+  function openRef(n: MMNode) {
+    const route = n.ref ? routeOfRef(n.ref.kind, n.ref.id) : undefined;
+    if (!route) {
+      say(lang === 'en' ? 'The original is gone – the card stays as it was.' : 'Das Original gibt es nicht mehr – die Karte bleibt, wie sie war.');
+      return;
+    }
+    flush();
+    navigate(route);
+  }
 
   // ---- "+" handle: tap = new sub-node, drag = to another node or to empty space ----
   const handleRef = useRef<{ sx: number; sy: number; moved: boolean } | null>(null);
@@ -1092,16 +1206,11 @@ function Editor({ initial }: { initial: MindMap }) {
     const b = byId.get(edge.to);
     if (!a || !b) return;
     const p = camRef.current!.toWorld(e.clientX, e.clientY);
-    const mx = (a.x + b.x) / 2;
-    const my = (a.y + b.y) / 2;
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const len = Math.hypot(dx, dy) || 1;
-    const bend = Math.max(-400, Math.min(400, (p.x - mx) * (-dy / len) + (p.y - my) * (dx / len)));
-    setBendDrag({ id: edge.id, bend: Math.abs(bend) < 8 ? 0 : bend });
+    const r = dragEdgeHandle(edge, a, b, layoutNode(a), layoutNode(b), p);
+    setBendDrag({ id: edge.id, bend: r.bend ?? edge.bend, amp: r.amp ?? edge.amp });
   }
   function bendUp(edge: MMEdge) {
-    if (bendRef.current && bendDrag) patchEdge(edge.id, { bend: Math.round(bendDrag.bend) });
+    if (bendRef.current && bendDrag) patchEdge(edge.id, { bend: Math.round(bendDrag.bend), ...(bendDrag.amp !== undefined ? { amp: bendDrag.amp } : {}) });
     bendRef.current = null;
     setBendDrag(null);
   }
@@ -1119,10 +1228,10 @@ function Editor({ initial }: { initial: MindMap }) {
     const r = resizeRef.current;
     if (!r) return;
     const s = camRef.current!.view.scale;
-    setResizeDrag({ id: n.id, fw: Math.max(140, r.fw + ((e.clientX - r.sx) / s) * 2), fh: Math.max(100, r.fh + ((e.clientY - r.sy) / s) * 2) });
+    setResizeDrag({ id: n.id, fw: Math.max(isBlock(n) ? 160 : 140, r.fw + ((e.clientX - r.sx) / s) * 2), fh: isBlock(n) ? r.fh : Math.max(100, r.fh + ((e.clientY - r.sy) / s) * 2) });
   }
   function resizeUp(n: MMNode) {
-    if (resizeRef.current && resizeDrag) patchNode(n.id, { fw: Math.round(resizeDrag.fw), fh: Math.round(resizeDrag.fh) });
+    if (resizeRef.current && resizeDrag) patchNode(n.id, isBlock(n) ? { fw: Math.round(resizeDrag.fw) } : { fw: Math.round(resizeDrag.fw), fh: Math.round(resizeDrag.fh) });
     resizeRef.current = null;
     setResizeDrag(null);
   }
@@ -1266,8 +1375,8 @@ function Editor({ initial }: { initial: MindMap }) {
     const a = nById.get(e.from);
     const b = nById.get(e.to);
     if (!a || !b) return null;
-    const bend = bendDrag?.id === e.id ? bendDrag.bend : e.bend;
-    return { e: bendDrag?.id === e.id ? { ...e, bend } : e, g: edgeGeometry(e, a, b, layoutNode(a), layoutNode(b), bend) };
+    const live = bendDrag?.id === e.id ? { ...e, bend: bendDrag.bend, amp: bendDrag.amp ?? e.amp } : e;
+    return { e: live, g: edgeGeometry(live, a, b, layoutNode(a), layoutNode(b), live.bend) };
   }).filter(Boolean) as { e: MMEdge; g: ReturnType<typeof edgeGeometry> }[];
   const geomOf = new Map(edgeGeoms.map((x) => [x.e.id, x]));
 
@@ -1284,15 +1393,18 @@ function Editor({ initial }: { initial: MindMap }) {
     scaleBy: scaleSelected,
     toggleGroup,
     grouped,
+    editContent: selNode && isBlock(selNode) ? () => setBlockEdit(selNode.id) : undefined,
+    openRef: selNode?.shape === 'appcard' ? () => openRef(selNode) : undefined,
   };
   const selBounds = multiSel ? selectionBounds(selIds.map((i) => nById.get(i)).filter(Boolean) as MMNode[]) : null;
   const sn = selNode ? nById.get(selNode.id) : undefined;
   const snL = sn ? layoutNode(sn) : null;
   const drawing = tool === 'draw';
   const pwLive = penWidth({ sw: pen.sw / view.scale, pen: pen.kind });
+  const mapColors = useMemo(() => colorsOfMap(map.nodes, map.edges), [map.nodes, map.edges]);
 
   return (
-    <>
+    <MapColorsContext.Provider value={mapColors}>
       <div className={`fixed inset-0 z-[150] no-print select-none ${animOn ? '' : 'mm-paused'}`} style={{ background: bgCss(map.bg.tone) }} data-has-bgimg={map.bg.img ? 'true' : undefined} data-testid="mindmap-editor" data-tool={tool} data-anim={animate ? 'on' : 'off'}>
         {map.bg.img && (
           <>
@@ -1312,15 +1424,15 @@ function Editor({ initial }: { initial: MindMap }) {
                     if (it.kind === 'edge') {
                       const gm = geomOf.get(it.edge.id);
                       if (!gm) return null;
-                      return <EdgeView key={it.edge.id} edge={gm.e} geom={gm.g} selected={sel?.kind === 'edge' && sel.id === it.edge.id} onPointerDown={(ev) => { ev.stopPropagation(); setSel({ kind: 'edge', id: it.edge.id }); setExtra([]); setTextEdit(null); setStyleOpen(true); setMenuOpen(false); }} />;
+                      return <EdgeView key={it.edge.id} edge={gm.e} geom={gm.g} bg={bgc} selected={sel?.kind === 'edge' && sel.id === it.edge.id} onPointerDown={(ev) => { ev.stopPropagation(); setSel({ kind: 'edge', id: it.edge.id }); setExtra([]); setTextEdit(null); setStyleOpen(true); setMenuOpen(false); }} />;
                     }
                     const n = it.node;
                     const isSel = selSet.has(n.id);
                     return (
-                      <g key={n.id} onPointerDown={(e) => nodeDown(e, n)} onPointerMove={nodeMove} onPointerUp={(e) => nodeUp(e, n)} onPointerCancel={(e) => nodeUp(e, n)}>
+                      <g key={n.id} onPointerDown={(e) => nodeDown(e, n)} onPointerMove={nodeMove} onPointerUp={(e) => nodeUp(e, n)} onPointerCancel={(e) => nodeUp(e, n)} style={n.lock ? { pointerEvents: 'none' } : undefined} data-locked={n.lock ? '1' : undefined}>
                         {n.shape === 'frame' && <FrameHit node={n} />}
-                        <NodeView node={n} bg={bgc} selected={isSel} lifted={draggingId === n.id} pop={popIds.has(n.id)} float={n.shape !== 'frame' && n.shape !== 'draw' && !n.anim && float && draggingId !== n.id} placeholder={n.shape === 'frame' ? T.newText.replace(' …', '') : T.newText.replace(' …', '')} animate={animate} groupCentre={centres?.get(n.id)} />
-                        {(n.shape === 'frame' || n.shape === 'maplink') && sel?.kind === 'node' && sel.id === n.id && !multiSel && !draggingId && (
+                        <NodeView node={n} bg={bgc} selected={isSel} lifted={draggingId === n.id} pop={popIds.has(n.id)} float={n.shape !== 'frame' && n.shape !== 'draw' && !n.anim && float && draggingId !== n.id} placeholder={n.shape === 'frame' ? T.newText.replace(' …', '') : T.newText.replace(' …', '')} animate={animate} groupCentre={centres?.get(n.id)} memoDot={!!n.memo} />
+                        {(n.shape === 'frame' || n.shape === 'maplink' || isBlock(n)) && sel?.kind === 'node' && sel.id === n.id && !multiSel && !draggingId && (
                           <g
                             transform={`translate(${n.x + layoutNode(n).w / 2},${n.y + layoutNode(n).h / 2})`}
                             onPointerDown={(e) => resizeDown(e, n)}
@@ -1353,12 +1465,23 @@ function Editor({ initial }: { initial: MindMap }) {
                           <path d="M -6 0 H 6 M 0 -6 V 6" stroke="#fff" strokeWidth={2.6} strokeLinecap="round" />
                         </g>
                       )}
+                      {sn.shape !== 'draw' && (
+                        <g transform={`translate(${rotPt(sn, 0, snL.h / 2 + 34).x},${rotPt(sn, 0, snL.h / 2 + 34).y})`} onPointerDown={(e) => { e.stopPropagation(); }} onPointerUp={(e) => { e.stopPropagation(); duplicateSelected(); }} className="mm-handle" data-testid="mm-dup-handle">
+                          <title>{lang === 'en' ? 'Duplicate' : 'Duplizieren'}</title>
+                          <circle r={20} fill="transparent" />
+                          <circle r={13} fill="#fff" stroke="#3e7c63" strokeWidth={2.2} />
+                          <rect x={-6} y={-6} width={8.5} height={8.5} rx={1.6} fill="none" stroke="#3e7c63" strokeWidth={1.6} />
+                          <rect x={-2.5} y={-2.5} width={8.5} height={8.5} rx={1.6} fill="#fff" stroke="#3e7c63" strokeWidth={1.6} />
+                        </g>
+                      )}
                       {sn.shape !== 'frame' && sn.shape !== 'maplink' && (
                         <>
-                          <g transform={`translate(${rotPt(sn, snL.w / 2, snL.h / 2).x},${rotPt(sn, snL.w / 2, snL.h / 2).y})`} onPointerDown={(e) => scaleDown(e, sn)} onPointerMove={(e) => scaleMove(e, sn)} onPointerUp={() => scaleUp(sn)} className="mm-handle" data-testid="mm-scale-handle" style={{ cursor: 'nwse-resize' }}>
-                            <circle r={18} fill="transparent" />
-                            <rect x={-6.5} y={-6.5} width={13} height={13} rx={3} fill="#fff" stroke="#3e7c63" strokeWidth={2.5} />
-                          </g>
+                          {!isBlock(sn) && (
+                            <g transform={`translate(${rotPt(sn, snL.w / 2, snL.h / 2).x},${rotPt(sn, snL.w / 2, snL.h / 2).y})`} onPointerDown={(e) => scaleDown(e, sn)} onPointerMove={(e) => scaleMove(e, sn)} onPointerUp={() => scaleUp(sn)} className="mm-handle" data-testid="mm-scale-handle" style={{ cursor: 'nwse-resize' }}>
+                              <circle r={18} fill="transparent" />
+                              <rect x={-6.5} y={-6.5} width={13} height={13} rx={3} fill="#fff" stroke="#3e7c63" strokeWidth={2.5} />
+                            </g>
+                          )}
                           <g transform={`translate(${rotPt(sn, 0, -snL.h / 2 - 32).x},${rotPt(sn, 0, -snL.h / 2 - 32).y})`} onPointerDown={(e) => rotDown(e, sn)} onPointerMove={(e) => rotMove(e, sn)} onPointerUp={() => rotUp(sn)} className="mm-handle" data-testid="mm-rotate-handle">
                             <circle r={18} fill="transparent" />
                             <circle r={8} fill="#fff" stroke="#3e7c63" strokeWidth={2.5} />
@@ -1371,7 +1494,7 @@ function Editor({ initial }: { initial: MindMap }) {
                   {selEdge && geomOf.get(selEdge.id) && (() => {
                     const gm = geomOf.get(selEdge.id)!;
                     return (
-                      <g transform={`translate(${gm.g.mid.x},${gm.g.mid.y})`} onPointerDown={(e) => bendDown(e, selEdge)} onPointerMove={(e) => bendMove(e, selEdge)} onPointerUp={() => bendUp(selEdge)} className="mm-handle" data-testid="mm-bend-handle">
+                      <g transform={`translate(${gm.g.handle.x},${gm.g.handle.y})`} onPointerDown={(e) => bendDown(e, selEdge)} onPointerMove={(e) => bendMove(e, selEdge)} onPointerUp={() => bendUp(selEdge)} className="mm-handle" data-testid="mm-bend-handle">
                         <circle r={22} fill="transparent" />
                         <circle r={8.5} fill="#fff" stroke="#3e7c63" strokeWidth={3} />
                       </g>
@@ -1395,7 +1518,7 @@ function Editor({ initial }: { initial: MindMap }) {
                     strokeWidth={pen.kind === 'pencil' ? pwLive * 0.8 : pwLive}
                     strokeLinecap={pen.kind === 'marker' ? 'square' : 'round'}
                     strokeLinejoin="round"
-                    opacity={pen.kind === 'marker' ? 0.42 : pen.kind === 'pencil' ? 0.85 : 1}
+                    opacity={(pen.kind === 'marker' ? 0.42 : pen.kind === 'pencil' ? 0.85 : pen.kind === 'water' ? 0.5 : 1) * pen.alpha}
                     pointerEvents="none"
                     data-testid="mm-live-stroke"
                   />
@@ -1423,6 +1546,8 @@ function Editor({ initial }: { initial: MindMap }) {
             ← {lang === 'en' ? 'Back to the diary entry' : 'Zurück zum Tagebucheintrag'}
           </button>
         )}
+
+        <SlipsOnMap mapId={map.id} lang={lang} top={`calc(max(10px, env(safe-area-inset-top)) + ${fromDiary ? 100 : 54}px)`} />
 
         {/* top bar */}
         <div className="absolute left-0 right-0 top-0 flex items-center gap-2 px-3" style={{ paddingTop: 'max(10px, env(safe-area-inset-top))' }}>
@@ -1453,12 +1578,12 @@ function Editor({ initial }: { initial: MindMap }) {
               { id: 'submap', icon: <FolderTree size={16} />, label: X.menuSubmap, run: () => setSubOpen(true) },
               { id: 'showsubs', icon: <Link2 size={16} />, label: X.menuShowSubs, run: showSubmaps },
               ...(parentMap ? [{ id: 'parent', icon: <Upload size={16} />, label: `${X.menuParent}: ${parentMap.title || '–'}`, run: () => { flush(); navigate(`/entdecken/mindmap/${parentMap.id}`); } }] : []),
+              { id: 'versions', icon: <History size={16} />, label: lang === 'en' ? 'Earlier states' : 'Frühere Zustände', run: () => setVersionsOpen(true) },
               { id: 'snap', icon: <Camera size={16} />, label: lang === 'en' ? 'Save snapshot (picture)' : 'Momentaufnahme speichern (Bild)', run: () => void takeSnapshot() },
               { id: 'pdf', icon: <FileDown size={16} />, label: T.pdf, run: () => void print() },
               { id: 'share', icon: <Share2 size={16} />, label: T.share, run: () => void shareLink() },
               { id: 'file', icon: <Download size={16} />, label: T.shareFile, run: () => void shareFile() },
               { id: 'dup', icon: <Copy size={16} />, label: T.duplicateMap, run: duplicateMap },
-              { id: 'to3d', icon: <Box size={16} />, label: lang === 'en' ? 'Turn into 3D (copy)' : 'In 3D umwandeln (Kopie)', run: () => { flush(); setConvertOpen(true); } },
               { id: 'archive', icon: <Archive size={16} />, label: X.menuArchive, run: archiveMap },
               { id: 'del', icon: <Trash2 size={16} />, label: T.deleteMap, run: deleteMap, danger: true },
             ].map((it) => (
@@ -1469,8 +1594,6 @@ function Editor({ initial }: { initial: MindMap }) {
             ))}
           </div>
         )}
-
-        <ConvertTo3dModal map={convertOpen ? mapRef.current : null} onClose={() => setConvertOpen(false)} />
 
         {/* zoom */}
         <div className="absolute right-3 flex flex-col gap-2" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 58px)' }}>
@@ -1522,11 +1645,27 @@ function Editor({ initial }: { initial: MindMap }) {
             {drawing ? (pen.erase ? X.eraseHint : X.penHint) : X.multiHint}
           </p>
         )}
+        {selNode && !multiSel && !drawing && !textEdit && !layersOpen && (
+          <MemoWindow key={selNode.id} node={selNode} lang={lang} top="calc(max(10px, env(safe-area-inset-top)) + 214px)" onChange={(memo) => patchNode(selNode.id, { memo }, `memo:${selNode.id}`)} />
+        )}
         {toast && <p className="absolute left-1/2 -translate-x-1/2 bottom-28 text-[13px] px-4 py-2 rounded-full bg-[var(--color-text)] text-[var(--color-bg)] shadow-[var(--shadow-md)] z-10" role="status">{toast}</p>}
 
         {/* bottom: calm by default, tools only for what is selected */}
         <div className="absolute left-0 right-0 bottom-0 bg-[var(--color-surface)] rounded-t-[22px] shadow-[0_-4px_18px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }} data-testid="mm-bottom">
-          {(selNode || selEdge) && styleOpen && !drawing && (
+          {layersOpen && !drawing && (
+            <div className="px-4 pt-3 max-h-[46vh] overflow-y-auto">
+              <LayersPanel
+                nodes={map.nodes}
+                selIds={selIds}
+                lang={lang}
+                onSelect={(nid) => selectNodes([nid], true)}
+                onReorder={(ids) => commit((m) => ({ ...m, nodes: reorderZ(m.nodes, ids) }))}
+                onToggleLock={(nid) => patchNode(nid, { lock: undefined })}
+                onClose={() => setLayersOpen(false)}
+              />
+            </div>
+          )}
+          {(selNode || selEdge) && styleOpen && !drawing && !layersOpen && (
             <div className="px-4 pt-3 max-h-[42vh] overflow-y-auto">
               {selNode && <NodeStyleSheet node={selNode} count={count} tab={tab} setTab={setTab} onChange={patchSelected} actions={actions} T={T} X={X} lang={lang} reduceMotion={settings.reduceMotion} />}
               {selEdge && (
@@ -1537,6 +1676,7 @@ function Editor({ initial }: { initial: MindMap }) {
                   onReverse={() => patchEdge(selEdge.id, { from: selEdge.to, to: selEdge.from })}
                   onRemove={() => removeSelected()}
                   T={T}
+                  lang={lang}
                 />
               )}
             </div>
@@ -1552,14 +1692,15 @@ function Editor({ initial }: { initial: MindMap }) {
                     <button type="button" onClick={addFreeText} className={barBtn()} data-testid="mm-add-text"><Type size={19} />{X.addText}</button>
                     <button type="button" onClick={addNote} className={barBtn()} data-testid="mm-add-note"><StickyNote size={19} />{T.addNote}</button>
                     <button type="button" onClick={addFrame} className={barBtn()} data-testid="mm-add-frame"><SquareDashed size={19} />{T.addFrame}</button>
-                    <button type="button" onClick={() => setDoodleOpen(true)} className={barBtn()} data-testid="mm-add-doodle"><Shapes size={19} />{X.doodles}</button>
                     <button type="button" onClick={() => { setTool('draw'); setConnectFrom(null); }} className={barBtn()} data-testid="mm-draw"><PenLine size={19} />{X.pen}</button>
                     {clipNow && clipNow.nodes.length > 0 && (
                       <button type="button" onClick={() => pasteClip()} className={barBtn()} data-testid="mm-paste-clip"><ClipboardPaste size={19} />{X.paste}</button>
                     )}
-                    <button type="button" onClick={() => setInsertOpen(true)} className={barBtn()} data-testid="mm-add-more"><ImageIcon size={19} />{T.addMore}</button>
+                    <button type="button" onClick={() => openAdd()} className={barBtn()} data-testid="mm-add-more"><ListChecks size={19} />{lang === 'en' ? 'Add …' : 'Hinzufügen …'}</button>
                     <button type="button" onClick={() => { setTool('multi'); setConnectFrom(null); }} className={barBtn()} data-testid="mm-multi"><BoxSelect size={19} />{X.multi}</button>
                     <button type="button" onClick={() => { setTool(tool === 'connect' ? 'select' : 'connect'); setConnectFrom(null); }} className={barBtn(tool === 'connect')} data-testid="mm-connect"><Spline size={19} />{T.connect}</button>
+                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={19} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
+                    <button type="button" onClick={() => setVersionsOpen(true)} className={barBtn()} data-testid="mm-versions-btn"><History size={19} />{lang === 'en' ? 'States' : 'Zustände'}</button>
                   </>
                 )}
                 {!sel && tool === 'multi' && (
@@ -1574,12 +1715,15 @@ function Editor({ initial }: { initial: MindMap }) {
                 {selNode && !multiSel && (
                   <>
                     {hasText(selNode) && <button type="button" onClick={() => setTextEdit({ kind: 'node', id: selNode.id })} className={barBtn(!!textEdit)} data-testid="mm-edit-text"><Type size={19} />{T.text}</button>}
-                    <button type="button" onClick={() => setStyleOpen((v) => !v)} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
+                    {isBlock(selNode) && selNode.shape !== 'appcard' && <button type="button" onClick={() => setBlockEdit(selNode.id)} className={barBtn()} data-testid="mm-edit-content"><ListChecks size={19} />{lang === 'en' ? 'Content' : 'Inhalt'}</button>}
+                    <button type="button" onClick={() => { setStyleOpen((v) => !v); setLayersOpen(false); }} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
+                    {selNode.shape === 'appcard' && <button type="button" onClick={() => openRef(selNode)} className={barBtn()} data-testid="mm-ref-open-btn"><ExternalLink size={19} />{lang === 'en' ? 'Open original' : 'Original öffnen'}</button>}
                     {selNode.shape === 'maplink' && <button type="button" onClick={() => openLinked(selNode)} className={barBtn()} data-testid="mm-open-map"><ExternalLink size={19} />{X.openMap}</button>}
                     {selNode.shape !== 'frame' && selNode.shape !== 'draw' && <button type="button" onClick={() => addChild(selNode)} className={barBtn()} data-testid="mm-add-child"><CornerDownRight size={19} />{T.child}</button>}
                     {selNode.shape !== 'draw' && <button type="button" onClick={() => { setTool('connect'); setConnectFrom(selNode.id); }} className={barBtn()} data-testid="mm-connect-from"><Spline size={19} />{T.connect}</button>}
                     <button type="button" onClick={doCopy} className={barBtn()} data-testid="mm-copy"><Copy size={18} />{X.copy}</button>
-                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><Layers size={18} />{T.duplicate}</button>
+                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
+                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={18} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
                     <button type="button" onClick={() => setTool('multi')} className={barBtn()} data-testid="mm-multi-from"><BoxSelect size={19} />{X.moreSelect}</button>
                     <button type="button" onClick={() => { setNewMapRemove(false); setNewMapOpen(true); }} className={barBtn()} data-testid="mm-to-newmap"><FolderTree size={18} />{X.toNewMap}</button>
                     <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
@@ -1590,7 +1734,8 @@ function Editor({ initial }: { initial: MindMap }) {
                     <button type="button" onClick={() => setStyleOpen((v) => !v)} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
                     <button type="button" onClick={doCopy} className={barBtn()} data-testid="mm-copy"><Copy size={18} />{X.copy}</button>
                     <button type="button" onClick={doCut} className={barBtn()} data-testid="mm-cut"><Scissors size={18} />{X.cut}</button>
-                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><Layers size={18} />{T.duplicate}</button>
+                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
+                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={18} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
                     <button type="button" onClick={toggleGroup} className={barBtn(grouped)} data-testid="mm-group"><Users size={18} />{grouped ? X.ungroup : X.group}</button>
                     <button type="button" onClick={() => { setNewMapRemove(false); setNewMapOpen(true); }} className={barBtn()} data-testid="mm-to-newmap"><FolderTree size={18} />{X.toNewMap}</button>
                     <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
@@ -1612,59 +1757,34 @@ function Editor({ initial }: { initial: MindMap }) {
         </div>
       </div>
 
-      <Modal open={insertOpen} onClose={() => { setInsertOpen(false); setStickerPick(false); }} title={T.insertTitle}>
-        <div className="flex flex-col gap-2.5" data-testid="mm-insert-modal">
-          {!stickerPick ? (
-            <>
-              {clipNow && clipNow.nodes.length > 0 && (
-                <button type="button" onClick={() => pasteClip()} className="text-left rounded-[var(--radius-md)] px-4 py-3 flex items-start gap-3 bg-[var(--color-primary-soft)]" data-testid="mm-insert-clip">
-                  <Copy size={20} className="mt-0.5 text-[var(--color-primary)]" />
-                  <span><span className="block text-[14.5px] text-[var(--color-text)]">{X.insertClip}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{fmt(X.insertClipSub, { n: clipNow.nodes.length })}</span></span>
-                </button>
-              )}
-              <button type="button" onClick={addFreeText} className="text-left rounded-[var(--radius-md)] px-4 py-3 flex items-start gap-3 bg-[var(--color-surface-muted)]" data-testid="mm-insert-text">
-                <Type size={20} className="mt-0.5 text-[var(--color-primary)]" />
-                <span><span className="block text-[14.5px] text-[var(--color-text)]">{X.insertText}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{X.insertTextSub}</span></span>
-              </button>
-              <button type="button" onClick={() => photoInput.current?.click()} className="text-left rounded-[var(--radius-md)] px-4 py-3 flex items-start gap-3 bg-[var(--color-surface-muted)]" data-testid="mm-insert-photo">
-                <Camera size={20} className="mt-0.5 text-[var(--color-primary)]" />
-                <span><span className="block text-[14.5px] text-[var(--color-text)]">{T.insertPhoto}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{T.insertPhotoSub}</span></span>
-              </button>
-              <button type="button" onClick={() => setStickerPick(true)} className="text-left rounded-[var(--radius-md)] px-4 py-3 flex items-start gap-3 bg-[var(--color-surface-muted)]" data-testid="mm-insert-sticker">
-                <Smile size={20} className="mt-0.5 text-[var(--color-primary)]" />
-                <span><span className="block text-[14.5px] text-[var(--color-text)]">{T.insertSticker}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{T.insertStickerSub}</span></span>
-              </button>
-              <button type="button" onClick={() => { setInsertOpen(false); setDoodleOpen(true); }} className="text-left rounded-[var(--radius-md)] px-4 py-3 flex items-start gap-3 bg-[var(--color-surface-muted)]" data-testid="mm-insert-doodle">
-                <Shapes size={20} className="mt-0.5 text-[var(--color-primary)]" />
-                <span><span className="block text-[14.5px] text-[var(--color-text)]">{X.insertDoodle}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{X.insertDoodleSub}</span></span>
-              </button>
-              <button type="button" onClick={() => { setInsertOpen(false); setMapPickOpen(true); }} className="text-left rounded-[var(--radius-md)] px-4 py-3 flex items-start gap-3 bg-[var(--color-surface-muted)]" data-testid="mm-insert-maplink">
-                <Link2 size={20} className="mt-0.5 text-[var(--color-primary)]" />
-                <span><span className="block text-[14.5px] text-[var(--color-text)]">{X.insertMapLink}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{X.insertMapLinkSub}</span></span>
-              </button>
-              <button type="button" onClick={() => void pasteFromClipboard()} className="text-left rounded-[var(--radius-md)] px-4 py-3 flex items-start gap-3 bg-[var(--color-surface-muted)]" data-testid="mm-insert-paste">
-                <ClipboardPaste size={20} className="mt-0.5 text-[var(--color-primary)]" />
-                <span><span className="block text-[14.5px] text-[var(--color-text)]">{T.insertPaste}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{T.insertPasteSub}</span></span>
-              </button>
-              <div
-                contentEditable
-                suppressContentEditableWarning
-                role="textbox"
-                aria-label={X.clipField}
-                onBeforeInput={(e) => e.preventDefault()}
-                onKeyDown={(e) => { if (!(e.ctrlKey || e.metaKey)) e.preventDefault(); }}
-                className="rounded-[var(--radius-md)] px-4 py-3 text-[13px] text-[var(--color-text-muted)] border border-dashed border-[var(--color-border-strong)] text-center"
-                data-testid="mm-insert-paste-field"
-              >
-                {pasting ? X.clipWorking : X.clipField}
-              </div>
-              <p className="text-[12px] text-[var(--color-text-faint)]">{X.clipHow}</p>
-            </>
-          ) : (
-            <EmojiPicker value="" onChange={addSticker} />
-          )}
-        </div>
-      </Modal>
+      <MindmapAddSheet
+        open={insertOpen}
+        onClose={() => { setInsertOpen(false); setAddCtx(null); }}
+        lang={lang}
+        X={X}
+        parentName={addCtx?.parent ? (byId.get(addCtx.parent)?.text?.trim().slice(0, 28) || (lang === 'en' ? 'this element' : 'diesem Element')) : undefined}
+        copyStyle={copyStyle}
+        setCopyStyle={setCopyStyle}
+        onPlace={place}
+        onPhoto={() => photoInput.current?.click()}
+        onDoodle={() => { setInsertOpen(false); setDoodleOpen(true); }}
+        onDraw={(kind) => { setInsertOpen(false); setAddCtx(null); setPen((p) => ({ ...p, kind, erase: false, sw: kind === 'water' ? Math.max(p.sw, 40) : Math.min(p.sw, 24), behind: false })); setTool('draw'); setConnectFrom(null); clearSelection(); }}
+        onMapLink={() => { setInsertOpen(false); setMapPickOpen(true); }}
+        onPasteButton={() => void pasteFromClipboard()}
+        clipCount={clipNow?.nodes.length ?? 0}
+        onPasteClip={() => pasteClip()}
+        pasting={pasting}
+      />
+      <MindmapBlockEditor node={blockEdit ? byId.get(blockEdit) : undefined} lang={lang} onClose={() => setBlockEdit(null)} onPatch={(patch) => blockEdit && patchNode(blockEdit, patch, `block:${blockEdit}`)} />
+      <VersionsModal
+        open={versionsOpen}
+        onClose={() => setVersionsOpen(false)}
+        mapId={map.id}
+        lang={lang}
+        onSave={(name) => saveVersion(versionMap(mapRef.current), name, 'manual').ok}
+        onRestore={restoreVersion}
+        onCopy={copyVersion}
+      />
       <DoodlePickerModal open={doodleOpen} onClose={() => setDoodleOpen(false)} onPick={addDoodle} X={X} lang={lang} />
       <MapPickModal
         open={mapPickOpen}
@@ -1748,7 +1868,7 @@ function Editor({ initial }: { initial: MindMap }) {
       </Modal>
 
       {printing && <MindmapPrintView map={map} lang={lang} images={printImages} />}
-    </>
+    </MapColorsContext.Provider>
   );
 }
 

@@ -5,7 +5,7 @@ export type HelpKey =
   | 'kontakte' | 'sicherheitsplan' | 'tagebuch' | 'einstellungen' | 'wesenInhalte' | 'favoriten'
   | 'wesenAblenkung' | 'wesenOrientierung' | 'wesenMitteilungen'
   | 'quellen' | 'skills' | 'hilfsmittel' | 'orte' | 'aktivitaeten' | 'skillketten'
-  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf' | 'zugangskanaele' | 'projekte' | 'mindmap3d' | 'suche';
+  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf' | 'zugangskanaele' | 'projekte' | 'budget' | 'suche';
 
 interface HelpEntry {
   title: string;
@@ -435,6 +435,66 @@ Die Stoppuhr zählt nur mit. Es gibt kein Ende, das du erreichen musst.`,
 
 The stopwatch simply counts along. There is no end you have to reach.`,
   },
+  budget: {
+    title: `Budget-Planer`,
+    titleEn: `Budget planner`,
+    body: `Ein ruhiger Ort für alles Geld – so einfach wie möglich. Du musst nichts davon ausfüllen. Schon eine einzige Zahl hilft.
+
+### Die drei Zahlen oben
+**Hatte ich** = alles, was in diesem Monat reinkommt oder reinkam. **Schon bezahlt** = was du abgehakt oder ausgegeben hast. **Noch offen** = was fällig ist, aber noch nicht bezahlt. Was **übrig** bleibt, rechnet die App von allein aus.
+
+### Schnell aufschreiben
+„Ausgabe“ und „Einnahme“ sind zwei große Knöpfe: Betrag, vielleicht ein Bereich (zum Beispiel Essen), fertig. Wo ein Beleg oder das Gekaufte jetzt liegt, kannst du dazuschreiben.
+
+### Ordner
+Jeder Ordner ist eine eigene Seite mit eigener Farbe: **Einnahmen & feste Kosten** (Gehalt, Arbeitslosengeld, Kindergeld, Miete, Strom …), **Rechnungen** (mit Foto, Fälligkeit, Ort wo sie liegt), **Ausgaben & Töpfe** (wie viel Geld du für was hast), **Konten & Bargeld**, **Sparschwein & Rücklagen**, **Verträge & Abos** (Kundennummer, Kündigungsfrist) und **Rückblicke**.
+
+### Abhaken
+Feste Kosten und Rechnungen hakst du mit einem Tippen ab. Ist etwas überfällig, ist das ein Hinweis, kein Urteil.
+
+### Kalender und Erinnerung
+Bei Rechnungen, festen Kosten und Kündigungsfristen kannst du „Im Kalender zeigen“ einschalten und dich vorher erinnern lassen. Die Erinnerung kommt in dein Postfach. Abgehakt verschwindet der Eintrag wieder.
+
+### Sparschwein
+Tipp eine Münze oder einen Schein an, und er fällt hinein. Du kannst festlegen, ob das Geld von deinem Monatsgeld abgeht. Schreib dazu, wo das Geld wirklich liegt, damit du es wiederfindest.
+
+### Rückblicke
+Für Woche, Monat und mehrere Monate – mit Balken und Zahlen, als PDF zum Teilen. Getrennt vom allgemeinen Rückblick.
+
+### Projekt-Finanzplan oder Budget-Planer?
+Der Finanzplan in einem Projekt gehört nur zu diesem Vorhaben (zum Beispiel eine Reise). Der Budget-Planer ist dein eigenes Geld im Alltag.
+
+### Deine Daten
+Alles bleibt auf diesem Gerät. Fotos auch. Passwörter gehören nicht hierher – schreib nur dazu, wo sie stehen.`,
+    bodyEn: `A calm place for all things money – as simple as possible. You do not have to fill anything in. A single number already helps.
+
+### The three numbers at the top
+**Had** = everything that comes in this month. **Already paid** = what you ticked off or spent. **Still open** = due but not paid yet. What is **left** is worked out for you.
+
+### Quick notes
+“Spending” and “Income” are two big buttons: an amount, maybe an area (for example food), done. You can add where a receipt or the thing you bought is now.
+
+### Folders
+Every folder is its own page with its own colour: **Income & fixed costs** (salary, unemployment benefit, child benefit, rent, electricity …), **Bills** (with photo, due date, where it is kept), **Spending & pots** (how much money you have for what), **Accounts & cash**, **Piggy bank & savings**, **Contracts & subscriptions** (customer number, cancellation deadline) and **Reviews**.
+
+### Ticking off
+Fixed costs and bills are ticked off with one tap. If something is overdue, that is a hint, not a verdict.
+
+### Calendar and reminder
+For bills, fixed costs and cancellation deadlines you can switch on “Show in the calendar” and be reminded beforehand. The reminder arrives in your mailbox. Once ticked off, the entry disappears.
+
+### Piggy bank
+Tap a coin or a note and it drops in. You choose whether the money comes out of your monthly money. Write down where the money really is so you can find it again.
+
+### Reviews
+For a week, a month and several months – with bars and numbers, as a PDF to share. Separate from the general review.
+
+### Project finance plan or budget planner?
+The finance plan inside a project only belongs to that undertaking (a trip, for example). The budget planner is your own everyday money.
+
+### Your data
+Everything stays on this device. Photos too. Passwords do not belong here – only write where they are kept.`,
+  },
   projekte: {
     title: `Meine Projekte`,
     titleEn: `My projects`,
@@ -507,93 +567,13 @@ The **quick note** captures an idea right away – "capture first, sort later". 
 ### Share and print
 "Share / PDF" turns the project into a PDF over several A4 pages, with all texts, emojis and images and the mind maps as pictures. You choose what goes along. The PDF is then a file on your device.`,
   },
-  mindmap3d: {
-    title: `3D-Mindmap`,
-    titleEn: `3D mind map`,
-    body: `Eine Mindmap als Raum: Dinge liegen übereinander, nebeneinander, vorne und hinten – wie ein kleines Universum. Du bestimmst, wie viel sich bewegt.
-
-### Steuerkreuz (Pfeile)
-Unten im Bild liegt das Steuerkreuz – am Handy genauso wie am Computer. Oben wählst du, **was die Pfeile tun**:
-- **Drehen**: Pfeile drehen den Raum in 15°-Schritten (rastet ein), das Plus/Minus daneben zoomt.
-- **Schieben**: Pfeile verschieben den Blick, daneben „höher/tiefer“.
-- **Ding**: Pfeile schieben das ausgewählte Ding in kleinen Schritten.
-Halten wiederholt den Schritt. Mit „✕“ klappst du das Steuerkreuz ein, mit dem Knopf wieder auf. Am Computer gehen auch die Pfeiltasten, Bild↑/Bild↓ und Strg+Z / Strg+Y.
-
-### Mit den Fingern
-Ein Finger auf die leere Fläche: **drehen** (oder schieben – das stellst du ein). Beim Drehen zählt immer nur eine Richtung: waagrecht **oder** senkrecht – so wackelt nichts. Zwei Finger entscheiden sich einmal: zusammen-/auseinanderziehen = **zoomen**, gemeinsam wischen = **verschieben**. Ein Ding antippen wählt es aus, daran ziehen verschiebt es.
-
-### Festhalten (Sperren)
-In „Ansicht“ kannst du **Drehen**, **Zoomen** und **Verschieben** einzeln sperren, oder alles auf einmal (Schloss-Knopf im Steuerkreuz: „Ansicht einrasten“). Dann kann beim Arbeiten nichts mehr verrutschen. „Frei drehen (Handy)“ erlaubt dem Finger auch schräge Bewegungen.
-
-### Dinge
-Tab „Neu“: Kugel, Würfel, Kegel, Zylinder, Pyramide, Tetraeder, Prisma, Sechseck, Kuppel, Kapsel, Treppe, Pfeil, Ring, Kristall, Stern, Herz, Tafel – und flache Dinge: **nur Text**, **Sprechblase**, **Gedankenblase**, **Ausruf**, **Zettel**, **Foto**. Neue Dinge landen auf der gewählten Ebene an einem freien Platz.
-Ein ausgewähltes Ding ändert du im Tab „Ding“: Name (immer oben), **Aussehen** (Form, Farbe, Größe, Umriss an/aus, Durchsichtigkeit), **Text** (Schriftart, fett, kursiv, Größe), **Lage** (drehen, kippen, Ebene, kleine Schritte), **Mehr** (Link, Notiz).
-
-### Ebenen
-Ebenen sind waagrechte Scheiben mit Namen und Höhe. Sie lassen sich aus-/einblenden, „nur diese Ebene“ zeigen (alles andere gedimmt – so baust du auf einer Ebene), umbenennen, verschieben, und es gibt viele Farben und Looks (Fläche, Scheibe, Gitter, Rahmen, Platte, keine) mit Durchsichtigkeit und Größe.
-
-### Hintergrund
-Viele Farbverläufe (Nacht, Wald, Meer, Sonnenuntergang, Wiese, Papier …) oder ein **eigenes Foto** aus deiner Galerie.
-
-### Verbinden
-„Verbinden“: erst ein Ding, dann ein zweites antippen. Linien kannst du beschriften.
-
-### Kamera und Stände
-- **Kamera**: speichert einen Schnappschuss der Karte (bis zu 24 pro Karte) – im PDF und in Projekten sichtbar.
-- **Rückgängig / Wiederholen**: 50 Schritte.
-- **Jetzigen Stand festhalten** (Tab „Stände“): speichert den ganzen Zustand mit Namen. Später kannst du frühere Stände **ansehen**, **als Kopie öffnen** oder **zurückholen** – nichts geht verloren (bis zu 30 Stände pro Karte).
-
-### PDF und Foto
-Das PDF enthält Übersicht, Schnappschüsse, Ebenen mit allen Dingen, Fotos, Links und gespeicherte Stände. „Foto“ speichert ein PNG vom Raum.
-
-### Aus einer 2D-Mindmap
-In der Mindmap-Liste (Menü der Karte) und im Editor gibt es „In 3D umwandeln“: Es entsteht eine **Kopie** (Titel mit „(3D)“) – das Original bleibt unverändert. Wähle „nach Ebenen“ (Tiefe im Netz = Höhe) oder „flach“. Rahmen und Zeichnungen werden nicht übernommen.`,
-    bodyEn: `A mind map as a space: things lie above, beside, in front of and behind each other – like a small universe. You decide how much moves.
-
-### Control pad (arrows)
-At the bottom there is a control pad – on a phone just like on a computer. At the top you choose **what the arrows do**:
-- **Turn**: arrows rotate the space in 15° steps (snaps), plus/minus next to it zooms.
-- **Move**: arrows shift the view, next to it "higher/lower".
-- **Thing**: arrows nudge the selected thing in small steps.
-Holding repeats the step. "✕" folds the pad away, the button opens it again. On a computer the arrow keys, Page Up/Down and Ctrl+Z / Ctrl+Y work too.
-
-### With your fingers
-One finger on the empty area: **rotate** (or move – you set it). While rotating only one direction counts: horizontal **or** vertical – so nothing wobbles. Two fingers decide once: pinch = **zoom**, swipe together = **move**. Tapping a thing selects it, dragging it moves it.
-
-### Locking
-Under "View" you can lock **rotate**, **zoom** and **move** one by one, or everything at once (lock button in the control pad: "Lock the view"). Then nothing can slip while you work. "Free turning (phone)" also allows diagonal finger moves.
-
-### Things
-"New" tab: sphere, cube, cone, cylinder, pyramid, tetrahedron, prism, hexagon, dome, capsule, stairs, arrow, ring, crystal, star, heart, plate – and flat things: **text only**, **speech bubble**, **thought bubble**, **shout**, **note**, **photo**. New things land on the chosen layer at a free spot.
-A selected thing is changed in the "Thing" tab: name (always on top), **Look** (shape, colour, size, outline on/off, transparency), **Text** (font, bold, italic, size), **Place** (rotate, tilt, layer, small steps), **More** (link, note).
-
-### Layers
-Layers are horizontal discs with a name and a height. They can be shown/hidden, "only this layer" (everything else dimmed – build on one layer), renamed, moved, and there are many colours and looks (plane, disc, grid, frame, slab, none) with transparency and size.
-
-### Background
-Many colour gradients (night, forest, sea, sunset, meadow, paper …) or **your own photo** from your gallery.
-
-### Connecting
-"Connect": tap one thing, then a second. Lines can be labelled.
-
-### Camera and states
-- **Camera**: saves a snapshot of the map (up to 24 per map) – visible in the PDF and in projects.
-- **Undo / redo**: 50 steps.
-- **Hold the current state** ("States" tab): saves the whole state with a name. Later you can **view** earlier states, **open them as a copy** or **bring them back** – nothing is lost (up to 30 states per map).
-
-### PDF and photo
-The PDF contains overview, snapshots, layers with all things, photos, links and saved states. "Photo" saves a PNG of the space.
-
-### From a 2D mind map
-In the mind map list (the map's menu) and in the editor there is "Convert to 3D": it makes a **copy** (title with "(3D)") – the original stays unchanged. Choose "by layers" (depth in the web = height) or "flat". Frames and drawings are not carried over.`,
-  },
   suche: {
     title: `Lupe (Suche)`,
     titleEn: `Magnifier (search)`,
     body: `Die Lupe findet Dinge in der ganzen App.
 
 ### Was sie findet
-- **Funktionen der App**: „Sicherung“ führt zum Backup, „Zettel“ zur Parkbox, „3D“ zur 3D-Mindmap.
+- **Funktionen der App**: „Sicherung“ führt zum Backup, „Zettel“ zur Parkbox, „Mindmap“ zu den Mindmaps.
 - **Alles, was du selbst geschrieben hast**: Tagebuch, Mindmaps (auch die Texte in den Knoten), Projekte, Zettel, Briefe, Brücken, Ressourcen, Termine, Notizen und mehr. Ein Tipp öffnet die passende Stelle.
 - **Anleitungen**: die „?“-Texte der Seiten.
 
@@ -608,7 +588,7 @@ Gesucht wird nur auf diesem Gerät, nichts wird verschickt. Gesperrte Tagebüche
     bodyEn: `The magnifier finds things across the whole app.
 
 ### What it finds
-- **App functions**: "backup" leads to the backup, "slip" to the Park box, "3D" to the 3D mind map.
+- **App functions**: "backup" leads to the backup, "slip" to the Park box, "mind map" to the mind maps.
 - **Everything you wrote yourself**: diary, mind maps (including the texts in nodes), projects, slips, letters, bridges, resources, appointments, notes and more. One tap opens the right place.
 - **Guides**: the "?" texts of the pages.
 

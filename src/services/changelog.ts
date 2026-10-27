@@ -16,19 +16,31 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    id: '2026-lupe-3d',
+    id: '2026-budget-mindmap2',
+    date: '2026',
+    items: [
+      'Neu: der Budget-Planer. Einnahmen und feste Kosten zum Abhaken, Rechnungen mit Foto und Ablageort, Ausgaben und Töpfe, Konten, ein Sparschwein zum Reinwerfen und Verträge & Abos. Die App rechnet aus, was übrig ist. Rückblicke für Woche, Monat und mehrere Monate gibt es als PDF.',
+      'Mindmaps: Ebenen (was liegt über was – einfach ziehen), frühere Zustände ansehen und zurückholen, mehr Formen, Pfeile und Linienarten, Aquarell-Stift, To-do-Listen, Tabellen, Pro & Contra, Karten aus der App und eine Merknotiz, die nur im Seitenfenster erscheint. Beim „+“ wählst du zuerst, was es werden soll.',
+      'Zettel aus Parkbox, Wartezimmer und Projekten lassen sich an Termine und Menschen heften. Parkbox und Wartezimmer sind klarer getrennt.',
+    ],
+    itemsEn: [
+      'New: the budget planner. Income and fixed costs to tick off, bills with photo and where they are kept, spending and pots, accounts, a piggy bank to drop money into, and contracts & subscriptions. The app works out what is left. Reviews for a week, a month and several months come as PDF.',
+      'Mind maps: layers (what lies over what – just drag), look at and bring back earlier states, more shapes, arrows and line types, watercolour pen, to-do lists, tables, pros & cons, cards from the app and a memo that only appears in the side window. With “+” you first choose what it should become.',
+      'Slips from the park box, waiting room and projects can be pinned to appointments and people. Park box and waiting room are separated more clearly.',
+    ],
+  },
+  {
+    id: '2026-lupe',
     date: '2026',
     items: [
       'Neu: die Lupe. Sie sucht in der ganzen App – nach Funktionen und nach allem, was du selbst geschrieben hast. Ein Wortteil reicht, kleine Tippfehler sind okay. Das Symbol steht oben auf den Seiten, am Computer geht Strg + K.',
-      '3D-Mindmap überarbeitet: ein Steuerkreuz zum Drehen, Schieben und Zoomen (auch am Handy), Ansicht einrasten, mehr Formen, Sprechblasen, Fotos, Hintergründe, Ebenen-Looks, Kamera, Rückgängig und „Stand festhalten“.',
-      'Eine flache Mindmap lässt sich als Kopie in 3D umwandeln – das Original bleibt, wie es ist.',
       'Projekte sind wie kleine Webseiten mit eigenen Seiten, „Alles zeigen“, Protokoll, Schnellnotiz und Zettel-Box; PDFs mit allen Bildern.',
+      'Die 3D-Mindmap gibt es nicht mehr – bereits angelegte 3D-Karten bleiben gesichert, sind aber nicht mehr in der Liste.',
     ],
     itemsEn: [
       'New: the magnifier. It searches the whole app – for functions and for everything you wrote yourself. A word part is enough, small typos are fine. The icon is at the top of the pages; on a computer press Ctrl + K.',
-      '3D mind map reworked: a control pad for turning, moving and zooming (on phones too), locking the view, more shapes, speech bubbles, photos, backgrounds, layer looks, camera, undo and "hold the current state".',
-      'A flat mind map can be turned into a 3D copy – the original stays as it is.',
       'Projects are like small websites with their own pages, "Show all", log, quick note and slip box; PDFs with all images.',
+      'The 3D mind map is gone – 3D maps you already made stay safely stored but no longer appear in the list.',
     ],
   },
   {

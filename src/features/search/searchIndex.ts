@@ -57,6 +57,11 @@ const SOURCES: DataSource[] = [
     skip: (i) => isBookLocked(i.categoryId as string | undefined),
     plainFields: ['content'],
   },
+  { key: 'budget-bills', emoji: '🧾', de: 'Rechnung', en: 'Bill', to: () => '/budget/rechnungen' },
+  { key: 'budget-recurring', emoji: '💶', de: 'Fester Posten', en: 'Fixed item', to: (i) => (i.contract ? '/budget/vertraege' : '/budget/fest') },
+  { key: 'budget-entries', emoji: '🛍️', de: 'Ausgabe / Einnahme', en: 'Spending / income', to: () => '/budget/ausgaben' },
+  { key: 'budget-accounts', emoji: '🏦', de: 'Konto', en: 'Account', to: () => '/budget/konten' },
+  { key: 'budget-pots', emoji: '🐷', de: 'Sparschwein / Rücklage', en: 'Piggy bank / savings', to: () => '/budget/sparschwein' },
   { key: 'park-notes', emoji: '🗒️', de: 'Zettel (Parkbox)', en: 'Slip (Park box)', to: () => '/parkbox' },
   { key: 'waiting-room', emoji: '🪑', de: 'Wartezimmer', en: 'Waiting room', to: () => '/parkbox' },
   {
@@ -97,7 +102,7 @@ const SOURCES: DataSource[] = [
 ];
 
 /** Feldnamen, die nie durchsucht werden (technisch oder nur Aussehen) */
-const SKIP_FIELD = /^(id|.*Id|.*Ids|.*Color|.*Colors|color|bg|bgTone|bgImage|createdAt|updatedAt|.*At|date|day|time|start|end|due|kind|type|shape|font|look|tail|mode|align|zone|status|size|layout|variant|style|tone|mood|category|subcategory|categoryGroup|linkedNeeds|umstaende|zoneIds|iconKey|icon|emoji|symbol|key|paper|tilt|priority|folder|img|image|images|photo|thumb|view|cam|space3d|token|salt|hash|url|src|href)$/;
+const SKIP_FIELD = /^(id|.*Id|.*Ids|.*Color|.*Colors|color|bg|bgTone|bgImage|createdAt|updatedAt|.*At|date|day|time|start|end|due|kind|type|shape|font|look|tail|mode|align|zone|status|size|layout|variant|style|tone|mood|category|subcategory|categoryGroup|linkedNeeds|umstaende|zoneIds|iconKey|icon|emoji|symbol|key|paper|tilt|priority|folder|img|image|images|photo|thumb|view|cam|token|salt|hash|url|src|href)$/;
 
 const ID_LIKE = /^[a-z]{1,6}_[a-z0-9_]{4,}$/;
 const COLOR_LIKE = /^#[0-9a-f]{3,8}$/i;

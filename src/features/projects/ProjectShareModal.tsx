@@ -6,12 +6,12 @@ import { shareOrCopy } from '../../services/shareOrCopy';
 import { richToPlain } from '../../services/richText';
 import { mindmapRepo } from '../mindmap/mindmapModel';
 import { defaultSelection, linkedMindmapIds, projectSlips, shareProjectPdf, type PdfSelection } from './projectPdf';
-import { formatDate, metaOf, statusLabel, type Project } from './projectModel';
+import { emojiOf, formatDate, metaOf, statusLabel, type Project } from './projectModel';
 import { useL } from './useL';
 
 function projectText(p: Project, lang: 'de' | 'en'): string {
   const L = (de: string, en: string) => (lang === 'en' ? en : de);
-  const out: string[] = [`${p.emoji} ${p.title}`, statusLabel(p.status, L)];
+  const out: string[] = [`${emojiOf(p)} ${p.title}`, statusLabel(p.status, L)];
   if (p.summary.trim()) out.push('', p.summary.trim());
   if (p.start || p.end) out.push('', [p.start ? `${L('Start', 'Start')}: ${formatDate(p.start, lang)}` : '', p.end ? `${L('Ziel', 'Target')}: ${formatDate(p.end, lang)}` : ''].filter(Boolean).join('  '));
   p.blocks.forEach((b) => {

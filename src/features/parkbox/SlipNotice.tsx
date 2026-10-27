@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card } from '../../components/ui/Card';
-import { parkNotesRepo, PAPER_COLORS, type ParkNote } from './parkboxRepo';
+import { parkNotesRepo, slipColor, type ParkNote } from './parkboxRepo';
 import { projectsRepo } from '../projects/projectModel';
 import { slipBackToBox, slipDelete, slipDone } from './slipDelivery';
 
@@ -15,7 +15,7 @@ export function SlipNotice({ note, lang, count }: { note: ParkNote; lang: 'de' |
   return (
     <Card padding="md" className="animate-in pulse-glow" style={{ borderColor: 'var(--color-notice)', borderWidth: 1.5 }} data-testid="due-slip">
       <p className="text-[12px] text-[var(--color-text-muted)] mb-2">✉️ {L('Ein Zettel ist bei dir gelandet', 'A slip has landed with you')}{proj ? ` · ${proj.emoji} ${proj.title}` : ''}{count > 1 ? ` (+${count - 1})` : ''}</p>
-      <div className="rounded-md p-3 mb-3 shadow-sm" style={{ background: PAPER_COLORS[note.paper % PAPER_COLORS.length], color: '#3a3226', transform: `rotate(${note.tilt}deg)` }}>
+      <div className="rounded-md p-3 mb-3 shadow-sm" style={{ background: slipColor(note).bg, color: slipColor(note).ink, transform: `rotate(${note.tilt}deg)` }}>
         <p className="text-[15px] leading-snug whitespace-pre-line break-words" data-testid="due-slip-text">{note.text}</p>
       </div>
       <div className="flex flex-wrap gap-2">

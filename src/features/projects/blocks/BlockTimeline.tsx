@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { dayKey } from '../../calendar/calendarRepo';
 import { formatDate, newId, type Milestone, type TimelineBlock } from '../projectModel';
-import { AddRow, DelBtn, Empty, RemindSelect, SmallLabel, type BlockProps } from '../ui';
+import { AddModeToggle, AddRow, DelBtn, Empty, RemindSelect, SmallLabel, type BlockProps } from '../ui';
 
 const short = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 const dayNum = (d: string) => Math.round(new Date(`${d}T12:00:00`).getTime() / 86400000);
@@ -55,6 +55,8 @@ export function TimelineStrip({ block, start, end, lang, L, extra = [] }: { bloc
 
 export function BlockTimeline({ block, project, L, lang, onChange }: BlockProps<TimelineBlock>) {
   const [openId, setOpenId] = useState<string | null>(null);
+  const [msDone, setMsDone] = useState(false);
+  const [stDone, setStDone] = useState(false);
   const patch = (id: string, p: Partial<Milestone>) => onChange({ ...block, milestones: block.milestones.map((m) => (m.id === id ? { ...m, ...p } : m)) });
   const setStep = (m: Milestone, sid: string, p: Partial<Milestone['steps'][number]>) => {
     const steps = m.steps.map((s) => (s.id === sid ? { ...s, ...p } : s));
@@ -111,7 +113,8 @@ export function BlockTimeline({ block, project, L, lang, onChange }: BlockProps<
                         </li>
                       ))}
                     </ul>
-                    <AddRow placeholder={L('Neuer kleiner Schritt …', 'New small step …')} onAdd={(text) => patch(m.id, { steps: [...m.steps, { id: newId('s'), text, done: false }], done: false })} testId={`step-new-${m.id}`} />
+                    <AddModeToggle done={stDone} onChange={setStDone} L={L} testId={`step-mode-${m.id}`} />
+                    <AddRow placeholder={stDone ? L('Kleiner Schritt, den du schon gemacht hast …', 'A small step you already did …') : L('Neuer kleiner Schritt …', 'New small step …')} onAdd={(text) => { const steps = [...m.steps, { id: newId('s'), text, done: stDone }]; patch(m.id, { steps, done: steps.every((x) => x.done) }); }} testId={`step-new-${m.id}`} />
                   </div>
                   <input className="input !h-9 text-[13px]" value={m.note ?? ''} placeholder={L('Kurze Notiz', 'Short note')} onChange={(e) => patch(m.id, { note: e.target.value })} />
                   <div className="self-end"><DelBtn onClick={() => onChange({ ...block, milestones: block.milestones.filter((x) => x.id !== m.id) })} L={L} testId={`ms-del-${m.id}`} /></div>
@@ -121,7 +124,8 @@ export function BlockTimeline({ block, project, L, lang, onChange }: BlockProps<
           );
         })}
       </ol>
-      <AddRow placeholder={L('Neuer Meilenstein …', 'New milestone …')} onAdd={(title) => { const id = newId('m'); onChange({ ...block, milestones: [...block.milestones, { id, title, done: false, steps: [] }] }); setOpenId(id); }} testId="ms-new" />
+      <AddModeToggle done={msDone} onChange={setMsDone} L={L} testId="ms-mode" />
+      <AddRow placeholder={msDone ? L('Meilenstein, den du schon erreicht hast …', 'A milestone you already reached …') : L('Neuer Meilenstein …', 'New milestone …')} onAdd={(title) => { const id = newId('m'); onChange({ ...block, milestones: [...block.milestones, { id, title, done: msDone, steps: [] }] }); if (!msDone) setOpenId(id); }} testId="ms-new" />
     </div>
   );
 }

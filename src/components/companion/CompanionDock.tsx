@@ -487,11 +487,16 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
           <div className={`companion-tip companion-tip--hero${tipLeaving ? ' companion-tip--leaving' : ''}`}>
             <div className="flex-1 min-w-0">
               <span>{tip}</span>
-              {tipKind === 'auto' && (
-                <button onClick={disableTipsThisSession} className="companion-tip__no-more">
-                  {t.companion.noMoreTipsSession}
+              <div className="companion-tip__actions" style={{ justifyContent: 'center' }}>
+                <button onClick={sendAway} className="companion-tip__nerv" data-testid="companion-nerv-nich" aria-label={settings.language === 'en' ? 'Not now – send the companion away' : 'Nerv nich – Wesen wegschicken'}>
+                  {settings.language === 'en' ? 'not now' : 'nerv nich'} ♥
                 </button>
-              )}
+                {tipKind === 'auto' && (
+                  <button onClick={disableTipsThisSession} className="companion-tip__no-more">
+                    {t.companion.noMoreTipsSession}
+                  </button>
+                )}
+              </div>
             </div>
             <button
               onClick={hideTip}
@@ -510,7 +515,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
                 <X size={15} />
               </button>
             </div>
-            <button onClick={requestTip} className="companion-menu__item">
+            <button onClick={requestTip} className="companion-menu__item" data-testid="companion-request-tip">
               <MessageCircle size={15} />
               {t.companion.requestTip}
             </button>
@@ -617,11 +622,16 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         <div className={`companion-tip${tipLeaving ? ' companion-tip--leaving' : ''}`}>
           <div className="flex-1 min-w-0">
             <span>{tip}</span>
-            {tipKind === 'auto' && (
-              <button onClick={disableTipsThisSession} className="companion-tip__no-more">
-                {t.companion.noMoreTipsSession}
+            <div className="companion-tip__actions">
+              <button onClick={sendAway} className="companion-tip__nerv" data-testid="companion-nerv-nich" aria-label={settings.language === 'en' ? 'Not now – send the companion away' : 'Nerv nich – Wesen wegschicken'}>
+                {settings.language === 'en' ? 'not now' : 'nerv nich'} ♥
               </button>
-            )}
+              {tipKind === 'auto' && (
+                <button onClick={disableTipsThisSession} className="companion-tip__no-more">
+                  {t.companion.noMoreTipsSession}
+                </button>
+              )}
+            </div>
           </div>
           <button
             onClick={hideTip}
@@ -641,7 +651,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
                 <X size={15} />
               </button>
             </div>
-          <button onClick={requestTip} className="companion-menu__item">
+          <button onClick={requestTip} className="companion-menu__item" data-testid="companion-request-tip">
             <MessageCircle size={15} />
             {t.companion.requestTip}
           </button>

@@ -1,8 +1,10 @@
 import { createContext, useContext, useMemo, type CSSProperties, type ReactNode, type PointerEvent as RPE } from 'react';
 import { approxTextWidth } from '../../components/canvas/svgText';
 import { doodleOf } from './doodles';
+import { AppCardBody, ProsConsBody, TableBody, TodoBody } from './MindmapBlocksView';
+import { blobPath, bracketsPath, folderPath, isRoundShape, tornPath } from './mindmapShapes';
+import { headShape, headsOf } from './mindmapRoutes';
 import {
-  arrowHead,
   bgColor,
   dashArray,
   edgeGeometry,
@@ -11,6 +13,7 @@ import {
   groupCentres,
   imgBorder,
   imgRatio,
+  isBlock,
   layoutNode,
   luminance,
   mapBounds,
@@ -83,6 +86,25 @@ export function SceneDefs({ uid }: { uid: string }) {
           <feFuncA type="linear" slope="0.92" />
         </feComponentTransfer>
       </filter>
+      {(
+        [
+          ['s', 5, 0.5, 1.5, 0.05],
+          ['m', 14, 0.9, 3.5, 0.02],
+          ['l', 34, 2, 9, 0.011],
+        ] as const
+      ).map(([k, disp, blur, edge, freq]) => (
+        <filter key={k} id={`${uid}-water-${k}`} x="-8%" y="-8%" width="116%" height="116%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency={freq} numOctaves="3" seed="11" result="n" />
+          <feDisplacementMap in="SourceGraphic" in2="n" scale={disp} result="d" />
+          <feGaussianBlur in="d" stdDeviation={blur} result="b" />
+          <feMorphology in="b" operator="erode" radius={edge} result="er" />
+          <feGaussianBlur in="er" stdDeviation={edge * 1.2} result="erb" />
+          <feComposite in="b" in2="erb" operator="arithmetic" k1="0" k2="1" k3="-0.55" k4="0" result="pool" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" seed="5" result="g" />
+          <feColorMatrix in="g" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.35 0.72" result="ga" />
+          <feComposite in="pool" in2="ga" operator="in" />
+        </filter>
+      ))}
     </defs>
   );
 }
@@ -122,11 +144,11 @@ interface BorderLook {
   none: boolean;
 }
 function borderLook(node: MMNode, base: number): BorderLook {
-  const kind = node.border ?? (node.shape === 'frame' ? 'dashed' : 'solid');
+  const kind = node.border ?? (node.shape === 'frame' && (!node.variant || node.variant === 'classic') ? 'dashed' : 'solid');
   const w = node.sw ?? base;
   if (kind === 'none') return { width: 0, double: false, sketch: false, none: true };
   if (kind === 'thick') return { width: Math.max(w * 2.2, 5), double: false, sketch: false, none: false };
-  if (kind === 'dashed') return { width: w, dash: node.shape === 'frame' && node.sw === undefined ? '12 8' : `${Math.max(w, 2) * 3.4} ${Math.max(w, 2) * 2.4}`, double: false, sketch: false, none: false };
+  if (kind === 'dashed') return { width: w, dash: node.shape === 'frame' && node.sw === undefined && (!node.variant || node.variant === 'classic') ? '12 8' : `${Math.max(w, 2) * 3.4} ${Math.max(w, 2) * 2.4}`, double: false, sketch: false, none: false };
   if (kind === 'dotted') return { width: Math.max(w, 2.4), dash: `0.1 ${Math.max(w, 2.4) * 2.3}`, cap: 'round', double: false, sketch: false, none: false };
   if (kind === 'double') return { width: Math.max(w, 2) * 3, double: true, sketch: false, none: false };
   if (kind === 'sketch') return { width: w, double: false, sketch: true, none: false };
@@ -140,6 +162,9 @@ const rectD = (w: number, h: number, r = 10) => {
   return `M ${x + r} ${y} H ${x + w - r} A ${r} ${r} 0 0 1 ${x + w} ${y + r} V ${y + h - r} A ${r} ${r} 0 0 1 ${x + w - r} ${y + h} H ${x + r} A ${r} ${r} 0 0 1 ${x} ${y + h - r} V ${y + r} A ${r} ${r} 0 0 1 ${x + r} ${y} Z`;
 };
 
+/** a single letter, digit or sign shown big and bold as a symbol */
+export const isGlyph = (s?: string) => !!s && /^[A-Za-zÄÖÜäöüß0-9&?!+#%@€$*=]$/.test(s);
+
 /** One node as SVG, centred on its position. Used by the editor, the thumbnails and the printout alike. */
 export function NodeView({
   node,
@@ -152,6 +177,7 @@ export function NodeView({
   dragOffset,
   animate = false,
   groupCentre,
+  memoDot = false,
 }: {
   node: MMNode;
   bg: string;
@@ -165,6 +191,8 @@ export function NodeView({
   animate?: boolean;
   /** centre of the group this node turns with (when the group moves as one piece) */
   groupCentre?: { x: number; y: number; anim: MMAnim };
+  /** show a small dot when the element has a side note (editor only) */
+  memoDot?: boolean;
 }) {
   const ctx = useContext(Ctx);
   const L = layoutNode(node);
@@ -172,17 +200,30 @@ export function NodeView({
   const x = dragOffset?.x ?? node.x;
   const y = dragOffset?.y ?? node.y;
   const isFrame = node.shape === 'frame';
+  const isNote = node.shape === 'note';
   const isDraw = node.shape === 'draw';
   const isDoodle = node.shape === 'doodle';
   const isMap = node.shape === 'maplink';
+  const block = isBlock(node);
   const dark = luminance(bg) < 0.25;
+  const fv = isFrame ? node.variant ?? 'classic' : 'classic';
+  const nv = isNote ? node.variant ?? 'sticky' : 'sticky';
   const bl = borderLook(node, st.strokeWidth);
   const framed = node.shape === 'plain' && node.border && node.border !== 'none';
-  const d = shapePath(node.shape, L.w, L.h) || (framed ? rectD(L.w, L.h, 10) : '');
-  const empty = !node.text.trim() && !node.symbol && node.shape !== 'image' && !isDraw && !isDoodle && !isMap;
-  const fold = node.shape === 'note' ? Math.min(22, L.h * 0.22) : 0;
+  const roundOn = isRoundShape(node.shape, node.round);
+  let d = shapePath(node.shape, L.w, L.h, node.round) || (framed ? rectD(L.w, L.h, 10) : '');
+  if (isFrame) {
+    if (fv === 'tab') d = folderPath(L.w, L.h, Math.min(L.w * 0.6, Math.max(L.fs * 9, approxTextWidth(node.text, L.fs) + L.fs * 3)), L.fs * 2.5, roundOn);
+    else if (fv === 'ellipse') d = shapePath('oval', L.w, L.h);
+    else if (fv === 'blob') d = blobPath(L.w, L.h);
+  }
+  if (isNote && nv === 'torn') d = tornPath(L.w, L.h);
+  const empty = !node.text.trim() && !node.symbol && node.shape !== 'image' && !isDraw && !isDoodle && !isMap && !block;
+  const fop = node.fop ?? 1;
+  const fold = isNote && (nv === 'sticky' || nv === 'curl') ? Math.min(nv === 'curl' ? 34 : 22, L.h * (nv === 'curl' ? 0.3 : 0.22)) : 0;
   const phase = (node.id.charCodeAt(node.id.length - 1) % 9) * -0.8;
-  const clipId = `${ctx.uid}-${node.id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  const cleanId = node.id.replace(/[^a-zA-Z0-9_-]/g, '');
+  const clipId = `${ctx.uid}-${cleanId}`;
   const tilt = node.shape === 'sticker' ? ((node.id.charCodeAt(node.id.length - 1) % 7) - 3) * 2 : 0;
   const ff = fontCss(node.font);
   const textProps = {
@@ -191,10 +232,113 @@ export function NodeView({
   };
   const weight = node.bold ? 800 : node.size >= 3 || node.shape === 'plain' ? 600 : 500;
   const asGroup = !!groupCentre;
+  const ringD = d || rectD(L.w, L.h, isDoodle || isDraw ? 8 : 4);
   const ring = selected ? (
-    <path d={d || rectD(L.w, L.h, isDoodle || isDraw ? 8 : 4)} fill="none" stroke="#3e7c63" strokeWidth={3} opacity={0.55} className="mm-ring" strokeDasharray={isDoodle || isDraw ? '6 5' : undefined} transform={isDoodle || isDraw ? 'scale(1.04)' : 'scale(1.07)'} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
+    <path d={ringD} fill="none" stroke="#3e7c63" strokeWidth={3} opacity={0.55} className="mm-ring" strokeDasharray={isDoodle || isDraw ? '6 5' : undefined} transform={isDoodle || isDraw ? 'scale(1.04)' : 'scale(1.07)'} style={{ transformBox: 'fill-box', transformOrigin: 'center' }} />
   ) : null;
   const penFilter = node.pen === 'pencil' ? `url(#${ctx.uid}-pencil)` : undefined;
+  const hasFill = st.fill !== 'none';
+  const shadowOk = hasFill && fop > 0.55 && !(isNote && nv === 'plain');
+  const frameTitleOnBand = isFrame && fv === 'header';
+  const frameRoundTitle = isFrame && (fv === 'ellipse' || fv === 'blob');
+  const bandH = L.fs * 2.5;
+  const glyph = isGlyph(node.symbol);
+  const glyphFill = node.tc ?? (node.shape === 'sticker' || node.nofill || (!node.fc && node.look !== 'solid') ? node.color : st.text);
+  const frameLineColor = node.bc ?? node.color;
+  const frameBodyOnly = isFrame && (fv === 'brackets' || fv === 'underline');
+
+  const main = isDraw ? (
+    <g transform={L.k !== 1 ? `scale(${L.k})` : undefined}>
+      <path d={strokePath(node.pts)} fill="none" stroke="transparent" strokeWidth={Math.max(penWidth(node), 18 / L.k)} strokeLinecap="round" strokeLinejoin="round" />
+      {node.pen === 'water' ? (
+        <WaterStroke node={node} L={L} uid={ctx.uid} />
+      ) : (
+        <path
+          d={strokePath(node.pts)}
+          fill="none"
+          stroke={node.color}
+          strokeWidth={node.pen === 'pencil' ? penWidth(node) * 0.8 : penWidth(node)}
+          strokeLinecap={node.pen === 'marker' ? 'square' : 'round'}
+          strokeLinejoin="round"
+          opacity={node.pen === 'marker' ? 0.42 : node.pen === 'pencil' ? 0.85 : 1}
+          filter={penFilter}
+          style={{ pointerEvents: 'none', mixBlendMode: node.pen === 'marker' && !dark ? 'multiply' : undefined }}
+        />
+      )}
+    </g>
+  ) : isDoodle ? (
+    <DoodleBody node={node} L={L} st={st} uid={ctx.uid} />
+  ) : isMap ? (
+    <MapLinkBody node={node} L={L} st={st} bg={bg} lifted={lifted} />
+  ) : block ? (
+    node.shape === 'todo' ? <TodoBody node={node} L={L} st={st} dark={dark} lifted={lifted} fop={fop} placeholder={placeholder} /> :
+    node.shape === 'table' ? <TableBody node={node} L={L} st={st} dark={dark} lifted={lifted} fop={fop} /> :
+    node.shape === 'proscons' ? <ProsConsBody node={node} L={L} st={st} dark={dark} lifted={lifted} fop={fop} /> :
+    <AppCardBody node={node} L={L} st={st} dark={dark} lifted={lifted} fop={fop} />
+  ) : node.shape === 'plain' || node.shape === 'sticker' ? (
+    <>
+      <rect x={-L.w / 2} y={-L.h / 2} width={L.w} height={L.h} fill="transparent" />
+      {framed && !bl.none && <path d={d} fill="none" stroke={node.bc ?? node.color} strokeWidth={bl.width} strokeDasharray={bl.dash} strokeLinecap={bl.cap} filter={bl.sketch ? `url(#${ctx.uid}-sketch)` : undefined} />}
+    </>
+  ) : (
+    <>
+      {!hasFill && !isFrame && <path d={d} fill="transparent" />}
+      {isNote && (nv === 'index' || nv === 'graph') && (
+        <clipPath id={`${clipId}-nc`}>
+          <path d={d} />
+        </clipPath>
+      )}
+      <path
+        d={d}
+        fill={frameBodyOnly && fv === 'underline' ? 'none' : st.fill}
+        stroke={bl.none || bl.double || frameBodyOnly ? 'none' : st.stroke}
+        strokeWidth={bl.none ? 0 : bl.width}
+        strokeDasharray={bl.dash}
+        strokeLinecap={bl.cap}
+        className={lifted ? 'mm-shadow-lg' : isFrame && fv !== 'card' ? undefined : shadowOk ? 'mm-shadow' : undefined}
+        fillOpacity={(isFrame ? 0.55 : 1) * fop}
+        filter={bl.sketch ? `url(#${ctx.uid}-sketch)` : undefined}
+        style={isFrame ? { pointerEvents: 'none' } : undefined}
+      />
+      {bl.double && !bl.none && (
+        <>
+          <path d={d} fill="none" stroke={st.stroke} strokeWidth={bl.width} style={{ pointerEvents: 'none' }} />
+          <path d={d} fill="none" stroke={st.fill === 'none' ? bg : st.fill} strokeWidth={bl.width / 3} style={{ pointerEvents: 'none' }} />
+        </>
+      )}
+      {isFrame && fv === 'header' && (
+        <path d={`M ${-L.w / 2} ${-L.h / 2 + bandH} V ${-L.h / 2 + (roundOn ? 22 : 0)} ${roundOn ? `A 22 22 0 0 1 ${-L.w / 2 + 22} ${-L.h / 2}` : `V ${-L.h / 2}`} H ${L.w / 2 - (roundOn ? 22 : 0)} ${roundOn ? `A 22 22 0 0 1 ${L.w / 2} ${-L.h / 2 + 22}` : ''} V ${-L.h / 2 + bandH} Z`} fill={frameLineColor} fillOpacity={0.9 * fop} style={{ pointerEvents: 'none' }} />
+      )}
+      {isFrame && fv === 'card' && <rect x={-L.w / 2} y={-L.h / 2} width={L.w} height={7} rx={roundOn ? 3 : 0} fill={frameLineColor} style={{ pointerEvents: 'none' }} />}
+      {isFrame && fv === 'brackets' && <path d={bracketsPath(L.w, L.h, Math.min(46, L.w / 3))} fill="none" stroke={frameLineColor} strokeWidth={bl.none ? 0 : Math.max(3, bl.width * 1.6)} strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }} />}
+      {isFrame && fv === 'underline' && <path d={`M ${-L.w / 2} ${-L.h / 2 + bandH} H ${L.w / 2}`} stroke={frameLineColor} strokeWidth={Math.max(2, bl.width)} strokeLinecap="round" style={{ pointerEvents: 'none' }} />}
+      {isNote && nv === 'index' && (
+        <g clipPath={`url(#${clipId}-nc)`} style={{ pointerEvents: 'none' }}>
+          <line x1={-L.w / 2} x2={L.w / 2} y1={-L.h / 2 + L.fs * 2.1} y2={-L.h / 2 + L.fs * 2.1} stroke="#d9778a" strokeOpacity={0.8} strokeWidth={1.6} />
+          {Array.from({ length: Math.max(0, Math.floor((L.h - L.fs * 3) / (L.fs * 1.5))) }, (_, i) => (
+            <line key={i} x1={-L.w / 2} x2={L.w / 2} y1={-L.h / 2 + L.fs * 3.6 + i * L.fs * 1.5} y2={-L.h / 2 + L.fs * 3.6 + i * L.fs * 1.5} stroke="#4a8f9e" strokeOpacity={0.35} strokeWidth={1.1} />
+          ))}
+        </g>
+      )}
+      {isNote && nv === 'graph' && (
+        <g clipPath={`url(#${clipId}-nc)`} style={{ pointerEvents: 'none' }} stroke="#4a8f9e" strokeOpacity={0.28} strokeWidth={1}>
+          {Array.from({ length: Math.floor(L.w / 16) + 1 }, (_, i) => <line key={`v${i}`} x1={-L.w / 2 + i * 16} x2={-L.w / 2 + i * 16} y1={-L.h / 2} y2={L.h / 2} />)}
+          {Array.from({ length: Math.floor(L.h / 16) + 1 }, (_, i) => <line key={`h${i}`} x1={-L.w / 2} x2={L.w / 2} y1={-L.h / 2 + i * 16} y2={-L.h / 2 + i * 16} />)}
+        </g>
+      )}
+      {isNote && nv === 'tape' && (
+        <g transform={`translate(0,${-L.h / 2}) rotate(-3)`} style={{ pointerEvents: 'none' }}>
+          <rect x={-Math.min(40, L.w * 0.22)} y={-L.fs * 0.7} width={Math.min(80, L.w * 0.44)} height={L.fs * 1.4} fill="#fff7d6" fillOpacity={0.75} stroke="#00000022" />
+        </g>
+      )}
+      {isNote && nv === 'pin' && (
+        <g transform={`translate(0,${-L.h / 2 + 4})`} style={{ pointerEvents: 'none' }}>
+          <circle r={9} fill="#d9534f" stroke="#a23a37" strokeWidth={1.2} />
+          <circle cx={-2.5} cy={-2.5} r={3} fill="#ffffff" fillOpacity={0.6} />
+        </g>
+      )}
+    </>
+  );
 
   const body = (
     <g transform={`translate(${x},${y})`} data-node-id={node.id} data-testid={`mm-node-${node.id}`} style={{ cursor: 'pointer' }}>
@@ -203,80 +347,49 @@ export function NodeView({
           <g className={`${pop ? 'mm-pop' : ''} ${lifted ? 'mm-lift' : ''}`}>
             <g className={float ? 'mm-float' : ''} style={float ? ({ animationDelay: `${phase}s` } as CSSProperties) : undefined}>
               {ring}
-              {isDraw ? (
-                <g transform={L.k !== 1 ? `scale(${L.k})` : undefined}>
-                  <path d={strokePath(node.pts)} fill="none" stroke="transparent" strokeWidth={Math.max(penWidth(node), 18 / L.k)} strokeLinecap="round" strokeLinejoin="round" />
-                  <path
-                    d={strokePath(node.pts)}
-                    fill="none"
-                    stroke={node.color}
-                    strokeWidth={node.pen === 'pencil' ? penWidth(node) * 0.8 : penWidth(node)}
-                    strokeLinecap={node.pen === 'marker' ? 'square' : 'round'}
-                    strokeLinejoin="round"
-                    opacity={node.pen === 'marker' ? 0.42 : node.pen === 'pencil' ? 0.85 : 1}
-                    filter={penFilter}
-                    style={{ pointerEvents: 'none', mixBlendMode: node.pen === 'marker' && !dark ? 'multiply' : undefined }}
-                  />
-                </g>
-              ) : isDoodle ? (
-                <DoodleBody node={node} L={L} st={st} uid={ctx.uid} />
-              ) : isMap ? (
-                <MapLinkBody node={node} L={L} st={st} bg={bg} lifted={lifted} />
-              ) : node.shape === 'plain' || node.shape === 'sticker' ? (
-                <>
-                  <rect x={-L.w / 2} y={-L.h / 2} width={L.w} height={L.h} fill="transparent" />
-                  {framed && !bl.none && <path d={d} fill="none" stroke={node.color} strokeWidth={bl.width} strokeDasharray={bl.dash} strokeLinecap={bl.cap} filter={bl.sketch ? `url(#${ctx.uid}-sketch)` : undefined} />}
-                </>
-              ) : (
-                <>
-                  <path
-                    d={d}
-                    fill={st.fill}
-                    stroke={bl.none || bl.double ? 'none' : st.stroke}
-                    strokeWidth={bl.none ? 0 : bl.width}
-                    strokeDasharray={bl.dash}
-                    strokeLinecap={bl.cap}
-                    className={lifted ? 'mm-shadow-lg' : isFrame ? undefined : 'mm-shadow'}
-                    fillOpacity={isFrame ? 0.55 : 1}
-                    filter={bl.sketch ? `url(#${ctx.uid}-sketch)` : undefined}
-                    style={isFrame ? { pointerEvents: 'none' } : undefined}
-                  />
-                  {bl.double && !bl.none && (
-                    <>
-                      <path d={d} fill="none" stroke={st.stroke} strokeWidth={bl.width} style={{ pointerEvents: 'none' }} />
-                      <path d={d} fill="none" stroke={st.fill === 'none' ? bg : st.fill} strokeWidth={bl.width / 3} style={{ pointerEvents: 'none' }} />
-                    </>
-                  )}
-                </>
-              )}
-              {node.shape === 'image' && node.img && <ImageBody node={node} L={L} clipId={clipId} />}
-              {fold > 0 && <path d={`M ${L.w / 2 - fold} ${L.h / 2} L ${L.w / 2} ${L.h / 2 - fold} L ${L.w / 2 - fold} ${L.h / 2 - fold} Z`} fill="#000" opacity={0.13} />}
-              {node.symbol && (
-                <text x={0} y={L.symbolY + L.symbolSize * 0.34} fontSize={L.symbolSize} textAnchor="middle" transform={tilt ? `rotate(${tilt} 0 ${L.symbolY})` : undefined} className={node.shape === 'sticker' ? 'mm-sticker-glyph' : undefined} style={{ userSelect: 'none' }}>
-                  {node.symbol}
-                </text>
-              )}
-              {(isFrame || isMap)
-                ? L.lines.map((line, i) => (
-                    <text key={i} x={-L.w / 2 + L.fs * 1.1} y={L.textTop + i * L.lh} fontSize={L.fs} fill={st.text} fontWeight={node.bold ? 800 : 600} {...textProps} style={{ userSelect: 'none' }}>
-                      {line}
-                    </text>
-                  ))
-                : L.lines.map((line, i) => (
-                    <text key={i} x={0} y={L.textTop + i * L.lh} fontSize={L.fs} fill={st.text} textAnchor="middle" fontWeight={weight} {...textProps} style={{ userSelect: 'none' }}>
-                      {line}
-                    </text>
-                  ))}
-              {empty && placeholder && !isFrame && (
-                <text x={0} y={L.fs * 0.35} fontSize={L.fs} fill={st.text} opacity={0.45} textAnchor="middle" {...textProps} style={{ userSelect: 'none' }}>
-                  {placeholder}
-                </text>
-              )}
-              {isFrame && empty && placeholder && (
-                <text x={-L.w / 2 + L.fs * 1.1} y={L.textTop} fontSize={L.fs} fill={st.text} opacity={0.45} style={{ userSelect: 'none' }}>
-                  {placeholder}
-                </text>
-              )}
+              <g opacity={node.op}>
+                {main}
+                {node.shape === 'image' && node.img && <ImageBody node={node} L={L} clipId={clipId} />}
+                {fold > 0 && <path d={`M ${L.w / 2 - fold} ${L.h / 2} L ${L.w / 2} ${L.h / 2 - fold} L ${L.w / 2 - fold} ${L.h / 2 - fold} Z`} fill="#000" opacity={nv === 'curl' ? 0.2 : 0.13} />}
+                {node.symbol && !block && (
+                  <text
+                    x={L.textDx ?? 0}
+                    y={L.symbolY + L.symbolSize * (glyph ? 0.36 : 0.34)}
+                    fontSize={glyph ? L.symbolSize * 0.95 : L.symbolSize}
+                    textAnchor="middle"
+                    fontWeight={glyph ? 800 : undefined}
+                    fontFamily={glyph ? fontCss(node.font ?? 'display') : undefined}
+                    fill={glyph ? glyphFill : undefined}
+                    transform={tilt ? `rotate(${tilt} 0 ${L.symbolY})` : undefined}
+                    className={node.shape === 'sticker' ? 'mm-sticker-glyph' : undefined}
+                    style={{ userSelect: 'none' }}
+                  >
+                    {node.symbol}
+                  </text>
+                )}
+                {!block && (isFrame || isMap
+                  ? L.lines.map((line, i) => (
+                      <text key={i} x={frameRoundTitle ? 0 : -L.w / 2 + L.fs * 1.1} y={L.textTop + i * L.lh + (frameRoundTitle ? L.fs * 1.5 : 0)} textAnchor={frameRoundTitle ? 'middle' : undefined} fontSize={L.fs} fill={frameTitleOnBand ? node.tc ?? readableOn(frameLineColor) : node.tc ?? st.text} fontWeight={node.bold ? 800 : 600} {...textProps} style={{ userSelect: 'none' }}>
+                        {line}
+                      </text>
+                    ))
+                  : L.lines.map((line, i) => (
+                      <text key={i} x={L.textDx ?? 0} y={L.textTop + i * L.lh} fontSize={L.fs} fill={st.text} textAnchor="middle" fontWeight={weight} {...textProps} style={{ userSelect: 'none' }}>
+                        {line}
+                      </text>
+                    )))}
+                {empty && placeholder && !isFrame && (
+                  <text x={L.textDx ?? 0} y={L.fs * 0.35} fontSize={L.fs} fill={st.text} opacity={0.45} textAnchor="middle" {...textProps} style={{ userSelect: 'none' }}>
+                    {placeholder}
+                  </text>
+                )}
+                {isFrame && empty && placeholder && (
+                  <text x={-L.w / 2 + L.fs * 1.1} y={L.textTop} fontSize={L.fs} fill={st.text} opacity={0.45} style={{ userSelect: 'none' }}>
+                    {placeholder}
+                  </text>
+                )}
+              </g>
+              {memoDot && node.memo && <circle cx={L.w / 2 - 2} cy={-L.h / 2 + 2} r={7} fill="#e8a83d" stroke="#ffffff" strokeWidth={2} pointerEvents="none" data-testid="mm-memo-dot" />}
             </g>
           </g>
         </g>
@@ -291,6 +404,22 @@ export function NodeView({
       <Animated anim={groupCentre.anim} speed={node.animSpeed} enabled>
         <g transform={`translate(${-groupCentre.x},${-groupCentre.y})`}>{body}</g>
       </Animated>
+    </g>
+  );
+}
+
+/** watercolour: soft, layered paint with a darker edge – for small marks and for big washes */
+function WaterStroke({ node, L, uid }: { node: MMNode; L: ReturnType<typeof layoutNode>; uid: string }) {
+  const pw = penWidth(node);
+  const d = strokePath(node.pts);
+  const size = pw < 16 ? 's' : pw < 60 ? 'm' : 'l';
+  const pad = pw * 0.9 + 12;
+  return (
+    <g filter={`url(#${uid}-water-${size})`} style={{ pointerEvents: 'none' }}>
+      <rect x={-L.w / L.k / 2 - pad} y={-L.h / L.k / 2 - pad} width={L.w / L.k + pad * 2} height={L.h / L.k + pad * 2} fill="none" />
+      <path d={d} fill="none" stroke={node.color} strokeWidth={pw} strokeLinecap="round" strokeLinejoin="round" opacity={0.42} />
+      <path d={d} fill="none" stroke={node.color} strokeWidth={pw * 0.72} strokeLinecap="round" strokeLinejoin="round" opacity={0.3} />
+      <path d={d} fill="none" stroke={node.color} strokeWidth={pw * 0.42} strokeLinecap="round" strokeLinejoin="round" opacity={0.24} />
     </g>
   );
 }
@@ -322,14 +451,17 @@ function DoodleBody({ node, L, st, uid }: { node: MMNode; L: ReturnType<typeof l
   const sw = (node.sw ?? 3) * (kind === 'thick' ? 2.2 : 1);
   const dash = kind === 'dashed' ? `${Math.max(sw, 2) * 3.2} ${Math.max(sw, 2) * 2.4}` : kind === 'dotted' ? `0.1 ${Math.max(sw, 2.4) * 2.3}` : undefined;
   const round = kind === 'dotted';
-  const fillable = dd.fill && node.look !== 'outline';
+  const fillable = (dd.fill || !!dd.fillD) && node.look !== 'outline';
   const sketch = kind === 'sketch';
+  const fop = node.fop ?? 1;
   return (
     <g transform={`scale(${sx},${sy})`}>
-      <path d={dd.d} fill={dd.fill || dd.group === 'shapes' || dd.group === 'nature' ? 'transparent' : 'none'} stroke="transparent" strokeWidth={Math.max(sw, 18) / avg} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={dd.d} fill={dd.fill || dd.fillD || dd.group === 'shapes' || dd.group === 'nature' ? 'transparent' : 'none'} stroke="transparent" strokeWidth={Math.max(sw, 18) / avg} strokeLinecap="round" strokeLinejoin="round" />
+      {dd.fillD && <path d={dd.fillD} fill={fillable ? st.fill : 'none'} fillOpacity={fop} stroke="none" style={{ pointerEvents: 'none' }} />}
       <path
         d={dd.d}
-        fill={fillable ? st.fill : 'none'}
+        fill={fillable && !dd.fillD ? st.fill : 'none'}
+        fillOpacity={fop}
         fillRule="evenodd"
         stroke={kind === 'none' ? 'none' : st.stroke}
         strokeWidth={sw / avg}
@@ -405,26 +537,46 @@ export function EdgeLabel({ text, x, y, color, bg, size = 14 }: { text: string; 
   );
 }
 
-export function EdgeView({ edge, geom, selected = false, onPointerDown, flowEnabled = true }: { edge: MMEdge; geom: EdgeGeometry; selected?: boolean; onPointerDown?: (e: RPE<SVGElement>) => void; flowEnabled?: boolean }) {
+function HeadMark({ head, p, angle, size, color, w, bg }: { head: ReturnType<typeof headsOf>['h1']; p: { x: number; y: number }; angle: number; size: number; color: string; w: number; bg: string }) {
+  const hs = headShape(head, size);
+  if (!hs) return null;
+  const deg = (angle * 180) / Math.PI;
+  return (
+    <g transform={`translate(${p.x} ${p.y}) rotate(${deg})`} data-head={head}>
+      <path
+        d={hs.d}
+        fill={hs.kind === 'solid' ? color : hs.kind === 'hollow' ? bg : 'none'}
+        stroke={color}
+        strokeWidth={hs.kind === 'solid' ? 1 : Math.max(2, w * 0.8)}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </g>
+  );
+}
+
+export function EdgeView({ edge, geom, selected = false, onPointerDown, flowEnabled = true, bg = '#ffffff' }: { edge: MMEdge; geom: EdgeGeometry; selected?: boolean; onPointerDown?: (e: RPE<SVGElement>) => void; flowEnabled?: boolean; bg?: string }) {
   const w = edgeStroke(edge);
   const dash = dashArray(edge.dash, w);
-  const head = 9 + w * 2.6;
+  const head = (9 + w * 2.6) * (edge.hs ?? 1);
+  const { h0, h1 } = headsOf(edge);
   return (
-    <g data-edge-id={edge.id} data-testid={`mm-edge-${edge.id}`}>
-      {selected && <path d={geom.path} stroke="#3e7c63" strokeWidth={w + 8} strokeLinecap="round" fill="none" opacity={0.22} />}
+    <g data-edge-id={edge.id} data-testid={`mm-edge-${edge.id}`} opacity={edge.op}>
+      {selected && <path d={geom.path} stroke="#3e7c63" strokeWidth={w + 8} strokeLinecap="round" strokeLinejoin="round" fill="none" opacity={0.22} />}
       <path
         d={geom.path}
         stroke={edge.color}
         strokeWidth={w}
         strokeLinecap="round"
+        strokeLinejoin="round"
         strokeDasharray={dash}
         fill="none"
         className={edge.flow && flowEnabled && edge.dash !== 'solid' ? 'mm-flow' : edge.flow && flowEnabled ? 'mm-flow-solid' : undefined}
         style={edge.flow && flowEnabled ? ({ '--mm-dash': edge.dash === 'dotted' ? w * 2.3 : w * 5.6 } as CSSProperties) : undefined}
       />
-      {(edge.arrow === 'end' || edge.arrow === 'both') && <path d={arrowHead(geom.p1, geom.a1, head)} fill={edge.color} stroke={edge.color} strokeWidth={1} strokeLinejoin="round" />}
-      {edge.arrow === 'both' && <path d={arrowHead(geom.p0, geom.a0, head)} fill={edge.color} stroke={edge.color} strokeWidth={1} strokeLinejoin="round" />}
-      {onPointerDown && <path d={geom.path} stroke="transparent" strokeWidth={Math.max(22, w + 14)} fill="none" strokeLinecap="round" onPointerDown={onPointerDown} style={{ cursor: 'pointer' }} />}
+      <HeadMark head={h1} p={geom.p1} angle={geom.a1} size={head} color={edge.color} w={w} bg={bg} />
+      <HeadMark head={h0} p={geom.p0} angle={geom.a0} size={head} color={edge.color} w={w} bg={bg} />
+      {onPointerDown && <path d={geom.path} stroke="transparent" strokeWidth={Math.max(22, w + 14)} fill="none" strokeLinecap="round" strokeLinejoin="round" onPointerDown={onPointerDown} style={{ cursor: 'pointer' }} />}
     </g>
   );
 }
@@ -458,7 +610,7 @@ export function MapItems({ map, bg, animate = false }: { map: Pick<MindMap, 'nod
         const a = byId.get(it.edge.from);
         const c = byId.get(it.edge.to);
         if (!a || !c) return null;
-        return <EdgeView key={it.edge.id} edge={it.edge} geom={edgeGeometry(it.edge, a, c, layoutNode(a), layoutNode(c))} flowEnabled={false} />;
+        return <EdgeView key={it.edge.id} edge={it.edge} geom={edgeGeometry(it.edge, a, c, layoutNode(a), layoutNode(c))} flowEnabled={false} bg={bg} />;
       })}
       {map.edges.map((e) => {
         if (!e.label) return null;

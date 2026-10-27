@@ -62,8 +62,9 @@ import { PolyvagalPage } from './features/polyvagal/PolyvagalPage';
 import { DayFlowPage } from './features/dayFlow/DayFlowPage';
 import { RoutinesGardenPage } from './features/routines/RoutinesGardenPage';
 import { BreathPage } from './features/breathing/BreathPage';
+import { BudgetPage } from './features/budget/BudgetPage';
 import { MindmapListPage } from './features/mindmap/MindmapListPage';
-import { MindmapRoute } from './features/mindmap/MindmapRoute';
+import { MindmapEditorPage } from './features/mindmap/MindmapEditorPage';
 import { ProjectsPage } from './features/projects/ProjectsPage';
 import { ProjectPage } from './features/projects/ProjectPage';
 import { MindmapImportPage } from './features/mindmap/MindmapImportPage';
@@ -146,7 +147,9 @@ function App() {
                 <Route path="/entdecken/atmen" element={<Navigate to="/entdecken/ressourcen/skills/atmen" replace />} />
                 <Route path="/entdecken/mindmap" element={<MindmapListPage />} />
                 <Route path="/entdecken/mindmap/importieren" element={<MindmapImportPage />} />
-                <Route path="/entdecken/mindmap/:id" element={<MindmapRoute />} />
+                <Route path="/entdecken/mindmap/:id" element={<MindmapEditorPage />} />
+                <Route path="/budget" element={<BudgetPage />} />
+                <Route path="/budget/:sub" element={<BudgetPage />} />
                 <Route path="/entdecken/projekte" element={<ProjectsPage />} />
                 <Route path="/entdecken/projekte/:id/*" element={<ProjectPage />} />
                 <Route path="/tag-beginnen" element={<DayFlowPage phase="start" />} />

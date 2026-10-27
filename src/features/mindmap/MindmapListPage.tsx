@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Archive, Box, ChevronDown, ChevronRight, Ellipsis, Folder, FolderKanban, FolderPlus, FolderTree, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import { Archive, ChevronDown, ChevronRight, Ellipsis, Folder, FolderKanban, FolderPlus, FolderTree, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Modal } from '../../components/ui/Modal';
@@ -8,13 +8,11 @@ import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
 import { useSettings } from '../../state/SettingsContext';
 import { createId } from '../../services/storage/repository';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
-import { emptySpace } from '../mindmap3d/space3dModel';
 import { MindmapDrawing } from './MindmapScene';
 import { mindmapRepo, newMap, type MindMap, type Template } from './mindmapModel';
 import { descendantsOf } from './mindmapOps';
 import { NameModal } from './MindmapTools';
-import { deleteVersionsOf } from '../mindmap3d/mm3Versions';
-import { ConvertTo3dModal } from '../mindmap3d/ConvertTo3dModal';
+import { deleteVersionsOf } from './mindmapVersions';
 import { mindmapTexts } from './mindmapTexts';
 import { fmt, xt } from './mindmapExtraTexts';
 
@@ -33,7 +31,6 @@ export function MindmapListPage() {
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
   const [actionFor, setActionFor] = useState<string | null>(null);
-  const [convertFor, setConvertFor] = useState<string | null>(null);
   const [moveFor, setMoveFor] = useState<string | null>(null);
   const [subFor, setSubFor] = useState<string | null>(null);
   const [renameFolder, setRenameFolder] = useState<string | null>(null);
@@ -93,13 +90,8 @@ export function MindmapListPage() {
     if (!list.includes(f)) mindmapFoldersStore.set([...list, f]);
     setStoredFolders(mindmapFoldersStore.get());
   }
-  function create(template: Template | '3d') {
-    const m = newMap(name.trim() || T.untitled, template === '3d' ? 'empty' : template, lang);
-    if (template === '3d') {
-      m.nodes = [];
-      m.kind = '3d';
-      m.space = emptySpace(lang);
-    }
+  function create(template: Template) {
+    const m = newMap(name.trim() || T.untitled, template, lang);
     if (createFolder) m.folder = createFolder;
     mindmapRepo.save(m);
     navigate(`/entdecken/mindmap/${m.id}`);
@@ -194,15 +186,12 @@ export function MindmapListPage() {
         <div className="flex-1 min-w-0 flex items-center gap-3 rounded-[var(--radius-lg)] bg-[var(--color-surface)] shadow-[var(--shadow-sm)] pr-1 overflow-hidden">
           <button type="button" onClick={() => navigate(`/entdecken/mindmap/${m.id}`)} className="flex-1 min-w-0 flex items-center gap-3 text-left" data-testid={`mindmap-card-${m.id}`}>
             <div className="w-[84px] h-[64px] shrink-0 overflow-hidden" style={{ background: '#fff' }} aria-hidden="true">
-              {m.kind === '3d' ? (
-                m.thumb ? <img src={m.thumb} alt="" className="w-full h-full object-cover" /> : <div className="h-full flex items-center justify-center" style={{ background: 'var(--color-surface-muted)' }}><Box size={22} className="text-[var(--color-text-faint)]" /></div>
-              ) : m.nodes.length > 0 ? <MindmapDrawing map={m} maxHeight="64px" pad={14} /> : <div className="h-full" style={{ background: 'var(--color-surface-muted)' }} />}
+              {m.nodes.length > 0 ? <MindmapDrawing map={m} maxHeight="64px" pad={14} /> : <div className="h-full" style={{ background: 'var(--color-surface-muted)' }} />}
             </div>
             <div className="min-w-0 py-2">
               <p className="text-[15px] text-[var(--color-text)] truncate">{m.title || T.untitled}</p>
               <p className="text-[12px] text-[var(--color-text-faint)]">
-                {m.kind === '3d' && <span className="text-[var(--color-primary)]" data-testid={`mindmap-3d-badge-${m.id}`}>3D · </span>}
-                {(() => { const n = m.kind === '3d' ? m.space?.nodes.length ?? 0 : m.nodes.length; return n === 1 ? X.oneElement : T.elements.replace('{n}', String(n)); })()} · {T.edited.replace('{d}', date(m.updatedAt))}
+                {(() => { const n = m.nodes.length; return n === 1 ? X.oneElement : T.elements.replace('{n}', String(n)); })()} · {T.edited.replace('{d}', date(m.updatedAt))}
                 {childN > 0 && ` · ${fmt(X.subCount, { n: childN })}`}
               </p>
               {depth === 0 && parent && <p className="text-[11.5px] text-[var(--color-text-faint)] truncate">{fmt(X.subOf, { t: parent.title })}</p>}
@@ -326,13 +315,6 @@ export function MindmapListPage() {
               <p className="text-[12.5px] text-[var(--color-text-muted)]">{sub2}</p>
             </button>
           ))}
-          <button type="button" onClick={() => create('3d')} className="text-left rounded-[var(--radius-lg)] border border-[var(--color-border-strong)] px-4 py-3 flex items-start gap-3" data-testid="mindmap-template-3d">
-            <Box size={20} className="text-[var(--color-primary)] mt-0.5 shrink-0" />
-            <span>
-              <span className="block text-[15px] text-[var(--color-text)]">{lang === 'en' ? '3D space' : '3D-Raum'}</span>
-              <span className="block text-[12.5px] text-[var(--color-text-muted)]">{lang === 'en' ? 'Things float in space on named layers – turn, zoom, place them above and beside each other.' : 'Dinge schweben im Raum auf benannten Ebenen – drehen, zoomen, übereinander und nebeneinander setzen.'}</span>
-            </span>
-          </button>
         </div>
       </Modal>
 
@@ -347,7 +329,6 @@ export function MindmapListPage() {
               ['move', X.actMove, () => setMoveFor(act.id)],
               ['sub', X.actSub, () => setSubFor(act.id)],
               ['dup', X.actDup, () => duplicate(act)],
-              ...(act.kind === '3d' ? [] : [['to3d', lang === 'en' ? 'Turn into 3D (copy)' : 'In 3D umwandeln (Kopie)', () => { setConvertFor(act.id); setActionFor(null); }] as [string, string, () => void]]),
               ['archive', X.actArchive, () => archive(act)],
               ['delete', X.actDelete, () => remove(act)],
             ] as [string, string, () => void][]).map(([id, label, run]) => (
@@ -358,8 +339,6 @@ export function MindmapListPage() {
           </div>
         )}
       </Modal>
-
-      <ConvertTo3dModal map={get(convertFor) ?? null} onClose={() => setConvertFor(null)} />
 
       <Modal open={!!mv} onClose={() => setMoveFor(null)} title={X.moveTitle} subtitle={mv?.title}>
         {mv && (

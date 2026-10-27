@@ -8,7 +8,8 @@ import { createId } from '../../services/storage/repository';
 import { NameModal } from '../mindmap/MindmapTools';
 import { dayKey } from '../calendar/calendarRepo';
 import { removeProjectCalendar, syncProjectCalendar } from './projectCalendar';
-import { formatDate, milestoneStats, statusLabel, nextDate, newProject, projectFoldersStore, projectsRepo, taskStats, type Project } from './projectModel';
+import { ProjectIcon } from './ui';
+import { emojiOf, formatDate, milestoneStats, statusLabel, nextDate, newProject, projectFoldersStore, projectsRepo, taskStats, type Project } from './projectModel';
 import { templateBlocks, type TemplateId } from './projectTemplates';
 import { useL } from './useL';
 
@@ -39,7 +40,9 @@ export function ProjectsPage() {
     window.setTimeout(() => setToast((t) => (t === m ? '' : t)), 2400);
   };
   const today = dayKey(new Date());
-  const live = useMemo(() => items.filter((p) => !p.archived).sort(byNewest), [items]);
+  const live = useMemo(() => items.filter((p) => !p.archived && p.status !== 'done').sort(byNewest), [items]);
+  const ended = useMemo(() => items.filter((p) => !p.archived && p.status === 'done').sort((a, b) => (b.closedAt ?? b.updatedAt).localeCompare(a.closedAt ?? a.updatedAt)), [items]);
+  const [endedOpen, setEndedOpen] = useState(true);
   const archived = useMemo(() => items.filter((p) => p.archived).sort(byNewest), [items]);
   const folderNames = useMemo(() => [...new Set([...folders, ...live.map((p) => p.folder).filter(Boolean) as string[]])].sort((a, b) => a.localeCompare(b)), [folders, live]);
   const loose = live.filter((p) => !p.folder);
@@ -130,7 +133,7 @@ export function ProjectsPage() {
       <li key={p.id} className="flex items-stretch gap-1" data-testid={`project-row-${p.id}`}>
         <div className="flex-1 min-w-0 flex items-center gap-3 rounded-[var(--radius-lg)] bg-[var(--color-surface)] shadow-[var(--shadow-sm)] pr-1 overflow-hidden" style={{ borderLeft: `5px solid ${p.color}` }}>
           <button type="button" onClick={() => navigate(`/entdecken/projekte/${p.id}`)} className="flex-1 min-w-0 flex items-center gap-3 text-left py-3 pl-3" data-testid={`project-card-${p.id}`}>
-            <span className="text-[26px] shrink-0" aria-hidden="true">{p.emoji}</span>
+            <span className="w-9 h-9 rounded-xl overflow-hidden shrink-0 flex items-center justify-center" style={{ background: `${p.color}26`, border: `1.5px solid ${p.color}` }} aria-hidden="true"><ProjectIcon p={p} size={22} /></span>
             <span className="min-w-0 flex-1">
               <span className="block text-[15.5px] text-[var(--color-text)] truncate">{p.title}</span>
               <span className="block text-[12px] text-[var(--color-text-faint)]">
@@ -170,7 +173,7 @@ export function ProjectsPage() {
           </button>
         </div>
 
-        {live.length === 0 && folderNames.length === 0 ? (
+        {live.length === 0 && folderNames.length === 0 && ended.length === 0 ? (
           <p className="text-[14px] text-[var(--color-text-muted)] text-center py-8" data-testid="projects-empty">
             {L('Noch kein Projekt. Fang klein an – ein Name reicht.', 'No project yet. Start small – a name is enough.')}
           </p>
@@ -198,6 +201,31 @@ export function ProjectsPage() {
           </div>
         )}
 
+        {ended.length > 0 && (
+          <section className="mt-6" data-testid="project-ended">
+            <button type="button" onClick={() => setEndedOpen((v) => !v)} aria-expanded={endedOpen} className="w-full flex items-center gap-2 py-2.5 text-[15px]" data-testid="project-ended-toggle">
+              {endedOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              <span aria-hidden="true">🏆</span> {L('Beendete Projekte', 'Finished projects')} ({ended.length})
+            </button>
+            {endedOpen && (
+              <ul className="flex flex-col gap-2.5">
+                {ended.map((p) => (
+                  <li key={p.id} className="flex items-center gap-2 rounded-[var(--radius-lg)] pr-1 overflow-hidden" style={{ background: `color-mix(in srgb, ${p.color} 9%, var(--color-surface))`, border: `1.5px solid color-mix(in srgb, ${p.color} 45%, transparent)` }} data-testid={`project-row-${p.id}`}>
+                    <button type="button" onClick={() => navigate(`/entdecken/projekte/${p.id}/rueckblick`)} className="flex-1 min-w-0 flex items-center gap-3 text-left py-3 pl-3" data-testid={`project-card-${p.id}`}>
+                      <span className="w-9 h-9 rounded-xl overflow-hidden shrink-0 flex items-center justify-center" style={{ background: `${p.color}26`, border: `1.5px solid ${p.color}` }} aria-hidden="true"><ProjectIcon p={p} size={22} /></span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[15.5px] truncate">{p.title}</span>
+                        <span className="block text-[12px] text-[var(--color-text-muted)]">🎉 {L('Geschafft', 'Done')}{p.closedAt ? ` · ${new Date(p.closedAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'de-DE')}` : ''} · {L('Rückblick ansehen', 'see looking back')}</span>
+                      </span>
+                    </button>
+                    <button type="button" onClick={() => setActionFor(p.id)} aria-label={L('Mehr', 'More')} className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-muted)] shrink-0" data-testid={`project-actions-${p.id}`}><Ellipsis size={18} /></button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+
         <div className="mt-6">
           <button type="button" onClick={() => setArchiveOpen((v) => !v)} aria-expanded={archiveOpen} className="w-full flex items-center gap-2 py-2.5 text-[14px] text-[var(--color-text-muted)]" data-testid="project-archive-toggle">
             {archiveOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -208,7 +236,7 @@ export function ProjectsPage() {
               {archived.length === 0 && <p className="text-[13.5px] text-[var(--color-text-muted)]">{L('Hier liegt nichts.', 'Nothing here.')}</p>}
               {archived.map((p) => (
                 <div key={p.id} className="flex items-center gap-3 rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)] pr-2 overflow-hidden">
-                  <button type="button" onClick={() => navigate(`/entdecken/projekte/${p.id}`)} className="flex-1 min-w-0 text-left px-4 py-3 text-[14.5px] truncate">{p.emoji} {p.title}</button>
+                  <button type="button" onClick={() => navigate(`/entdecken/projekte/${p.id}`)} className="flex-1 min-w-0 text-left px-4 py-3 text-[14.5px] truncate">{emojiOf(p)} {p.title}</button>
                   <button type="button" onClick={() => restore(p)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] border border-[var(--color-border-strong)] shrink-0" data-testid={`project-restore-${p.id}`}>
                     <RotateCcw size={13} /> {L('Zurückholen', 'Restore')}
                   </button>

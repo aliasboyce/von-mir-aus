@@ -158,7 +158,10 @@ export interface Project {
   title: string;
   /** Kurzbeschreibung: Was wollen wir machen? Warum? */
   summary: string;
+  /** Symbol; leer = ohne Symbol (nur die Farbe) */
   emoji: string;
+  /** eigenes Bild (klein gerechnet) – ersetzt das Symbol */
+  image?: string;
   color: string;
   status: ProjectStatus;
   start?: string;
@@ -171,6 +174,9 @@ export interface Project {
   log?: LogEntry[];
   /** wann das Projekt geschafft wurde */
   closedAt?: string;
+  /** Antworten auf die Abschluss-Fragen (die Frage steht dabei, falls sie getauscht wurde) */
+  reflections?: { q: string; a: string }[];
+  reflectedAt?: string;
   folder?: string;
   archived?: boolean;
   people: ProjectPerson[];
@@ -183,8 +189,21 @@ export interface Project {
 export const projectsRepo = createRepository<Project>('projects');
 export const projectFoldersStore = createKeyValueStore<string[]>('project-folders', []);
 
-export const PROJECT_COLORS = ['#4a8f9e', '#e8a83d', '#9a7bc4', '#6fbf73', '#d9778a', '#c9522f', '#5b7fb5', '#8fae3d'];
-export const PROJECT_EMOJIS = ['🌱', '🧭', '🎨', '🏠', '✈️', '🎉', '📚', '🎬', '🛠️', '🌿', '🤝', '💡'];
+export const PROJECT_COLORS = [
+  '#4a8f9e', '#5b7fb5', '#8aa9d6', '#9a7bc4', '#c3a6e0', '#d9778a', '#f0a6b8', '#c9522f',
+  '#e8a83d', '#f2cf6b', '#8fae3d', '#6fbf73', '#4f9d85', '#a6d6c4', '#7a8794', '#5a5348',
+];
+/** nach Themen geordnet – es gibt auch „ohne Symbol“ und eigene Bilder */
+export const PROJECT_EMOJI_GROUPS: { id: string; de: string; en: string; items: string[] }[] = [
+  { id: 'wachsen', de: 'Wachsen & Leben', en: 'Growing & life', items: ['🌱', '🌿', '🌸', '🌻', '🍀', '🌳', '🦋', '🐝', '🌈', '☀️', '🌙', '⭐'] },
+  { id: 'zuhause', de: 'Zuhause & Alltag', en: 'Home & everyday', items: ['🏠', '🛋️', '🧺', '🍳', '🪴', '🧹', '🛒', '🚲', '🚗', '🧳', '🐕', '🐈'] },
+  { id: 'kreativ', de: 'Kreativ & Lernen', en: 'Creative & learning', items: ['🎨', '🎬', '🎵', '📚', '✏️', '📝', '🧶', '📷', '🎮', '🧩', '🎭', '🔭'] },
+  { id: 'ich', de: 'Ich & Menschen', en: 'Me & people', items: ['🤝', '💛', '🫶', '🧭', '💡', '🛟', '🪞', '🕯️', '🎁', '🎉', '✈️', '🛠️'] },
+  { id: 'arbeit', de: 'Ämter & Arbeit', en: 'Offices & work', items: ['📋', '📮', '🏛️', '💼', '💰', '🧾', '📞', '🩺', '⚖️', '🔑', '📅', '🗂️'] },
+];
+export const PROJECT_EMOJIS = PROJECT_EMOJI_GROUPS.flatMap((g) => g.items);
+/** Symbol oder – wenn keins – ein Farbpunkt, für Textstellen */
+export const emojiOf = (p: Pick<Project, 'emoji'>): string => p.emoji || '●';
 
 export const ME = 'me';
 
@@ -241,7 +260,7 @@ export function newProject(title: string, lang: 'de' | 'en'): Project {
     id: id('prj'),
     title,
     summary: '',
-    emoji: PROJECT_EMOJIS[Math.floor(Math.random() * PROJECT_EMOJIS.length)],
+    emoji: PROJECT_EMOJI_GROUPS[0].items[Math.floor(Math.random() * 6)],
     color: PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)],
     status: 'idea',
     people: [],

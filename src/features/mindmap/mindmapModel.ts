@@ -1,17 +1,23 @@
 import { approxTextWidth, wrapText } from '../../components/canvas/svgText';
 import { createRepository, createId } from '../../services/storage/repository';
 import { doodleIds, doodleOf } from './doodles';
+import { BLOCK_SHAPES, SHAPE_FIT, boundaryOffset as boundaryOffsetShape, shapePath as shapePathShape, type ShapeId } from './mindmapShapes';
+import { appCardLayout, prosConsLayout, tableLayout, todoLayout, type RefKind, type RefSnap, type TodoItem } from './mindmapBlocks';
+import { HEADS, ROUTES, routeGeometry, type EdgeGeometry, type MMHead, type MMRoute } from './mindmapRoutes';
+
+export type { MMHead, MMRoute, EdgeGeometry, RefKind, RefSnap, TodoItem };
+export { BLOCK_SHAPES };
 
 /* ------------------------------------------------------------------ types */
 
-export type MMShape = 'rounded' | 'pill' | 'oval' | 'circle' | 'diamond' | 'hexagon' | 'cloud' | 'note' | 'plain' | 'frame' | 'image' | 'sticker' | 'draw' | 'doodle' | 'maplink';
+export type MMShape = ShapeId;
 export type MMLook = 'solid' | 'soft' | 'outline';
 export type MMDash = 'solid' | 'dashed' | 'dotted';
 export type MMArrow = 'none' | 'end' | 'both';
 export type MMBgKind = 'plain' | 'dots' | 'dotsL' | 'grid' | 'graph' | 'lines' | 'crosses' | 'tri' | 'stars' | 'waves' | 'checker';
 export type MMBorder = 'solid' | 'dashed' | 'dotted' | 'double' | 'sketch' | 'thick' | 'none';
 export type MMAnim = 'none' | 'spin' | 'spinback' | 'swing' | 'pulse' | 'bounce' | 'wiggle' | 'float' | 'blink' | 'orbit' | 'jelly' | 'shake';
-export type MMPen = 'pen' | 'pencil' | 'marker';
+export type MMPen = 'pen' | 'pencil' | 'marker' | 'water';
 export type MMImgStyle = 'polaroid' | 'plain' | 'round' | 'rounded';
 export type MMFont = 'sans' | 'serif' | 'hand' | 'marker' | 'mono' | 'round' | 'display' | 'script' | 'typewriter';
 
@@ -58,6 +64,39 @@ export interface MMNode {
   imgStyle?: MMImgStyle;
   /** link to another mind map (shown as a small live preview) */
   mapId?: string;
+  /** rounded corners: true = rounded, false = angular, unset = how the shape always looked */
+  round?: boolean;
+  /** own colours: fill, border and text (they win over `color` + `look`); nofill = no fill at all */
+  fc?: string;
+  bc?: string;
+  tc?: string;
+  nofill?: boolean;
+  /** fill opacity 0.05–1, and opacity of the whole element */
+  fop?: number;
+  op?: number;
+  /** kind of frame / note (see FRAME_VARIANTS, NOTE_VARIANTS) */
+  variant?: string;
+  /** locked: cannot be picked or moved on the map (handy for a painted background); still reachable in the layers list */
+  lock?: boolean;
+  /** side note: shown in the window on the right when the element is selected, not in the map */
+  memo?: string;
+  /** to-do list */
+  items?: TodoItem[];
+  /** colour of the tick (to-do) */
+  ck?: string;
+  /** table: rows × columns, first row = header */
+  grid?: string[][];
+  hdr?: boolean;
+  /** pro & contra lists, their colours and headings */
+  pros?: string[];
+  cons?: string[];
+  pc?: string;
+  cc?: string;
+  pl?: string;
+  cl?: string;
+  /** card from another place in the app (and a snapshot, in case the original is gone) */
+  ref?: { kind: RefKind; id: string };
+  snap?: RefSnap;
 }
 
 export interface MMEdge {
@@ -76,6 +115,16 @@ export interface MMEdge {
   bend: number;
   /** dashes keep flowing along the line */
   flow?: boolean;
+  /** shape of the line (auto = straight, or an arc when bent) */
+  route?: MMRoute;
+  /** wave / zigzag height in px */
+  amp?: number;
+  /** heads at the start / end of the line (win over `arrow`), and their size factor */
+  h0?: MMHead;
+  h1?: MMHead;
+  hs?: number;
+  /** opacity of the line */
+  op?: number;
 }
 
 export interface MindMap {
@@ -93,11 +142,6 @@ export interface MindMap {
   folder?: string;
   archived?: boolean;
   archivedAt?: string;
-  /** '3d' = Raum-Mindmap (Inhalt in `space`); sonst die gewohnte Fläche */
-  kind?: '3d';
-  space?: import('../mindmap3d/space3dModel').Space3D;
-  /** Vorschaubild der 3D-Mindmap (kleines JPEG) */
-  thumb?: string;
 }
 
 export const mindmapRepo = createRepository<MindMap>('mindmaps');
@@ -105,17 +149,55 @@ export const mindmapRepo = createRepository<MindMap>('mindmaps');
 /* ------------------------------------------------------------- constants */
 
 export const SHAPES: { id: MMShape; de: string; en: string }[] = [
-  { id: 'rounded', de: 'Rechteck', en: 'Rectangle' },
+  { id: 'plain', de: 'Ohne Form', en: 'No shape' },
+  { id: 'rect', de: 'Rechteck', en: 'Rectangle' },
+  { id: 'square', de: 'Quadrat', en: 'Square' },
   { id: 'pill', de: 'Kapsel', en: 'Pill' },
   { id: 'oval', de: 'Oval', en: 'Oval' },
   { id: 'circle', de: 'Kreis', en: 'Circle' },
+  { id: 'triangle', de: 'Dreieck', en: 'Triangle' },
   { id: 'diamond', de: 'Raute', en: 'Diamond' },
+  { id: 'pentagon', de: 'Fünfeck', en: 'Pentagon' },
   { id: 'hexagon', de: 'Sechseck', en: 'Hexagon' },
+  { id: 'octagon', de: 'Achteck', en: 'Octagon' },
+  { id: 'parallelogram', de: 'Parallelogramm', en: 'Parallelogram' },
+  { id: 'trapezoid', de: 'Trapez', en: 'Trapezoid' },
+  { id: 'star', de: 'Stern', en: 'Star' },
+  { id: 'heart', de: 'Herz', en: 'Heart' },
+  { id: 'arrow', de: 'Pfeil', en: 'Arrow' },
+  { id: 'bubble', de: 'Sprechblase', en: 'Speech bubble' },
+  { id: 'cross', de: 'Kreuz', en: 'Cross' },
+  { id: 'banner', de: 'Banner', en: 'Banner' },
   { id: 'cloud', de: 'Wolke', en: 'Cloud' },
   { id: 'note', de: 'Notizzettel', en: 'Sticky note' },
-  { id: 'plain', de: 'Nur Text', en: 'Text only' },
-  { id: 'frame', de: 'Rahmen / Cluster', en: 'Frame / cluster' },
+  { id: 'frame', de: 'Rahmen', en: 'Frame' },
 ];
+
+/** kinds of frames (the area that holds other things) */
+export const FRAME_VARIANTS: { id: string; de: string; en: string }[] = [
+  { id: 'classic', de: 'Gestrichelt', en: 'Dashed' },
+  { id: 'header', de: 'Mit Titelleiste', en: 'Title bar' },
+  { id: 'tab', de: 'Ordner-Reiter', en: 'Folder tab' },
+  { id: 'card', de: 'Karte', en: 'Card' },
+  { id: 'brackets', de: 'Ecken', en: 'Corners' },
+  { id: 'ellipse', de: 'Rund', en: 'Round' },
+  { id: 'blob', de: 'Wolkig', en: 'Blobby' },
+  { id: 'underline', de: 'Nur Titel-Linie', en: 'Title line' },
+];
+/** kinds of notes */
+export const NOTE_VARIANTS: { id: string; de: string; en: string }[] = [
+  { id: 'sticky', de: 'Klebezettel', en: 'Sticky note' },
+  { id: 'tape', de: 'Mit Tesa', en: 'Taped' },
+  { id: 'pin', de: 'Mit Stecknadel', en: 'Pinned' },
+  { id: 'index', de: 'Karteikarte', en: 'Index card' },
+  { id: 'torn', de: 'Abgerissen', en: 'Torn edge' },
+  { id: 'graph', de: 'Kariert', en: 'Squared' },
+  { id: 'curl', de: 'Eselsohr', en: 'Dog-ear' },
+  { id: 'plain', de: 'Schlicht', en: 'Plain' },
+];
+
+/** helper: is this node one of the content cards (to-do, table, pro/contra, app card)? */
+export const isBlock = (n: Pick<MMNode, 'shape'>) => BLOCK_SHAPES.has(n.shape);
 
 export const BG_TONES: { id: string; color: string; de: string; en: string; css?: string }[] = [
   { id: 'paper', color: '#fbf8f1', de: 'Papier', en: 'Paper' },
@@ -171,7 +253,7 @@ export const FONTS: { id: MMFont; de: string; en: string; css: string; w: number
   { id: 'mono', de: 'Schreibmaschine', en: 'Typewriter', css: '"American Typewriter", "Courier New", ui-monospace, monospace', w: 1.12 },
 ];
 export const fontCss = (f: MMFont | undefined) => FONTS.find((x) => x.id === f)?.css;
-const fontW = (n: Pick<MMNode, 'font' | 'bold'>) => (FONTS.find((x) => x.id === n.font)?.w ?? 1) * (n.bold ? 1.07 : 1);
+export const fontW = (n: Pick<MMNode, 'font' | 'bold'>) => (FONTS.find((x) => x.id === n.font)?.w ?? 1) * (n.bold ? 1.07 : 1);
 
 export const ANIMS: { id: MMAnim; de: string; en: string; icon: string }[] = [
   { id: 'none', de: 'Keine', en: 'None', icon: '⏸' },
@@ -204,6 +286,7 @@ export const PENS: { id: MMPen; de: string; en: string }[] = [
   { id: 'pen', de: 'Stift', en: 'Pen' },
   { id: 'pencil', de: 'Bleistift', en: 'Pencil' },
   { id: 'marker', de: 'Textmarker', en: 'Highlighter' },
+  { id: 'water', de: 'Aquarell', en: 'Watercolour' },
 ];
 
 const FONT: Record<number, number> = { 1: 13, 2: 16, 3: 20, 4: 27 };
@@ -245,7 +328,26 @@ export interface NodeStyle {
   strokeWidth: number;
 }
 export function nodeStyle(n: MMNode, bg: string): NodeStyle {
+  const s = baseStyle(n, bg);
+  if (n.shape === 'image' || n.shape === 'draw' || n.shape === 'sticker') return s;
   const dark = luminance(bg) < 0.25;
+  let { fill, stroke, text } = s;
+  if (n.shape !== 'plain') {
+    if (n.nofill) {
+      fill = 'none';
+      text = dark ? '#f1ede4' : '#26231f';
+    } else if (n.fc) {
+      fill = n.fc;
+      text = readableOn(n.fc);
+    }
+  }
+  if (n.bc) stroke = n.bc;
+  if (n.tc) text = n.tc;
+  return { ...s, fill, stroke, text };
+}
+function baseStyle(n: MMNode, bg: string): NodeStyle {
+  const dark = luminance(bg) < 0.25;
+  if (BLOCK_SHAPES.has(n.shape)) return { fill: dark ? '#2b3138' : '#ffffff', stroke: n.color, text: dark ? '#f1ede4' : '#26231f', strokeWidth: n.sw ?? 2 };
   if (n.shape === 'image') return { fill: n.imgStyle && n.imgStyle !== 'polaroid' ? 'none' : '#ffffff', stroke: '#e6dfd0', text: n.imgStyle && n.imgStyle !== 'polaroid' ? (dark ? '#f1ede4' : '#26231f') : '#3a362d', strokeWidth: 1 };
   if (n.shape === 'draw') return { fill: 'none', stroke: n.color, text: n.color, strokeWidth: n.sw ?? 3 };
   if (n.shape === 'doodle') {
@@ -276,6 +378,8 @@ export interface NodeLayout {
   /** y offset (from node centre) of the first text baseline */
   textTop: number;
   symbolY: number;
+  /** sideways shift of the text block (arrows) */
+  textDx?: number;
   /** scale factor that was applied (free scaling) */
   k: number;
 }
@@ -298,7 +402,7 @@ export function strokeBox(pts: number[] | undefined): { minX: number; minY: numb
   if (!Number.isFinite(minX)) return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
   return { minX, minY, maxX, maxY };
 }
-export const penWidth = (n: Pick<MMNode, 'sw' | 'pen'>) => (n.sw ?? 3) * (n.pen === 'marker' ? 3.2 : 1);
+export const penWidth = (n: Pick<MMNode, 'sw' | 'pen'>) => (n.sw ?? 3) * (n.pen === 'marker' ? 3.2 : n.pen === 'water' ? 1.8 : 1);
 
 /** white frame around a photo (only the polaroid style has one) */
 export const imgBorder = (n: Pick<MMNode, 'imgStyle'>) => (!n.imgStyle || n.imgStyle === 'polaroid' ? 7 : 0);
@@ -306,9 +410,9 @@ export const imgRatio = (n: Pick<MMNode, 'ar' | 'imgStyle'>) => (n.imgStyle === 
 
 export function layoutNode(n: MMNode): NodeLayout {
   const b = layoutBase(n);
-  const k = n.shape === 'frame' || n.shape === 'maplink' ? 1 : Math.min(8, Math.max(0.2, n.sc ?? 1));
+  const k = n.shape === 'frame' || n.shape === 'maplink' || BLOCK_SHAPES.has(n.shape) ? 1 : Math.min(8, Math.max(0.2, n.sc ?? 1));
   if (k === 1) return { ...b, k: 1 };
-  return { ...b, w: b.w * k, h: b.h * k, fs: b.fs * k, lh: b.lh * k, symbolSize: b.symbolSize * k, textTop: b.textTop * k, symbolY: b.symbolY * k, k };
+  return { ...b, w: b.w * k, h: b.h * k, fs: b.fs * k, lh: b.lh * k, symbolSize: b.symbolSize * k, textTop: b.textTop * k, symbolY: b.symbolY * k, textDx: b.textDx ? b.textDx * k : undefined, k };
 }
 
 function layoutBase(n: MMNode): Omit<NodeLayout, 'k'> {
@@ -348,6 +452,25 @@ function layoutBase(n: MMNode): Omit<NodeLayout, 'k'> {
     return { w, h, lines, fs, lh, symbolSize: 0, textTop: -h / 2 + padY + fs * 0.9, symbolY: 0 };
   }
 
+  if (BLOCK_SHAPES.has(n.shape)) {
+    const f = fontW(n);
+    const blank = { lines: [] as string[], fs, lh, symbolSize: 0, textTop: 0, symbolY: 0 };
+    if (n.shape === 'todo') {
+      const t = todoLayout(n, fs, f);
+      return { w: t.w, h: t.h, ...blank };
+    }
+    if (n.shape === 'table') {
+      const t = tableLayout(n, fs, f);
+      return { w: t.w, h: t.h, ...blank };
+    }
+    if (n.shape === 'proscons') {
+      const t = prosConsLayout(n, fs, f);
+      return { w: t.w, h: t.h, ...blank };
+    }
+    const t = appCardLayout(n, n.snap, fs, f);
+    return { w: t.w, h: t.h, ...blank };
+  }
+
   if (n.shape === 'image' || n.shape === 'sticker') {
     const cfs = fs * 0.9;
     const clh = cfs * 1.28;
@@ -368,8 +491,10 @@ function layoutBase(n: MMNode): Omit<NodeLayout, 'k'> {
     return { w, h, lines: capLines, fs: cfs, lh: clh, symbolSize: ss, symbolY: -h / 2 + ss * 0.62, textTop: -h / 2 + ss * 1.25 + cfs * 0.9 };
   }
 
+  const fit = SHAPE_FIT[n.shape];
   const textW =
-    n.shape === 'diamond' ? basis * 0.62
+    fit ? basis * 0.9 * fit.iw
+    : n.shape === 'diamond' ? basis * 0.62
     : n.shape === 'circle' ? basis * 0.68
     : n.shape === 'oval' || n.shape === 'cloud' ? basis * 0.8
     : n.shape === 'hexagon' ? basis * 0.86
@@ -383,6 +508,15 @@ function layoutBase(n: MMNode): Omit<NodeLayout, 'k'> {
 
   let w: number;
   let h: number;
+  if (fit) {
+    w = Math.max(basis * 0.6, contentW / fit.iw + padX);
+    h = Math.max(contentH / fit.ih + padY, w * (fit.min ?? 0));
+    if (fit.square) {
+      const d = Math.max(w, h);
+      w = d;
+      h = d;
+    }
+  } else
   switch (n.shape) {
     case 'circle': {
       const d = Math.max(basis * 0.62, contentW / 0.7 + padX, (contentH + padY * 2) * 1.05);
@@ -419,7 +553,7 @@ function layoutBase(n: MMNode): Omit<NodeLayout, 'k'> {
       w = Math.max(basis * 0.55, contentW + padX * 2);
       h = contentH + padY * 2;
   }
-  const top = -contentH / 2;
+  const top = -contentH / 2 + (fit?.dy ?? 0) * h;
   return {
     w,
     h,
@@ -429,117 +563,19 @@ function layoutBase(n: MMNode): Omit<NodeLayout, 'k'> {
     symbolSize,
     symbolY: top + symbolSize * 0.5,
     textTop: top + symbolBlock + lh * 0.78,
+    textDx: fit?.dx ? fit.dx * w : undefined,
   };
 }
 
 /* --------------------------------------------------------------- outlines */
 
-export function shapePath(shape: MMShape, w: number, h: number): string {
-  const x = -w / 2;
-  const y = -h / 2;
-  switch (shape) {
-    case 'pill':
-      return rr(x, y, w, h, h / 2);
-    case 'rounded':
-      return rr(x, y, w, h, Math.min(16, h / 3.2));
-    case 'frame':
-      return rr(x, y, w, h, 22);
-    case 'maplink':
-      return rr(x, y, w, h, 14);
-    case 'note':
-    case 'image':
-      return rr(x, y, w, h, 4);
-    case 'oval':
-    case 'circle':
-      return `M ${x} 0 A ${w / 2} ${h / 2} 0 1 0 ${-x} 0 A ${w / 2} ${h / 2} 0 1 0 ${x} 0 Z`;
-    case 'diamond':
-      return `M 0 ${y} L ${-x} 0 L 0 ${-y} L ${x} 0 Z`;
-    case 'hexagon': {
-      const i = Math.min(h * 0.5, w * 0.22);
-      return `M ${x + i} ${y} L ${-x - i} ${y} L ${-x} 0 L ${-x - i} ${-y} L ${x + i} ${-y} L ${x} 0 Z`;
-    }
-    case 'cloud': {
-      const N = 12;
-      const a = (w / 2) * 0.9;
-      const b = (h / 2) * 0.9;
-      const pts = Array.from({ length: N }, (_, k) => {
-        const t = (k / N) * Math.PI * 2;
-        return [Math.cos(t) * a, Math.sin(t) * b];
-      });
-      let d = `M ${pts[0][0]} ${pts[0][1]}`;
-      for (let k = 0; k < N; k++) {
-        const p = pts[(k + 1) % N];
-        const q = pts[k];
-        const r = Math.hypot(p[0] - q[0], p[1] - q[1]) * 0.62;
-        d += ` A ${r} ${r} 0 0 1 ${p[0]} ${p[1]}`;
-      }
-      return d + ' Z';
-    }
-    default:
-      return '';
-  }
-}
-function rr(x: number, y: number, w: number, h: number, r: number): string {
-  r = Math.max(0, Math.min(r, w / 2, h / 2));
-  return `M ${x + r} ${y} H ${x + w - r} A ${r} ${r} 0 0 1 ${x + w} ${y + r} V ${y + h - r} A ${r} ${r} 0 0 1 ${x + w - r} ${y + h} H ${x + r} A ${r} ${r} 0 0 1 ${x} ${y + h - r} V ${y + r} A ${r} ${r} 0 0 1 ${x + r} ${y} Z`;
-}
-
+/** the outline path of a shape; `round` = rounded corners (unset = how the shape always looked) */
+export const shapePath = shapePathShape;
 /** where a ray from the node centre towards (dx,dy) leaves the node outline */
-export function boundaryOffset(shape: MMShape, w: number, h: number, dx: number, dy: number): { x: number; y: number } {
-  const len = Math.hypot(dx, dy) || 1;
-  const ux = dx / len;
-  const uy = dy / len;
-  let t: number;
-  const hw = w / 2;
-  const hh = h / 2;
-  if (shape === 'oval' || shape === 'circle' || shape === 'cloud') {
-    t = 1 / Math.sqrt((ux * ux) / (hw * hw) + (uy * uy) / (hh * hh));
-  } else if (shape === 'diamond') {
-    t = 1 / (Math.abs(ux) / hw + Math.abs(uy) / hh);
-  } else {
-    t = Math.min(ux === 0 ? Infinity : hw / Math.abs(ux), uy === 0 ? Infinity : hh / Math.abs(uy));
-  }
-  return { x: ux * t, y: uy * t };
-}
-
-export interface EdgeGeometry {
-  path: string;
-  p0: { x: number; y: number };
-  p1: { x: number; y: number };
-  mid: { x: number; y: number };
-  a0: number;
-  a1: number;
-}
+export const boundaryOffset = boundaryOffsetShape;
 
 export function edgeGeometry(e: MMEdge, from: MMNode, to: MMNode, lf: NodeLayout, lt: NodeLayout, bend = e.bend): EdgeGeometry {
-  const gap = 4;
-  const mx = (from.x + to.x) / 2;
-  const my = (from.y + to.y) / 2;
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const cx = mx + (-dy / len) * bend * 2;
-  const cy = my + (dx / len) * bend * 2;
-  // leave and arrive towards the control point so bent lines meet the outline naturally
-  const o0 = boundaryOffset(from.shape, lf.w, lf.h, cx - from.x, cy - from.y);
-  const o1 = boundaryOffset(to.shape, lt.w, lt.h, cx - to.x, cy - to.y);
-  const u0 = Math.hypot(cx - from.x, cy - from.y) || 1;
-  const u1 = Math.hypot(cx - to.x, cy - to.y) || 1;
-  const p0 = { x: from.x + o0.x + ((cx - from.x) / u0) * gap, y: from.y + o0.y + ((cy - from.y) / u0) * gap };
-  const p1 = { x: to.x + o1.x + ((cx - to.x) / u1) * gap, y: to.y + o1.y + ((cy - to.y) / u1) * gap };
-  const straight = Math.abs(bend) < 0.5;
-  const path = straight ? `M ${p0.x} ${p0.y} L ${p1.x} ${p1.y}` : `M ${p0.x} ${p0.y} Q ${cx} ${cy} ${p1.x} ${p1.y}`;
-  const mid = straight ? { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 } : { x: 0.25 * p0.x + 0.5 * cx + 0.25 * p1.x, y: 0.25 * p0.y + 0.5 * cy + 0.25 * p1.y };
-  const c = straight ? { x: p1.x, y: p1.y } : { x: cx, y: cy };
-  const c0 = straight ? { x: p0.x, y: p0.y } : { x: cx, y: cy };
-  return {
-    path,
-    p0,
-    p1,
-    mid,
-    a1: Math.atan2(p1.y - c.y, p1.x - c.x),
-    a0: Math.atan2(p0.y - (straight ? p1.y : c0.y), p0.x - (straight ? p1.x : c0.x)),
-  };
+  return routeGeometry(e, from, to, lf, lt, bend);
 }
 
 export function arrowHead(p: { x: number; y: number }, angle: number, size: number): string {
@@ -871,7 +907,11 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
 
 export function toPayload(map: MindMap, from?: string): SharedMapPayload {
   // links to other maps only work on this device – in a shared file they become a plain note
-  const nodes = map.nodes.map((n) => (n.shape === 'maplink' ? { ...n, shape: 'note' as const, text: `↗ ${n.text}`.trim(), mapId: undefined, fw: undefined, fh: undefined, rot: n.rot } : n));
+  const nodes = map.nodes.map((raw) => {
+    // side notes stay with the person; cards from the app keep their picture but lose the link to this device
+    const n: MMNode = { ...raw, memo: undefined, ref: undefined };
+    return n.shape === 'maplink' ? { ...n, shape: 'note' as const, text: `↗ ${n.text}`.trim(), mapId: undefined, fw: undefined, fh: undefined, rot: n.rot } : n;
+  });
   // an own photo background stays on this device (links and files would become huge)
   return { v: 1, title: map.title, bg: { kind: map.bg.kind, tone: map.bg.tone }, nodes, edges: map.edges, from: from?.trim() || undefined };
 }
@@ -889,7 +929,9 @@ export async function encodeMap(p: SharedMapPayload): Promise<string> {
   return 'p.' + toB64(raw);
 }
 
-const SHAPE_IDS = [...SHAPES.map((s) => s.id), 'image', 'sticker', 'draw', 'doodle'] as string[];
+const SHAPE_IDS = [...SHAPES.map((s) => s.id), 'rounded', 'image', 'sticker', 'draw', 'doodle', 'todo', 'table', 'proscons', 'appcard'] as string[];
+const colorOpt = (x: unknown) => (typeof x === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(x) ? x : undefined);
+const strList = (x: unknown, n: number, max: number) => (Array.isArray(x) ? x.slice(0, n).map((v) => str(v, max)) : undefined);
 const oneOf = <T extends string>(x: unknown, list: readonly T[]): T | undefined => (list.includes(x as T) ? (x as T) : undefined);
 const clampN = (x: unknown, lo: number, hi: number): number | undefined => (typeof x === 'number' && Number.isFinite(x) ? Math.min(hi, Math.max(lo, x)) : undefined);
 const str = (x: unknown, max: number) => (typeof x === 'string' ? x.slice(0, max) : '');
@@ -939,6 +981,34 @@ export function validatePayload(x: unknown): SharedMapPayload | null {
       pen: oneOf(r.pen, PENS.map((x) => x.id)),
       doodle: typeof r.doodle === 'string' && doodleIds.has(r.doodle) ? r.doodle : undefined,
       imgStyle: oneOf(r.imgStyle, ['polaroid', 'plain', 'round', 'rounded'] as const),
+      round: typeof r.round === 'boolean' ? r.round : undefined,
+      fc: colorOpt(r.fc),
+      bc: colorOpt(r.bc),
+      tc: colorOpt(r.tc),
+      nofill: r.nofill === true ? true : undefined,
+      fop: clampN(r.fop, 0.02, 1),
+      op: clampN(r.op, 0.02, 1),
+      variant: typeof r.variant === 'string' && r.variant ? str(r.variant, 20) : undefined,
+      lock: r.lock === true ? true : undefined,
+      items: Array.isArray(r.items)
+        ? r.items.slice(0, 80).map((it, i) => {
+            const o2 = (it ?? {}) as Record<string, unknown>;
+            return { id: str(o2.id, 40) || `it${i}`, t: str(o2.t, 300), done: o2.done === true ? true : undefined };
+          })
+        : undefined,
+      ck: colorOpt(r.ck),
+      grid: Array.isArray(r.grid) ? r.grid.slice(0, 40).map((row) => (Array.isArray(row) ? row.slice(0, 12).map((c) => str(c, 240)) : [])) : undefined,
+      hdr: typeof r.hdr === 'boolean' ? r.hdr : undefined,
+      pros: strList(r.pros, 60, 300),
+      cons: strList(r.cons, 60, 300),
+      pc: colorOpt(r.pc),
+      cc: colorOpt(r.cc),
+      pl: typeof r.pl === 'string' && r.pl ? str(r.pl, 30) : undefined,
+      cl: typeof r.cl === 'string' && r.cl ? str(r.cl, 30) : undefined,
+      snap:
+        r.snap && typeof r.snap === 'object'
+          ? ((sn) => ({ title: str(sn.title, 240), sub: typeof sn.sub === 'string' && sn.sub ? str(sn.sub, 400) : undefined, emoji: str(sn.emoji, 12), color: colorOk(sn.color, '#6aa08a'), label: str(sn.label, 40) }))(r.snap as Record<string, unknown>)
+          : undefined,
     });
   }
   const edges: MMEdge[] = [];
@@ -960,6 +1030,12 @@ export function validatePayload(x: unknown): SharedMapPayload | null {
       arrow: r.arrow === 'end' || r.arrow === 'both' ? r.arrow : 'none',
       bend: Math.min(400, Math.max(-400, num(r.bend))),
       flow: r.flow === true ? true : undefined,
+      route: oneOf(r.route, ROUTES.map((x) => x.id)),
+      amp: clampN(r.amp, 2, 60),
+      h0: oneOf(r.h0, HEADS.map((x) => x.id)),
+      h1: oneOf(r.h1, HEADS.map((x) => x.id)),
+      hs: clampN(r.hs, 0.4, 3),
+      op: clampN(r.op, 0.02, 1),
     });
   }
   const bgr = (o.bg ?? {}) as Record<string, unknown>;

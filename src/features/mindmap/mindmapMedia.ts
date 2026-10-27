@@ -1,4 +1,4 @@
-/** Kleine Helfer für Fotos in der 3D-Mindmap: verkleinern, damit der Speicher des Geräts nicht voll läuft. */
+/** Kleine Helfer für Fotos in Mindmaps: verkleinern, damit der Speicher des Geräts nicht voll läuft. */
 
 export interface SmallImage { dataUrl: string; ar: number; tone: 'dark' | 'light' }
 

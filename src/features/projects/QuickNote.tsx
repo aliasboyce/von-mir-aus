@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
-import { parkNotesRepo, PAPER_COLORS } from '../parkbox/parkboxRepo';
-import { createId } from '../../services/storage/repository';
+import { parkNotesRepo } from '../parkbox/parkboxRepo';
+import { newSlip } from '../parkbox/slipAttach';
 import { projectsRepo, type Project } from './projectModel';
 import { ASSIGN_TARGETS, assignToProject, logBoxSlip, type AssignTarget } from './projectAssign';
 import type { Lfn } from './ui';
@@ -11,14 +11,12 @@ import type { Lfn } from './ui';
 export function QuickNote({ project, L, lang, onClose, onSaved }: { project: Project; L: Lfn; lang: 'de' | 'en'; onClose: () => void; onSaved: (msg: string) => void }) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
-  const now = () => new Date().toISOString();
 
   const toBox = () => {
     const t = text.trim();
     if (!t || busy) return;
     setBusy(true);
-    const k = Math.floor(Math.random() * PAPER_COLORS.length);
-    parkNotesRepo.save({ id: createId('park'), text: t, priority: 2, archived: false, paper: k, tilt: Math.round((Math.random() * 6 - 3) * 10) / 10, projectId: project.id, createdAt: now(), updatedAt: now() });
+    parkNotesRepo.save(newSlip(t, 'project', { projectId: project.id }));
     logBoxSlip(projectsRepo.getById(project.id) ?? project, t, lang);
     onSaved(L('Zettel liegt in der Box dieses Projekts.', 'The slip lies in this project’s box.'));
   };

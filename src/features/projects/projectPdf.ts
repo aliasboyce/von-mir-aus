@@ -1,6 +1,6 @@
 import { PdfDoc, hexToRgb, measureText, setEmojiImages, type RGB } from '../../services/pdf/pdfBuilder';
 import { prepareEmojis } from '../../services/pdf/emojiImages';
-import { parkNotesRepo, PAPER_COLORS } from '../parkbox/parkboxRepo';
+import { parkNotesRepo, slipColor } from '../parkbox/parkboxRepo';
 import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
 import { toJpeg } from '../../services/pdf/jpeg';
 import { parseBlocks, parseInline } from '../../services/richText';
@@ -268,24 +268,6 @@ async function mindmapPages(doc: Doc, id: string, color: RGB, L: (de: string, en
   if (!m) return;
   doc.addPage();
   band(doc, `${L('Mindmap', 'Mind map')}: ${m.title || L('ohne Namen', 'untitled')}`, color);
-  if (m.kind === '3d' && m.space) {
-    if (m.thumb) {
-      const j = await toJpeg(m.thumb, 1400);
-      if (j) doc.imageFlow(j.bytes, j.w, j.h, doc.contentWidth, 400);
-    }
-    sub(doc, L('Ebenen und Dinge', 'Layers and things'));
-    [...m.space.layers].sort((a, b) => b.y - a.y).forEach((ly) => {
-      doc.paragraph(ly.name || '…', { size: 10.5, bold: true, color: INK, gap: 1 });
-      const nodes = m.space?.nodes.filter((n) => n.layerId === ly.id) ?? [];
-      nodes.forEach((n) => plain(doc, `- ${n.text || '…'}`, { indent: 10, gap: 1 }));
-    });
-    const loose = m.space.nodes.filter((n) => !n.layerId || !m.space?.layers.some((l) => l.id === n.layerId));
-    if (loose.length) {
-      doc.paragraph(L('Ohne Ebene', 'No layer'), { size: 10.5, bold: true, color: INK, gap: 1 });
-      loose.forEach((n) => plain(doc, `- ${n.text || '…'}`, { indent: 10, gap: 1 }));
-    }
-    return;
-  }
   try {
     const imgs = await mindmapPrintImages(m);
     const list = [imgs.overview, ...imgs.tiles].filter(Boolean) as string[];
@@ -440,8 +422,8 @@ async function blockContent(doc: Doc, p: Project, b: ProjectBlock, color: RGB, L
   }
 }
 
-function hexOfPaper(i: number): RGB {
-  return hexToRgb(PAPER_COLORS[i % PAPER_COLORS.length]);
+function hexOfPaper(n: Parameters<typeof slipColor>[0]): RGB {
+  return hexToRgb(slipColor(n).bg);
 }
 
 /** alle Texte des Projekts (für die Emoji-Bilder) */
@@ -471,7 +453,7 @@ export async function buildProjectPdf(p: Project, sel: PdfSelection, lang: 'de' 
       doc.space(20);
       const y0 = doc.y;
       doc.rect(doc.margin, y0 - 2, 36, 36, { fill: tint(color, 0.8), stroke: color, lineWidth: 1.5 });
-      doc.text(doc.margin + 5, y0 + 2, p.emoji, { size: 24 });
+      doc.text(doc.margin + 5, y0 + 2, p.emoji || '●', { size: 24 });
       doc.paragraph(p.title || L('Projekt', 'Project'), { size: 24, bold: true, color: INK, gap: 2, indent: 48 });
       doc.y = Math.max(doc.y, y0 + 40);
       const cy = doc.y;
@@ -532,7 +514,7 @@ export async function buildProjectPdf(p: Project, sel: PdfSelection, lang: 'de' 
         doc.ensure(h + 8);
         pair.forEach((n, k) => {
           const x = doc.margin + k * (colW + 12);
-          doc.rect(x, doc.y, colW, h, { fill: hexOfPaper(n.paper), stroke: [200, 190, 160], lineWidth: 0.7 });
+          doc.rect(x, doc.y, colW, h, { fill: hexOfPaper(n), stroke: [200, 190, 160], lineWidth: 0.7 });
           wr[k].forEach((ln, j) => doc.text(x + 8, doc.y + 8 + j * 13.8, ln, { size: 10, color: [58, 50, 38] }));
         });
         doc.y += h + 8;
@@ -556,6 +538,14 @@ export async function buildProjectPdf(p: Project, sel: PdfSelection, lang: 'de' 
         doc.circle(doc.margin + 4, doc.y + 6, 2.6, { fill: color });
         doc.text(doc.margin + 12, doc.y, time, { size: 9, color: MUTED });
         doc.paragraph(`${LOG_ICON[e.kind]} ${e.text}`, { size: 10.5, indent: 46, gap: 2 });
+      });
+    }
+    const refl = (p.reflections ?? []).filter((r) => r.a.trim());
+    if (sel.header && refl.length) {
+      section(L('Rückblick: drei Fragen', 'Looking back: three questions'), '🌙', hexToRgb('#e8a83d'));
+      refl.forEach((r) => {
+        sub(doc, r.q, color);
+        plain(doc, r.a, { size: 11, gap: 8 });
       });
     }
     for (const id of Object.keys(sel.mindmaps)) {

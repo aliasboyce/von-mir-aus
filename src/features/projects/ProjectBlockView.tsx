@@ -46,6 +46,7 @@ export function ProjectBlockView({ api, blockId }: { api: ProjectApi; blockId: s
     <ProjectSubShell
       api={api}
       current={`b/${b.id}`}
+      kind={b.kind}
       icon={meta.icon}
       title={b.title || L(meta.de, meta.en)}
       color={KIND_COLOR[b.kind] ?? p.color}

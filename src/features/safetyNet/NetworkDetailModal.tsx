@@ -4,6 +4,7 @@ import { buildShareText } from '../../services/sharedLinks';
 import { useNavigate } from 'react-router-dom';
 import { Phone, Mail, Trash2, Pencil, ArrowUpRight, Link2, Share2, Plus } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
+import { SlipsHere } from '../parkbox/SlipsHere';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
@@ -113,6 +114,7 @@ export function NetworkDetailModal({
     <Modal open={!!entry} onClose={close} title={editing ? t.common.edit : active.name}>
       {!editing ? (
         <div className="flex flex-col gap-4">
+          <SlipsHere kind="person" id={active.id} />
           <div className="flex items-center gap-3">
             <span
               className="w-12 h-12 rounded-full flex items-center justify-center text-[var(--color-surface)] flex-shrink-0 overflow-hidden"

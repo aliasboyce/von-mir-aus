@@ -957,3 +957,9 @@ button {
 @media (prefers-reduced-motion: reduce) {
   .proj-pop, .proj-float, .proj-glow, .proj-center-ring { animation: none !important; }
 }
+
+@keyframes party-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translateY(112vh) rotate(260deg); opacity: 0.9; }
+}

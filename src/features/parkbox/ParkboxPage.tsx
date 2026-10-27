@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Archive, ArrowDown, ArrowUp, CalendarPlus, Check, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Button } from '../../components/ui/Button';
@@ -9,14 +9,29 @@ import { appointmentsRepo, calendarCategoriesRepo, dayKey, parseDay, type Appoin
 import { AssignSheet } from './AssignSheet';
 import { SlipScheduler, formatDeliver } from './SlipScheduler';
 import { setSlipDelivery } from './slipDelivery';
-import { PAPER_COLORS, WAIT_CALENDAR_CATEGORY_ID, parkNotesRepo, waitItemsRepo, type ParkNote, type WaitItem, type WaitKind } from './parkboxRepo';
+import { slipPlace, slipToPark } from './slipAttach';
+import { SLIP_COLORS, WAIT_CALENDAR_CATEGORY_ID, parkNotesRepo, waitItemsRepo, type ParkNote, type WaitItem, type WaitKind } from './parkboxRepo';
 
 type Prio = 1 | 2 | 3;
 
 const TXT = {
   de: {
-    title: 'Verbindliche Parkbox & Wartezimmer',
-    intro: 'Alles, was heute nicht mehr muss, darf hier hinein. Es bleibt sicher in der Box – nichts geht verloren. Du bist für heute entlastet. Morgen ist auch noch ein Tag.',
+    title: 'Parkbox & Wartezimmer',
+    intro: 'Zwei verschiedene Orte – für zwei verschiedene Arten von „später“. Such dir den, der gerade passt.',
+    tabPark: 'Parkbox',
+    tabParkSub: 'kurze Zettel · „Nicht vergessen!“',
+    tabWait: 'Wartezimmer',
+    tabWaitSub: 'Vorhaben · „Irgendwann, wenn Zeit ist“',
+    parkExplainTitle: 'Was ist die Parkbox?',
+    parkExplain: 'Ein Einfall, eine Aufgabe, ein Gedanke – du willst ihn nicht verlieren, aber heute nicht mehr tragen. Aufschreiben, in die Box legen, fertig. Später ordnest du den Zettel zu: einem Projekt, einem Termin, einer Person, einer Mindmap oder dem Tagebuch. Nichts geht verloren.',
+    waitExplainTitle: 'Was ist das Wartezimmer?',
+    waitExplain: 'Hier sitzen größere Dinge, die passieren dürfen, wenn ihre Zeit kommt: Ideen, Vorhaben, Aktivitäten, Wünsche. Sie haben einen festen Platz und warten auf einen Zeitraum im Kalender – oder auf ein Projekt oder eine Mindmap.',
+    differ: 'Der Unterschied: Parkbox = kurzer Zettel, den du nicht vergessen willst. Wartezimmer = ein Vorhaben, das noch auf seine Zeit wartet.',
+    pinned: 'Angeheftete Zettel',
+    pinnedHint: 'Diese Zettel hängen an einem Termin, einer Person oder einer Mindmap – dort stehen sie ganz oben. Hier findest du sie wieder.',
+    pinnedBack: 'Zurück in die Parkbox',
+    pinnedOpen: 'Öffnen',
+    slipWait: 'Blauer Zettel = kam aus dem Wartezimmer',
     placeholder: 'Was soll heute nicht mehr in deinem Kopf bleiben?',
     prio: { 1: 'Wichtig', 2: 'Normal', 3: 'Später' } as Record<Prio, string>,
     put: 'In die Box legen',
@@ -63,8 +78,22 @@ const TXT = {
     openCalendar: 'Zum Kalender',
   },
   en: {
-    title: 'Binding Parking Box & Waiting Room',
-    intro: 'Everything that does not have to happen today may go in here. It stays safe in the box – nothing gets lost. You are relieved for today. Tomorrow is another day.',
+    title: 'Park box & waiting room',
+    intro: 'Two different places – for two different kinds of “later”. Pick the one that fits right now.',
+    tabPark: 'Park box',
+    tabParkSub: 'short slips · “don’t forget!”',
+    tabWait: 'Waiting room',
+    tabWaitSub: 'plans · “someday, when there’s time”',
+    parkExplainTitle: 'What is the Park box?',
+    parkExplain: 'An idea, a task, a thought – you don’t want to lose it, but you don’t want to carry it today. Write it down, put it in the box, done. Later you assign the slip: to a project, an appointment, a person, a mind map or the diary. Nothing gets lost.',
+    waitExplainTitle: 'What is the waiting room?',
+    waitExplain: 'Bigger things sit here that may happen when their time comes: ideas, plans, activities, wishes. They have a fixed seat and wait for a period in the calendar – or for a project or a mind map.',
+    differ: 'The difference: Park box = a short slip you don’t want to forget. Waiting room = a plan still waiting for its time.',
+    pinned: 'Pinned slips',
+    pinnedHint: 'These slips hang on an appointment, a person or a mind map – there they sit at the very top. Here you can find them again.',
+    pinnedBack: 'Back to the Park box',
+    pinnedOpen: 'Open',
+    slipWait: 'Blue slip = came from the waiting room',
     placeholder: 'What should not stay in your head today?',
     prio: { 1: 'Important', 2: 'Normal', 3: 'Later' } as Record<Prio, string>,
     put: 'Put it in the box',
@@ -128,7 +157,7 @@ function BoxArt({ count, bump, notes }: { count: number; bump: boolean; notes: P
   return (
     <svg viewBox="0 16 220 134" className={`mx-auto block w-[210px] overflow-visible ${bump ? 'park-box-bump' : ''}`} role="img" aria-label="Parkbox" data-testid="park-box-art" data-count={count}>
       {peek.map((n, i) => (
-        <rect key={n.id} x={50 + i * 34} y={22 - (i % 2) * 6} width="34" height="40" rx="3" fill={PAPER_COLORS[n.paper % PAPER_COLORS.length]} stroke="rgba(0,0,0,0.12)" transform={`rotate(${(i - 1.5) * 7} ${67 + i * 34} 62)`} />
+        <rect key={n.id} x={50 + i * 34} y={22 - (i % 2) * 6} width="34" height="40" rx="3" fill={SLIP_COLORS[n.origin ?? 'park'].bg} stroke="rgba(0,0,0,0.12)" transform={`rotate(${(i - 1.5) * 7} ${67 + i * 34} 62)`} />
       ))}
       <path d="M22 62 L198 62 L190 138 Q189 144 183 144 L37 144 Q31 144 30 138 Z" fill="#c8995c" stroke="#a97a3f" strokeWidth="2" />
       <path d="M22 62 L198 62 L194 92 L26 92 Z" fill="#d6aa6c" stroke="#a97a3f" strokeWidth="2" />
@@ -146,10 +175,13 @@ export function ParkboxPage() {
 
   const [notes, setNotes] = useState<ParkNote[]>(() => parkNotesRepo.getAll());
   const [wait, setWait] = useState<WaitItem[]>(() => waitItemsRepo.getAll());
+  const [params, setParams] = useSearchParams();
+  const section: 'park' | 'wait' = params.get('ort') === 'wartezimmer' ? 'wait' : 'park';
+  const setSection = (s: 'park' | 'wait') => setParams(s === 'wait' ? { ort: 'wartezimmer' } : {}, { replace: true });
   const [text, setText] = useState('');
   const [prio, setPrio] = useState<Prio>(2);
   const [tab, setTab] = useState<'open' | 'archive'>('open');
-  const [flying, setFlying] = useState<{ text: string; paper: number; dy: number; h: number } | null>(null);
+  const [flying, setFlying] = useState<{ text: string; dy: number; h: number } | null>(null);
   const [bump, setBump] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
@@ -174,8 +206,9 @@ export function ParkboxPage() {
   const bumpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (bumpTimer.current) clearTimeout(bumpTimer.current); }, []);
 
-  const openNotes = useMemo(() => sortNotes(notes.filter((n) => !n.archived && !n.projectId)), [notes]);
-  const archived = useMemo(() => sortNotes(notes.filter((n) => n.archived && !n.projectId)), [notes]);
+  const openNotes = useMemo(() => sortNotes(notes.filter((n) => !n.archived && !n.projectId && !n.attach)), [notes]);
+  const archived = useMemo(() => sortNotes(notes.filter((n) => n.archived && !n.projectId && !n.attach)), [notes]);
+  const pinned = useMemo(() => notes.filter((n) => n.attach).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)), [notes]);
   const appointments = appointmentsRepo.getAll();
   const apptOf = (w: WaitItem): Appointment | undefined => (w.appointmentId ? appointments.find((a) => a.id === w.appointmentId) : undefined);
   const waiting = wait.filter((w) => !apptOf(w));
@@ -190,9 +223,9 @@ export function ParkboxPage() {
     setWait(next);
   }
 
-  function finishPut(p: { text: string; paper: number }) {
+  function finishPut(p: { text: string }) {
     const now = new Date().toISOString();
-    const note: ParkNote = { id: createId('park'), text: p.text, priority: prio, archived: false, paper: p.paper, tilt: Math.round((Math.random() * 6 - 3) * 10) / 10, createdAt: now, updatedAt: now };
+    const note: ParkNote = { id: createId('park'), text: p.text, priority: prio, archived: false, paper: 0, origin: 'park', tilt: Math.round((Math.random() * 6 - 3) * 10) / 10, createdAt: now, updatedAt: now };
     persistNotes([...parkNotesRepo.getAll(), note]);
     setFlying(null);
     setText('');
@@ -204,15 +237,14 @@ export function ParkboxPage() {
   function putInBox() {
     const clean = text.trim();
     if (!clean || flying) return;
-    const paper = Math.floor(Math.random() * PAPER_COLORS.length);
     if (settings.reduceMotion) {
-      finishPut({ text: clean, paper });
+      finishPut({ text: clean });
       return;
     }
     const a = paperRef.current?.getBoundingClientRect();
     const b = boxRef.current?.getBoundingClientRect();
     const dy = a && b ? Math.max(60, b.top + 40 - a.top) : 220;
-    setFlying({ text: clean, paper, dy, h: a?.height ?? 130 });
+    setFlying({ text: clean, dy, h: a?.height ?? 130 });
   }
 
   function updateNote(id: string, patch: Partial<ParkNote>) {
@@ -347,22 +379,42 @@ export function ParkboxPage() {
       <TopBar />
       <div className="px-5 pb-12">
         <h1 className="text-[24px] mb-2 leading-tight">{T.title}</h1>
-        <p className="text-[14px] text-[var(--color-text-muted)] leading-relaxed mb-5">{T.intro}</p>
+        <p className="text-[14px] text-[var(--color-text-muted)] leading-relaxed mb-4">{T.intro}</p>
 
+        <div className="grid grid-cols-2 gap-2.5 mb-5" role="tablist" aria-label={T.title}>
+          <button type="button" role="tab" aria-selected={section === 'park'} onClick={() => setSection('park')} className="rounded-2xl px-3 py-3 text-left border-2 transition" style={{ background: section === 'park' ? SLIP_COLORS.park.bg : 'var(--color-surface)', borderColor: section === 'park' ? '#c8995c' : 'var(--color-border)' }} data-testid="section-park">
+            <span className="block text-[22px]" aria-hidden="true">📦</span>
+            <span className="block text-[16px] text-[#3d3a2e]">{T.tabPark}</span>
+            <span className="block text-[11.5px] text-[#6b6650] leading-snug">{T.tabParkSub}</span>
+          </button>
+          <button type="button" role="tab" aria-selected={section === 'wait'} onClick={() => setSection('wait')} className="rounded-2xl px-3 py-3 text-left border-2 transition" style={{ background: section === 'wait' ? SLIP_COLORS.wait.bg : 'var(--color-surface)', borderColor: section === 'wait' ? '#5f8fb0' : 'var(--color-border)' }} data-testid="section-wait">
+            <span className="block text-[22px]" aria-hidden="true">🪑</span>
+            <span className="block text-[16px] text-[#2b3a4d]">{T.tabWait}</span>
+            <span className="block text-[11.5px] text-[#4d6076] leading-snug">{T.tabWaitSub}</span>
+          </button>
+        </div>
+        <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mb-4" data-testid="park-differ">{T.differ}</p>
+
+        {section === 'park' && (
+        <div className="rounded-3xl p-4 -mx-1" style={{ background: 'linear-gradient(180deg, #fbf3dc 0%, transparent 70%)', border: '1px solid #c8995c40' }} data-testid="park-section">
+        <div className="rounded-xl p-3 mb-4 text-[13.5px] leading-relaxed text-[#4a4636]" style={{ background: '#fff8d6' }}>
+          <p className="mb-1"><strong>📦 {T.parkExplainTitle}</strong></p>
+          <p>{T.parkExplain}</p>
+        </div>
         {/* writing + box */}
         <div className="relative">
           <div ref={paperRef} className="relative z-10">
             {flying ? (
               <div
                 className="park-paper park-fly"
-                style={{ background: PAPER_COLORS[flying.paper], minHeight: flying.h, ['--fly-dy' as string]: `${flying.dy}px` }}
+                style={{ background: SLIP_COLORS.park.bg, minHeight: flying.h, ['--fly-dy' as string]: `${flying.dy}px` }}
                 onAnimationEnd={() => finishPut(flying)}
                 data-testid="park-flying"
               >
                 <p className="text-[15px] leading-[28px] whitespace-pre-line text-[#3d3a2e]">{flying.text}</p>
               </div>
             ) : (
-              <div className="park-paper" style={{ background: '#fff6bf', transform: 'rotate(-1.2deg)' }}>
+              <div className="park-paper" style={{ background: SLIP_COLORS.park.bg, transform: 'rotate(-1.2deg)' }}>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
@@ -401,7 +453,7 @@ export function ParkboxPage() {
         <ul className="flex flex-col gap-3 mt-4" data-testid="park-list">
           {list.length === 0 && <li className="text-[13px] text-[var(--color-text-faint)]">{tab === 'open' ? T.emptyBox : T.emptyArchive}</li>}
           {list.map((n, i) => (
-            <li key={n.id} className="park-paper park-land" style={{ background: PAPER_COLORS[n.paper % PAPER_COLORS.length], transform: `rotate(${n.tilt}deg)`, animationDelay: `${Math.min(i, 6) * 40}ms` }} data-testid="park-note" data-prio={n.priority}>
+            <li key={n.id} className="park-paper park-land" style={{ background: SLIP_COLORS.park.bg, transform: `rotate(${n.tilt}deg)`, animationDelay: `${Math.min(i, 6) * 40}ms` }} data-testid="park-note" data-prio={n.priority}>
               {editId === n.id ? (
                 <>
                   <textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} className="w-full bg-transparent outline-none resize-none text-[15px] leading-[28px] text-[#3d3a2e] border-b border-[#00000022]" data-testid="park-edit-input" />
@@ -446,13 +498,38 @@ export function ParkboxPage() {
           ))}
         </ul>
 
+        {pinned.length > 0 && (
+          <section className="mt-8" data-testid="park-pinned">
+            <h2 className="text-[16px] mb-1">📌 {T.pinned} · {pinned.length}</h2>
+            <p className="text-[12.5px] text-[var(--color-text-muted)] mb-3">{T.pinnedHint}</p>
+            <ul className="flex flex-col gap-2">
+              {pinned.map((n) => {
+                const pl = slipPlace(n, settings.language === 'en' ? 'en' : 'de');
+                return (
+                  <li key={n.id} className="rounded-md px-3 py-2.5 text-[14px]" style={{ background: SLIP_COLORS[n.origin ?? 'park'].bg, color: SLIP_COLORS[n.origin ?? 'park'].ink }} data-testid="park-pinned-item">
+                    <p className={n.done ? 'line-through opacity-70' : ''}>🗒️ {n.text}</p>
+                    {pl && <p className="text-[12px] mt-1 opacity-80">{pl.icon} {pl.label}</p>}
+                    <div className="flex gap-1.5 mt-2">
+                      {pl && <Link to={pl.to} className={smallBtn}>{T.pinnedOpen} →</Link>}
+                      <button type="button" className={smallBtn} onClick={() => { slipToPark(n.id); setNotes(parkNotesRepo.getAll()); }} data-testid="park-pinned-back"><RotateCcw size={13} /> {T.pinnedBack}</button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+        </div>
+        )}
+
         {/* Wartezimmer */}
-        <section className="mt-10" data-testid="waiting-room">
+        {section === 'wait' && (
+        <section className="rounded-3xl p-4 -mx-1" style={{ background: 'linear-gradient(180deg, #e8f1fa 0%, transparent 70%)', border: '1px solid #5f8fb040' }} data-testid="waiting-room">
           <div className="rounded-[var(--radius-xl)] p-4 mb-4" style={{ background: 'linear-gradient(180deg, #e3eef6 0%, #f3ede1 100%)', border: '1px solid #5f8fb033' }}>
             <div className="flex items-center justify-center gap-3 text-[26px] mb-1" aria-hidden="true">🪑 🪴 🕰️ 🪴 🪑</div>
             <div className="h-1.5 rounded-full mb-3" style={{ background: '#c9b48f66' }} aria-hidden="true" />
             <h2 className="text-[20px] mb-1">{T.waitTitle}</h2>
-            <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed">{T.waitIntro}</p>
+            <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed"><strong>{T.waitExplainTitle}</strong> {T.waitExplain}</p>
           </div>
 
           <div className="rounded-[var(--radius-lg)] p-3.5 mb-4 flex flex-col gap-2.5" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
@@ -483,15 +560,17 @@ export function ParkboxPage() {
             </>
           )}
         </section>
+        )}
       </div>
       {msg && <div className="fixed left-1/2 -translate-x-1/2 bottom-28 z-40 rounded-full px-4 py-2 text-[13.5px] text-white shadow-lg pointer-events-none" style={{ background: 'var(--color-text)' }} role="status" data-testid="park-toast">{msg}</div>}
       {assignNote && (
         <AssignSheet
           text={assignNote.text}
+          note={assignNote}
           source="note"
           lang={settings.language === 'en' ? 'en' : 'de'}
           onClose={() => setAssignNote(null)}
-          onAssigned={(m) => { removeNote(assignNote.id); setAssignNote(null); say(m); }}
+          onAssigned={(m, o) => { if (o?.kept) setNotes(parkNotesRepo.getAll()); else removeNote(assignNote.id); setAssignNote(null); say(m); }}
           onToWait={() => { noteToWaiting(assignNote); setAssignNote(null); }}
           onPostfach={() => { setSchedNote(assignNote); setAssignNote(null); }}
         />
@@ -508,10 +587,11 @@ export function ParkboxPage() {
       {assignWait && (
         <AssignSheet
           text={assignWait.title}
+          waitItem={assignWait}
           source="wait"
           lang={settings.language === 'en' ? 'en' : 'de'}
           onClose={() => setAssignWait(null)}
-          onAssigned={(m) => { removeWait(assignWait.id); setAssignWait(null); say(m); }}
+          onAssigned={(m, o) => { if (o?.kept) setWait(waitItemsRepo.getAll()); else removeWait(assignWait.id); setAssignWait(null); if (o?.kept) setNotes(parkNotesRepo.getAll()); say(m); }}
           onCalendarWait={() => { const w = assignWait; setAssignWait(null); openSlot(w); }}
         />
       )}
