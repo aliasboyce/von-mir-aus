@@ -8,6 +8,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TopBar } from '../../components/navigation/TopBar';
+import { MoreMenu } from '../../components/ui/MoreMenu';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
@@ -295,27 +296,11 @@ export function SafetyNetPage() {
         action={
           <div className="flex items-center gap-1">
             <HelpButton helpKey="sicherheitsnetz" />
-            <button
-              onClick={() => void startPrint()}
-              aria-label={t.network.exportPdf}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
-            >
-              <FileDown size={17} />
-            </button>
-            <button
-              onClick={() => setCategoryEditorOpen(true)}
-              aria-label={t.network.manageCategories}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
-            >
-              <Palette size={18} />
-            </button>
-            <button
-              onClick={() => setBackgroundPickerOpen(true)}
-              aria-label={t.network.backgroundPickerTitle}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
-            >
-              <Image size={18} />
-            </button>
+            <MoreMenu testId="network-menu" items={[
+              { id: 'categories', label: t.network.manageCategories, icon: <Palette size={17} />, onClick: () => setCategoryEditorOpen(true) },
+              { id: 'background', label: t.network.backgroundPickerTitle, icon: <Image size={17} />, onClick: () => setBackgroundPickerOpen(true) },
+              { id: 'pdf', label: t.network.exportPdf, icon: <FileDown size={17} />, divider: true, onClick: () => void startPrint() },
+            ]} />
           </div>
         }
       />

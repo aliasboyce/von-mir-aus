@@ -24,6 +24,7 @@ export const OVERVIEW_KEYWORDS: Record<string, string> = {
   werte: 'werte wertekompass values',
   garten: 'garten routinen gewohnheiten pflanzen blumen routines garden',
   mindmap: 'mindmap karte gedankenkarte zeichnen knoten ebenen to-do tabelle pro contra aquarell notiz frühere zustände festhalten mind map',
+  listen: 'liste listen einkaufsliste einkauf packliste checkliste to-do todo abhaken haken aufzählung ideen merken notizen liste lists shopping packing checklist tick',
   budget: 'budget geld finanzen einnahmen ausgaben rechnung rechnungen miete fixkosten kosten sparschwein sparen rücklage konto kontostand bargeld abo abos vertrag verträge streaming netflix kündigung kündigungsfrist gehalt arbeitslosengeld kindergeld bürgergeld haushaltsbuch money bills savings piggy bank subscription contract',
   projekte: 'projekte projekt mini webseite unterseiten protokoll pdf kalender schritte zettel box wartezimmer morgen postfach alles zeigen projects',
   kalender: 'kalender termine termin planen wünsche calendar appointments',

@@ -42,7 +42,7 @@ export const PAGE_LOOKS: Record<string, PageLook> = {
   images: { shape: 'tab', head: 'tab', font: HAND, bg: (c) => ({ backgroundImage: `conic-gradient(${mix(c, 8)} 25%, transparent 0 50%, ${mix(c, 8)} 0 75%, transparent 0)`, backgroundSize: '36px 36px' }) },
   text: { shape: 'tab', head: 'plain', font: HAND, bg: (c) => ({ ...lined(c), borderLeft: `3px solid ${mix('#d0603a', 40)}`, paddingLeft: 0 }) },
   log: { shape: 'squircle', head: 'stamp', font: SERIF, bg: (c) => ({ ...lined(c), borderLeft: `10px double ${mix(c, 45)}` }) },
-  box: { shape: 'ticket', head: 'band', font: HAND, bg: () => ({ backgroundImage: 'repeating-linear-gradient(0deg, rgba(201,143,90,0.10) 0 3px, rgba(201,143,90,0.05) 3px 6px)' }) },
+  box: { shape: 'ticket', head: 'plain', font: 'inherit', bg: () => ({}) },
   all: { shape: 'circle', head: 'plain', font: ROUND, bg: () => ({}) },
 };
 

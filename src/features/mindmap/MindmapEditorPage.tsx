@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE } from 'react';
 import { deleteVersionsOf, saveVersion, versionsOf, type MapVersion } from './mindmapVersions';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, ChevronLeft, CornerDownRight, Copy, CopyPlus, Ellipsis, ExternalLink, FileDown, FolderTree, History, Image as ImageIcon, Layers, ListChecks, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload } from 'lucide-react';
+import { Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, ChevronLeft, CornerDownRight, Copy, CopyPlus, Ellipsis, ExternalLink, FileDown, FolderTree, History, Image as ImageIcon, Layers, ListChecks, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload, ChevronUp, ChevronRight, PanelBottom, PanelLeft } from 'lucide-react';
+import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { useCamera } from '../../components/canvas/useCamera';
 import { useSettings } from '../../state/SettingsContext';
 import { useRegisterExternalModalOpen, useRegisterModalOpen } from '../../state/ModalStackContext';
@@ -67,6 +68,10 @@ import { deliverImage, stamp } from '../../services/snapshot';
 import { mindmapTexts } from './mindmapTexts';
 import { fmt, xt } from './mindmapExtraTexts';
 import { clipText, copyOf, getClip, instantiate, mapPartsFor, rotateNodes, scaleNodes, selectionBounds, setClip, withGroupMates } from './mindmapOps';
+
+/** Werkzeug-Menü: unten oder an der Seite – und ein- oder ausgeklappt. Wird gemerkt. */
+const barPosStore = createKeyValueStore<'bottom' | 'side'>('mindmap-bar-pos', 'bottom');
+const barOpenStore = createKeyValueStore<boolean>('mindmap-bar-open', true);
 
 const NODE_COLORS = ['#6aa08a', '#4a8f9e', '#e8a83d', '#e07a5f', '#9a7bc4', '#d9778a', '#7a9e4a'];
 /** shapes that may be swapped for another shape (not drawings, photos, doodles, cards) */
@@ -138,6 +143,10 @@ function Editor({ initial }: { initial: MindMap }) {
   const [tab, setTab] = useState<StyleTab>('shape');
   const [textEdit, setTextEdit] = useState<Sel>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [barPos, setBarPosState] = useState<'bottom' | 'side'>(() => barPosStore.get() ?? 'bottom');
+  const [barOpen, setBarOpenState] = useState<boolean>(() => barOpenStore.get() !== false);
+  const setBarPos = (v: 'bottom' | 'side') => { setBarPosState(v); barPosStore.set(v); };
+  const setBarOpen = (v: boolean) => { setBarOpenState(v); barOpenStore.set(v); };
   const [bgOpen, setBgOpen] = useState(false);
   const [insertOpen, setInsertOpen] = useState(false);
   /** where the next new element goes: next to a parent (connected) and/or at a spot */
@@ -1403,6 +1412,77 @@ function Editor({ initial }: { initial: MindMap }) {
   const pwLive = penWidth({ sw: pen.sw / view.scale, pen: pen.kind });
   const mapColors = useMemo(() => colorsOfMap(map.nodes, map.edges), [map.nodes, map.edges]);
 
+  const panelsOn = (layersOpen && !drawing) || (!!(selNode || selEdge) && styleOpen && !drawing && !layersOpen);
+  const barButtons = (
+    <>
+                {!sel && tool !== 'multi' && (
+                  <>
+                    <button type="button" onClick={addNode} className={barBtn()} data-testid="mm-add-node"><Plus size={20} />{T.addNode}</button>
+                    <button type="button" onClick={addFreeText} className={barBtn()} data-testid="mm-add-text"><Type size={19} />{X.addText}</button>
+                    <button type="button" onClick={addNote} className={barBtn()} data-testid="mm-add-note"><StickyNote size={19} />{T.addNote}</button>
+                    <button type="button" onClick={addFrame} className={barBtn()} data-testid="mm-add-frame"><SquareDashed size={19} />{T.addFrame}</button>
+                    <button type="button" onClick={() => { setTool('draw'); setConnectFrom(null); }} className={barBtn()} data-testid="mm-draw"><PenLine size={19} />{X.pen}</button>
+                    {clipNow && clipNow.nodes.length > 0 && (
+                      <button type="button" onClick={() => pasteClip()} className={barBtn()} data-testid="mm-paste-clip"><ClipboardPaste size={19} />{X.paste}</button>
+                    )}
+                    <button type="button" onClick={() => openAdd()} className={barBtn()} data-testid="mm-add-more"><ListChecks size={19} />{lang === 'en' ? 'Add …' : 'Hinzufügen …'}</button>
+                    <button type="button" onClick={() => { setTool('multi'); setConnectFrom(null); }} className={barBtn()} data-testid="mm-multi"><BoxSelect size={19} />{X.multi}</button>
+                    <button type="button" onClick={() => { setTool(tool === 'connect' ? 'select' : 'connect'); setConnectFrom(null); }} className={barBtn(tool === 'connect')} data-testid="mm-connect"><Spline size={19} />{T.connect}</button>
+                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={19} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
+                    <button type="button" onClick={() => setVersionsOpen(true)} className={barBtn()} data-testid="mm-versions-btn"><History size={19} />{lang === 'en' ? 'States' : 'Zustände'}</button>
+                  </>
+                )}
+                {!sel && tool === 'multi' && (
+                  <>
+                    <button type="button" onClick={() => selectNodes(mapRef.current.nodes.map((n) => n.id), true)} className={barBtn()} data-testid="mm-select-all"><BoxSelect size={19} />{X.selectAll}</button>
+                    {clipNow && clipNow.nodes.length > 0 && (
+                      <button type="button" onClick={() => pasteClip()} className={barBtn()} data-testid="mm-paste-clip"><ClipboardPaste size={19} />{X.paste}</button>
+                    )}
+                    <button type="button" onClick={() => setTool('select')} className={barBtn()} data-testid="mm-multi-done"><Check size={19} />{X.multiDone}</button>
+                  </>
+                )}
+                {selNode && !multiSel && (
+                  <>
+                    {hasText(selNode) && <button type="button" onClick={() => setTextEdit({ kind: 'node', id: selNode.id })} className={barBtn(!!textEdit)} data-testid="mm-edit-text"><Type size={19} />{T.text}</button>}
+                    {isBlock(selNode) && selNode.shape !== 'appcard' && <button type="button" onClick={() => setBlockEdit(selNode.id)} className={barBtn()} data-testid="mm-edit-content"><ListChecks size={19} />{lang === 'en' ? 'Content' : 'Inhalt'}</button>}
+                    <button type="button" onClick={() => { setStyleOpen((v) => !v); setLayersOpen(false); }} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
+                    {selNode.shape === 'appcard' && <button type="button" onClick={() => openRef(selNode)} className={barBtn()} data-testid="mm-ref-open-btn"><ExternalLink size={19} />{lang === 'en' ? 'Open original' : 'Original öffnen'}</button>}
+                    {selNode.shape === 'maplink' && <button type="button" onClick={() => openLinked(selNode)} className={barBtn()} data-testid="mm-open-map"><ExternalLink size={19} />{X.openMap}</button>}
+                    {selNode.shape !== 'frame' && selNode.shape !== 'draw' && <button type="button" onClick={() => addChild(selNode)} className={barBtn()} data-testid="mm-add-child"><CornerDownRight size={19} />{T.child}</button>}
+                    {selNode.shape !== 'draw' && <button type="button" onClick={() => { setTool('connect'); setConnectFrom(selNode.id); }} className={barBtn()} data-testid="mm-connect-from"><Spline size={19} />{T.connect}</button>}
+                    <button type="button" onClick={doCopy} className={barBtn()} data-testid="mm-copy"><Copy size={18} />{X.copy}</button>
+                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
+                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={18} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
+                    <button type="button" onClick={() => setTool('multi')} className={barBtn()} data-testid="mm-multi-from"><BoxSelect size={19} />{X.moreSelect}</button>
+                    <button type="button" onClick={() => { setNewMapRemove(false); setNewMapOpen(true); }} className={barBtn()} data-testid="mm-to-newmap"><FolderTree size={18} />{X.toNewMap}</button>
+                    <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
+                  </>
+                )}
+                {selNode && multiSel && (
+                  <>
+                    <button type="button" onClick={() => setStyleOpen((v) => !v)} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
+                    <button type="button" onClick={doCopy} className={barBtn()} data-testid="mm-copy"><Copy size={18} />{X.copy}</button>
+                    <button type="button" onClick={doCut} className={barBtn()} data-testid="mm-cut"><Scissors size={18} />{X.cut}</button>
+                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
+                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={18} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
+                    <button type="button" onClick={toggleGroup} className={barBtn(grouped)} data-testid="mm-group"><Users size={18} />{grouped ? X.ungroup : X.group}</button>
+                    <button type="button" onClick={() => { setNewMapRemove(false); setNewMapOpen(true); }} className={barBtn()} data-testid="mm-to-newmap"><FolderTree size={18} />{X.toNewMap}</button>
+                    <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
+                  </>
+                )}
+                {selEdge && (
+                  <>
+                    <button type="button" onClick={() => setTextEdit({ kind: 'edge', id: selEdge.id })} className={barBtn(!!textEdit)} data-testid="mm-edge-text"><Type size={19} />{T.labelBtn}</button>
+                    <button type="button" onClick={() => setStyleOpen((v) => !v)} className={barBtn(styleOpen)} data-testid="mm-edge-style"><Palette size={19} />{T.style}</button>
+                    <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
+                  </>
+                )}
+                {sel && (
+                  <button type="button" onClick={() => { clearSelection(); setStyleOpen(false); setTextEdit(null); if (tool === 'multi') setTool('select'); }} aria-label={T.close} className={barBtn()} data-testid="mm-deselect"><ChevronDown size={20} /></button>
+                )}
+    </>
+  );
+
   return (
     <MapColorsContext.Provider value={mapColors}>
       <div className={`fixed inset-0 z-[150] no-print select-none ${animOn ? '' : 'mm-paused'}`} style={{ background: bgCss(map.bg.tone) }} data-has-bgimg={map.bg.img ? 'true' : undefined} data-testid="mindmap-editor" data-tool={tool} data-anim={animate ? 'on' : 'off'}>
@@ -1574,6 +1654,7 @@ function Editor({ initial }: { initial: MindMap }) {
             {[
               { id: 'bg', icon: <ImageIcon size={16} />, label: T.background, run: () => setBgOpen(true) },
               { id: 'fit', icon: <Maximize size={16} />, label: T.fit, run: fitAll },
+              { id: 'barpos', icon: barPos === 'side' ? <PanelBottom size={16} /> : <PanelLeft size={16} />, label: barPos === 'side' ? (lang === 'en' ? 'Tool menu at the bottom' : 'Werkzeug-Menü unten') : (lang === 'en' ? 'Tool menu at the side' : 'Werkzeug-Menü an der Seite'), run: () => { setBarPos(barPos === 'side' ? 'bottom' : 'side'); setBarOpen(true); } },
               { id: 'anim', icon: animOn ? <Pause size={16} /> : <Play size={16} />, label: animOn ? X.menuAnimOff : X.menuAnimOn, run: () => setAnimOn((v) => !v) },
               { id: 'submap', icon: <FolderTree size={16} />, label: X.menuSubmap, run: () => setSubOpen(true) },
               { id: 'showsubs', icon: <Link2 size={16} />, label: X.menuShowSubs, run: showSubmaps },
@@ -1650,8 +1731,15 @@ function Editor({ initial }: { initial: MindMap }) {
         )}
         {toast && <p className="absolute left-1/2 -translate-x-1/2 bottom-28 text-[13px] px-4 py-2 rounded-full bg-[var(--color-text)] text-[var(--color-bg)] shadow-[var(--shadow-md)] z-10" role="status">{toast}</p>}
 
-        {/* bottom: calm by default, tools only for what is selected */}
+        {/* bottom: calm by default, tools only for what is selected. The tool row can be folded away and can sit at the bottom or at the side. */}
+        {!barOpen && (
+          <button type="button" onClick={() => setBarOpen(true)} aria-label={lang === 'en' ? 'Show tools' : 'Werkzeuge zeigen'} className={`absolute z-10 flex items-center justify-center bg-[var(--color-surface)] text-[var(--color-text-muted)] shadow-[var(--shadow-md)] ${barPos === 'side' ? 'left-0 top-1/2 -translate-y-1/2 w-6 h-16 rounded-r-2xl' : 'left-1/2 -translate-x-1/2 bottom-0 w-16 rounded-t-2xl'}`} style={barPos === 'bottom' ? { height: 'calc(26px + env(safe-area-inset-bottom))', paddingBottom: 'env(safe-area-inset-bottom)' } : undefined} data-testid="mm-bar-show">{barPos === 'side' ? <ChevronRight size={18} /> : <ChevronUp size={18} />}</button>
+        )}
+        {barOpen && (barPos === 'bottom' || drawing || panelsOn) && (
         <div className="absolute left-0 right-0 bottom-0 bg-[var(--color-surface)] rounded-t-[22px] shadow-[0_-4px_18px_rgba(0,0,0,0.08)]" style={{ paddingBottom: 'max(10px, env(safe-area-inset-bottom))' }} data-testid="mm-bottom">
+          {barPos === 'bottom' && (
+            <button type="button" onClick={() => setBarOpen(false)} aria-label={lang === 'en' ? 'Fold tools away' : 'Werkzeuge einklappen'} className="absolute left-1/2 -translate-x-1/2 -top-5 w-16 h-5 rounded-t-2xl bg-[var(--color-surface)] text-[var(--color-text-muted)] flex items-center justify-center shadow-[0_-4px_10px_rgba(0,0,0,0.06)]" data-testid="mm-bar-hide"><ChevronDown size={17} /></button>
+          )}
           {layersOpen && !drawing && (
             <div className="px-4 pt-3 max-h-[46vh] overflow-y-auto">
               <LayersPanel
@@ -1683,78 +1771,25 @@ function Editor({ initial }: { initial: MindMap }) {
           )}
           {drawing ? (
             <PenBar pen={pen} setPen={setPen} onDone={() => setTool('select')} onUndo={undo} canUndo={hist.current.past.length > 0} X={X} lang={lang} />
-          ) : (
+          ) : barPos === 'bottom' ? (
             <div className="overflow-x-auto" data-testid="mm-bar-scroll">
               <div className="flex items-center justify-around px-2 pt-1.5 w-max min-w-full">
-                {!sel && tool !== 'multi' && (
-                  <>
-                    <button type="button" onClick={addNode} className={barBtn()} data-testid="mm-add-node"><Plus size={20} />{T.addNode}</button>
-                    <button type="button" onClick={addFreeText} className={barBtn()} data-testid="mm-add-text"><Type size={19} />{X.addText}</button>
-                    <button type="button" onClick={addNote} className={barBtn()} data-testid="mm-add-note"><StickyNote size={19} />{T.addNote}</button>
-                    <button type="button" onClick={addFrame} className={barBtn()} data-testid="mm-add-frame"><SquareDashed size={19} />{T.addFrame}</button>
-                    <button type="button" onClick={() => { setTool('draw'); setConnectFrom(null); }} className={barBtn()} data-testid="mm-draw"><PenLine size={19} />{X.pen}</button>
-                    {clipNow && clipNow.nodes.length > 0 && (
-                      <button type="button" onClick={() => pasteClip()} className={barBtn()} data-testid="mm-paste-clip"><ClipboardPaste size={19} />{X.paste}</button>
-                    )}
-                    <button type="button" onClick={() => openAdd()} className={barBtn()} data-testid="mm-add-more"><ListChecks size={19} />{lang === 'en' ? 'Add …' : 'Hinzufügen …'}</button>
-                    <button type="button" onClick={() => { setTool('multi'); setConnectFrom(null); }} className={barBtn()} data-testid="mm-multi"><BoxSelect size={19} />{X.multi}</button>
-                    <button type="button" onClick={() => { setTool(tool === 'connect' ? 'select' : 'connect'); setConnectFrom(null); }} className={barBtn(tool === 'connect')} data-testid="mm-connect"><Spline size={19} />{T.connect}</button>
-                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={19} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
-                    <button type="button" onClick={() => setVersionsOpen(true)} className={barBtn()} data-testid="mm-versions-btn"><History size={19} />{lang === 'en' ? 'States' : 'Zustände'}</button>
-                  </>
-                )}
-                {!sel && tool === 'multi' && (
-                  <>
-                    <button type="button" onClick={() => selectNodes(mapRef.current.nodes.map((n) => n.id), true)} className={barBtn()} data-testid="mm-select-all"><BoxSelect size={19} />{X.selectAll}</button>
-                    {clipNow && clipNow.nodes.length > 0 && (
-                      <button type="button" onClick={() => pasteClip()} className={barBtn()} data-testid="mm-paste-clip"><ClipboardPaste size={19} />{X.paste}</button>
-                    )}
-                    <button type="button" onClick={() => setTool('select')} className={barBtn()} data-testid="mm-multi-done"><Check size={19} />{X.multiDone}</button>
-                  </>
-                )}
-                {selNode && !multiSel && (
-                  <>
-                    {hasText(selNode) && <button type="button" onClick={() => setTextEdit({ kind: 'node', id: selNode.id })} className={barBtn(!!textEdit)} data-testid="mm-edit-text"><Type size={19} />{T.text}</button>}
-                    {isBlock(selNode) && selNode.shape !== 'appcard' && <button type="button" onClick={() => setBlockEdit(selNode.id)} className={barBtn()} data-testid="mm-edit-content"><ListChecks size={19} />{lang === 'en' ? 'Content' : 'Inhalt'}</button>}
-                    <button type="button" onClick={() => { setStyleOpen((v) => !v); setLayersOpen(false); }} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
-                    {selNode.shape === 'appcard' && <button type="button" onClick={() => openRef(selNode)} className={barBtn()} data-testid="mm-ref-open-btn"><ExternalLink size={19} />{lang === 'en' ? 'Open original' : 'Original öffnen'}</button>}
-                    {selNode.shape === 'maplink' && <button type="button" onClick={() => openLinked(selNode)} className={barBtn()} data-testid="mm-open-map"><ExternalLink size={19} />{X.openMap}</button>}
-                    {selNode.shape !== 'frame' && selNode.shape !== 'draw' && <button type="button" onClick={() => addChild(selNode)} className={barBtn()} data-testid="mm-add-child"><CornerDownRight size={19} />{T.child}</button>}
-                    {selNode.shape !== 'draw' && <button type="button" onClick={() => { setTool('connect'); setConnectFrom(selNode.id); }} className={barBtn()} data-testid="mm-connect-from"><Spline size={19} />{T.connect}</button>}
-                    <button type="button" onClick={doCopy} className={barBtn()} data-testid="mm-copy"><Copy size={18} />{X.copy}</button>
-                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
-                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={18} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
-                    <button type="button" onClick={() => setTool('multi')} className={barBtn()} data-testid="mm-multi-from"><BoxSelect size={19} />{X.moreSelect}</button>
-                    <button type="button" onClick={() => { setNewMapRemove(false); setNewMapOpen(true); }} className={barBtn()} data-testid="mm-to-newmap"><FolderTree size={18} />{X.toNewMap}</button>
-                    <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
-                  </>
-                )}
-                {selNode && multiSel && (
-                  <>
-                    <button type="button" onClick={() => setStyleOpen((v) => !v)} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
-                    <button type="button" onClick={doCopy} className={barBtn()} data-testid="mm-copy"><Copy size={18} />{X.copy}</button>
-                    <button type="button" onClick={doCut} className={barBtn()} data-testid="mm-cut"><Scissors size={18} />{X.cut}</button>
-                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
-                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={18} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
-                    <button type="button" onClick={toggleGroup} className={barBtn(grouped)} data-testid="mm-group"><Users size={18} />{grouped ? X.ungroup : X.group}</button>
-                    <button type="button" onClick={() => { setNewMapRemove(false); setNewMapOpen(true); }} className={barBtn()} data-testid="mm-to-newmap"><FolderTree size={18} />{X.toNewMap}</button>
-                    <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
-                  </>
-                )}
-                {selEdge && (
-                  <>
-                    <button type="button" onClick={() => setTextEdit({ kind: 'edge', id: selEdge.id })} className={barBtn(!!textEdit)} data-testid="mm-edge-text"><Type size={19} />{T.labelBtn}</button>
-                    <button type="button" onClick={() => setStyleOpen((v) => !v)} className={barBtn(styleOpen)} data-testid="mm-edge-style"><Palette size={19} />{T.style}</button>
-                    <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
-                  </>
-                )}
-                {sel && (
-                  <button type="button" onClick={() => { clearSelection(); setStyleOpen(false); setTextEdit(null); if (tool === 'multi') setTool('select'); }} aria-label={T.close} className={barBtn()} data-testid="mm-deselect"><ChevronDown size={20} /></button>
-                )}
+                {barButtons}
               </div>
             </div>
-          )}
+          ) : null}
         </div>
+        )}
+        {barOpen && barPos === 'side' && !drawing && (
+          <div className="absolute left-0 z-10 flex flex-col bg-[var(--color-surface)] rounded-r-[20px] shadow-[var(--shadow-md)] w-[68px]" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 58px)', bottom: panelsOn ? '48vh' : 'max(14px, env(safe-area-inset-bottom))' }} data-testid="mm-side">
+            <button type="button" onClick={() => setBarOpen(false)} aria-label={lang === 'en' ? 'Fold tools away' : 'Werkzeuge einklappen'} className="shrink-0 h-8 flex items-center justify-center text-[var(--color-text-muted)]" data-testid="mm-bar-hide"><ChevronLeft size={18} /></button>
+            <div className="flex-1 min-h-0 overflow-y-auto" data-testid="mm-bar-scroll">
+              <div className="flex flex-col items-center gap-1 px-1 pb-2">
+                {barButtons}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <MindmapAddSheet

@@ -3,7 +3,7 @@ import { shareOrCopy } from '../../services/shareOrCopy';
 import { buildShareText } from '../../services/sharedLinks';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
-import { Plus, Bookmark as BookmarkIcon, ExternalLink, Trash2, Pencil, Settings2, X, Check, Link2, FileDown } from 'lucide-react';
+import { Plus, Bookmark as BookmarkIcon, ExternalLink, Trash2, Pencil, Settings2, X, Check, Link2, FileDown, ClipboardPaste } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { Chip } from '../../components/ui/Chip';
@@ -16,7 +16,8 @@ import { pickLine } from '../../components/companion/companionRegistry';
 import { bookmarksRepo, bookmarkCategoriesStore, seedDefaultSources, bookmarkCategoryText } from './bookmarksRepo';
 import { BookmarksPrintView } from './BookmarksPrintView';
 import { useSettings } from '../../state/SettingsContext';
-import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
+import { PasteSharedModal, pasteSharedLabel } from '../../components/shared/PasteSharedModal';
+import { MoreMenu } from '../../components/ui/MoreMenu';
 import { createId } from '../../services/storage/repository';
 import type { Bookmark } from '../../data/types';
 import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
@@ -54,6 +55,7 @@ export function BookmarksPage() {
   const [filter, setFilter] = useState<FilterValue>('all');
   const [editing, setEditing] = useState<Bookmark | null>(null);
   const [managingCategories, setManagingCategories] = useState(false);
+  const [pasteOpen, setPasteOpen] = useState(false);
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [renamingId, setRenamingId] = useState<string | null>(null);
@@ -141,26 +143,15 @@ export function BookmarksPage() {
         action={
           <div className="flex items-center gap-1">
             <HelpButton helpKey="lesezeichen" />
-            <button
-              onClick={() => {
-                setPrintingPdf(true);
-                setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
-              }}
-              aria-label={t.bookmarks.exportPdf}
-              className="p-2 text-[var(--color-text-muted)]"
-            >
-              <FileDown size={17} />
-            </button>
-            <button
-              onClick={() => setManagingCategories(true)}
-              aria-label={t.bookmarks.manageCategories}
-              className="p-2 text-[var(--color-text-muted)]"
-            >
-              <Settings2 size={17} />
-            </button>
+            <MoreMenu testId="bookmarks-menu" items={[
+              { id: 'categories', label: t.bookmarks.manageCategories, icon: <Settings2 size={17} />, onClick: () => setManagingCategories(true) },
+              { id: 'paste', label: pasteSharedLabel(settings.language === 'en' ? 'en' : 'de'), icon: <ClipboardPaste size={17} />, onClick: () => setPasteOpen(true) },
+              { id: 'pdf', label: t.bookmarks.exportPdf, icon: <FileDown size={17} />, divider: true, onClick: () => { setPrintingPdf(true); setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50); } },
+            ]} />
           </div>
         }
       />
+      {pasteOpen && <PasteSharedModal onClose={() => setPasteOpen(false)} />}
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1">{t.bookmarks.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{t.bookmarks.subtitle}</p>
@@ -168,8 +159,6 @@ export function BookmarksPage() {
         <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-4">
           {t.bookmarks.addNew}
         </Button>
-
-        <PasteSharedButton className="mb-4" />
 
         <div className="chip-row no-scrollbar mb-5 -mx-5 px-5">
           <Chip selected={filter === 'all'} onClick={() => setFilter('all')}>

@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
 import { buildAppointmentsIcs } from '../../services/icsExport';
 import { deliverTextFile } from '../../services/fileShare';
-import { Link, useSearchParams } from 'react-router-dom';
-import { Plus, Tag, ListOrdered, Check, X, CalendarPlus } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus, Tag, ListOrdered, Check, X, CalendarPlus, CalendarDays, Sprout, FolderKanban, Info, Play, ArrowRight } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
+import { MoreMenu } from '../../components/ui/MoreMenu';
+import { Modal } from '../../components/ui/Modal';
+import { PlanSheet, planInfo } from './PlanSheet';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { createId } from '../../services/storage/repository';
@@ -43,7 +46,8 @@ seedCalendarCategoriesIfEmpty();
  */
 export function CalendarPage() {
   const t = useT();
-  const { L } = useL();
+  const { L, lang } = useL();
+  const navigate = useNavigate();
   const { settings } = useSettings();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
   const days = useMemo(() => nextSevenDays(), []);
@@ -57,6 +61,10 @@ export function CalendarPage() {
   const [formOpen, setFormOpen] = useState(!!newWithPerson);
   const [editing, setEditing] = useState<Appointment | null>(null);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [chooser, setChooser] = useState(false);
+  const planParam = searchParams.get('plan');
+  const [plan, setPlan] = useState<{ kind: 'routine' | 'project'; existing?: Appointment } | null>(planParam === 'routine' || planParam === 'project' ? { kind: planParam } : null);
+  const [info, setInfo] = useState<'ics' | 'intent' | null>(null);
   const [wishText, setWishText] = useState('');
   const [wishIntent, setWishIntent] = useState<'will' | 'soll' | undefined>(undefined);
   const [wishHintOpen, setWishHintOpen] = useState(false);
@@ -81,10 +89,13 @@ export function CalendarPage() {
   }
 
   function openNew() {
-    setEditing(null);
-    setFormOpen(true);
+    setChooser(true);
   }
   function openEdit(a: Appointment) {
+    if (a.plan) {
+      setPlan({ kind: a.plan.kind, existing: a });
+      return;
+    }
     setEditing(a);
     setFormOpen(true);
   }
@@ -130,7 +141,17 @@ export function CalendarPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="kalender" />} />
+      <TopBar action={
+        <div className="flex items-center gap-1">
+          <HelpButton helpKey="kalender" />
+          <MoreMenu testId="cal-menu" items={[
+            { id: 'overview', label: t.calendar.overview, hint: L('Alle Termine, auch spätere und vergangene', 'All appointments, also later and past ones'), icon: <ListOrdered size={17} />, onClick: () => navigate('/kalender/uebersicht') },
+            { id: 'categories', label: t.calendar.categories, hint: L('Eigene Kategorien und Farben', 'Own categories and colours'), icon: <Tag size={17} />, onClick: () => setCategoriesOpen(true) },
+            { id: 'ics', label: t.calendar.icsButton, hint: L('Termine in den Kalender des Handys', 'Appointments into the phone’s calendar'), icon: <CalendarPlus size={17} />, divider: true, onClick: () => setInfo('ics') },
+            { id: 'intent', label: L('Was heißt „will ich / soll ich“?', 'What does “I want to / I should” mean?'), icon: <Info size={17} />, onClick: () => setInfo('intent') },
+          ]} />
+        </div>
+      } />
       <div className="px-5 pb-12">
         <h1 className="text-[24px] mb-1">{t.calendar.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-7">{t.calendar.subtitle}</p>
@@ -162,7 +183,7 @@ export function CalendarPage() {
                       <span className="inline-block w-[5px] h-[5px] rounded-full flex-shrink-0" style={{ background: colorOf(list[0]) }} />
                       {list[0].time}
                     </span>
-                    <span className="block w-full truncate text-[9.5px] text-[var(--color-text-muted)]">{list[0].title}</span>
+                    <span className="block w-full truncate text-[9.5px] text-[var(--color-text-muted)]">{planInfo(list[0])?.emoji ?? ''} {list[0].title}</span>
                     {list.length > 1 && <span className="text-[9px] text-[var(--color-text-faint)] leading-none mt-0.5">+{list.length - 1}</span>}
                   </span>
                 )}
@@ -171,10 +192,8 @@ export function CalendarPage() {
             );
           })}
           <button
-            onClick={() => {
-              setEditing(null);
-              setFormOpen(true);
-            }}
+            onClick={openNew}
+            data-testid="cal-plus"
             className="aspect-square rounded-[var(--radius-lg)] flex flex-col items-center justify-center gap-1 text-[var(--color-primary)]"
             style={{ border: '1.5px dashed var(--color-primary)' }}
           >
@@ -183,24 +202,7 @@ export function CalendarPage() {
           </button>
         </div>
 
- <div className="flex items-center gap-4 mb-3">
-          <Link to="/kalender/uebersicht" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
-            <ListOrdered size={14} /> {t.calendar.overview}
-          </Link>
-          <button onClick={() => setCategoriesOpen(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
-            <Tag size={14} /> {t.calendar.categories}
-          </button>
-        </div>
-        <p className="text-[12px] text-[var(--color-text-faint)] -mt-1 mb-3" data-testid="cal-cat-hint">🎨 {L('Du kannst eigene Kategorien anlegen und ihre Farben selbst wählen – tippe auf „Kategorien“.', 'You can create your own categories and pick their colours – tap “Categories”.')}</p>
-
-        {/* "Echte Erinnerungen auch bei geschlossener App": hand the appointments to the
-         * phone's own calendar. The notice is verbatim — it matters. */}
-        <div className="mb-6">
-          <button onClick={exportIcs} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
-            <CalendarPlus size={14} /> {t.calendar.icsButton}
-          </button>
-          <p className="text-[11.5px] leading-relaxed text-[var(--color-text-faint)] mt-1.5">{t.calendar.icsNotice}</p>
-        </div>
+        <div className="mb-6" />
 
         {/* the selected day */}
         <h2 className="text-[17px] mb-3">
@@ -213,6 +215,26 @@ export function CalendarPage() {
           {dayAppointments.map((a) => {
             const person = a.personId ? people.find((p) => p.id === a.personId) : undefined;
             const carry = carryNotesFor(a);
+            const pi = planInfo(a);
+            if (pi) {
+              return (
+                <div key={a.id} className="flex items-stretch rounded-[22px] overflow-hidden" style={{ background: `${pi.color}1f`, border: `2px dashed ${pi.color}` }} data-testid="plan-card" data-plan={a.plan?.kind}>
+                  <button onClick={() => openEdit(a)} className="flex-1 min-w-0 text-left flex items-center gap-3 p-3.5" data-testid="plan-card-edit">
+                    <span className="w-11 h-11 rounded-full flex items-center justify-center text-[22px] shrink-0" style={{ background: `${pi.color}40` }} aria-hidden>{pi.emoji}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[11.5px] tabular-nums" style={{ color: pi.color, filter: 'brightness(0.8)' }}>{pi.label === 'Routine' ? L('Routine', 'Routine') : L('Projekt', 'Project')} · {a.time}</span>
+                      <span className="block text-[15.5px] text-[var(--color-text)] leading-snug">{a.title}</span>
+                    </span>
+                  </button>
+                  {pi.exists && (
+                    <button onClick={() => navigate(pi.open)} className="shrink-0 w-[76px] flex flex-col items-center justify-center gap-0.5 text-[12px]" style={{ background: `${pi.color}33`, color: 'var(--color-text)' }} data-testid="plan-card-go" aria-label={lang === 'en' ? pi.openLabelEn : pi.openLabelDe}>
+                      {a.plan?.kind === 'routine' ? <Play size={18} /> : <ArrowRight size={18} />}
+                      {lang === 'en' ? pi.openLabelEn : pi.openLabelDe}
+                    </button>
+                  )}
+                </div>
+              );
+            }
             return (
               <div key={a.id}>
               <SlipsHere kind="appointment" id={a.id} compact />
@@ -245,7 +267,7 @@ export function CalendarPage() {
             );
           })}
         </div>
-        <button onClick={openNew} className="flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)] mb-8">
+        <button onClick={openNew} className="flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)] mb-8" data-testid="cal-add-link">
           <Plus size={15} /> {t.calendar.addAppointment}
         </button>
 
@@ -308,7 +330,6 @@ export function CalendarPage() {
               {t.calendar.wishAdd}
             </button>
           </div>
-          <p className="text-[11px] text-[var(--color-text-faint)] mt-2.5 leading-relaxed">{t.calendar.intentExplain}</p>
         </div>
       </div>
 
@@ -332,6 +353,33 @@ export function CalendarPage() {
           refresh();
         }}
       />
+      {chooser && (
+        <Modal open onClose={() => setChooser(false)} title={L('Was möchtest du eintragen?', 'What would you like to add?')}>
+          <div className="flex flex-col gap-2.5" data-testid="cal-chooser">
+            <button type="button" onClick={() => { setChooser(false); setEditing(null); setFormOpen(true); }} className="flex items-center gap-3 text-left rounded-2xl px-4 py-3.5 min-h-[60px] border border-[var(--color-border-strong)] bg-[var(--color-surface)]" data-testid="cal-choose-appointment">
+              <CalendarDays size={22} className="text-[var(--color-primary)] shrink-0" />
+              <span><span className="block text-[15.5px] text-[var(--color-text)]">{L('Termin', 'Appointment')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Ein fester Termin mit Uhrzeit', 'A fixed appointment with a time')}</span></span>
+            </button>
+            <button type="button" onClick={() => { setChooser(false); setPlan({ kind: 'routine' }); }} className="flex items-center gap-3 text-left rounded-2xl px-4 py-3.5 min-h-[60px] border-2 border-dashed" style={{ borderColor: '#6fbf73', background: '#6fbf731f' }} data-testid="cal-choose-routine">
+              <Sprout size={22} className="shrink-0" style={{ color: '#3d8b52' }} />
+              <span><span className="block text-[15.5px] text-[var(--color-text)]">{L('Routine einplanen', 'Plan a routine')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Eine deiner Routinen zu einer Zeit – mit „Starten“-Knopf', 'One of your routines at a time – with a “Start” button')}</span></span>
+            </button>
+            <button type="button" onClick={() => { setChooser(false); setPlan({ kind: 'project' }); }} className="flex items-center gap-3 text-left rounded-2xl px-4 py-3.5 min-h-[60px] border-2 border-dashed" style={{ borderColor: '#4a8f9e', background: '#4a8f9e1f' }} data-testid="cal-choose-project">
+              <FolderKanban size={22} className="shrink-0" style={{ color: '#2f6f7e' }} />
+              <span><span className="block text-[15.5px] text-[var(--color-text)]">{L('Projekt einplanen', 'Plan a project')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Zeit für ein Projekt – mit „Öffnen“-Knopf', 'Time for a project – with an “Open” button')}</span></span>
+            </button>
+          </div>
+        </Modal>
+      )}
+      {plan && <PlanSheet key={plan.existing?.id ?? plan.kind} kind={plan.kind} day={selected} existing={plan.existing} onClose={() => { setPlan(null); if (planParam) setSearchParams({}, { replace: true }); }} onSaved={(a) => { setPlan(null); if (planParam) setSearchParams({}, { replace: true }); if (days.some((d) => dayKey(d) === a.date)) setSelected(a.date); refresh(); }} />}
+      {info && (
+        <Modal open onClose={() => setInfo(null)} title={info === 'ics' ? t.calendar.icsButton : L('„will ich“ und „soll ich“', '“I want to” and “I should”')}>
+          <div className="flex flex-col gap-3" data-testid="cal-info">
+            <p className="text-[14px] leading-relaxed text-[var(--color-text-muted)]">{info === 'ics' ? t.calendar.icsNotice : t.calendar.intentExplain}</p>
+            {info === 'ics' && <button type="button" onClick={() => { setInfo(null); void exportIcs(); }} className="h-11 px-5 rounded-full text-white text-[14.5px] self-start" style={{ background: 'var(--color-primary)' }} data-testid="cal-ics-go">{t.calendar.icsButton}</button>}
+          </div>
+        </Modal>
+      )}
       {categoriesOpen && <CategoriesModal open onClose={() => setCategoriesOpen(false)} onChanged={refresh} />}
       <PushHintModal open={wishHintOpen} onConfirm={confirmWishHint} />
     </div>

@@ -37,6 +37,8 @@ export interface Appointment {
   noteForNext?: string;
   /** Set when this appointment was created through the follow-up. */
   previousAppointmentId?: string;
+  /** Eine Routine oder ein Projekt, das hier „eingeplant“ ist (sieht im Kalender anders aus als ein gewöhnlicher Termin). */
+  plan?: { kind: 'routine' | 'project'; refId: string };
   /** Set when the date comes from a project ("Meine Projekte"): the date is then changed in the project. */
   projectId?: string;
   createdAt: string;

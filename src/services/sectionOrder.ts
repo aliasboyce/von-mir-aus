@@ -20,6 +20,7 @@ export type OrderableSection =
   | 'entdecken-zugang-finden'
   | 'entdecken-gedanken-aus'
   | 'entdecken-bruecken-bauen'
+  | 'entdecken-struktur'
   | 'entdecken-alltag'
   | 'entdecken-schreiben'
   | 'entdecken-regulieren'
@@ -48,6 +49,7 @@ const stores: Record<OrderableSection, ReturnType<typeof createKeyValueStore<str
   'entdecken-zugang-finden': createKeyValueStore<string[]>('section-order-entdecken-zugang-finden', []),
   'entdecken-gedanken-aus': createKeyValueStore<string[]>('section-order-entdecken-gedanken-aus', []),
   'entdecken-bruecken-bauen': createKeyValueStore<string[]>('section-order-entdecken-bruecken-bauen', []),
+  'entdecken-struktur': createKeyValueStore<string[]>('section-order-entdecken-struktur', []),
   'entdecken-alltag': createKeyValueStore<string[]>('section-order-entdecken-alltag', []),
   'entdecken-schreiben': createKeyValueStore<string[]>('section-order-entdecken-schreiben', []),
   'entdecken-regulieren': createKeyValueStore<string[]>('section-order-entdecken-regulieren', []),

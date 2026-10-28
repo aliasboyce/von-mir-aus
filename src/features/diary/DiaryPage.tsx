@@ -4,6 +4,7 @@ import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
 import { buildReviewPdf, buildDiaryEntriesPdf } from '../reviews/reviewPdf';
 import { gatherReviewDays } from '../reviews/reviewData';
 import { localDayKey } from '../../services/groupByDay';
+import { MoreMenu } from '../../components/ui/MoreMenu';
 import { Plus, Search, Trash2, X, Tag, Type, FileDown, FileText, Mail, Image as ImageIcon, Network, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { RichTextEditor } from '../../components/shared/RichTextEditor';
@@ -390,13 +391,10 @@ export function DiaryPage() {
         action={
           <div className="flex items-center gap-1">
             <HelpButton helpKey="tagebuch" />
-            <button
-              onClick={() => setExportOpen(true)}
-              aria-label={t.diary.exportTitle}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
-            >
-              <FileDown size={17} />
-            </button>
+            <MoreMenu testId="diary-menu" items={[
+              { id: 'font', label: `${t.diary.fontLabel}: ${t.diary.fontNames[diaryFont]}`, icon: <Type size={17} />, checked: fontPickerOpen, onClick: () => setFontPickerOpen((v) => !v) },
+              { id: 'export', label: t.diary.exportTitle, icon: <FileDown size={17} />, divider: true, onClick: () => setExportOpen(true) },
+            ]} />
           </div>
         }
       />
@@ -419,14 +417,7 @@ export function DiaryPage() {
           </Chip>
         </div>
 
-        <div className="mb-5">
-          <button
-            onClick={() => setFontPickerOpen((v) => !v)}
-            className="flex items-center gap-1.5 text-[12px] text-[var(--color-text-faint)]"
-          >
-            <Type size={13} />
-            {t.diary.fontLabel}: {t.diary.fontNames[diaryFont]}
-          </button>
+        <div className={fontPickerOpen ? 'mb-5' : ''}>
           {fontPickerOpen && (
             <div className="flex flex-wrap gap-2 mt-2 animate-in">
               {DIARY_FONT_ORDER.map((f) => (

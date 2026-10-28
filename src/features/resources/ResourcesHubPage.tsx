@@ -1,4 +1,7 @@
-import { Wrench, Sparkles, Bookmark, MapPin, Activity, Users, Repeat } from 'lucide-react';
+import { useState } from 'react';
+import { Wrench, Sparkles, Bookmark, MapPin, Activity, Users, Repeat, Info } from 'lucide-react';
+import { MoreMenu } from '../../components/ui/MoreMenu';
+import { Modal } from '../../components/ui/Modal';
 import { useRoutineTexts } from '../routines/routineTexts';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -7,6 +10,7 @@ import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { NEED_META, NEED_ORDER } from '../innerWeather/weatherMeta';
 import type { NeedDirection } from '../../data/types';
 import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
 import { resourcesRepo } from './resourcesRepo';
 import { RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
@@ -26,6 +30,8 @@ import { countHiddenUnmarked } from '../../content/fitCriteria';
 export function ResourcesHubPage() {
   const t = useT();
   const rtx = useRoutineTexts();
+  const { settings } = useSettings();
+  const [defOpen, setDefOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const fitRows = useFitRows();
   const hiddenUnmarked = [fitRows.all.ketten, fitRows.all.skills, fitRows.all.hilfsmittel, fitRows.all.orte, fitRows.all.aktivitaeten].reduce((n, rows) => n + countHiddenUnmarked(rows.map((r) => r.subject), fitRows.filter), 0);
@@ -64,7 +70,12 @@ export function ResourcesHubPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="ressourcen" />} />
+      <TopBar action={
+        <div className="flex items-center gap-1">
+          <HelpButton helpKey="ressourcen" />
+          <MoreMenu testId="resources-menu" items={[{ id: 'what', label: settings.language === 'en' ? 'What is what?' : 'Was ist was?', icon: <Info size={17} />, onClick: () => setDefOpen(true) }]} />
+        </div>
+      } />
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1">{t.resources.hubTitle}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.resources.hubSubtitle}</p>
@@ -84,7 +95,11 @@ export function ResourcesHubPage() {
         <FitFilterPanel hiddenUnmarked={hiddenUnmarked} />
         <FitResults need={need} />
 
-        <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mb-4">{t.resources.hubDefinition}</p>
+        {defOpen && (
+          <Modal open onClose={() => setDefOpen(false)} title={t.resources.hubTitle}>
+            <p className="text-[14px] leading-relaxed text-[var(--color-text-muted)]" data-testid="resources-def">{t.resources.hubDefinition}</p>
+          </Modal>
+        )}
 
         <ReorderableTiles section="ressourcen-hub" tiles={tiles} />
       </div>

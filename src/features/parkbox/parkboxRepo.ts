@@ -5,6 +5,8 @@ export interface ParkNote {
   id: string;
   text: string;
   priority: 1 | 2 | 3;
+  /** feinere Einstufung (bestimmt die Zettelfarbe in der Parkbox). Fehlt sie, folgt sie aus `priority`. */
+  level?: SlipLevel;
   archived: boolean;
   /** index into PAPER_COLORS – only for looks */
   paper: number;
@@ -28,6 +30,20 @@ export interface ParkNote {
   createdAt: string;
   updatedAt: string;
 }
+
+export type SlipLevel = 'dringend' | 'wichtig' | 'offen' | 'spaeter';
+
+/** Vier Stufen = vier Zettelfarben: dringend orange, wichtig dunkelgrün, später gräulich, „weiß ich noch nicht“ weiß. */
+export const SLIP_LEVELS: { id: SlipLevel; bg: string; ink: string; de: string; en: string; priority: 1 | 2 | 3 }[] = [
+  { id: 'dringend', bg: '#ffb35c', ink: '#3b2508', de: 'Dringend', en: 'Urgent', priority: 1 },
+  { id: 'wichtig', bg: '#2f6b4f', ink: '#ffffff', de: 'Wichtig', en: 'Important', priority: 1 },
+  { id: 'spaeter', bg: '#d6d6d2', ink: '#3b3b38', de: 'Später', en: 'Later', priority: 3 },
+  { id: 'offen', bg: '#ffffff', ink: '#3d3a2e', de: 'Weiß ich noch nicht', en: 'Not sure yet', priority: 2 },
+];
+const LEVEL_ORDER: Record<SlipLevel, number> = { dringend: 0, wichtig: 1, offen: 2, spaeter: 3 };
+export const slipLevel = (n: Pick<ParkNote, 'level' | 'priority'>): SlipLevel => n.level ?? (n.priority === 1 ? 'wichtig' : n.priority === 3 ? 'spaeter' : 'offen');
+export const levelInfo = (l: SlipLevel) => SLIP_LEVELS.find((x) => x.id === l) ?? SLIP_LEVELS[3];
+export const levelRank = (n: Pick<ParkNote, 'level' | 'priority'>) => LEVEL_ORDER[slipLevel(n)];
 
 export type WaitKind = 'idee' | 'projekt' | 'aktivitaet';
 export type SlipOrigin = 'park' | 'wait' | 'project';

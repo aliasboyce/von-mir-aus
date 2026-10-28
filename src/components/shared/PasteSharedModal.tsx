@@ -39,6 +39,9 @@ const TXT = {
   },
 };
 
+/** Beschriftung für Menüs („Etwas von jemandem erhalten“) */
+export const pasteSharedLabel = (lang: 'de' | 'en') => TXT[lang].cta;
+
 /** "Etwas erhalten" — a button that opens the paste dialog; used wherever shared things can land. */
 export function PasteSharedButton({ className = '' }: { className?: string }) {
   const { settings } = useSettings();

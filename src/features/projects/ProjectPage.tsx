@@ -28,6 +28,13 @@ import { QuickNote } from './QuickNote';
 import { markProjectWorkedOn } from './projectStore';
 import type { ProjectApi } from './projectApi';
 
+/**
+ * Jeder Seitenwechsel baut die Seite neu auf (die Seite wird nach dem Pfad „geschlüsselt“). Damit die neue Seite nicht
+ * einen veralteten Stand aus dem Speicher liest, solange die alte ihre Änderungen noch nicht geschrieben hat,
+ * merken wir ungeschriebene Änderungen hier – bis sie wirklich gespeichert sind.
+ */
+const pendingProjects = new Map<string, Project>();
+
 /** Ein Projekt als kleine Mini-Website: Startseite mit Kacheln, jede Kachel eine eigene Seite. */
 export function ProjectPage() {
   const params = useParams();
@@ -37,7 +44,7 @@ export function ProjectPage() {
   const { L, lang } = useL();
   const sayCompanion = useCompanionSay();
   const [initial] = useState<Project | undefined>(() => {
-    const raw = id ? projectsRepo.getById(id) : undefined;
+    const raw = id ? (pendingProjects.get(id) ?? projectsRepo.getById(id)) : undefined;
     if (!raw) return undefined;
     const m = migrateProject(raw);
     if (m !== raw) projectsRepo.save(m);
@@ -64,8 +71,9 @@ export function ProjectPage() {
     }
     const cur = ref.current;
     if (!cur) return;
-    if (!projectsRepo.getById(cur.id)) return; // wurde (z. B. durch „Löschen“) entfernt
+    if (!projectsRepo.getById(cur.id)) { pendingProjects.delete(cur.id); return; } // wurde (z. B. durch „Löschen“) entfernt
     projectsRepo.save(cur);
+    pendingProjects.delete(cur.id);
     syncProjectCalendar(cur, lang);
     if (touched.current) {
       touched.current = false;
@@ -103,6 +111,7 @@ export function ProjectPage() {
     const entries = diffLog(cur, changed, L);
     const next: Project = { ...changed, updatedAt: new Date().toISOString(), ...(entries.length ? { log: [...(changed.log ?? []), ...entries].slice(-LOG_MAX) } : {}) };
     ref.current = next;
+    pendingProjects.set(next.id, next);
     touched.current = true;
     setP(next);
     if (timer.current) window.clearTimeout(timer.current);
@@ -179,7 +188,7 @@ export function ProjectPage() {
       <TopBar onBack={() => { flush(); if (sub) go(''); else navigate('/entdecken/projekte'); }} action={<HelpButton helpKey="projekte" />} />
       {body}
 
-      {toast && <div className="fixed left-1/2 -translate-x-1/2 bottom-40 z-40 rounded-full px-4 py-2 text-[13.5px] text-white shadow-lg pointer-events-none" style={{ background: 'var(--color-text)' }} role="status" data-testid="project-toast">{toast}</div>}
+      {toast && <div className="fixed left-1/2 -translate-x-1/2 bottom-40 z-40 rounded-full px-4 py-2 text-[13.5px] shadow-lg pointer-events-none" style={{ background: 'var(--color-text)', color: 'var(--color-surface)' }} role="status" data-testid="project-toast">{toast}</div>}
       <Modal open={adding} onClose={() => setAdding(false)} title={L('Seite hinzufügen', 'Add a page')} subtitle={L('Was braucht dein Projekt gerade?', 'What does your project need right now?')}>
         <div className="flex flex-col gap-2" data-testid="project-block-picker">
           {BLOCK_META.filter((m) => !(m.kind === 'team' && hasTeam)).map((m) => (

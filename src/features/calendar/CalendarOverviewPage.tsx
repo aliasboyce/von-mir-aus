@@ -7,6 +7,7 @@ import { useSettings } from '../../state/SettingsContext';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { PersonLine } from './PersonAvatar';
 import { AppointmentFormModal } from './AppointmentFormModal';
+import { PlanSheet, planInfo } from './PlanSheet';
 import { appointmentsRepo, calendarCategoriesRepo, startOf, type Appointment } from './calendarRepo';
 
 /** "Spaetere Termine schon eintragen und eine Terminuebersicht
@@ -38,7 +39,7 @@ export function CalendarOverviewPage() {
           {startOf(a).toLocaleDateString(locale, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })} · {a.time}{a.endTime ? `–${a.endTime}` : ''}
           {cat && <span style={{ color: cat.color }}> · {cat.label}</span>}
         </p>
-        <p className="text-[14.5px] text-[var(--color-text)]">{a.title}</p>
+        <p className="text-[14.5px] text-[var(--color-text)]">{planInfo(a)?.emoji ?? ''} {a.title}</p>
         {person && (
           <div className="mt-1">
             <PersonLine entry={person} size={26} />
@@ -75,7 +76,7 @@ export function CalendarOverviewPage() {
       </div>
       <AppointmentFormModal
         key={editing?.id ?? 'none'}
-        open={!!editing}
+        open={!!editing && !editing.plan}
         appointment={editing}
         onClose={() => {
           setEditing(null);
@@ -91,6 +92,7 @@ export function CalendarOverviewPage() {
           setVersion((v) => v + 1);
         }}
       />
+      {editing?.plan && <PlanSheet key={editing.id} kind={editing.plan.kind} day={editing.date} existing={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); setVersion((v) => v + 1); }} />}
     </div>
   );
 }

@@ -6,7 +6,8 @@ import { triggerPrint } from '../../services/printSupport';
 import { getUiLanguage } from '../../services/uiLanguage';
 import { zl } from '../zugang/zugangEn';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Heart, Plus, Compass, FileDown, ChevronLeft, ChevronDown } from 'lucide-react';
+import { Heart, Plus, Compass, FileDown, ChevronLeft, ChevronDown, Info, Scale, ClipboardPaste } from 'lucide-react';
+import { MoreMenu } from '../../components/ui/MoreMenu';
 import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
 import { Modal } from '../../components/ui/Modal';
@@ -24,7 +25,7 @@ import { BRIDGES_INFO_TEXT } from '../../content/aboutContent';
 import { BridgeBuiltAnimation } from './BridgeBuiltAnimation';
 import { BridgePrintView } from './BridgePrintView';
 import { DiscoverBridgesModal } from './DiscoverBridgesModal';
-import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
+import { PasteSharedModal, pasteSharedLabel } from '../../components/shared/PasteSharedModal';
 import { RecentlyUsedRow } from '../../components/shared/RecentlyUsedRow';
 import { BridgeHeroIllustration } from './BridgeHeroIllustration';
 import { createId } from '../../services/storage/repository';
@@ -95,6 +96,7 @@ export function BridgesPage() {
   const [justBuilt, setJustBuilt] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(false);
+  const [pasteOpen, setPasteOpen] = useState(false);
 
   const filtered = useMemo(
     () => bridges.filter((br) => (!value || bridgeMatchesValue(br, value)) && (!need || bridgeMatchesNeed(br, need))),
@@ -143,27 +145,20 @@ export function BridgesPage() {
         <div className="flex items-center gap-3">
           <SearchButton />
           <HelpButton helpKey="bruecken" />
-          {bridges.length > 0 && (
-            <button
-              onClick={exportAllBridgesPdf}
-              aria-label={t.bridges.exportAllPdf}
-              className="text-[var(--color-text-muted)]"
-            >
-              <FileDown size={17} />
-            </button>
-          )}
+          <MoreMenu testId="bridges-menu" items={[
+            { id: 'discover', label: t.bridges.discoverCta, icon: <Compass size={17} />, onClick: () => setDiscoverOpen(true) },
+            { id: 'paste', label: pasteSharedLabel(getUiLanguage() === 'en' ? 'en' : 'de'), icon: <ClipboardPaste size={17} />, onClick: () => setPasteOpen(true) },
+            { id: 'idea', label: t.bridges.infoAbout, icon: <Info size={17} />, divider: true, onClick: () => setInfoOpen(true) },
+            { id: 'diff', label: t.bridges.whatsTheDifference, icon: <Scale size={17} />, onClick: () => setShowInfo(true) },
+            ...(bridges.length > 0 ? [{ id: 'pdf', label: t.bridges.exportAllPdf, icon: <FileDown size={17} />, divider: true, onClick: exportAllBridgesPdf }] : []),
+          ]} />
         </div>
       </div>
       <p className="text-[15px] text-[var(--color-text)] mb-3">{t.bridges.subtitle}</p>
-      <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mb-4">{t.bridges.concept}</p>
-      <div className="flex flex-col items-start gap-2.5 mb-6">
-        <button onClick={() => setShowInfo(true)} className="text-[13px] text-[var(--color-primary)] underline underline-offset-2 text-left">
-          {t.bridges.whatsTheDifference}
-        </button>
-        <button onClick={() => setInfoOpen(true)} className="text-[13px] text-[var(--color-primary)] underline underline-offset-2 text-left">
-          {t.bridges.infoAbout}
-        </button>
-      </div>
+      <details className="mb-5 group" data-testid="bridges-concept">
+        <summary className="text-[13px] text-[var(--color-text-muted)] cursor-pointer list-none flex items-center gap-1"><ChevronDown size={14} className="group-open:rotate-180 transition-transform" /> {getUiLanguage() === 'en' ? 'What is a bridge?' : 'Was ist eine Brücke?'}</summary>
+        <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mt-2">{t.bridges.concept}</p>
+      </details>
 
       <div className="mb-5">
         <BridgeHeroIllustration />
@@ -172,16 +167,6 @@ export function BridgesPage() {
       <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-4">
         {t.bridges.newBridge}
       </Button>
-
-      <button
-        onClick={() => setDiscoverOpen(true)}
-        className="flex items-center gap-2 text-[13px] text-[var(--color-primary)] mb-5"
-      >
-        <Compass size={15} />
-        {t.bridges.discoverCta}
-      </button>
-
-      <PasteSharedButton className="mb-5" />
 
       <RecentlyUsedRow type="bridge" hrefFor={(id) => `/bruecken/${id}`} />
 
@@ -291,6 +276,7 @@ export function BridgesPage() {
 
       <BridgeFormModal open={!!creating} bridge={creating} onClose={() => setCreating(null)} onSave={saveNew} title={t.bridges.newBridge} />
 
+      {pasteOpen && <PasteSharedModal onClose={() => setPasteOpen(false)} />}
       {infoOpen && <AboutVonMirAusModal text={BRIDGES_INFO_TEXT} onClose={() => setInfoOpen(false)} />}
       {justBuilt && <BridgeBuiltAnimation title={justBuilt} onDone={() => setJustBuilt(null)} />}
 

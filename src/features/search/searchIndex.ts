@@ -57,6 +57,7 @@ const SOURCES: DataSource[] = [
     skip: (i) => isBookLocked(i.categoryId as string | undefined),
     plainFields: ['content'],
   },
+  { key: 'user-lists', emoji: '📝', de: 'Liste', en: 'List', to: (i) => `/listen/${id(i)}` },
   { key: 'budget-bills', emoji: '🧾', de: 'Rechnung', en: 'Bill', to: () => '/budget/rechnungen' },
   { key: 'budget-recurring', emoji: '💶', de: 'Fester Posten', en: 'Fixed item', to: (i) => (i.contract ? '/budget/vertraege' : '/budget/fest') },
   { key: 'budget-entries', emoji: '🛍️', de: 'Ausgabe / Einnahme', en: 'Spending / income', to: () => '/budget/ausgaben' },

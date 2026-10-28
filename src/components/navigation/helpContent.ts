@@ -5,7 +5,7 @@ export type HelpKey =
   | 'kontakte' | 'sicherheitsplan' | 'tagebuch' | 'einstellungen' | 'wesenInhalte' | 'favoriten'
   | 'wesenAblenkung' | 'wesenOrientierung' | 'wesenMitteilungen'
   | 'quellen' | 'skills' | 'hilfsmittel' | 'orte' | 'aktivitaeten' | 'skillketten'
-  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf' | 'zugangskanaele' | 'projekte' | 'budget' | 'suche';
+  | 'nervensystem' | 'koerperwahrnehmung' | 'schutzstrategien' | 'glaubenssaetze' | 'gefuehle' | 'wertekompass' | 'letGo' | 'briefAnMich' | 'kalender' | 'skillLauf' | 'zugangskanaele' | 'projekte' | 'budget' | 'suche' | 'listen';
 
 interface HelpEntry {
   title: string;
@@ -567,6 +567,44 @@ The **quick note** captures an idea right away – "capture first, sort later". 
 ### Share and print
 "Share / PDF" turns the project into a PDF over several A4 pages, with all texts, emojis and images and the mind maps as pictures. You choose what goes along. The PDF is then a file on your device.`,
   },
+  listen: {
+    title: `Meine Listen`,
+    titleEn: `My lists`,
+    body: `Einfache Listen für alles Mögliche: Einkauf, Packliste, Ideen, Dinge zum Merken.
+
+### So geht es
+- **Neue Liste** antippen, einen Namen geben – fertig. Titel, Farbe, Symbol und ein Foto sind freiwillig.
+- Oben **Neuer Punkt …** schreiben und mit dem Plus (oder Enter) hinzufügen.
+- Vorne mit dem **Haken** abhaken: Der Punkt wird grau und durchgestrichen, bleibt aber auf der Liste. Über die drei Punkte kannst du Erledigtes ausblenden oder alle Haken entfernen (praktisch für Listen, die sich wiederholen).
+- Auf den **Text** tippen: Dort gibt es eine Notiz, Unterpunkte (auch abhakbar) und die Reihenfolge.
+- Eine Liste kann auch **nur aus Aufzählungspunkten** bestehen, ohne Haken.
+
+### Punkt in eine andere Liste legen
+Das kleine Kopier-Symbol rechts neben jedem Punkt legt ihn **zusätzlich** auf eine andere Liste – er bleibt auf der ersten. Beispiel: Du hast eine Liste „Das kaufe ich immer wieder“ und willst die Milch auf die aktuelle Einkaufsliste setzen. Wenn du magst, kannst du ihn dort auch verschieben. Steht er auf der anderen Liste schon, wird er nicht doppelt angelegt; ist er dort abgehakt, wird er wieder geöffnet.
+
+### Ordnen
+Listen lassen sich **oben anheften** und **archivieren**. Archivierte Listen findest du über die drei Punkte auf der Übersicht – nichts geht verloren.
+
+### Dein Gerät
+Alles bleibt auf diesem Gerät, auch das Foto.`,
+    bodyEn: `Simple lists for anything: shopping, packing, ideas, things to remember.
+
+### How it works
+- Tap **New list**, give it a name – done. Title, colour, symbol and a photo are optional.
+- Write **New item …** at the top and add it with the plus (or Enter).
+- Tick it off with the **checkbox** at the front: the item turns grey and struck through but stays on the list. Via the three dots you can hide done items or clear all ticks (handy for lists that repeat).
+- Tap the **text**: there is a note, sub-items (tickable too) and the order.
+- A list can also be **bullets only**, without ticks.
+
+### Put an item on another list
+The small copy symbol next to each item puts it **additionally** on another list – it stays on the first one. Example: you have a list "What I always buy" and want the milk on today's shopping list. If you like you can move it instead. If it is already on the other list it is not added twice; if it is ticked there it is opened again.
+
+### Order
+Lists can be **pinned to the top** and **archived**. Archived lists are behind the three dots on the overview – nothing is lost.
+
+### Your device
+Everything stays on this device, the photo too.`,
+  },
   suche: {
     title: `Lupe (Suche)`,
     titleEn: `Magnifier (search)`,
@@ -579,6 +617,9 @@ The **quick note** captures an idea right away – "capture first, sort later". 
 
 ### So suchst du
 Ein Wortanfang oder Wortteil reicht („tage“, „buch“). Umlaute sind egal („fuhlen“), kleine Tippfehler auch („Mindmapp“). Mehrere Wörter müssen zusammen passen; passt nichts zu allen, zeigt die Lupe das Nächstliegende. Oben filterst du nach Funktionen, Von-dir-geschrieben oder Anleitungen.
+
+### FAQ
+Der Knopf „FAQ“ oben rechts zeigt die Fragen, die am häufigsten Verwirrung machen – kurz beantwortet, mit Knopf zur passenden Seite.
 
 ### Wo ist sie?
 Das Lupen-Symbol oben auf der Startseite und auf den meisten Seiten – oder am Computer **Strg + K** (am Mac ⌘ + K). Zuletzt Gesuchtes steht in der Startansicht.
@@ -594,6 +635,9 @@ Gesucht wird nur auf diesem Gerät, nichts wird verschickt. Gesperrte Tagebüche
 
 ### How to search
 A word beginning or word part is enough ("diar", "book"). Umlauts do not matter, small typos do not either ("Mindmapp"). Several words must fit together; if nothing fits all of them, the magnifier shows the closest. At the top you filter by functions, written by you, or guides.
+
+### FAQ
+The “FAQ” button at the top right shows the questions that cause the most confusion – answered briefly, with a button to the right page.
 
 ### Where is it?
 The magnifier icon at the top of the home page and most pages – or on a computer **Ctrl + K** (⌘ + K on a Mac). Recent searches are on the start view.

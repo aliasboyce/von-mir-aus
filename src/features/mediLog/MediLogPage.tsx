@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
 import { createPortal } from 'react-dom';
+import { MoreMenu } from '../../components/ui/MoreMenu';
 import { Plus, Pencil, Trash2, Pill, ChevronRight, ChevronLeft, NotebookPen, Settings2, Maximize2, X, FileDown, CalendarRange, Repeat, Package } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
@@ -389,7 +390,17 @@ export function MediLogPage() {
   return (
     <div className="animate-in">
       <div className="no-print">
-      <TopBar action={<HelpButton helpKey="mediLog" />} />
+      <TopBar action={
+        <div className="flex items-center gap-1">
+          <HelpButton helpKey="mediLog" />
+          <MoreMenu testId="medilog-menu" items={[
+            { id: 'meds', label: t.mediLog.manageMedications, icon: <Settings2 size={17} />, onClick: () => setManagingMedications(true) },
+            { id: 'recurring', label: t.mediLog.manageRecurring, icon: <Repeat size={17} />, onClick: () => setRecurringOpen(true) },
+            { id: 'packages', label: t.medPackages.title, icon: <Package size={17} />, onClick: () => navigate('/entdecken/medi-log/packungen') },
+            { id: 'range', label: t.mediLog.rangeEntryTitle, icon: <CalendarRange size={17} />, onClick: () => setRangeEntryOpen(true) },
+          ]} />
+        </div>
+      } />
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1">{t.mediLog.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.mediLog.subtitle}</p>
@@ -398,38 +409,6 @@ export function MediLogPage() {
         <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-5">
           {t.mediLog.addNew}
         </Button>
-
-        {/* flex-wrap: four link-buttons in a non-wrapping row were wider than a phone and made the whole page scroll sideways */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 mb-5">
-          <button
-            onClick={() => setManagingMedications(true)}
-            className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
-          >
-            <Settings2 size={14} />
-            {t.mediLog.manageMedications}
-          </button>
-          <button
-            onClick={() => navigate('/entdecken/medi-log/packungen')}
-            className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
-          >
-            <Package size={14} />
-            {t.medPackages.title}
-          </button>
-          <button
-            onClick={() => setRangeEntryOpen(true)}
-            className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
-          >
-            <CalendarRange size={14} />
-            {t.mediLog.rangeEntryTitle}
-          </button>
-          <button
-            onClick={() => setRecurringOpen(true)}
-            className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
-          >
-            <Repeat size={14} />
-            {t.mediLog.manageRecurring}
-          </button>
-        </div>
 
         <RecurringConfirmationPrompt pending={pending} onAnswer={handleRecurringAnswer} />
 

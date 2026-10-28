@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, History, Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import { CalendarPlus, ChevronDown, ChevronUp, History, Info, Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import { MoreMenu } from '../../components/ui/MoreMenu';
+import { Modal } from '../../components/ui/Modal';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Button } from '../../components/ui/Button';
@@ -24,6 +26,7 @@ export function RoutinesGardenPage() {
   const [routines, setRoutines] = useState<Routine[]>(() => routinesRepo.getAll().sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
   const [historyId, setHistoryId] = useState<string | null>(null);
   const [tplOpen, setTplOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [tplAdded, setTplAdded] = useState<string | null>(null);
   const refresh = () => setRoutines(routinesRepo.getAll().sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
   const exampleCount = routines.filter((r) => r.isExample).length;
@@ -48,11 +51,19 @@ export function RoutinesGardenPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="garten" />} />
+      <TopBar action={
+        <div className="flex items-center gap-1">
+          <HelpButton helpKey="garten" />
+          <MoreMenu testId="garden-menu" items={[
+            { id: 'about', label: lang === 'en' ? 'What is this about?' : 'Worum geht es hier?', icon: <Info size={17} />, onClick: () => setAboutOpen(true) },
+            { id: 'calendar', label: lang === 'en' ? 'Plan a routine in the calendar' : 'Routine im Kalender einplanen', hint: lang === 'en' ? 'Gives it a time – with a Start button' : 'Gibt ihr eine Zeit – mit Starten-Knopf', icon: <CalendarPlus size={17} />, onClick: () => navigate('/kalender?plan=routine') },
+          ]} />
+        </div>
+      } />
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1 text-center">{rt.pageTitle}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-2 text-center">{rt.pageSub}</p>
-        <p className="text-[12.5px] text-[var(--color-text-faint)] mb-5 text-center leading-relaxed" data-hint>{rt.intro}</p>
+        <div className="mb-3" />
 
         <Button fullWidth icon={<Plus size={17} />} onClick={() => navigate('/entdecken/routinen/neu')} className="mb-5" data-testid="routine-new">
           {rt.newRoutine}
@@ -168,6 +179,11 @@ export function RoutinesGardenPage() {
           <GardenPage embedded />
         </div>
       </div>
+      {aboutOpen && (
+        <Modal open onClose={() => setAboutOpen(false)} title={rt.pageTitle}>
+          <p className="text-[14px] leading-relaxed text-[var(--color-text-muted)]" data-testid="garden-about">{rt.intro}</p>
+        </Modal>
+      )}
     </div>
   );
 }

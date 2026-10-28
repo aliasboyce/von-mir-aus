@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Clock } from 'lucide-react';
+import { Search, X, Clock, ChevronDown, CircleHelp } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Modal } from '../../components/ui/Modal';
@@ -10,6 +10,7 @@ import { useL } from '../projects/useL';
 import { HELP_CONTENT } from '../../components/navigation/helpContent';
 import { buildSearchIndex, type IndexEntry, type HitKind } from './searchIndex';
 import { queryTokens, scoreDoc, snippetFor } from './searchEngine';
+import { FAQ } from './faqData';
 
 export const searchRecentStore = createKeyValueStore<string[]>('search-recent', []);
 
@@ -64,6 +65,8 @@ export function SearchPage() {
   const [recent, setRecent] = useState<string[]>(() => searchRecentStore.get());
   const [helpOpen, setHelpOpen] = useState<IndexEntry | null>(null);
   const [index, setIndex] = useState<IndexEntry[] | null>(null);
+  const [faqOpen, setFaqOpen] = useState(false);
+  const [faqAt, setFaqAt] = useState<string | null>(null);
 
   // Index frisch aus dem Speicher bauen (nach dem ersten Zeichnen, damit die Seite sofort da ist)
   useEffect(() => {
@@ -126,7 +129,12 @@ export function SearchPage() {
     <div className="pb-24" data-testid="search-page">
       <TopBar action={<HelpButton helpKey="suche" />} />
       <div className="px-5">
-        <h1 className="text-[24px] text-[var(--color-text)] mb-1">{L('Lupe', 'Magnifier')}</h1>
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <h1 className="text-[24px] text-[var(--color-text)]">{L('Lupe', 'Magnifier')}</h1>
+          <button type="button" onClick={() => setFaqOpen((v) => !v)} aria-pressed={faqOpen} data-testid="search-faq-btn" className={`inline-flex items-center gap-1.5 h-10 px-4 rounded-full text-[14px] border ${faqOpen ? 'bg-[var(--color-primary)] text-[var(--color-bg)] border-transparent' : 'border-[var(--color-border-strong)] text-[var(--color-text)] bg-[var(--color-surface)]'}`}>
+            <CircleHelp size={16} />FAQ
+          </button>
+        </div>
         <p data-hint className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">
           {L(
             'Suche nach Funktionen der App – und nach allem, was du selbst geschrieben hast. Ein Wortteil reicht, kleine Tippfehler sind okay.',
@@ -139,7 +147,7 @@ export function SearchPage() {
           <input
             ref={inputRef}
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => { setQ(e.target.value); if (e.target.value) setFaqOpen(false); }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 remember(q);
@@ -173,7 +181,33 @@ export function SearchPage() {
           )}
         </div>
 
-        {!hasQuery && (
+        {faqOpen && !hasQuery && (
+          <section data-testid="search-faq" aria-label="FAQ">
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-3">{L('Die Fragen, die am ehesten Verwirrung machen – kurz beantwortet.', 'The questions most likely to cause confusion – answered briefly.')}</p>
+            <ul className="flex flex-col gap-2">
+              {FAQ.map((f) => {
+                const t = lang === 'en' ? f.en : f.de;
+                const on = faqAt === f.id;
+                return (
+                  <li key={f.id} className="rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)]" data-testid="search-faq-item">
+                    <button type="button" onClick={() => setFaqAt(on ? null : f.id)} aria-expanded={on} className="w-full flex items-start gap-3 text-left px-3.5 py-3" data-testid={`search-faq-q-${f.id}`}>
+                      <span className="flex-1 text-[15px] leading-snug text-[var(--color-text)]">{t.q}</span>
+                      <ChevronDown size={18} className={`shrink-0 mt-0.5 text-[var(--color-text-muted)] transition-transform ${on ? 'rotate-180' : ''}`} />
+                    </button>
+                    {on && (
+                      <div className="px-3.5 pb-3.5 -mt-1" data-testid={`search-faq-a-${f.id}`}>
+                        <p className="text-[14px] leading-relaxed text-[var(--color-text-muted)]">{t.a}</p>
+                        {f.to && <button type="button" onClick={() => navigate(f.to as string)} className="mt-2.5 h-10 px-4 rounded-full text-[13.5px] border border-[var(--color-border-strong)] bg-[var(--color-surface)] text-[var(--color-text)]" data-testid={`search-faq-go-${f.id}`}>{t.toLabel ?? L('Öffnen', 'Open')} →</button>}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {!hasQuery && !faqOpen && (
           <div data-testid="search-start">
             {recent.length > 0 && (
               <div className="mb-5">

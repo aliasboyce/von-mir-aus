@@ -12,7 +12,7 @@ import type { UserSettings } from '../data/types';
  * pass, saving a bridge) keep a very soft sine underneath for a touch
  * of warmth, but quieter and slower than a notification chime.
  */
-type SoundKind = 'click' | 'select' | 'settle' | 'menu' | 'close' | 'complete' | 'cancelFlow' | 'sparkle';
+type SoundKind = 'click' | 'select' | 'settle' | 'menu' | 'close' | 'complete' | 'cancelFlow' | 'sparkle' | 'coin' | 'coinOut';
 
 let ctx: AudioContext | null = null;
 function getContext(): AudioContext | null {
@@ -202,6 +202,61 @@ function scheduleSparkle(audioCtx: AudioContext) {
   });
 }
 
+/** Sparschwein: eine Münze fällt hinein – ein heller, kurzer „Kling“ (zwei Metall-Töne) mit ein paar leisen Funken obendrauf,
+ * ähnlich dem Funken-Sammeln, aber klarer nach Geld. Bewusst kurz und leise. */
+function scheduleCoin(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  // Kling: zwei schnell hintereinander, Dreieckswelle klingt nach Metall
+  [[1568, 0, 0.07], [2093, 0.075, 0.06]].forEach(([f, d, g]) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = f;
+    const t = now + d;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(g, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + 0.38);
+  });
+  // Funken
+  [2637, 3136, 3951].forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    const t = now + 0.14 + i * 0.05;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.018, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + 0.18);
+  });
+}
+
+/** Sparschwein: etwas wird herausgenommen oder zurückgenommen – zwei weiche, absteigende Töne. */
+function scheduleCoinOut(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  [[1319, 0], [988, 0.08]].forEach(([f, d]) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = f;
+    const t = now + d;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.045, t + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t);
+    osc.stop(t + 0.25);
+  });
+}
+
 /** "Zurueck / Abbruch bei bestimmten Funktionen"-Auftrag — gewaehlt:
  * Variante D, ein einzelner, sehr sanfter Ton fuer das Verlassen
  * eines mehrstufigen Ablaufs ohne ihn abzuschliessen (unterscheidet
@@ -374,6 +429,8 @@ export function playSound(kind: SoundKind, settings: Pick<UserSettings, 'soundsE
       else if (kind === 'complete') scheduleComplete(audioCtx);
       else if (kind === 'cancelFlow') scheduleCancelFlow(audioCtx);
       else if (kind === 'sparkle') scheduleSparkle(audioCtx);
+      else if (kind === 'coin') scheduleCoin(audioCtx);
+      else if (kind === 'coinOut') scheduleCoinOut(audioCtx);
       else scheduleComplete(audioCtx); // 'settle' — same as 'complete', see below
     } catch {
       // Sound is a pure nice-to-have — never let it break the actual

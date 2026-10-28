@@ -104,6 +104,10 @@ export interface Summary {
   free: number;
   /** fest + Rechnungen (bezahlt und offen) */
   fixedTotal: number;
+  /** feste Einnahmen des Zeitraums (erwartete und eingegangene) */
+  fixedIn: number;
+  /** weitere (nicht feste) Einnahmen, einzeln eingetragen */
+  extraIn: number;
   /** einzelne Ausgaben */
   spentEntries: number;
   /** ins Sparschwein / in Rücklagen gelegt (abzüglich Entnommenem) */
@@ -112,13 +116,15 @@ export interface Summary {
 }
 
 export function summarize(flows: Flow[]): Summary {
-  let had = 0, hadGot = 0, paid = 0, open = 0, fixedTotal = 0, spentEntries = 0, saved = 0, countOpen = 0;
+  let had = 0, hadGot = 0, paid = 0, open = 0, fixedTotal = 0, spentEntries = 0, saved = 0, countOpen = 0, fixedIn = 0, extraIn = 0;
   flows.forEach((f) => {
     if (f.dir === 'in') {
       // Einnahmen und Geld, das aus dem Sparschwein wieder ins Monatsgeld kommt
       had += f.amount;
       if (f.done) hadGot += f.amount;
       if (f.src === 'save') saved -= f.amount;
+      if (f.src === 'rec') fixedIn += f.amount;
+      if (f.src === 'entry') extraIn += f.amount;
       return;
     }
     if (f.done) paid += f.amount;
@@ -127,7 +133,7 @@ export function summarize(flows: Flow[]): Summary {
     if (f.src === 'entry') spentEntries += f.amount;
     if (f.src === 'save') saved += f.amount;
   });
-  return { had, hadGot, paid, open, free: had - paid - open, fixedTotal, spentEntries, saved, countOpen };
+  return { had, hadGot, paid, open, free: had - paid - open, fixedTotal, fixedIn, extraIn, spentEntries, saved, countOpen };
 }
 
 export function monthFlows(data: BudgetData, ym: string): Flow[] {
@@ -166,6 +172,42 @@ export function potsPlan(rows: CatSpend[]): { planned: number; stillToSpend: num
     }
   });
   return { planned, stillToSpend };
+}
+
+export interface Forecast {
+  /** feste Einnahmen − feste Kosten und Rechnungen (so viel bleibt wahrscheinlich, wenn nichts Weiteres passiert) */
+  fixedOnly: number;
+  fixedIn: number;
+  fixedOut: number;
+  /** weitere Einnahmen, Einzelausgaben und Sparschwein-Bewegungen bisher */
+  extraIn: number;
+  spentEntries: number;
+  savedNet: number;
+  /** mit allem, was eingetragen ist */
+  current: number;
+  /** noch nicht ausgegebenes Monatsbudget aller Töpfe mit Betrag */
+  potsLeft: number;
+  potsPlanned: number;
+  /** nachdem das Topf-Geld zurückgelegt ist */
+  afterPots: number;
+  hasPots: boolean;
+  rows: CatSpend[];
+}
+
+/**
+ * Was bleibt wahrscheinlich übrig? Drei Stufen, jede baut auf der vorigen auf:
+ *  1) nur fest:   feste Einnahmen − feste Kosten − Rechnungen
+ *  2) aktuell:    + weitere Einnahmen − Einzelausgaben − Sparschwein (alles, was eingetragen ist)
+ *  3) mit Töpfen: − das, was in den Töpfen noch eingeplant, aber nicht ausgegeben ist
+ */
+export function forecast(s: Summary, cs: { rows: CatSpend[] }): Forecast {
+  const plan = potsPlan(cs.rows);
+  const fixedOnly = s.fixedIn - s.fixedTotal;
+  const current = s.free;
+  return {
+    fixedOnly, fixedIn: s.fixedIn, fixedOut: s.fixedTotal, extraIn: s.extraIn, spentEntries: s.spentEntries, savedNet: s.saved,
+    current, potsLeft: plan.stillToSpend, potsPlanned: plan.planned, afterPots: current - plan.stillToSpend, hasPots: plan.planned > 0, rows: cs.rows,
+  };
 }
 
 export const potBalance = (p: Pot) => Math.round(p.deposits.reduce((s, d) => s + d.amount, 0) * 100) / 100;

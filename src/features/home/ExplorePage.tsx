@@ -1,7 +1,7 @@
 import { SearchButton } from '../../components/navigation/SearchButton';
 import { useState } from 'react';
 import { ExploreMap } from './ExploreMap';
-import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network, Sunrise, Moon, Workflow, FolderKanban, CloudSun, Wrench, Link2, Share2, ClipboardList, Phone, Siren, Settings, BookOpen, Bookmark, TrendingUp, Mailbox, Armchair, Wallet, Gift, Layers, Sparkles } from 'lucide-react';
+import { Pin, Archive, Check, Compass, Activity, CalendarDays, Pill, Star, CalendarCheck, Timer, Sprout, History, Zap, HandHeart, PersonStanding, Brain, Smile, Navigation, Feather, Mail, KeyRound, GitBranch, LifeBuoy, Network, Sunrise, Moon, Workflow, FolderKanban, CloudSun, Wrench, Link2, Share2, ClipboardList, Phone, Siren, Settings, BookOpen, Bookmark, TrendingUp, Mailbox, Armchair, Wallet, Gift, Layers, Sparkles, ListChecks } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
@@ -122,6 +122,14 @@ export function ExplorePage() {
     { key: 'hilfsmittel', to: '/entdecken/ressourcen/hilfsmittel', icon: Gift, title: sm.areaLinks.hilfsmittel, subtitle: lang === 'en' ? 'Things that help you – your own cards.' : 'Dinge, die dir helfen – deine eigenen Karten.', color: 'var(--color-accent-clay)' },
     { key: 'ressourcen', to: '/entdecken/ressourcen', icon: Layers, title: sm.areaLinks.ressourcen, subtitle: hint('ressourcen'), color: 'var(--color-accent-clay)' },
   ];
+  const strukturTiles: Tile[] = [
+    { key: 'kalender', to: '/kalender', icon: CalendarDays, title: t.calendar.title, subtitle: t.calendar.subtitle, color: 'var(--color-accent-sun)' },
+    { key: 'listen', to: '/listen', icon: ListChecks, title: sm.extraItems.listen, subtitle: hint('listen'), color: 'var(--color-accent-sun)' },
+    { key: 'garten', to: '/entdecken/garten', icon: Sprout, title: rtx.pageTitle, subtitle: t.garden.subtitle, color: 'var(--color-accent-sun)' },
+    { key: 'tagBeginnen', to: '/tag-beginnen', icon: Sunrise, title: dfx.startTitle, subtitle: dfx.tileStartSub, color: 'var(--color-accent-sun)' },
+    { key: 'tagAbschliessen', to: '/tag-abschliessen', icon: Moon, title: dfx.endTitle, subtitle: dfx.tileEndSub, color: 'var(--color-accent-sun)' },
+    { key: 'timer', to: '/entdecken/timer', icon: Timer, title: t.simpleTimer.title, subtitle: t.simpleTimer.subtitle, color: 'var(--color-accent-sun)' },
+  ];
   const ordnenTiles: Tile[] = [
     { key: 'parkbox', to: '/parkbox', icon: Mailbox, title: sm.extraItems.parkbox, subtitle: hint('parkbox'), color: C },
     { key: 'wartezimmer', to: '/parkbox?ort=wartezimmer', icon: Armchair, title: sm.extraItems.wartezimmer, subtitle: hint('wartezimmer'), color: C },
@@ -131,11 +139,6 @@ export function ExplorePage() {
   ];
   const bridgeTiles: Tile[] = [{ key: 'bruecken', to: '/bruecken', icon: GitBranch, title: t.nav.bridges, subtitle: t.bridges.subtitle, color: 'var(--color-accent-clay)' }];
   const everydayTiles: Tile[] = [
-    { key: 'garten', to: '/entdecken/garten', icon: Sprout, title: rtx.pageTitle, subtitle: t.garden.subtitle, color: 'var(--color-accent-sun)' },
-    { key: 'tagBeginnen', to: '/tag-beginnen', icon: Sunrise, title: dfx.startTitle, subtitle: dfx.tileStartSub, color: 'var(--color-accent-sun)' },
-    { key: 'tagAbschliessen', to: '/tag-abschliessen', icon: Moon, title: dfx.endTitle, subtitle: dfx.tileEndSub, color: 'var(--color-accent-sun)' },
-    { key: 'kalender', to: '/kalender', icon: CalendarDays, title: t.calendar.title, subtitle: t.calendar.subtitle, color: 'var(--color-accent-sun)' },
-    { key: 'timer', to: '/entdecken/timer', icon: Timer, title: t.simpleTimer.title, subtitle: t.simpleTimer.subtitle, color: 'var(--color-accent-sun)' },
     { key: 'medilog', to: '/entdecken/medi-log', icon: Pill, title: t.mediLog.title, subtitle: t.mediLog.subtitle, color: 'var(--color-accent-sun)' },
   ];
   // "Gespeicherte Quellen soll auch hierher verschoben sein"-Auftrag
@@ -171,6 +174,7 @@ export function ExplorePage() {
     { label: t.explore.subGedankenAusprobieren, section: 'entdecken-gedanken-aus', tiles: thoughtActionTiles },
     { label: t.explore.subRegulieren, section: 'entdecken-regulieren', tiles: regulateTiles },
     { label: t.explore.subBrueckenBauen, section: 'entdecken-bruecken-bauen', tiles: bridgeTiles },
+    { label: t.explore.subStruktur, section: 'entdecken-struktur', tiles: strukturTiles },
     { label: t.explore.subAlltag, section: 'entdecken-alltag', tiles: everydayTiles },
     { label: t.explore.subOrdnen, section: 'entdecken-ordnen', tiles: ordnenTiles },
     { label: t.explore.subSchreiben, section: 'entdecken-schreiben', tiles: writingTiles },

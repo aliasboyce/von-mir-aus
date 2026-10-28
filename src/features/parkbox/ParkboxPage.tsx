@@ -10,9 +10,8 @@ import { AssignSheet } from './AssignSheet';
 import { SlipScheduler, formatDeliver } from './SlipScheduler';
 import { setSlipDelivery } from './slipDelivery';
 import { slipPlace, slipToPark } from './slipAttach';
-import { SLIP_COLORS, WAIT_CALENDAR_CATEGORY_ID, parkNotesRepo, waitItemsRepo, type ParkNote, type WaitItem, type WaitKind } from './parkboxRepo';
-
-type Prio = 1 | 2 | 3;
+import { BoxArt } from './BoxArt';
+import { SLIP_COLORS, SLIP_LEVELS, WAIT_CALENDAR_CATEGORY_ID, levelInfo, levelRank, parkNotesRepo, slipLevel, waitItemsRepo, type ParkNote, type SlipLevel, type WaitItem, type WaitKind } from './parkboxRepo';
 
 const TXT = {
   de: {
@@ -33,7 +32,8 @@ const TXT = {
     pinnedOpen: 'Öffnen',
     slipWait: 'Blauer Zettel = kam aus dem Wartezimmer',
     placeholder: 'Was soll heute nicht mehr in deinem Kopf bleiben?',
-    prio: { 1: 'Wichtig', 2: 'Normal', 3: 'Später' } as Record<Prio, string>,
+    levelsHint: 'Die Farbe des Zettels zeigt, wie eilig er ist.',
+    info: 'Was ist was?',
     put: 'In die Box legen',
     safe: (n: number) => (n === 0 ? 'Die Box ist leer – und bereit.' : n === 1 ? '1 Zettel liegt sicher hier.' : `${n} Zettel liegen sicher hier.`),
     open: 'In der Box',
@@ -95,7 +95,8 @@ const TXT = {
     pinnedOpen: 'Open',
     slipWait: 'Blue slip = came from the waiting room',
     placeholder: 'What should not stay in your head today?',
-    prio: { 1: 'Important', 2: 'Normal', 3: 'Later' } as Record<Prio, string>,
+    levelsHint: 'The colour of the slip shows how urgent it is.',
+    info: 'What is what?',
     put: 'Put it in the box',
     safe: (n: number) => (n === 0 ? 'The box is empty – and ready.' : n === 1 ? '1 note lies safe here.' : `${n} notes lie safe here.`),
     open: 'In the box',
@@ -142,7 +143,7 @@ const TXT = {
 };
 
 function sortNotes(list: ParkNote[]): ParkNote[] {
-  return [...list].sort((a, b) => a.priority - b.priority || b.createdAt.localeCompare(a.createdAt));
+  return [...list].sort((a, b) => levelRank(a) - levelRank(b) || b.createdAt.localeCompare(a.createdAt));
 }
 
 function tomorrowKey(): string {
@@ -151,26 +152,10 @@ function tomorrowKey(): string {
   return dayKey(d);
 }
 
-/** The drawn box: cardboard body, lid with a slot, and a few coloured corners peeking out. */
-function BoxArt({ count, bump, notes }: { count: number; bump: boolean; notes: ParkNote[] }) {
-  const peek = notes.slice(0, 4);
-  return (
-    <svg viewBox="0 16 220 134" className={`mx-auto block w-[210px] overflow-visible ${bump ? 'park-box-bump' : ''}`} role="img" aria-label="Parkbox" data-testid="park-box-art" data-count={count}>
-      {peek.map((n, i) => (
-        <rect key={n.id} x={50 + i * 34} y={22 - (i % 2) * 6} width="34" height="40" rx="3" fill={SLIP_COLORS[n.origin ?? 'park'].bg} stroke="rgba(0,0,0,0.12)" transform={`rotate(${(i - 1.5) * 7} ${67 + i * 34} 62)`} />
-      ))}
-      <path d="M22 62 L198 62 L190 138 Q189 144 183 144 L37 144 Q31 144 30 138 Z" fill="#c8995c" stroke="#a97a3f" strokeWidth="2" />
-      <path d="M22 62 L198 62 L194 92 L26 92 Z" fill="#d6aa6c" stroke="#a97a3f" strokeWidth="2" />
-      <rect x="64" y="70" width="92" height="9" rx="4.5" fill="#6b4a22" opacity="0.85" />
-      <rect x="78" y="104" width="64" height="24" rx="5" fill="#fbf4e4" stroke="#a97a3f" />
-      <text x="110" y="121" textAnchor="middle" fontSize="12" fill="#6b4a22" fontFamily="inherit">Parkbox</text>
-    </svg>
-  );
-}
-
 export function ParkboxPage() {
   const { settings } = useSettings();
   const T = TXT[settings.language === 'en' ? 'en' : 'de'];
+  const lang = settings.language === 'en' ? 'en' : 'de';
   const locale = settings.language === 'en' ? 'en-GB' : 'de-DE';
 
   const [notes, setNotes] = useState<ParkNote[]>(() => parkNotesRepo.getAll());
@@ -179,7 +164,7 @@ export function ParkboxPage() {
   const section: 'park' | 'wait' = params.get('ort') === 'wartezimmer' ? 'wait' : 'park';
   const setSection = (s: 'park' | 'wait') => setParams(s === 'wait' ? { ort: 'wartezimmer' } : {}, { replace: true });
   const [text, setText] = useState('');
-  const [prio, setPrio] = useState<Prio>(2);
+  const [level, setLevel] = useState<SlipLevel>('offen');
   const [tab, setTab] = useState<'open' | 'archive'>('open');
   const [flying, setFlying] = useState<{ text: string; dy: number; h: number } | null>(null);
   const [bump, setBump] = useState(false);
@@ -225,7 +210,7 @@ export function ParkboxPage() {
 
   function finishPut(p: { text: string }) {
     const now = new Date().toISOString();
-    const note: ParkNote = { id: createId('park'), text: p.text, priority: prio, archived: false, paper: 0, origin: 'park', tilt: Math.round((Math.random() * 6 - 3) * 10) / 10, createdAt: now, updatedAt: now };
+    const note: ParkNote = { id: createId('park'), text: p.text, priority: levelInfo(level).priority, level, archived: false, paper: 0, origin: 'park', tilt: Math.round((Math.random() * 6 - 3) * 10) / 10, createdAt: now, updatedAt: now };
     persistNotes([...parkNotesRepo.getAll(), note]);
     setFlying(null);
     setText('');
@@ -378,66 +363,66 @@ export function ParkboxPage() {
     <div className="animate-in" data-testid="parkbox-page">
       <TopBar />
       <div className="px-5 pb-12">
-        <h1 className="text-[24px] mb-2 leading-tight">{T.title}</h1>
-        <p className="text-[14px] text-[var(--color-text-muted)] leading-relaxed mb-4">{T.intro}</p>
+        <h1 className="text-[24px] mb-3 leading-tight">{T.title}</h1>
 
-        <div className="grid grid-cols-2 gap-2.5 mb-5" role="tablist" aria-label={T.title}>
-          <button type="button" role="tab" aria-selected={section === 'park'} onClick={() => setSection('park')} className="rounded-2xl px-3 py-3 text-left border-2 transition" style={{ background: section === 'park' ? SLIP_COLORS.park.bg : 'var(--color-surface)', borderColor: section === 'park' ? '#c8995c' : 'var(--color-border)' }} data-testid="section-park">
-            <span className="block text-[22px]" aria-hidden="true">📦</span>
-            <span className="block text-[16px] text-[#3d3a2e]">{T.tabPark}</span>
-            <span className="block text-[11.5px] text-[#6b6650] leading-snug">{T.tabParkSub}</span>
+        <div className="grid grid-cols-2 gap-1 p-1 rounded-full mb-3" style={{ background: 'var(--color-surface-muted)' }} role="tablist" aria-label={T.title}>
+          <button type="button" role="tab" aria-selected={section === 'park'} onClick={() => setSection('park')} className="rounded-full px-3 py-2.5 text-[15px] transition" style={section === 'park' ? { background: 'var(--color-surface)', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: 'var(--color-text)' } : { color: 'var(--color-text-muted)' }} data-testid="section-park">
+            <span aria-hidden="true">📦 </span>{T.tabPark}
           </button>
-          <button type="button" role="tab" aria-selected={section === 'wait'} onClick={() => setSection('wait')} className="rounded-2xl px-3 py-3 text-left border-2 transition" style={{ background: section === 'wait' ? SLIP_COLORS.wait.bg : 'var(--color-surface)', borderColor: section === 'wait' ? '#5f8fb0' : 'var(--color-border)' }} data-testid="section-wait">
-            <span className="block text-[22px]" aria-hidden="true">🪑</span>
-            <span className="block text-[16px] text-[#2b3a4d]">{T.tabWait}</span>
-            <span className="block text-[11.5px] text-[#4d6076] leading-snug">{T.tabWaitSub}</span>
+          <button type="button" role="tab" aria-selected={section === 'wait'} onClick={() => setSection('wait')} className="rounded-full px-3 py-2.5 text-[15px] transition" style={section === 'wait' ? { background: 'var(--color-surface)', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: 'var(--color-text)' } : { color: 'var(--color-text-muted)' }} data-testid="section-wait">
+            <span aria-hidden="true">🪑 </span>{T.tabWait}
           </button>
         </div>
-        <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mb-4" data-testid="park-differ">{T.differ}</p>
+        <details className="mb-4 text-[13px] text-[var(--color-text-muted)]" data-testid="park-differ">
+          <summary className="cursor-pointer select-none text-[12.5px] text-[var(--color-text-faint)]">{T.info}</summary>
+          <p className="mt-2 leading-relaxed">{T.intro}</p>
+          <p className="mt-2 leading-relaxed">{T.differ}</p>
+        </details>
 
         {section === 'park' && (
-        <div className="rounded-3xl p-4 -mx-1" style={{ background: 'linear-gradient(180deg, #fbf3dc 0%, transparent 70%)', border: '1px solid #c8995c40' }} data-testid="park-section">
-        <div className="rounded-xl p-3 mb-4 text-[13.5px] leading-relaxed text-[#4a4636]" style={{ background: '#fff8d6' }}>
-          <p className="mb-1"><strong>📦 {T.parkExplainTitle}</strong></p>
-          <p>{T.parkExplain}</p>
-        </div>
+        <div data-testid="park-section">
+        <details className="mb-4 text-[13px] text-[var(--color-text-muted)]" data-testid="park-explain">
+          <summary className="cursor-pointer select-none text-[12.5px] text-[var(--color-text-faint)]">{T.parkExplainTitle}</summary>
+          <p className="mt-2 leading-relaxed">{T.parkExplain}</p>
+        </details>
         {/* writing + box */}
         <div className="relative">
           <div ref={paperRef} className="relative z-10">
             {flying ? (
               <div
                 className="park-paper park-fly"
-                style={{ background: SLIP_COLORS.park.bg, minHeight: flying.h, ['--fly-dy' as string]: `${flying.dy}px` }}
+                style={{ background: levelInfo(level).bg, color: levelInfo(level).ink, minHeight: flying.h, ['--fly-dy' as string]: `${flying.dy}px` }}
                 onAnimationEnd={() => finishPut(flying)}
                 data-testid="park-flying"
               >
-                <p className="text-[15px] leading-[28px] whitespace-pre-line text-[#3d3a2e]">{flying.text}</p>
+                <p className="text-[15px] leading-[28px] whitespace-pre-line">{flying.text}</p>
               </div>
             ) : (
-              <div className="park-paper" style={{ background: SLIP_COLORS.park.bg, transform: 'rotate(-1.2deg)' }}>
+              <div className="park-paper" style={{ background: levelInfo(level).bg, color: levelInfo(level).ink, transform: 'rotate(-1.2deg)' }}>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder={T.placeholder}
                   rows={4}
-                  className="w-full bg-transparent outline-none resize-none text-[15px] leading-[28px] text-[#3d3a2e] placeholder:text-[#8a8466]"
+                  className="w-full bg-transparent outline-none resize-none text-[15px] leading-[28px] placeholder:opacity-60"
+                  style={{ color: 'inherit' }}
                   data-testid="park-input"
                 />
               </div>
             )}
           </div>
-          <div className="flex items-center justify-between gap-2 mt-3 mb-2">
-            <div className="flex gap-1.5" role="group" aria-label="Priorität">
-              {([1, 2, 3] as Prio[]).map((p) => (
-                <button key={p} type="button" aria-pressed={prio === p} onClick={() => setPrio(p)} className={`px-3 py-1.5 rounded-full text-[12.5px] border ${prio === p ? 'bg-[var(--color-primary)] text-[var(--color-surface)] border-transparent' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)]'}`} data-testid={`park-prio-${p}`}>
-                  {T.prio[p]}
-                </button>
-              ))}
-            </div>
+          <div className="flex gap-1.5 flex-wrap mt-3" role="group" aria-label={T.levelsHint}>
+            {SLIP_LEVELS.map((l) => (
+              <button key={l.id} type="button" aria-pressed={level === l.id} onClick={() => setLevel(l.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] border" style={level === l.id ? { background: 'var(--color-primary)', color: 'var(--color-surface)', borderColor: 'transparent' } : { background: 'var(--color-surface)', color: 'var(--color-text-muted)', borderColor: 'var(--color-border)' }} data-testid={`park-prio-${l.id}`}>
+                <span className="w-3 h-3 rounded-full border border-black/25" style={{ background: l.bg }} aria-hidden="true" />{lang === 'en' ? l.en : l.de}
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-end mt-3 mb-2">
             <Button size="sm" onClick={putInBox} disabled={!text.trim() || !!flying} data-testid="park-put">{T.put}</Button>
           </div>
           <div ref={boxRef} className="mt-2">
-            <BoxArt count={openNotes.length} bump={bump} notes={openNotes} />
+            <BoxArt count={openNotes.length} bump={bump} colors={openNotes.map((n) => levelInfo(slipLevel(n)).bg)} />
             <p className="text-center text-[13px] text-[var(--color-text-muted)] mt-1" data-testid="park-count">{T.safe(openNotes.length)}</p>
           </div>
         </div>
@@ -452,11 +437,13 @@ export function ParkboxPage() {
         </div>
         <ul className="flex flex-col gap-3 mt-4" data-testid="park-list">
           {list.length === 0 && <li className="text-[13px] text-[var(--color-text-faint)]">{tab === 'open' ? T.emptyBox : T.emptyArchive}</li>}
-          {list.map((n, i) => (
-            <li key={n.id} className="park-paper park-land" style={{ background: SLIP_COLORS.park.bg, transform: `rotate(${n.tilt}deg)`, animationDelay: `${Math.min(i, 6) * 40}ms` }} data-testid="park-note" data-prio={n.priority}>
+          {list.map((n, i) => {
+            const lv = levelInfo(slipLevel(n));
+            return (
+            <li key={n.id} className="park-paper park-land" style={{ background: lv.bg, color: lv.ink, transform: `rotate(${n.tilt}deg)`, animationDelay: `${Math.min(i, 6) * 40}ms` }} data-testid="park-note" data-prio={n.priority} data-level={lv.id}>
               {editId === n.id ? (
                 <>
-                  <textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} className="w-full bg-transparent outline-none resize-none text-[15px] leading-[28px] text-[#3d3a2e] border-b border-[#00000022]" data-testid="park-edit-input" />
+                  <textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={3} className="w-full bg-transparent outline-none resize-none text-[15px] leading-[28px] border-b border-current/30" style={{ color: 'inherit' }} data-testid="park-edit-input" />
                   <div className="flex gap-2 mt-2">
                     <Button size="sm" onClick={() => { if (editText.trim()) updateNote(n.id, { text: editText.trim() }); setEditId(null); }} data-testid="park-edit-save"><Check size={14} /> {T.save}</Button>
                     <Button size="sm" variant="ghost" onClick={() => setEditId(null)}>{T.cancel}</Button>
@@ -464,18 +451,18 @@ export function ParkboxPage() {
                 </>
               ) : (
                 <>
-                  <p className="text-[15px] leading-[28px] whitespace-pre-line text-[#3d3a2e]">{n.text}</p>
+                  <p className="text-[15px] leading-[28px] whitespace-pre-line">{n.text}</p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                    {tab === 'open' && ([1, 2, 3] as Prio[]).map((p) => (
-                      <button key={p} type="button" aria-pressed={n.priority === p} onClick={() => updateNote(n.id, { priority: p })} className={`px-2.5 py-1 rounded-full text-[11.5px] border ${n.priority === p ? 'bg-[#3d3a2e] text-white border-transparent' : 'bg-[#ffffff99] text-[#5c5842] border-[#00000018]'}`}>
-                        {T.prio[p]}
+                    {tab === 'open' && SLIP_LEVELS.map((l) => (
+                      <button key={l.id} type="button" aria-pressed={lv.id === l.id} aria-label={lang === 'en' ? l.en : l.de} title={lang === 'en' ? l.en : l.de} onClick={() => updateNote(n.id, { level: l.id, priority: l.priority })} className="w-7 h-7 rounded-full flex items-center justify-center" data-testid={`park-note-level-${l.id}`}>
+                        <span className="block w-5 h-5 rounded-full" style={{ background: l.bg, border: lv.id === l.id ? `3px solid ${lv.ink}` : '1.5px solid rgba(0,0,0,0.35)', boxShadow: lv.id === l.id ? 'none' : '0 0 0 1px rgba(255,255,255,0.5)' }} />
                       </button>
                     ))}
-                    {tab === 'archive' && <span className="text-[11.5px] text-[#5c5842]">{T.prio[n.priority]}</span>}
+                    <span className="text-[11.5px] opacity-80 ml-1">{lang === 'en' ? lv.en : lv.de}</span>
                   </div>
-                  {n.deliverAt && !n.archived && <p className="text-[12px] mt-1 text-[#6b4a22]" data-testid="park-flies">✉️ {T.flies} {formatDeliver(n.deliverAt, settings.language === 'en' ? 'en' : 'de')}</p>}
+                  {n.deliverAt && !n.archived && <p className="text-[12px] mt-1 opacity-90" data-testid="park-flies">✉️ {T.flies} {formatDeliver(n.deliverAt, settings.language === 'en' ? 'en' : 'de')}</p>}
                   <div className="flex flex-wrap gap-1.5 mt-2">
-                    {tab === 'open' && <button type="button" className={`${smallBtn} !bg-[#3d3a2e] !text-white`} onClick={() => setAssignNote(n)} data-testid="park-assign">{T.assignTo} →</button>}
+                    {tab === 'open' && <button type="button" className={`${smallBtn} !bg-[#3d3a2e] !text-white !border-transparent`} onClick={() => setAssignNote(n)} data-testid="park-assign">{T.assignTo} →</button>}
                     <button type="button" className={smallBtn} onClick={() => { setEditId(n.id); setEditText(n.text); }} data-testid="park-edit"><Pencil size={13} /> {T.edit}</button>
                     {tab === 'open' ? (
                       <button type="button" className={smallBtn} onClick={() => updateNote(n.id, { archived: true })} data-testid="park-archive"><Archive size={13} /> {T.toArchive}</button>
@@ -495,7 +482,8 @@ export function ParkboxPage() {
                 </>
               )}
             </li>
-          ))}
+            );
+          })}
         </ul>
 
         {pinned.length > 0 && (
@@ -524,7 +512,7 @@ export function ParkboxPage() {
 
         {/* Wartezimmer */}
         {section === 'wait' && (
-        <section className="rounded-3xl p-4 -mx-1" style={{ background: 'linear-gradient(180deg, #e8f1fa 0%, transparent 70%)', border: '1px solid #5f8fb040' }} data-testid="waiting-room">
+        <section data-testid="waiting-room">
           <div className="rounded-[var(--radius-xl)] p-4 mb-4" style={{ background: 'linear-gradient(180deg, #e3eef6 0%, #f3ede1 100%)', border: '1px solid #5f8fb033' }}>
             <div className="flex items-center justify-center gap-3 text-[26px] mb-1" aria-hidden="true">🪑 🪴 🕰️ 🪴 🪑</div>
             <div className="h-1.5 rounded-full mb-3" style={{ background: '#c9b48f66' }} aria-hidden="true" />
@@ -562,7 +550,7 @@ export function ParkboxPage() {
         </section>
         )}
       </div>
-      {msg && <div className="fixed left-1/2 -translate-x-1/2 bottom-28 z-40 rounded-full px-4 py-2 text-[13.5px] text-white shadow-lg pointer-events-none" style={{ background: 'var(--color-text)' }} role="status" data-testid="park-toast">{msg}</div>}
+      {msg && <div className="fixed left-1/2 -translate-x-1/2 bottom-28 z-40 rounded-full px-4 py-2 text-[13.5px] shadow-lg pointer-events-none" style={{ background: 'var(--color-text)', color: 'var(--color-surface)' }} role="status" data-testid="park-toast">{msg}</div>}
       {assignNote && (
         <AssignSheet
           text={assignNote.text}

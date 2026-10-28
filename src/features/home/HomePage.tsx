@@ -1,3 +1,4 @@
+import { ContinueCard } from './ContinueCard';
 import { NurJetztHome } from '../nurJetzt/NurJetztHome';
 import { scopeOf } from '../../services/scope';
 import { ScopePicker } from '../scope/ScopePicker';
@@ -309,7 +310,7 @@ export function HomePage() {
       <div className="flex items-start justify-between mb-4">
         <div>
           <p className="text-[15px] text-[var(--color-text-muted)]">{greeting}</p>
-          <h1 className="text-[26px] mt-1 text-[var(--color-text)]" onClick={() => setAboutOpen(true)} role="button" tabIndex={0}>
+          <h1 className="text-[26px] mt-1 text-[var(--color-text)] whitespace-nowrap" onClick={() => setAboutOpen(true)} role="button" tabIndex={0}>
             {t.common.appName}
           </h1>
         </div>
@@ -460,6 +461,8 @@ export function HomePage() {
         <Compass size={13} className="flex-shrink-0" />
         {t.home.nurJetztEntryCta}
       </button>)}
+
+      {!lean && scope === 'all' && <ContinueCard lang={isEn ? 'en' : 'de'} />}
 
       {scope !== 'all' && (
         <button type="button" onClick={() => setShowScopeModal(true)} className="block mx-auto mt-5 text-[13px] text-[var(--color-primary)] underline underline-offset-2" data-testid="home-show-more">

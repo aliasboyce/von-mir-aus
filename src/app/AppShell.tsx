@@ -34,6 +34,7 @@ import { StorageErrorBanner } from './StorageErrorBanner';
 import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
 import { MailboxSync } from '../components/shared/MailboxSync';
 import { CalendarSync } from '../features/calendar/CalendarSync';
+import { recordVisit } from '../services/recentPages';
 import { BudgetSync } from '../features/budget/budgetCalendar';
 import { ReviewMailSync } from '../features/reviews/ReviewMailSync';
 import { GentleRemindersSync } from '../components/shared/GentleRemindersSync';
@@ -54,6 +55,12 @@ function sectionKeyFor(pathname: string): string {
 
 export function AppShell() {
   const location = useLocation();
+  // „Weiterbearbeiten“: eine Seite zählt, wenn man kurz bleibt
+  useEffect(() => {
+    const path = `${location.pathname}${location.search}`;
+    const id = window.setTimeout(() => recordVisit(path), 1200);
+    return () => window.clearTimeout(id);
+  }, [location.pathname, location.search]);
   const navType = useNavigationType();
   // Strg/⌘ + K öffnet die Lupe (Suche in der ganzen App)
   const searchNav = useNavigate();

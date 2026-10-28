@@ -16,6 +16,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-listen-struktur',
+    date: '2026',
+    items: [
+      'Neu: „Meine Listen“ – Einkauf, Packliste, Ideen. Abhaken (wird grau und durchgestrichen, bleibt aber stehen), Unterpunkte, Notizen, anheften, archivieren, Farbe, Symbol und Foto. Ein Punkt lässt sich zusätzlich auf eine andere Liste legen.',
+      'Im Kalender kannst du mit dem Plus auch eine Routine oder ein Projekt einplanen. Übersicht und Kategorien sind jetzt hinter den drei Punkten – so ist die Seite ruhiger. Das gilt auch für Brücken, Medi-Log, Lesezeichen, Routinen, Tagebuch und Netzwerk.',
+      'Parkbox: Zettel haben Farben nach Dringlichkeit. Das Budget zeigt oben, was wahrscheinlich übrig bleibt, und das Sparschwein hat ein Zurück. Auf der Startseite steht unten „Weiterbearbeiten“. In der Lupe gibt es jetzt FAQ.',
+      'Das Auge („Schnell weg“) bringt dich zurück auf dieselbe Seite und lässt sich verschieben. Das Mindmap-Menü lässt sich einklappen und an die Seite legen. Projekte verlieren beim schnellen Seitenwechsel nichts mehr.',
+    ],
+    itemsEn: [
+      'New: “My lists” – shopping, packing, ideas. Tick off (turns grey and struck through but stays), sub-items, notes, pin, archive, colour, symbol and photo. An item can also be put on another list.',
+      'In the calendar the plus can now also plan a routine or a project. Overview and categories are behind the three dots – the page is calmer. The same goes for bridges, medication log, bookmarks, routines, diary and network.',
+      'Park box: slips have colours by urgency. The budget shows at the top what is probably left, and the piggy bank has an undo. The start page has “Continue” at the bottom. The magnifier now has an FAQ.',
+      'The eye (“Hide now”) brings you back to the same page and can be moved. The mind map menu can be folded away and put at the side. Projects no longer lose anything when you switch pages quickly.',
+    ],
+  },
+  {
     id: '2026-budget-mindmap2',
     date: '2026',
     items: [

@@ -221,15 +221,25 @@ export function Bar({ value, max, color, h = 10, testId }: { value: number; max:
 }
 
 /** kleine Rückmeldung unten, verschwindet von allein */
-export function useToast(): [ReactNode, (m: string) => void] {
+export interface ToastAction { label: string; run: () => void }
+/**
+ * Kleine Meldung unten. Farben sind „umgekehrt“ zur Seite (heller Text auf dunklem Grund im hellen Modus, dunkler Text auf hellem Grund
+ * im dunklen Modus) – so ist sie in beiden Modi gut lesbar. Optional mit einem Knopf (z. B. „Zurück“) – dann steht sie oben, damit das Wesen unten den Knopf nicht verdeckt.
+ */
+export function useToast(): [ReactNode, (m: string, action?: ToastAction, ms?: number) => void] {
   const [msg, setMsg] = useState('');
-  const say = (m: string) => {
+  const [act, setAct] = useState<ToastAction | undefined>();
+  const say = (m: string, action?: ToastAction, ms = 2600) => {
     setMsg(m);
-    window.setTimeout(() => setMsg((c) => (c === m ? '' : c)), 2600);
+    setAct(action);
+    window.setTimeout(() => setMsg((c) => (c === m ? '' : c)), action ? Math.max(ms, 9000) : ms);
   };
   const node = msg ? (
-    <div className="fixed left-0 right-0 bottom-24 z-[260] flex justify-center px-4 pointer-events-none" role="status" data-testid="budget-toast">
-      <div className="rounded-full px-5 py-2.5 text-[14px] text-white shadow-lg" style={{ background: 'var(--color-text)' }}>{msg}</div>
+    <div className={`fixed left-0 right-0 ${act ? 'top-[76px]' : 'bottom-24'} z-[260] flex justify-center px-4 pointer-events-none`} role="status" data-testid="budget-toast">
+      <div className="rounded-[22px] pl-5 pr-2 py-2 text-[14px] shadow-lg flex items-center gap-3 max-w-[92vw] pointer-events-auto" style={{ background: 'var(--color-text)', color: 'var(--color-surface)' }}>
+        <span className="py-1">{msg}</span>
+        {act && <button type="button" onClick={() => { act.run(); setMsg(''); setAct(undefined); }} className="shrink-0 h-10 px-4 rounded-full text-[14px] font-medium" style={{ background: 'var(--color-surface)', color: 'var(--color-text)' }} data-testid="budget-toast-action">{act.label}</button>}
+      </div>
     </div>
   ) : null;
   return [node, say];

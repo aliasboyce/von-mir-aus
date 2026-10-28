@@ -63,6 +63,8 @@ import { DayFlowPage } from './features/dayFlow/DayFlowPage';
 import { RoutinesGardenPage } from './features/routines/RoutinesGardenPage';
 import { BreathPage } from './features/breathing/BreathPage';
 import { BudgetPage } from './features/budget/BudgetPage';
+import { ListsPage } from './features/lists/ListsPage';
+import { ListDetailPage } from './features/lists/ListDetailPage';
 import { MindmapListPage } from './features/mindmap/MindmapListPage';
 import { MindmapEditorPage } from './features/mindmap/MindmapEditorPage';
 import { ProjectsPage } from './features/projects/ProjectsPage';
@@ -148,6 +150,8 @@ function App() {
                 <Route path="/entdecken/mindmap" element={<MindmapListPage />} />
                 <Route path="/entdecken/mindmap/importieren" element={<MindmapImportPage />} />
                 <Route path="/entdecken/mindmap/:id" element={<MindmapEditorPage />} />
+                <Route path="/listen" element={<ListsPage />} />
+                <Route path="/listen/:id" element={<ListDetailPage />} />
                 <Route path="/budget" element={<BudgetPage />} />
                 <Route path="/budget/:sub" element={<BudgetPage />} />
                 <Route path="/entdecken/projekte" element={<ProjectsPage />} />

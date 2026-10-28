@@ -171,6 +171,21 @@ Es gibt offenbar mehrere PARALLELE/AELTERE Implementierungen derselben Konzepte 
 24. Navigation/Zurueck-Pfade pruefen
 25. Quellen-Transparenz erweitern
 
+## 🟢 Erledigt (Sitzung 27.10. nachmittags — Feedback-Runde: weniger Überforderung, Funktionen schneller finden)
+- Projekte: neue Seiten/Blöcke gingen verloren („Diese Seite gibt es nicht mehr“) — Ursache war ein verzögertes Speichern, das beim Seitenwechsel verloren ging; behoben (`pendingProjects`). Bereits verlorene Daten sind nicht wiederherstellbar.
+- Projekt-Zettelbox: eine gezeichnete Box (`BoxArt`), ruhige Schrift/Hintergrund; „In die allgemeine Parkbox“ nur in zwei Schritten (Rückfrage).
+- Parkbox: ruhigeres Layout; Dringlichkeit als Zettelfarbe: dringend = orange, wichtig = dunkelgrün, später = grau, „weiß ich noch nicht“ = weiß.
+- Budget-Planer: Prognose ganz oben (nur fest → aktuell → mit Töpfen), „So wird gerechnet“; Verträge und feste Einnahmen werden nur einmal gezählt; Sparschwein neu gezeichnet (Animation, Münzgeräusch, „Zurück“ bei Versehen, lesbare Meldung im Dunkelmodus); Ordner-Kacheln ausgerichtet.
+- Schnell-weg-Auge: Rückkehr auf dieselbe Seite; verschiebbar wie das Wesen.
+- Mindmap: Menü einklappbar (Pfeil), wahlweise unten oder an der Seite (⋯).
+- Lupe: FAQ-Knopf mit zehn Fragen (Liste in `features/search/faqData.ts` — einfach erweiterbar).
+- Startseite: „von mir aus“ wieder einzeilig; ganz unten „Weiterbearbeiten“ (letzte drei Seiten, mit X wegmachbar; nicht im Krisenmodus/reduziert).
+- Neu: „Meine Listen“ (`/listen`): abhaken (grau, durchgestrichen, bleibt), Unterpunkte, Notiz, nur Aufzählung, anheften, archivieren, Farbe/Symbol/Foto, Punkt in andere Liste kopieren/verschieben.
+- Kalender: Plus → Termin / Routine / Projekt (eigene Karten mit Starten/Öffnen); Übersicht, Kategorien, Handy-Kalender und Erklärtexte im ⋯-Menü.
+- ⋯-Menüs statt loser Links/langer Texte: Kalender, Brücken, Medi-Log, Lesezeichen, Routinen & Garten, Ressourcen, Tagebuch, Netzwerk (gemeinsame Komponente `components/ui/MoreMenu.tsx`).
+- Entdecken: neue Gruppe „Struktur“ (Kalender, Meine Listen, Routinen, Tag beginnen/abschließen, Timer).
+- Offen/Ehrlich: Das frühere Parkbox-Aussehen war nicht wiederherstellbar (kein älterer Stand vorhanden) — nur eine ruhigere Variante; „Symbole verschoben“ im Budget-Planer wurde an den Ordner-Kacheln behoben (beste Vermutung).
+
 ## 🟢 Erledigt (Sitzung 27.10. — Mindmap-Überarbeitung ohne 3D, Budget-Planer)
 - 3D-Mindmap komplett aus der Oberfläche entfernt (bereits angelegte 3D-Karten bleiben unter `legacy-3d-maps` gesichert, aber unsichtbar)
 - Mindmap: „frühere Zustände“ (festhalten, ansehen, zurückholen, als Kopie öffnen; automatisch beim Verlassen), Ebenen-Liste (Reihenfolge ziehen, nur bei Überlagerung wichtig), Merknotiz nur im Seitenfenster, Auswahl „Was möchtest du hinzufügen?“ beim „+“, Formen eckig mit Abrundung, „ohne“ bei Rahmen/Farbe/Rand, mehr Pfeile/Spitzen/Linienarten (Welle, Winkel, Bogen), Texthintergrund mit Transparenz, eigene Farbpaletten mit Namen + Beispiele (Pastellblau …), Duplizieren-Griff, To-do/Tabelle/Pro-Contra, Karten aus der App (Hilfsmittel, Skill, Kontakt, Brief …), Buchstaben/Zahlen/Zeichen als Symbole, Strichmännchen/Glühbirne/Stift/Karton/Zahnrad/Buch, Aquarell-Stift (groß, durchsichtig, „hinter alles“ + fixiert), Zettel an Mindmap
