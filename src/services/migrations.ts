@@ -9,6 +9,7 @@ import { networkCategoryFor } from '../features/safetyNet/networkResourceSync';
 import { SEED_SKILL_ZONES } from '../content/seedSkillZones';
 import { LEGACY_HILFSMITTEL_CATEGORY } from '../content/hilfsmittelCategories';
 import { SEED_SKILL_FIT, seedFitFor } from '../content/seedSkillFit';
+import { withSeedBridgeFit, withSeedAktivitaetChannels, SEED_AKTIVITAET_CHANNELS } from '../content/seedBridgeFit';
 import { ensureUmstaendeSeeded, type UmstandOption } from '../features/bridges/conditions';
 import { DEMO_BRIDGES } from '../data/seed/bridges.seed';
 import { DEMO_NETWORK } from '../data/seed/network.seed';
@@ -191,6 +192,25 @@ function migrateSeedSkillFit() {
   seedFitV2.set(true);
 }
 
+const seedBridgeFitV1 = createKeyValueStore<boolean>('migration-seed-bridge-fit-v1', false);
+
+/** Demo-Brücken (pro Schritt) und Start-Aktivitäten bekommen Startmarkierungen für „Was geht gerade?" —
+ * einmalig, nur in noch leere Felder. */
+function migrateSeedBridgeFit() {
+  if (seedBridgeFitV1.get()) return;
+  bridgesRepo.getAll().forEach((b) => {
+    const next = withSeedBridgeFit(b);
+    if (next !== b) bridgesRepo.save(next);
+  });
+  Object.keys(SEED_AKTIVITAET_CHANNELS).forEach((id) => {
+    const r = resourcesRepo.getById(id);
+    if (!r) return;
+    const next = withSeedAktivitaetChannels(r);
+    if (next !== r) resourcesRepo.save(next);
+  });
+  seedBridgeFitV1.set(true);
+}
+
 const umstaendeV2 = createKeyValueStore<boolean>('migration-umstaende-global-v2', false);
 
 /** Umstände are one global saved list now (no longer resources under Orte). The earlier,
@@ -216,7 +236,7 @@ const aktivitaetenV1 = createKeyValueStore<boolean>('migration-seed-aktivitaeten
 function seedAktivitaeten() {
   if (aktivitaetenV1.get()) return;
   STARTER_AKTIVITAETEN.forEach((a) => {
-    if (!resourcesRepo.getById(a.id)) resourcesRepo.save(a);
+    if (!resourcesRepo.getById(a.id)) resourcesRepo.save(withSeedAktivitaetChannels(a));
   });
   aktivitaetenV1.set(true);
 }
@@ -321,6 +341,7 @@ export function runStartupMigrations() {
   migrateSeedItemsToSkills();
   migrateSeedSkillZones();
   migrateSeedSkillFit();
+  migrateSeedBridgeFit();
   migrateUmstaendeToGlobalList();
   seedAktivitaeten();
   migrateBridgeValues();

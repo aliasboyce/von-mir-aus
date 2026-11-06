@@ -2693,7 +2693,7 @@ const de = {
   zugangskanaele: {
     page: {
       title: 'Zugangskanäle',
-      subtitle: 'Was ist gerade vorhanden?',
+      subtitle: 'Was fehlt gerade – und was geht trotzdem?',
       intro: 'Nicht alles, was du weißt oder kannst, ist gerade gleich gut erreichbar. Sag, über welche Wege du gerade an etwas herankommst – daraus zeigt die App, was jetzt machbar ist. Es gibt kein Richtig oder Falsch.',
       netLabel: 'Netz der Zugangskanäle',
       levelNone: 'Gerade nicht',
@@ -3350,8 +3350,10 @@ const de = {
   },
   fit: {
     channelsTitle: 'Zugangskanäle',
-    channelsQuestion: 'Was ist gerade vorhanden?',
-    channelsHint: 'Über welche Kanäle kommst du gerade an etwas heran? Ein Eintrag passt, wenn er über mindestens einen davon wirkt.',
+    channelsQuestion: 'Welcher Zugang fehlt gerade?',
+    channelsHint: 'Tipp an, was gerade fehlt – das wird grau. Alles andere zählt als da, und die App zeigt nur, was über die übrigen Kanäle geht. Ein Eintrag passt, wenn er über mindestens einen vorhandenen Kanal wirkt.',
+    bridgeStepsFit: '{n} von {total} Schritten passen gerade',
+    bridgeNoStepFits: 'Gerade passt kein Schritt ganz – du darfst trotzdem schauen',
     channelsNone: 'Noch nichts ausgewählt',
     channelsPage: 'Netz ansehen & Zustandsaufnahme speichern',
     channelsSummary: '{n} von 10 da',

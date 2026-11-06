@@ -42,7 +42,7 @@ export interface TodoLayout {
   textX: number;
   rows: { id: string; lines: string[]; top: number; h: number; cy: number; done: boolean; width: number[] }[];
 }
-export function todoLayout(n: Pick<MMNode, 'fw' | 'text' | 'items'>, fs: number, f: number): TodoLayout {
+export function todoLayout(n: Pick<MMNode, 'fw' | 'text' | 'items' | 'fold'>, fs: number, f: number): TodoLayout {
   const w = Math.max(160, n.fw ?? 270);
   const pad = fs * 0.95;
   const lh = fs * 1.3;
@@ -52,7 +52,7 @@ export function todoLayout(n: Pick<MMNode, 'fw' | 'text' | 'items'>, fs: number,
   const textX = -w / 2 + pad + cr * 2 + fs * 0.7;
   const titleLines = lines(n.text, w - 2 * pad, tfs, f);
   const titleH = titleLines.length ? titleLines.length * tlh + pad * 0.5 : 0;
-  const items = n.items ?? [];
+  const items = n.fold ? [] : n.items ?? [];
   const rows: TodoLayout['rows'] = [];
   let y = pad + titleH;
   for (const it of items) {
@@ -73,6 +73,7 @@ export function todoLayout(n: Pick<MMNode, 'fw' | 'text' | 'items'>, fs: number,
 export interface TableLayout {
   w: number;
   h: number;
+  hidden: number;
   cols: number;
   colW: number;
   fs: number;
@@ -83,8 +84,10 @@ export interface TableLayout {
   rows: { top: number; h: number; cells: string[][] }[];
 }
 export const defaultGrid = (): string[][] => [['', '', ''], ['', '', ''], ['', '', '']];
-export function tableLayout(n: Pick<MMNode, 'fw' | 'text' | 'grid'>, fs: number, f: number): TableLayout {
-  const grid = n.grid && n.grid.length ? n.grid : defaultGrid();
+export function tableLayout(n: Pick<MMNode, 'fw' | 'text' | 'grid' | 'fold'>, fs: number, f: number): TableLayout {
+  const full = n.grid && n.grid.length ? n.grid : defaultGrid();
+  const grid = n.fold ? full.slice(0, 1) : full;
+  const hidden = n.fold ? full.length - 1 : 0;
   const cols = Math.max(1, ...grid.map((r) => r.length));
   const w = Math.max(cols * 70, n.fw ?? Math.max(cols * 104, 240));
   const colW = w / cols;
@@ -99,8 +102,9 @@ export function tableLayout(n: Pick<MMNode, 'fw' | 'text' | 'grid'>, fs: number,
     rows.push({ top: y, h: rh, cells });
     y += rh;
   }
+  if (hidden > 0) y += fs * 1.9;
   const h = y;
-  return { w, h, cols, colW, fs, lh, titleLines, titleH, top: -h / 2, rows: rows.map((r) => ({ ...r, top: r.top - h / 2 })) };
+  return { w, h, hidden, cols, colW, fs, lh, titleLines, titleH, top: -h / 2, rows: rows.map((r) => ({ ...r, top: r.top - h / 2 })) };
 }
 
 /* ------------------------------------------------------------ pro & contra */
@@ -119,7 +123,7 @@ export interface ProsConsLayout {
   pros: { lines: string[]; top: number; h: number }[];
   cons: { lines: string[]; top: number; h: number }[];
 }
-export function prosConsLayout(n: Pick<MMNode, 'fw' | 'text' | 'pros' | 'cons'>, fs: number, f: number): ProsConsLayout {
+export function prosConsLayout(n: Pick<MMNode, 'fw' | 'text' | 'pros' | 'cons' | 'fold'>, fs: number, f: number): ProsConsLayout {
   const w = Math.max(220, n.fw ?? 320);
   const pad = fs * 0.85;
   const lh = fs * 1.28;
@@ -139,9 +143,9 @@ export function prosConsLayout(n: Pick<MMNode, 'fw' | 'text' | 'pros' | 'cons'>,
     return { out, end: y };
   };
   const start = pad + titleH + headH + pad * 0.3;
-  const pros = col(n.pros ?? [], start);
-  const cons = col(n.cons ?? [], start);
-  const end = Math.max(pros.end, cons.end, start + fs * 2);
+  const pros = col(n.fold ? [] : n.pros ?? [], start);
+  const cons = col(n.fold ? [] : n.cons ?? [], start);
+  const end = Math.max(pros.end, cons.end, start + fs * 2) + (n.fold ? fs * 0.6 : 0);
   const h = end + pad * 0.8;
   const off = -h / 2;
   const sh = (a: ProsConsLayout['pros']) => a.map((r) => ({ ...r, top: r.top + off }));

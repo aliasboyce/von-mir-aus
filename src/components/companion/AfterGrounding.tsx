@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useSettings } from '../../state/SettingsContext';
 import { resourcesRepo } from '../../features/resources/resourcesRepo';
+import { BREATH_PATTERNS, breathHrefFor } from '../../features/breathing/breathPatterns';
 
 /**
  * What follows Orientierung — especially in the Krisenmodus. The order is
@@ -20,8 +21,8 @@ import { resourcesRepo } from '../../features/resources/resourcesRepo';
  * itself, it leaves no trace, and "Das hilft gerade nicht" is always there.
  */
 
-type Phase = 'safety' | 'notice' | 'name' | 'stop' | 'soma';
-const ORDER: Phase[] = ['safety', 'notice', 'name', 'stop', 'soma'];
+type Phase = 'safety' | 'notice' | 'name' | 'stop' | 'soma' | 'breath';
+const ORDER: Phase[] = ['safety', 'notice', 'name', 'stop', 'soma', 'breath'];
 
 interface L { de: string; en: string }
 
@@ -74,11 +75,11 @@ const SOMA: { id: string; label: L; how: L; kind: 'calm' | 'wake' }[] = [
   { id: 'hold', kind: 'wake', label: { de: 'Etwas halten', en: 'Hold something' }, how: { de: 'Nimm einen Gegenstand mit Gewicht oder Struktur in die Hand und spür Gewicht, Kanten, Oberfläche.', en: 'Take an object with weight or texture in your hand and feel its weight, edges, surface.' } },
 ];
 
-export function AfterGrounding({ onClose }: { onClose: () => void }) {
+export function AfterGrounding({ onClose, startPhase = 'safety' }: { onClose: () => void; startPhase?: Phase }) {
   const { settings } = useSettings();
   const en = settings.language === 'en';
   const tx = (l: L) => (en ? l.en : l.de);
-  const [phase, setPhase] = useState<Phase>('safety');
+  const [phase, setPhase] = useState<Phase>(startPhase);
   const [safe, setSafe] = useState<'yes' | 'no' | 'unsure' | null>(null);
   const [stimuli, setStimuli] = useState<string[]>([]);
   const [places, setPlaces] = useState<string[]>([]);
@@ -105,6 +106,7 @@ export function AfterGrounding({ onClose }: { onClose: () => void }) {
     name: { de: '3 · Benennen', en: '3 · Name it' },
     stop: { de: 'Stopp', en: 'Stop' },
     soma: { de: '4 · Ein körperlicher Reiz', en: '4 · A bodily stimulus' },
+    breath: { de: 'Zum Schluss · Atmen', en: 'Last · Breathing' },
   };
 
   return (
@@ -214,18 +216,36 @@ export function AfterGrounding({ onClose }: { onClose: () => void }) {
         </>
       )}
 
+      {phase === 'breath' && (
+        <>
+          <p className="text-[17px] text-[var(--color-text)] leading-relaxed text-center mb-1">{tx({ de: 'Möchtest du zum Schluss mitatmen?', en: 'Would you like to breathe along to finish?' })}</p>
+          <p className="text-[12.5px] text-[var(--color-text-faint)] text-center mb-4">{tx({ de: 'Such dir eine aus – oder lass es. Alles hier ist freiwillig, Halten kannst du weglassen.', en: 'Pick one – or leave it. All optional, you can skip holds.' })}</p>
+          <div className="flex flex-col gap-2 mb-2">
+            {BREATH_PATTERNS.map((p) => (
+              <Link key={p.id} to={breathHrefFor(p.id)} onClick={onClose} data-testid={`after-breath-${p.id}`} className="flex items-center gap-3 px-4 py-2.5 rounded-[var(--radius-lg)]" style={{ background: 'var(--color-surface-muted)' }}>
+                <span className="text-[22px]" aria-hidden="true">{p.emoji}</span>
+                <span className="min-w-0">
+                  <span className="block text-[14px] text-[var(--color-text)]">{en ? p.titleEn : p.title}</span>
+                  <span className="block text-[12px] text-[var(--color-text-muted)] leading-snug">{en ? p.shortEn : p.short}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
+
       <div className="flex flex-col items-center gap-3 mt-5">
-        {phase === 'soma' ? (
-          <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">
-            {tx({ de: 'Fertig', en: 'Done' })}
+        {phase === 'breath' ? (
+          <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]" data-testid="after-grounding-done">
+            {tx({ de: 'Heute nicht atmen – fertig', en: 'No breathing today – done' })}
           </button>
         ) : (
           <button onClick={next} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
-            {phase === 'name' ? tx({ de: 'Stoppen', en: 'Stop' }) : tx({ de: 'Weiter', en: 'Continue' })}
+            {phase === 'name' ? tx({ de: 'Stoppen', en: 'Stop' }) : phase === 'soma' ? tx({ de: 'Zum Schluss: Atmen', en: 'Last: breathing' }) : tx({ de: 'Weiter', en: 'Continue' })}
             <ArrowRight size={14} />
           </button>
         )}
-        {phase !== 'soma' && (
+        {phase !== 'breath' && (
           <button onClick={onClose} className="text-[12px] text-[var(--color-text-faint)] underline">
             {tx({ de: 'Das hilft gerade nicht', en: 'This does not help right now' })}
           </button>

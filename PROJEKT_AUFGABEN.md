@@ -548,6 +548,15 @@ Es gibt offenbar mehrere PARALLELE/AELTERE Implementierungen derselben Konzepte 
 - MiniCurve (Tageskurven-Vorschau in Tagebuch/Wochenrückblick/Check-in): dieselbe feste-Breite-Ursache vorsorglich behoben
 - Ressourcen-Karten, Bild-Karussell, Diagramm-Komponenten (MediLogChart/PolyvagalDayChart/TensionDayChart) systematisch geprüft — bereits korrekt, keine Änderung nötig
 
+## 🟢 Erledigt (04.11.2026 — Mindmap, Atmen, Zugangskanäle, Wesen)
+- Mindmap: Schnellfarbe in der Leiste (`mm-quick-color`), zuletzt benutzte + eigene Farben, Pipette/Foto-Farbwahl, ein Paletten-Auswahlfeld; Unterknoten erben Farbe/Form (abschaltbar über Hinzufügen-Blatt); Voreinstellungen speichern/anwenden; „Ab hier alles in dieser Farbe“
+- Mindmap: Text-Schloss (Text unabhängig von Formgröße), Zuklappen für To-do/Tabelle/Pro&Contra/Text, einseitiges Ziehen/Strecken, „Alles darunter“ markieren, Verbindungen zwischen Markiertem laufen mit (und färben mit), Tabellen: Spalten/Zeilen verschieben + gezielt einfügen
+- Atemübungen in Skills (Mitatmen) + Atemwahl am Ende der Orientierung
+- Zugangskanäle: „Was fehlt?“ statt „Was geht?“; Brücken mit Zugangs-/Energie-/Zeit-Filter, pro Schritt Bedarf + eigener Timer, Schritttext unter dem Timer
+- Orte/Aktivitäten: „Entdecken“ schlägt nur passende Impulse vor
+- Wesen: kleinerer Pop-up mit Info-Knöpfen, „nerv nicht“ nur bei Tipp, Menü-Ton tief
+- Tests: t137–t139 neu, t63/t122 angepasst
+
 ## 🟢 Erledigt (vorherige Sitzung — Ablenkung/Zugang gründlicher Themenblock)
 - Zugang: Speicherung bei vorzeitigem Brücken-Ausstieg (echter Datenverlust-Bug behoben)
 - Ablenken: "Eigene Kategorie"-Bug behoben (nicht-reaktive Kategorieliste)

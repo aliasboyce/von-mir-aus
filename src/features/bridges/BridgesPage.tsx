@@ -1,5 +1,8 @@
 import { SearchButton } from '../../components/navigation/SearchButton';
 import { useEffect, useMemo, useState } from 'react';
+import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { useFitFilter } from '../../state/fitFilterStore';
+import { bridgeMatchesFit, isFitFilterActive } from '../../content/fitCriteria';
 import { goBack } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
@@ -98,9 +101,17 @@ export function BridgesPage() {
   const [discoverOpen, setDiscoverOpen] = useState(false);
   const [pasteOpen, setPasteOpen] = useState(false);
 
-  const filtered = useMemo(
+  // "Aufwand, Zugangskanäle, Energie und Zeit überall": the same "Was geht gerade?" filter as for
+  // Skills and Hilfsmittel — a Brücke is shown when at least one of its steps fits.
+  const { filter: fitFilter } = useFitFilter();
+  const byValueNeed = useMemo(
     () => bridges.filter((br) => (!value || bridgeMatchesValue(br, value)) && (!need || bridgeMatchesNeed(br, need))),
     [bridges, value, need],
+  );
+  const filtered = useMemo(() => (isFitFilterActive(fitFilter) ? byValueNeed.filter((br) => bridgeMatchesFit(br, fitFilter)) : byValueNeed), [byValueNeed, fitFilter]);
+  const hiddenUnmarked = useMemo(
+    () => (!isFitFilterActive(fitFilter) || fitFilter.includeUnmarked ? 0 : byValueNeed.filter((br) => !bridgeMatchesFit(br, fitFilter) && bridgeMatchesFit(br, { ...fitFilter, includeUnmarked: true })).length),
+    [byValueNeed, fitFilter],
   );
 
   // values to filter by: the person's own priorities first, then everything bridges already lead to
@@ -215,9 +226,11 @@ export function BridgesPage() {
         </details>
       )}
 
+      <FitFilterPanel hiddenUnmarked={hiddenUnmarked} />
+
       {filtered.length === 0 ? (
         <div className="mb-4">
-          <EmptyState title={value || need ? t.bridges.emptyFiltered : t.bridges.empty} />
+          <EmptyState title={isFitFilterActive(fitFilter) ? t.fit.noResults : value || need ? t.bridges.emptyFiltered : t.bridges.empty} />
           {(value || need) && (
             <Button fullWidth variant="secondary" icon={<Plus size={16} />} onClick={openNew} className="mt-3">
               {t.bridges.newBridgeFor.replace('{what}', [value, need].filter(Boolean).join(' · '))}

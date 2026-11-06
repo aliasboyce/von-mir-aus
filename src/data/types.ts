@@ -252,6 +252,11 @@ export interface BridgeLevel {
   energyLevel?: 1 | 2 | 3 | 4;
   /** Resources attached to THIS step: Skills, Hilfsmittel, Helfer, Quellen — only existing ones. */
   extras?: StepExtras;
+  /** "Je Schritt: welche Zugangskanäle braucht er?"-Auftrag — what THIS step asks
+   * of the person. Falls back to the bridge's own accessChannels when not set. */
+  accessChannels?: AccessChannel[];
+  /** Time / effort THIS step needs (energy has its own field above). */
+  fit?: FitProfile;
 }
 
 export interface Bridge {

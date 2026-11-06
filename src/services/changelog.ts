@@ -16,6 +16,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-mindmap-atmen-zugang',
+    date: '2026',
+    items: [
+      'Mindmap: Farbe gleich in der Leiste (zuletzt benutzt, eigene Farben, Pipette/Foto, ein Palettenfeld statt vieler Streifen). Unterknoten übernehmen Farbe und Form automatisch, bis du etwas anderes einstellst. Voreinstellungen lassen sich speichern, „Ab hier alles in dieser Farbe“ färbt einen ganzen Ast.',
+      'Mindmap: Text mit Schloss (kleiner als die Form), zuklappbare Listen und Tabellen, Ziehgriffe zu jeder Seite, „Alles darunter“ markieren – Verbindungen gehen dabei von allein mit. In Tabellen lassen sich Spalten und Zeilen verschieben und gezielt dahinter einfügen.',
+      'Atemübungen stehen direkt bei den Skills (mit „Mitatmen“) und am Ende der Orientierung. Bei „Zugangskanäle“ wählst du, was gerade FEHLT – die App rechnet den Rest. Brücken zeigen pro Schritt, was er braucht, und jeder Schritt hat einen eigenen Timer.',
+      'Der Wesen-Pop-up ist kleiner mit Info-Knöpfen, „nerv nicht“ erscheint nur bei einem Tipp, der Menü-Ton ist wieder der tiefe, ruhige. Filter (Aufwand, Zugang, Energie, Zeit) wirken jetzt auch bei Brücken, Orten und Aktivitäten.',
+    ],
+    itemsEn: [
+      'Mind map: colour right in the bar (recent, own colours, pipette/photo, one palette field instead of many strips). Child nodes take over colour and shape automatically until you change it. Presets can be saved, “Everything from here in this colour” paints a whole branch.',
+      'Mind map: text with a lock (smaller than the shape), foldable lists and tables, drag handles on every side, “Select all below” – connections come along by themselves. In tables you can move columns and rows and insert exactly after one.',
+      'Breathing exercises are right in Skills (with “Breathe along”) and at the end of Orientation. In “Access channels” you pick what is MISSING right now – the app works out the rest. Bridges show what each step needs, and every step has its own timer.',
+      'The companion pop-up is smaller with info buttons, “stop nagging” only appears on a tip, the menu sound is the deep calm one again. Filters (effort, access, energy, time) now work for bridges, places and activities too.',
+    ],
+  },
+  {
     id: '2026-listen-struktur',
     date: '2026',
     items: [

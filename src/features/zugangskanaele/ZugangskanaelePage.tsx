@@ -8,7 +8,7 @@ import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { useFitFilter } from '../../state/fitFilterStore';
-import { availableChannels, type ChannelLevel, type ChannelLevels } from '../../content/fitCriteria';
+import { availableChannels, toggleMissingChannel, type ChannelLevel, type ChannelLevels } from '../../content/fitCriteria';
 import { ACCESS_CHANNEL_META, ACCESS_CHANNEL_ORDER } from './accessChannels';
 import { ZONE_ACCESSIBILITY } from './zoneAccessibility';
 import { ChannelNet } from './ChannelNet';
@@ -45,6 +45,7 @@ export function ZugangskanaelePage() {
   const [justSaved, setJustSaved] = useState(false);
   const [compareId, setCompareId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [fine, setFine] = useState(false);
 
   const tension = recentTension();
   const band = tension === null ? null : bandForValue(tension);
@@ -58,6 +59,16 @@ export function ZugangskanaelePage() {
 
   function setLevel(c: (typeof ACCESS_CHANNEL_ORDER)[number], level: ChannelLevel) {
     setFilter({ levels: { ...levels, [c]: level } });
+    setJustSaved(false);
+  }
+
+  function toggleMissing(c: (typeof ACCESS_CHANNEL_ORDER)[number]) {
+    setFilter({ levels: toggleMissingChannel(filter.levels, c, ACCESS_CHANNEL_ORDER) });
+    setJustSaved(false);
+  }
+
+  function nothingMissing() {
+    setFilter({ levels: Object.fromEntries(ACCESS_CHANNEL_ORDER.map((c) => [c, 2])) as ChannelLevels });
     setJustSaved(false);
   }
 
@@ -120,6 +131,48 @@ export function ZugangskanaelePage() {
           </p>
         </div>
 
+        <Card className="mb-4" data-testid="zk-missing">
+          <p className="text-[14px] text-[var(--color-text)] mb-0.5">{lang === 'en' ? 'Which access is missing right now?' : 'Welcher Zugang fehlt gerade?'}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3 leading-relaxed">{lang === 'en' ? 'Tap what is missing – it turns grey. Everything else counts as there, and the app works out what is still possible with it.' : 'Tipp an, was gerade fehlt – es wird grau. Alles andere zählt als da, und die App rechnet damit, was noch geht.'}</p>
+          <div className="flex flex-wrap gap-2">
+            {ACCESS_CHANNEL_ORDER.map((c) => {
+              const meta = ACCESS_CHANNEL_META[c];
+              const missing = answered && (levels[c] ?? 0) === 0;
+              const there = answered && !missing;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => toggleMissing(c)}
+                  aria-pressed={missing}
+                  title={meta.hint(t)}
+                  data-testid={`zk-missing-${c}`}
+                  className="px-3 py-2 rounded-full text-[13px] inline-flex items-center gap-1.5 transition-colors"
+                  style={{
+                    background: missing ? 'var(--color-surface-muted)' : there ? 'var(--color-primary-soft)' : 'var(--color-surface)',
+                    border: `1.5px ${missing ? 'dashed' : 'solid'} ${there ? 'var(--color-primary)' : 'var(--color-border-strong)'}`,
+                    color: missing ? 'var(--color-text-faint)' : 'var(--color-text)',
+                    opacity: missing ? 0.7 : 1,
+                    textDecoration: missing ? 'line-through' : 'none',
+                  }}
+                >
+                  <meta.icon size={14} />
+                  {meta.label(t)}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[12.5px]">
+            <button type="button" onClick={nothingMissing} data-testid="zk-nothing-missing" className="text-[var(--color-primary)]">
+              {lang === 'en' ? 'Nothing is missing right now' : 'Gerade fehlt nichts'}
+            </button>
+            <button type="button" onClick={() => setFine((v) => !v)} aria-expanded={fine} data-testid="zk-fine" className="text-[var(--color-text-muted)] underline underline-offset-2">
+              {fine ? (lang === 'en' ? 'Hide fine-tuning' : 'Feineinstellung ausblenden') : (lang === 'en' ? 'Fine-tune (hard / yes) per channel' : 'Fein einstellen (eher schwer / ja)')}
+            </button>
+          </div>
+        </Card>
+
+        {(fine || Object.values(levels).includes(1)) && (
         <div className="flex flex-col gap-2.5 mb-4">
           {ACCESS_CHANNEL_ORDER.map((c) => {
             const meta = ACCESS_CHANNEL_META[c];
@@ -151,6 +204,8 @@ export function ZugangskanaelePage() {
             );
           })}
         </div>
+
+        )}
 
         {answered && (
           <button type="button" onClick={() => setFilter({ levels: null })} className="text-[12.5px] text-[var(--color-primary)] mb-5">

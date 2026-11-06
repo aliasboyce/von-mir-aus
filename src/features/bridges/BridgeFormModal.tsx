@@ -5,12 +5,14 @@ import { Modal } from '../../components/ui/Modal';
 import { ImageSuggestionCarousel } from '../../components/shared/ImageSuggestionCarousel';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
+import { useL } from '../projects/useL';
 import { resizeImageFile } from '../../services/imageResize';
 import { ImageCropModal } from '../../components/shared/ImageCropModal';
 import { suggestedImageOptions } from '../../services/suggestedImages';
 import { CONNECTION_ITEMS_DE, NEED_CATEGORY_GROUPS, OBSTACLES_DE } from '../zugang/zugangContent';
 import { zl } from '../zugang/zugangEn';
 import { getCustomSuggestions, addCustomSuggestion } from '../zugang/zugangSuggestions';
+import { FitProfileFields } from '../../components/shared/FitProfileFields';
 import { AccessChannelPicker } from '../../components/shared/AccessChannelPicker';
 import { ConditionsPicker } from './ConditionsPicker';
 import { StepExtrasEditor, loadStepExtraOptions } from '../resources/StepExtras';
@@ -71,6 +73,7 @@ interface BridgeFormModalProps {
  * SCHRITTE, each with the resources that carry it → everything else, folded. */
 export function BridgeFormModal({ open, bridge, onClose, onSave, title }: BridgeFormModalProps) {
   const t = useT();
+  const { lang: zlang } = useL();
   const b = t.bridges;
   const [draft, setDraft] = useState<Bridge | null>(bridge);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
@@ -277,6 +280,18 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
                   <span className="block text-[11.5px] text-[var(--color-text-faint)] mb-1">{b.levelEnergyLabel}</span>
                   <EnergyLevelPicker value={level.energyLevel} onChange={(v) => updateStep(i, { energyLevel: v })} />
                 </div>
+                <details className="rounded-[var(--radius-md)] px-2.5 py-2" style={{ background: 'var(--color-surface-muted)' }} data-testid={`step-more-${i}`} open={!!(level.accessChannels?.length || level.fit)}>
+                  <summary className="text-[12.5px] text-[var(--color-text-muted)] cursor-pointer">
+                    {zlang === 'en' ? 'What does this step ask for? (access channels, time, effort)' : 'Was braucht dieser Schritt? (Zugangskanäle, Zeit, Aufwand)'}
+                  </summary>
+                  <div className="flex flex-col gap-3 mt-2.5">
+                    <div>
+                      <span className="block text-[11.5px] text-[var(--color-text-faint)] mb-1">{zlang === 'en' ? 'Which access channels does this step use? If you leave it empty, the bridge’s own channels count.' : 'Über welche Zugangskanäle läuft dieser Schritt? Leer lassen = es zählen die Kanäle der ganzen Brücke.'}</span>
+                      <AccessChannelPicker hideLabel selected={level.accessChannels ?? []} onChange={(ids) => updateStep(i, { accessChannels: ids.length ? ids : undefined })} />
+                    </div>
+                    <FitProfileFields value={level.fit} onChange={(v) => updateStep(i, { fit: v })} />
+                  </div>
+                </details>
               </div>
             ))}
           </div>

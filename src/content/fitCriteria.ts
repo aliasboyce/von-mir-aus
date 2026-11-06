@@ -42,6 +42,25 @@ export function availableChannels(levels: ChannelLevels | null): AccessChannel[]
   return (Object.keys(levels) as AccessChannel[]).filter((c) => (levels[c] ?? 0) >= 1);
 }
 
+/** Channels the person marked as "fehlt gerade" (level 0). */
+export function missingChannels(levels: ChannelLevels | null): AccessChannel[] {
+  if (!levels) return [];
+  return (Object.keys(levels) as AccessChannel[]).filter((c) => (levels[c] ?? 0) === 0);
+}
+
+/**
+ * "Lieber fragen, welcher Zugang gerade FEHLT"-Auftrag: tapping a channel marks
+ * it as missing (level 0, greyed); everything not yet answered counts as there
+ * (level 2), so the filter keeps computing correctly from what is left.
+ * Tapping a missing channel brings it back.
+ */
+export function toggleMissingChannel(levels: ChannelLevels | null, c: AccessChannel, all: readonly AccessChannel[]): ChannelLevels {
+  const next: ChannelLevels = { ...(levels ?? {}) };
+  for (const ch of all) if (next[ch] === undefined) next[ch] = 2;
+  next[c] = next[c] === 0 ? 2 : 0;
+  return next;
+}
+
 export const TIME_STEPS = [1, 5, 10, 20, 30, 60] as const;
 
 export const EFFORT_LEVELS: EffortLevel[] = [1, 2, 3];
@@ -85,6 +104,38 @@ export interface FitSubject {
 
 export function subjectOfResource(r: { energyLevel?: EnergyLevel; fit?: FitProfile; accessChannels?: AccessChannel[] }): FitSubject {
   return { energy: r.energyLevel ? [r.energyLevel, r.energyLevel] : undefined, fit: r.fit, channels: r.accessChannels };
+}
+
+/** What one Brücke step asks for. Channels fall back to the Brücke's own. */
+export function subjectOfBridgeLevel(
+  b: { accessChannels?: AccessChannel[] },
+  l: { energyLevel?: EnergyLevel; fit?: FitProfile; accessChannels?: AccessChannel[] },
+): FitSubject {
+  const channels = l.accessChannels && l.accessChannels.length > 0 ? l.accessChannels : b.accessChannels;
+  return { energy: l.energyLevel ? [l.energyLevel, l.energyLevel] : undefined, fit: l.fit, channels };
+}
+
+/** A Brücke can be started when at least one of its steps fits right now. */
+export function subjectsOfBridge(b: { accessChannels?: AccessChannel[]; levels: { energyLevel?: EnergyLevel; fit?: FitProfile; accessChannels?: AccessChannel[] }[] }): FitSubject[] {
+  if (b.levels.length === 0) return [{ channels: b.accessChannels }];
+  return b.levels.map((l) => subjectOfBridgeLevel(b, l));
+}
+
+export function bridgeMatchesFit(b: Parameters<typeof subjectsOfBridge>[0], f: FitFilter): boolean {
+  return subjectsOfBridge(b).some((s) => matchesFit(s, f));
+}
+
+/** How a step relates to the channels that are there / missing right now. */
+export function channelStatus(channels: AccessChannel[] | undefined, levels: ChannelLevels | null): { there: AccessChannel[]; missing: AccessChannel[] } {
+  const list = channels ?? [];
+  if (!levels) return { there: [], missing: [] };
+  const open = availableChannels(levels);
+  return { there: list.filter((c) => open.includes(c)), missing: list.filter((c) => !open.includes(c)) };
+}
+
+/** true when a step does NOT fit the current filter in a way that was actually answered (not merely unmarked). */
+export function stepClashes(s: FitSubject, f: FitFilter): boolean {
+  return evaluate(s, f).includes('no');
 }
 
 type CriterionResult = 'ok' | 'no' | 'unmarked';

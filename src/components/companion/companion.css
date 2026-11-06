@@ -673,3 +673,19 @@
 @keyframes tour-demo-ring { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 45%, transparent); } 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-primary) 0%, transparent); } }
 .tour-demo-ring { animation: tour-demo-ring 1.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .tour-demo-ripple, .tour-demo-ring { animation: none; } }
+
+/* ---- das große Wesen-Menü (Gruppen, Info-Knöpfe) ---- */
+.companion-menu--big { min-width: 280px; max-height: min(78vh, 640px); }
+.companion-menu__head { display: flex; align-items: center; gap: 4px; padding: 6px 6px 6px 16px; border-bottom: 1px solid var(--color-border); }
+.companion-menu__head > .companion-menu__title { flex: 1; font-size: 16px; font-weight: 600; color: var(--color-text); }
+.companion-menu__head .companion-menu__close { padding: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.companion-menu--big > div:first-child { border-bottom: 1px solid var(--color-border); }
+.companion-menu__scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.companion-menu__group { padding: 6px 0 4px; }
+.companion-menu__group + .companion-menu__group { border-top: 1px solid var(--color-border); }
+.companion-menu__group-title { padding: 6px 16px 2px; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-faint); }
+.companion-menu__item--big { min-height: 48px; font-size: 15.5px; padding: 10px 8px 10px 16px; gap: 12px; border-bottom: none !important; }
+.companion-menu__i { width: 44px; min-height: 48px; display: flex; align-items: center; justify-content: center; color: var(--color-text-faint); flex-shrink: 0; }
+.companion-menu__i[aria-expanded='true'] { color: var(--color-primary); }
+.companion-menu__info { margin: 0 16px 8px; padding: 8px 12px; border-radius: 12px; background: var(--color-surface-muted); font-size: 13.5px; line-height: 1.45; color: var(--color-text-muted); }
+.companion-menu--big .companion-menu__more { padding: 14px; font-size: 13.5px; }

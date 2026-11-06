@@ -15,6 +15,9 @@ import { VisualCountdown } from './VisualCountdown';
 
 interface BridgeTimerViewProps {
   contextLabel: string;
+  /** the step this timer belongs to — shown below the timer while it runs AND once the time is up */
+  stepTitle?: string;
+  stepText?: string;
   onClose: () => void;
   /** called once the timer completes naturally (not on early cancel) —
    * lets the caller (e.g. BridgeDetailPage) offer a "save to diary" step
@@ -52,7 +55,7 @@ function formatDurationLabel(min: number, t: ReturnType<typeof useT>): string {
   return t.bridges.timerHours.replace('{n}', hours % 1 === 0 ? String(hours) : hours.toFixed(1).replace('.', ','));
 }
 
-export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: BridgeTimerViewProps) {
+export function BridgeTimerView({ contextLabel, stepTitle, stepText, onClose, onNaturalComplete }: BridgeTimerViewProps) {
   const t = useT();
   const { settings } = useSettings();
   useRegisterExternalModalOpen(true);
@@ -204,9 +207,18 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
     setConfirmingCancel(true);
   }
 
+  // "Der Schritt muss auch angezeigt werden, wenn die Zeit abläuft"-Auftrag — sits well
+  // below the timer so neither the ring nor the finished-message ever covers it.
+  const stepCard = stepTitle || stepText ? (
+    <div className="mt-12 w-full max-w-[320px] rounded-[var(--radius-lg)] p-4 text-left" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }} data-testid="timer-step">
+      {stepTitle && <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{stepTitle}</p>}
+      {stepText && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed whitespace-pre-line">{stepText}</p>}
+    </div>
+  ) : null;
+
   return createPortal(
     <div
-      className="fixed inset-0 z-[240] bg-[var(--color-bg)] flex flex-col items-center px-6 py-14 overflow-y-auto animate-in"
+      className="fixed inset-0 z-[240] bg-[var(--color-bg)] flex flex-col items-center px-6 pt-14 pb-28 overflow-y-auto animate-in"
       role="dialog"
       aria-modal="true"
     >
@@ -352,6 +364,7 @@ export function BridgeTimerView({ contextLabel, onClose, onNaturalComplete }: Br
               </div>
             </div>
           )}
+          {stepCard}
         </>
       )}
     </div>,

@@ -42,6 +42,14 @@ export interface MMNode {
   rot?: number;
   /** free scale factor (1 = as sized by `size`) */
   sc?: number;
+  /** pulled wider / taller on one side only (factors on width / height; 1 = as is) */
+  sx?: number;
+  sy?: number;
+  /** "Schloss geöffnet": the text size is set on its own (`tsz`, factor on the S–XL size) and no longer grows with the shape */
+  tfree?: boolean;
+  tsz?: number;
+  /** folded: to-do / table / pros & cons / long text show only a short summary */
+  fold?: boolean;
   /** animation (loops); speed 1 slow … 3 fast; ganim = the whole group moves as one piece */
   anim?: MMAnim;
   animSpeed?: 1 | 2 | 3;
@@ -408,15 +416,22 @@ export const penWidth = (n: Pick<MMNode, 'sw' | 'pen'>) => (n.sw ?? 3) * (n.pen 
 export const imgBorder = (n: Pick<MMNode, 'imgStyle'>) => (!n.imgStyle || n.imgStyle === 'polaroid' ? 7 : 0);
 export const imgRatio = (n: Pick<MMNode, 'ar' | 'imgStyle'>) => (n.imgStyle === 'round' ? 1 : Math.min(2.6, Math.max(0.4, n.ar ?? 1)));
 
+/** shapes that can be pulled wider / taller on one side (the others have their own free size or keep their proportions) */
+export const STRETCHABLE = (n: MMNode) => !['draw', 'doodle', 'image', 'sticker', 'maplink', 'frame'].includes(n.shape) && !BLOCK_SHAPES.has(n.shape);
+
 export function layoutNode(n: MMNode): NodeLayout {
   const b = layoutBase(n);
   const k = n.shape === 'frame' || n.shape === 'maplink' || BLOCK_SHAPES.has(n.shape) ? 1 : Math.min(8, Math.max(0.2, n.sc ?? 1));
-  if (k === 1) return { ...b, k: 1 };
-  return { ...b, w: b.w * k, h: b.h * k, fs: b.fs * k, lh: b.lh * k, symbolSize: b.symbolSize * k, textTop: b.textTop * k, symbolY: b.symbolY * k, textDx: b.textDx ? b.textDx * k : undefined, k };
+  let L: NodeLayout;
+  if (k === 1) L = { ...b, k: 1 };
+  else if (n.tfree) L = { ...b, w: b.w * k, h: b.h * k, k };
+  else L = { ...b, w: b.w * k, h: b.h * k, fs: b.fs * k, lh: b.lh * k, symbolSize: b.symbolSize * k, textTop: b.textTop * k, symbolY: b.symbolY * k, textDx: b.textDx ? b.textDx * k : undefined, k };
+  if (STRETCHABLE(n) && (n.sx || n.sy)) L = { ...L, w: L.w * Math.min(6, Math.max(0.3, n.sx ?? 1)), h: L.h * Math.min(6, Math.max(0.3, n.sy ?? 1)) };
+  return L;
 }
 
 function layoutBase(n: MMNode): Omit<NodeLayout, 'k'> {
-  const fs = FONT[n.size] ?? 16;
+  const fs = (FONT[n.size] ?? 16) * (n.tfree ? Math.min(2.5, Math.max(0.5, n.tsz ?? 1)) : 1);
   const lh = fs * 1.28;
   const basis = BASIS[n.size] ?? 168;
   const symbolSize = n.symbol ? fs * (n.text.trim() ? 1.9 : 3) : 0;
@@ -500,7 +515,8 @@ function layoutBase(n: MMNode): Omit<NodeLayout, 'k'> {
     : n.shape === 'hexagon' ? basis * 0.86
     : basis - 2 * padX;
   const fwf = fontW(n);
-  const lines = n.text.trim() ? wrapText(n.text, textW / fwf, fs) : [];
+  let lines = n.text.trim() ? wrapText(n.text, textW / fwf, fs) : [];
+  if (n.fold && lines.length > 3) lines = [...lines.slice(0, 2), lines[2].replace(/\s*\S{0,3}$/, '') + ' …'];
   const widest = lines.reduce((m, l) => Math.max(m, approxTextWidth(l, fs) * fwf), 0);
   const symbolBlock = n.symbol ? symbolSize + (lines.length ? fs * 0.15 : 0) : 0;
   const contentH = symbolBlock + lines.length * lh || lh;

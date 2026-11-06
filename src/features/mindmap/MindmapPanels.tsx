@@ -1,7 +1,7 @@
 import { ArrowLeftRight, Lock, Trash2, Unlock, Users, Waves } from 'lucide-react';
 import { EmojiPicker } from '../../components/shared/SymbolColorPicker';
 import { ColorField } from './MindmapColor';
-import { ANIMS, BORDERS, FONTS, FRAME_VARIANTS, NOTE_VARIANTS, PENS, SHAPES, STROKE, dashArray, edgeStroke, isBlock, layoutNode, shapePath, type LayerMove, type MMAnim, type MMBorder, type MMDash, type MMEdge, type MMImgStyle, type MMNode, type MMShape } from './mindmapModel';
+import { ANIMS, BORDERS, FONTS, FRAME_VARIANTS, NOTE_VARIANTS, PENS, SHAPES, STROKE, dashArray, edgeStroke, isBlock, layoutNode, shapePath, STRETCHABLE, type LayerMove, type MMAnim, type MMBorder, type MMDash, type MMEdge, type MMImgStyle, type MMNode, type MMShape } from './mindmapModel';
 import { HEADS, ROUTES, headShape, headsOf, type MMHead } from './mindmapRoutes';
 import { ROUNDABLE, isRoundShape } from './mindmapShapes';
 import { DOODLES, DOODLE_GROUPS, doodleOf } from './doodles';
@@ -412,6 +412,34 @@ export function NodeStyleSheet({
                 <button type="button" onClick={() => actions.scaleBy(1.15)} className={chip(false)} data-testid="mm-bigger">+ {X.sizeBigger}</button>
               </div>
             </>
+          )}
+          {(regular || block) && (
+            <div data-testid="mm-textsize">
+              <Cap>{L2('Textgröße', 'Text size')}</Cap>
+              <button type="button" onClick={() => onChange(node.tfree ? { tfree: undefined, tsz: undefined } : { tfree: true, tsz: node.tsz ?? 1 })} className={chip(!!node.tfree)} style={node.tfree ? activeBg : undefined} aria-pressed={!!node.tfree} data-testid="mm-text-lock">
+                {node.tfree ? '🔓 ' + L2('Text für sich eingestellt', 'Text set on its own') : '🔒 ' + L2('Text folgt S/M/L und der Form', 'Text follows S/M/L and the shape')}
+              </button>
+              {node.tfree ? (
+                <div className="mt-2">
+                  <Slider label={L2('Textgröße (unabhängig von der Form)', 'Text size (independent of the shape)')} value={node.tsz ?? 1} min={0.5} max={2.5} step={0.05} onChange={(tsz) => onChange({ tsz })} testId="mm-tsz" format={(v) => `${Math.round(v * 100)} %`} />
+                </div>
+              ) : (
+                <Hint>{L2('Gesperrt = alle S/M/L-Größen bleiben einheitlich. Öffne das Schloss, wenn der Text für dieses Element eine eigene Größe bekommen soll.', 'Locked = all S/M/L sizes stay uniform. Open the lock to give this element its own text size.')}</Hint>
+              )}
+            </div>
+          )}
+          {((regular && node.shape !== 'frame') || block) && (
+            <button type="button" onClick={() => onChange({ fold: node.fold ? undefined : true })} className={chip(!!node.fold)} style={node.fold ? activeBg : undefined} aria-pressed={!!node.fold} data-testid="mm-fold">
+              {node.fold ? '▸ ' + L2('Zugeklappt – antippen zum Aufklappen', 'Folded – tap to unfold') : '▾ ' + L2('Zuklappen (nur Kurzfassung zeigen)', 'Fold (show only a summary)')}
+            </button>
+          )}
+          {regular && STRETCHABLE(node) && (
+            <div data-testid="mm-stretch">
+              <Cap>{L2('Zur Seite oder nach oben ziehen', 'Pull to one side or upwards')}</Cap>
+              <Slider label={X.stretchW} value={node.sx ?? 1} min={0.4} max={4} step={0.05} onChange={(sx) => onChange({ sx: Math.abs(sx - 1) < 0.02 ? undefined : sx })} testId="mm-sx" format={(v) => `${Math.round(v * 100)} %`} />
+              <Slider label={X.stretchH} value={node.sy ?? 1} min={0.4} max={4} step={0.05} onChange={(sy) => onChange({ sy: Math.abs(sy - 1) < 0.02 ? undefined : sy })} testId="mm-sy" format={(v) => `${Math.round(v * 100)} %`} />
+              {(node.sx || node.sy) && <button type="button" className={chip(false)} onClick={() => onChange({ sx: undefined, sy: undefined })} data-testid="mm-stretch-reset">{L2('Zurück zur Grundform', 'Back to basic shape')}</button>}
+            </div>
           )}
           {block && <Slider label={X.stretchW} value={Math.round(L.w)} min={block && node.shape === 'proscons' ? 220 : 160} max={900} step={5} onChange={(fw) => onChange({ fw })} testId="mm-fw" />}
           {(isFrameLike || (dd && count === 1)) && (

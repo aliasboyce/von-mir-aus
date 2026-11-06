@@ -51,12 +51,13 @@ import {
 } from './mindmapModel';
 import { doodleOf } from './doodles';
 import { BackgroundPattern, EdgeLabel, EdgeView, MapItems, NodeView, SceneDefs, SceneProvider, orderedItems, useMapLookup, useSceneUid } from './MindmapScene';
+import { QuickSheet } from './MindmapQuick';
 import { EdgeStyleSheet, NodeStyleSheet, tabsFor, type StyleActions, type StyleTab } from './MindmapPanels';
 import { MindmapAddSheet } from './MindmapAddSheet';
 import { MindmapBlockEditor } from './MindmapBlockEditor';
 import { LayersPanel, MemoWindow, SlipsOnMap, reorderZ } from './MindmapSidePanels';
 import { VersionsModal } from './MindmapVersions';
-import { MapColorsContext } from './MindmapColor';
+import { MapColorsContext, MapPhotosContext } from './MindmapColor';
 import { colorsOfMap } from './mindmapPalettes';
 import { dragEdgeHandle } from './mindmapRoutes';
 import { todoLayout } from './mindmapBlocks';
@@ -78,6 +79,7 @@ const NODE_COLORS = ['#6aa08a', '#4a8f9e', '#e8a83d', '#e07a5f', '#9a7bc4', '#d9
 const NO_RESHAPE = new Set(['draw', 'doodle', 'image', 'maplink', 'todo', 'table', 'proscons', 'appcard']);
 /** the parts of the look that a new element can take over from another one */
 const STYLE_KEYS = ['color', 'look', 'size', 'font', 'bold', 'italic', 'fc', 'bc', 'tc', 'nofill', 'fop', 'op', 'round', 'border', 'sw'] as const;
+const inheritStore = createKeyValueStore<boolean>('mindmap-inherit', true);
 type Sel = { kind: 'node' | 'edge'; id: string } | null;
 type Tool = 'select' | 'connect' | 'multi' | 'draw';
 interface Snap {
@@ -140,6 +142,7 @@ function Editor({ initial }: { initial: MindMap }) {
   penRef.current = pen;
   const [connectFrom, setConnectFrom] = useState<string | null>(null);
   const [styleOpen, setStyleOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
   const [tab, setTab] = useState<StyleTab>('shape');
   const [textEdit, setTextEdit] = useState<Sel>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -151,7 +154,9 @@ function Editor({ initial }: { initial: MindMap }) {
   const [insertOpen, setInsertOpen] = useState(false);
   /** where the next new element goes: next to a parent (connected) and/or at a spot */
   const [addCtx, setAddCtx] = useState<{ parent?: string; at?: { x: number; y: number } } | null>(null);
-  const [copyStyle, setCopyStyle] = useState(false);
+  // "Unterknoten immer automatisch dieselbe Farbe und Form, bis man etwas anderes einstellt": on by default, remembered
+  const [copyStyle, setCopyStyleRaw] = useState(() => inheritStore.get());
+  const setCopyStyle = (v: boolean) => { inheritStore.set(v); setCopyStyleRaw(v); };
   const [blockEdit, setBlockEdit] = useState<string | null>(null);
   const [layersOpen, setLayersOpen] = useState(false);
   const [versionsOpen, setVersionsOpen] = useState(false);
@@ -181,6 +186,7 @@ function Editor({ initial }: { initial: MindMap }) {
   const [bendDrag, setBendDrag] = useState<{ id: string; bend: number; amp?: number } | null>(null);
   const [resizeDrag, setResizeDrag] = useState<{ id: string; fw: number; fh: number } | null>(null);
   const [scaleDrag, setScaleDrag] = useState<{ id: string; sc: number } | null>(null);
+  const [sideDrag, setSideDrag] = useState<{ id: string; patch: Partial<MMNode> } | null>(null);
   const [rotDrag, setRotDrag] = useState<{ id: string; rot: number } | null>(null);
   const [liveStroke, setLiveStroke] = useState<number[] | null>(null);
   const [eraserAt, setEraserAt] = useState<{ x: number; y: number; r: number } | null>(null);
@@ -377,6 +383,18 @@ function Editor({ initial }: { initial: MindMap }) {
     if (!keepStyle) setStyleOpen(false);
   }
 
+  /** node + everything that continues from it — connections come along on their own */
+  function selectBelow(rootId: string) {
+    const ids = new Set<string>([rootId]);
+    const queue = [rootId];
+    while (queue.length) {
+      const cur = queue.shift()!;
+      for (const e of mapRef.current.edges) if (e.from === cur && !ids.has(e.to)) { ids.add(e.to); queue.push(e.to); }
+    }
+    selectNodes([rootId, ...[...ids].filter((i) => i !== rootId)], true);
+    feedback('settle');
+  }
+
   // ---- actions ----
   function addNodeAt(x: number, y: number, patch: Partial<MMNode> = {}, select = true) {
     const cnt = mapRef.current.nodes.length;
@@ -427,7 +445,6 @@ function Editor({ initial }: { initial: MindMap }) {
   /** open the "what do you want to add?" sheet (optionally for a child of an element, or at a spot) */
   function openAdd(ctx: { parent?: string; at?: { x: number; y: number } } | null = null) {
     setAddCtx(ctx);
-    setCopyStyle(false);
     setMenuOpen(false);
     setStyleOpen(false);
     setLayersOpen(false);
@@ -447,7 +464,17 @@ function Editor({ initial }: { initial: MindMap }) {
     const spot = ctx?.at ?? (parent ? childSpot(parent) : freeSpot(probe));
     const copy: Partial<MMNode> = {};
     if (parent && copyStyle && patch.shape !== 'appcard' && patch.shape !== 'sticker') {
-      for (const k of STYLE_KEYS) if (parent[k] !== undefined) (copy as Record<string, unknown>)[k] = parent[k];
+      // the look of the last sibling wins (so a child you styled differently carries on for the next ones);
+      // the first child takes the look of its parent
+      const sibs = mapRef.current.edges.filter((e) => e.from === parent.id).map((e) => mapRef.current.nodes.find((x) => x.id === e.to)).filter((x): x is MMNode => !!x && !NO_RESHAPE.has(x.shape) && !['frame', 'note', 'sticker'].includes(x.shape));
+      const src = sibs[sibs.length - 1] ?? parent;
+      for (const k of STYLE_KEYS) if (src[k] !== undefined) (copy as Record<string, unknown>)[k] = src[k];
+      for (const k of ['tfree', 'tsz'] as const) if (src[k] !== undefined) (copy as Record<string, unknown>)[k] = src[k];
+      // a plain new element also takes over the shape (unless a special kind of element was chosen)
+      if (patch.shape === 'rect' && !NO_RESHAPE.has(src.shape) && !['frame', 'note', 'sticker'].includes(src.shape)) {
+        copy.shape = src.shape;
+        if (src.round !== undefined) copy.round = src.round;
+      }
     }
     const n = newNode({ color: NODE_COLORS[cnt % NODE_COLORS.length], ...patch, ...copy, x: Math.round(spot.x), y: Math.round(spot.y) });
     const edge = parent ? newEdge(parent.id, n.id, { color: NEUTRAL.has(parent.shape) ? '#8a8478' : parent.color, width: 2 }) : null;
@@ -693,6 +720,23 @@ function Editor({ initial }: { initial: MindMap }) {
   }
   const patchNode = (nid: string, patch: Partial<MMNode>, key = '') => commit((m) => ({ ...m, nodes: m.nodes.map((n) => (n.id === nid ? { ...n, ...patch } : n)) }), key);
   const patchEdge = (eid: string, patch: Partial<MMEdge>, key = '') => commit((m) => ({ ...m, edges: m.edges.map((e) => (e.id === eid ? { ...e, ...patch } : e)) }), key);
+  /** "ab diesem Unterknoten alles in der Farbe": the element and everything that continues from it */
+  function colorSubtree(rootId: string, color: string) {
+    const m0 = mapRef.current;
+    const ids = new Set<string>([rootId]);
+    const queue = [rootId];
+    while (queue.length) {
+      const cur = queue.shift()!;
+      for (const e of m0.edges) if (e.from === cur && !ids.has(e.to)) { ids.add(e.to); queue.push(e.to); }
+    }
+    const skip = new Set(['frame', 'image', 'sticker', 'draw', 'doodle', 'maplink', 'appcard']);
+    commit((m) => ({
+      ...m,
+      nodes: m.nodes.map((n) => (ids.has(n.id) && !skip.has(n.shape) ? { ...n, color, fc: undefined, bc: undefined } : n)),
+      edges: m.edges.map((e) => (ids.has(e.from) && ids.has(e.to) ? { ...e, color } : e)),
+    }));
+    feedback('settle');
+  }
   /** style changes apply to everything that is selected */
   function patchSelected(patch: Partial<MMNode>) {
     const ids = new Set(selIds);
@@ -719,6 +763,8 @@ function Editor({ initial }: { initial: MindMap }) {
             if (grp) q.grp = grp;
             return { ...n, ...q };
           }),
+          // connections between the selected things travel with them – also in colour
+          edges: patch.color && ids.size > 1 ? m.edges.map((e) => (ids.has(e.from) && ids.has(e.to) ? { ...e, color: patch.color as string } : e)) : m.edges,
         };
       },
       `style:${selIds.join(',')}`,
@@ -1266,6 +1312,53 @@ function Editor({ initial }: { initial: MindMap }) {
     scaleRef.current = null;
     setScaleDrag(null);
   }
+  // ---- one-sided pulling: wider / taller to the left, right, top or bottom (the opposite side stays where it is) ----
+  type Side = 'l' | 'r' | 't' | 'b';
+  const sideRef = useRef<{ side: Side; w0: number; h0: number; n: MMNode; px: number; py: number } | null>(null);
+  function sideDown(e: RPE<SVGGElement>, n: MMNode, side: Side) {
+    e.stopPropagation();
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* fine */ }
+    const l = layoutNode(n);
+    const p = camRef.current!.toWorld(e.clientX, e.clientY);
+    sideRef.current = { side, w0: l.w, h0: l.h, n, px: p.x, py: p.y };
+    setSideDrag({ id: n.id, patch: {} });
+  }
+  function sideMove(e: RPE<SVGGElement>) {
+    const r = sideRef.current;
+    if (!r) return;
+    const p = camRef.current!.toWorld(e.clientX, e.clientY);
+    const a = ((r.n.rot ?? 0) * Math.PI) / 180;
+    const dx = p.x - r.px;
+    const dy = p.y - r.py;
+    const lx = dx * Math.cos(a) + dy * Math.sin(a);
+    const ly = -dx * Math.sin(a) + dy * Math.cos(a);
+    const horiz = r.side === 'l' || r.side === 'r';
+    const block = isBlock(r.n);
+    const frameLike = r.n.shape === 'frame' || r.n.shape === 'maplink';
+    if (block && !horiz) return;
+    const delta = horiz ? (r.side === 'r' ? lx : -lx) : r.side === 'b' ? ly : -ly;
+    const minW = block ? (r.n.shape === 'proscons' ? 220 : 160) : frameLike ? 140 : 40;
+    const minH = frameLike ? 100 : 30;
+    const w1 = horiz ? Math.max(minW, r.w0 + delta) : r.w0;
+    const h1 = horiz ? r.h0 : Math.max(minH, r.h0 + delta);
+    const used = horiz ? w1 - r.w0 : h1 - r.h0;
+    const shift = (used / 2) * (r.side === 'r' || r.side === 'b' ? 1 : -1);
+    const sl = horiz ? shift : 0;
+    const st = horiz ? 0 : shift;
+    const patch: Partial<MMNode> = { x: Math.round(r.n.x + sl * Math.cos(a) - st * Math.sin(a)), y: Math.round(r.n.y + sl * Math.sin(a) + st * Math.cos(a)) };
+    if (block) patch.fw = Math.round(w1);
+    else if (frameLike) { patch.fw = Math.round(w1); patch.fh = Math.round(h1); }
+    else {
+      patch.sx = Math.round((r.n.sx ?? 1) * (w1 / r.w0) * 1000) / 1000;
+      patch.sy = Math.round((r.n.sy ?? 1) * (h1 / r.h0) * 1000) / 1000;
+    }
+    setSideDrag({ id: r.n.id, patch });
+  }
+  function sideUp(n: MMNode) {
+    if (sideRef.current && sideDrag) patchNode(n.id, sideDrag.patch);
+    sideRef.current = null;
+    setSideDrag(null);
+  }
   const rotRef = useRef<{ cx: number; cy: number } | null>(null);
   function rotDown(e: RPE<SVGGElement>, n: MMNode) {
     e.stopPropagation();
@@ -1372,7 +1465,8 @@ function Editor({ initial }: { initial: MindMap }) {
     const rs = resizeDrag?.id === n.id ? resizeDrag : null;
     const sd = scaleDrag?.id === n.id ? scaleDrag : null;
     const rd = rotDrag?.id === n.id ? rotDrag : null;
-    return { ...n, ...(dp ?? {}), ...(rs ? { fw: rs.fw, fh: rs.fh } : {}), ...(sd ? { sc: sd.sc } : {}), ...(rd ? { rot: rd.rot } : {}) };
+    const sid = sideDrag?.id === n.id ? sideDrag.patch : null;
+    return { ...n, ...(dp ?? {}), ...(sid ?? {}), ...(rs ? { fw: rs.fw, fh: rs.fh } : {}), ...(sd ? { sc: sd.sc } : {}), ...(rd ? { rot: rd.rot } : {}) };
   };
   const nodes = map.nodes.map(posOf);
   const nById = new Map(nodes.map((n) => [n.id, n]));
@@ -1411,8 +1505,10 @@ function Editor({ initial }: { initial: MindMap }) {
   const drawing = tool === 'draw';
   const pwLive = penWidth({ sw: pen.sw / view.scale, pen: pen.kind });
   const mapColors = useMemo(() => colorsOfMap(map.nodes, map.edges), [map.nodes, map.edges]);
+  const mapPhotos = useMemo(() => map.nodes.filter((n) => n.img).map((n) => n.img as string).slice(0, 12), [map.nodes]);
 
-  const panelsOn = (layersOpen && !drawing) || (!!(selNode || selEdge) && styleOpen && !drawing && !layersOpen);
+  const quickOn = !!selNode && quickOpen && !styleOpen && !drawing && !layersOpen && tool === 'select';
+  const panelsOn = (layersOpen && !drawing) || (!!(selNode || selEdge) && styleOpen && !drawing && !layersOpen) || quickOn;
   const barButtons = (
     <>
                 {!sel && tool !== 'multi' && (
@@ -1445,7 +1541,8 @@ function Editor({ initial }: { initial: MindMap }) {
                   <>
                     {hasText(selNode) && <button type="button" onClick={() => setTextEdit({ kind: 'node', id: selNode.id })} className={barBtn(!!textEdit)} data-testid="mm-edit-text"><Type size={19} />{T.text}</button>}
                     {isBlock(selNode) && selNode.shape !== 'appcard' && <button type="button" onClick={() => setBlockEdit(selNode.id)} className={barBtn()} data-testid="mm-edit-content"><ListChecks size={19} />{lang === 'en' ? 'Content' : 'Inhalt'}</button>}
-                    <button type="button" onClick={() => { setStyleOpen((v) => !v); setLayersOpen(false); }} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
+                    <button type="button" onClick={() => { setQuickOpen((v) => !v); setStyleOpen(false); setLayersOpen(false); }} className={barBtn(quickOn)} data-testid="mm-quick-color"><span className="w-[19px] h-[19px] rounded-full inline-block" style={{ background: selNode.fc ?? selNode.color, border: '1.5px solid rgba(0,0,0,0.25)' }} />{lang === 'en' ? 'Colour' : 'Farbe'}</button>
+                    <button type="button" onClick={() => { setStyleOpen((v) => !v); setLayersOpen(false); setQuickOpen(false); }} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
                     {selNode.shape === 'appcard' && <button type="button" onClick={() => openRef(selNode)} className={barBtn()} data-testid="mm-ref-open-btn"><ExternalLink size={19} />{lang === 'en' ? 'Open original' : 'Original öffnen'}</button>}
                     {selNode.shape === 'maplink' && <button type="button" onClick={() => openLinked(selNode)} className={barBtn()} data-testid="mm-open-map"><ExternalLink size={19} />{X.openMap}</button>}
                     {selNode.shape !== 'frame' && selNode.shape !== 'draw' && <button type="button" onClick={() => addChild(selNode)} className={barBtn()} data-testid="mm-add-child"><CornerDownRight size={19} />{T.child}</button>}
@@ -1454,6 +1551,7 @@ function Editor({ initial }: { initial: MindMap }) {
                     <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
                     <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={18} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
                     <button type="button" onClick={() => setTool('multi')} className={barBtn()} data-testid="mm-multi-from"><BoxSelect size={19} />{X.moreSelect}</button>
+                    {selNode.shape !== 'frame' && selNode.shape !== 'draw' && map.edges.some((e) => e.from === selNode.id) && <button type="button" onClick={() => selectBelow(selNode.id)} className={barBtn()} data-testid="mm-select-below"><CornerDownRight size={19} />{lang === 'en' ? 'Select all below' : 'Alles darunter'}</button>}
                     <button type="button" onClick={() => { setNewMapRemove(false); setNewMapOpen(true); }} className={barBtn()} data-testid="mm-to-newmap"><FolderTree size={18} />{X.toNewMap}</button>
                     <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
                   </>
@@ -1461,6 +1559,7 @@ function Editor({ initial }: { initial: MindMap }) {
                 {selNode && multiSel && (
                   <>
                     <button type="button" onClick={() => setStyleOpen((v) => !v)} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
+                    <button type="button" onClick={() => { setQuickOpen((v) => !v); setStyleOpen(false); setLayersOpen(false); }} className={barBtn(quickOn)} data-testid="mm-quick-color"><span className="w-[19px] h-[19px] rounded-full inline-block" style={{ background: selNode.fc ?? selNode.color, border: '1.5px solid rgba(0,0,0,0.25)' }} />{lang === 'en' ? 'Colour' : 'Farbe'}</button>
                     <button type="button" onClick={doCopy} className={barBtn()} data-testid="mm-copy"><Copy size={18} />{X.copy}</button>
                     <button type="button" onClick={doCut} className={barBtn()} data-testid="mm-cut"><Scissors size={18} />{X.cut}</button>
                     <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
@@ -1485,6 +1584,7 @@ function Editor({ initial }: { initial: MindMap }) {
 
   return (
     <MapColorsContext.Provider value={mapColors}>
+    <MapPhotosContext.Provider value={mapPhotos}>
       <div className={`fixed inset-0 z-[150] no-print select-none ${animOn ? '' : 'mm-paused'}`} style={{ background: bgCss(map.bg.tone) }} data-has-bgimg={map.bg.img ? 'true' : undefined} data-testid="mindmap-editor" data-tool={tool} data-anim={animate ? 'on' : 'off'}>
         {map.bg.img && (
           <>
@@ -1504,7 +1604,7 @@ function Editor({ initial }: { initial: MindMap }) {
                     if (it.kind === 'edge') {
                       const gm = geomOf.get(it.edge.id);
                       if (!gm) return null;
-                      return <EdgeView key={it.edge.id} edge={gm.e} geom={gm.g} bg={bgc} selected={sel?.kind === 'edge' && sel.id === it.edge.id} onPointerDown={(ev) => { ev.stopPropagation(); setSel({ kind: 'edge', id: it.edge.id }); setExtra([]); setTextEdit(null); setStyleOpen(true); setMenuOpen(false); }} />;
+                      return <EdgeView key={it.edge.id} edge={gm.e} geom={gm.g} bg={bgc} selected={(sel?.kind === 'edge' && sel.id === it.edge.id) || (multiSel && selSet.has(it.edge.from) && selSet.has(it.edge.to))} onPointerDown={(ev) => { ev.stopPropagation(); setSel({ kind: 'edge', id: it.edge.id }); setExtra([]); setTextEdit(null); setStyleOpen(true); setMenuOpen(false); }} />;
                     }
                     const n = it.node;
                     const isSel = selSet.has(n.id);
@@ -1538,6 +1638,22 @@ function Editor({ initial }: { initial: MindMap }) {
                   {/* handles of the selected thing */}
                   {sn && snL && !multiSel && !draggingId && !textEdit && tool === 'select' && (
                     <>
+                      {(['l', 'r', 't', 'b'] as const).filter((sd) => {
+                        if (sn.shape === 'draw' || sn.shape === 'doodle' || sn.shape === 'image' || sn.shape === 'sticker') return false;
+                        if (isBlock(sn)) return sd === 'l' || sd === 'r';
+                        return true;
+                      }).map((sd) => {
+                        const px = sd === 'l' ? -snL.w / 2 : sd === 'r' ? snL.w / 2 : 0;
+                        const py = sd === 't' ? -snL.h / 2 : sd === 'b' ? snL.h / 2 : 0;
+                        const pt = rotPt(sn, px, py);
+                        const vertical = sd === 'l' || sd === 'r';
+                        return (
+                          <g key={sd} transform={`translate(${pt.x},${pt.y}) rotate(${sn.rot ?? 0})`} onPointerDown={(e) => sideDown(e, sn, sd)} onPointerMove={(e) => sideMove(e)} onPointerUp={() => sideUp(sn)} className="mm-handle" data-testid={`mm-side-${sd}`} style={{ cursor: vertical ? 'ew-resize' : 'ns-resize' }}>
+                            <rect x={vertical ? -14 : -22} y={vertical ? -22 : -14} width={vertical ? 28 : 44} height={vertical ? 44 : 28} fill="transparent" />
+                            <rect x={vertical ? -4 : -11} y={vertical ? -11 : -4} width={vertical ? 8 : 22} height={vertical ? 22 : 8} rx={4} fill="#fff" stroke="#3e7c63" strokeWidth={2} />
+                          </g>
+                        );
+                      })}
                       {sn.shape !== 'frame' && sn.shape !== 'draw' && (
                         <g transform={`translate(${rotPt(sn, snL.w / 2 + 26, 0).x},${rotPt(sn, snL.w / 2 + 26, 0).y})`} onPointerDown={(e) => handleDown(e, sn)} onPointerMove={(e) => handleMove(e, sn)} onPointerUp={(e) => handleUp(e, sn)} className="mm-handle" data-testid="mm-plus-handle">
                           <circle r={22} fill="transparent" />
@@ -1753,6 +1869,11 @@ function Editor({ initial }: { initial: MindMap }) {
               />
             </div>
           )}
+          {quickOn && selNode && (
+            <div className="px-4 pt-3 max-h-[34vh] overflow-y-auto">
+              <QuickSheet node={selNode} count={count} lang={lang} onChange={patchSelected} onSubtree={() => colorSubtree(selNode.id, selNode.color)} onOpenStyle={() => { setQuickOpen(false); setStyleOpen(true); setTab('color'); }} />
+            </div>
+          )}
           {(selNode || selEdge) && styleOpen && !drawing && !layersOpen && (
             <div className="px-4 pt-3 max-h-[42vh] overflow-y-auto">
               {selNode && <NodeStyleSheet node={selNode} count={count} tab={tab} setTab={setTab} onChange={patchSelected} actions={actions} T={T} X={X} lang={lang} reduceMotion={settings.reduceMotion} />}
@@ -1903,6 +2024,7 @@ function Editor({ initial }: { initial: MindMap }) {
       </Modal>
 
       {printing && <MindmapPrintView map={map} lang={lang} images={printImages} />}
+    </MapPhotosContext.Provider>
     </MapColorsContext.Provider>
   );
 }

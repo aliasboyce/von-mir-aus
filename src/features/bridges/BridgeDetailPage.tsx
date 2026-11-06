@@ -8,7 +8,7 @@ import { shareOrCopy } from '../../services/shareOrCopy';
 import { buildShareText } from '../../services/sharedLinks';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { triggerPrint } from '../../services/printSupport';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Heart, Lightbulb, Pencil, NotebookPen, Check, Trash2, Timer as TimerIcon, Link2, FileDown, ChevronDown } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
@@ -23,6 +23,9 @@ import { AccessGapModal } from '../zugang/AccessGapModal';
 import { finalizeZugangDraft, clearZugangDraft } from '../zugang/zugangDraft';
 import { Modal } from '../../components/ui/Modal';
 import { BridgeTimerView } from './BridgeTimerView';
+import { BridgeStepNeeds } from './BridgeStepNeeds';
+import { subjectOfBridgeLevel, stepClashes, isFitFilterActive } from '../../content/fitCriteria';
+import { useFitFilter } from '../../state/fitFilterStore';
 import { BridgePrintView } from './BridgePrintView';
 import { logActivity } from '../../services/activityLog';
 import { HelpfulnessPrompt } from '../../components/shared/HelpfulnessPrompt';
@@ -80,6 +83,9 @@ export function BridgeDetailPage() {
   const [showAccessGap, setShowAccessGap] = useState(false);
   const [savedToDiary, setSavedToDiary] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
+  const [timerLevelNo, setTimerLevelNo] = useState<number | null>(null);
+  const { filter: fitFilter } = useFitFilter();
+  const [showNeedsInfo, setShowNeedsInfo] = useState(false);
   const [timerWasUsed, setTimerWasUsed] = useState(false);
   function leaveToAfter() {
     if (!zugangEntryId) return;
@@ -192,6 +198,7 @@ export function BridgeDetailPage() {
 
   function openDiaryDraftFromTimer(durationMin: number, note?: string) {
     if (!bridge || !activeLevel) return;
+    const dl = (timerLevelNo != null ? bridge.levels.find((l) => l.level === timerLevelNo) : null) ?? activeLevel;
     const timeLabel = new Date().toLocaleString(undefined, {
       day: '2-digit',
       month: '2-digit',
@@ -203,7 +210,7 @@ export function BridgeDetailPage() {
         ? `${(durationMin / 60).toFixed(durationMin % 60 === 0 ? 0 : 1)} h`
         : `${durationMin} min`;
     setDiaryDraft(
-      `${bridge.title} — ${activeLevel.title}\n${timeLabel} · ${durationLabel}\n${activeLevel.description}${note ? `\n\n${note}` : ''}`,
+      `${bridge.title} — ${dl.title}\n${timeLabel} · ${durationLabel}\n${dl.description}${note ? `\n\n${note}` : ''}`,
     );
   }
 
@@ -385,6 +392,19 @@ export function BridgeDetailPage() {
         )}
 
         <p className="text-[13px] text-[var(--color-text-faint)] mb-3">{t.bridges.chooseLevelPrompt}</p>
+        <button type="button" onClick={() => setShowNeedsInfo((v) => !v)} aria-expanded={showNeedsInfo} data-testid="needs-info-btn" className="text-[12px] text-[var(--color-primary)] mb-2 inline-flex items-center gap-1">
+          ⓘ {settings.language === 'en' ? 'What do energy, time and access channels mean here?' : 'Was bedeuten Energie, Zeit und Zugangskanäle hier?'}
+        </button>
+        {showNeedsInfo && (
+          <div className="rounded-[var(--radius-lg)] p-3.5 mb-3 text-[12.5px] leading-relaxed text-[var(--color-text-muted)] animate-in" style={{ background: 'var(--color-surface-muted)' }} data-testid="needs-info">
+            {settings.language === 'en'
+              ? 'Every step shows what it asks for: energy, time, effort and the access channels it works through (thinking, body, senses, movement …). If you said which access is missing right now, each step tells you which of its channels are there and which are greyed. A step that does not fit is only dimmed – you can always still open it or take another step.'
+              : 'Jeder Schritt zeigt, was er braucht: Energie, Zeit, Aufwand und die Zugangskanäle, über die er läuft (Denken, Körper, Sinne, Bewegung …). Wenn du angegeben hast, welcher Zugang gerade fehlt, steht bei jedem Schritt, welche seiner Kanäle da sind und welche grau. Ein Schritt, der gerade nicht passt, ist nur abgeblendet – du kannst ihn trotzdem öffnen oder einen anderen nehmen.'}
+            <span className="block mt-1.5">
+              <Link to="/entdecken/zugangskanaele" className="text-[var(--color-primary)] underline underline-offset-2">{settings.language === 'en' ? 'Set what is missing right now' : 'Angeben, was gerade fehlt'}</Link>
+            </span>
+          </div>
+        )}
         <CompanionGuidanceCard text={t.bridges.guidanceLevelStep} />
 
         {/* Level path — a connecting line runs behind the level dots, with
@@ -421,6 +441,7 @@ export function BridgeDetailPage() {
                   'relative rounded-[var(--radius-lg)] border transition-all duration-200',
                   active ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] scale-[1.01]' : 'border-[var(--color-border)] bg-[var(--color-surface)]',
                 ].join(' ')}
+                style={isFitFilterActive(fitFilter) && stepClashes(subjectOfBridgeLevel(bridge, lvl), fitFilter) ? { opacity: 0.7 } : undefined}
               >
               <button
                 type="button"
@@ -454,6 +475,17 @@ export function BridgeDetailPage() {
                   )}
                 </span>
               </button>
+              <div className="px-4 pb-3 -mt-1 pl-[3.75rem] flex flex-col gap-2">
+                <BridgeStepNeeds subject={subjectOfBridgeLevel(bridge, lvl)} />
+                <button
+                  type="button"
+                  data-testid={`step-timer-${lvl.level}`}
+                  onClick={() => { setTimerLevelNo(lvl.level); setTimerOpen(true); setTimerWasUsed(true); }}
+                  className="self-start inline-flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)]"
+                >
+                  <TimerIcon size={14} /> {settings.language === 'en' ? 'Timer for this step' : 'Timer für diesen Schritt'}
+                </button>
+              </div>
               {lvl.extras && (
                 <div className="px-4 pb-3 -mt-1 pl-[3.75rem]">
                   <StepExtrasView extras={lvl.extras} />
@@ -502,16 +534,22 @@ export function BridgeDetailPage() {
           {t.bridges.startTimer}
         </button>
 
-        {timerOpen && activeLevel && (
-          <BridgeTimerView
-            contextLabel={`${bridge.title} — ${t.bridges.level} ${activeLevel.level}: ${activeLevel.title}`}
-            onClose={() => setTimerOpen(false)}
-            onNaturalComplete={(durationMin, note) => {
-              setTimerOpen(false);
-              openDiaryDraftFromTimer(durationMin, note);
-            }}
-          />
-        )}
+        {timerOpen && activeLevel && (() => {
+          const tl = (timerLevelNo != null ? bridge.levels.find((l) => l.level === timerLevelNo) : null) ?? activeLevel;
+          return (
+            <BridgeTimerView
+              contextLabel={`${bridge.title} — ${t.bridges.level} ${tl.level}: ${tl.title}`}
+              stepTitle={tl.title}
+              stepText={tl.description}
+              onClose={() => { setTimerOpen(false); setTimerLevelNo(null); }}
+              onNaturalComplete={(durationMin, note) => {
+                setTimerOpen(false);
+                setTimerLevelNo(null);
+                openDiaryDraftFromTimer(durationMin, note);
+              }}
+            />
+          );
+        })()}
 
         <div className="flex gap-2 mt-3">
           <Button variant="ghost" icon={<Link2 size={15} />} onClick={shareBridgeLink}>

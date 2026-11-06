@@ -45,6 +45,7 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
   const [steps] = useState(() => getActiveGroundingSteps());
   // after the last step: physical safety → bemerken → benennen → stoppen → somatischer Reiz
   const [afterOpen, setAfterOpen] = useState(false);
+  const [afterStart, setAfterStart] = useState<'safety' | 'breath'>('safety');
   const isLast = step === steps.length - 1;
   // "Orientierung im Tagesrückblick": going through to the last step counts as done — logged once per run
   const loggedRef = useRef(false);
@@ -102,7 +103,7 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
 
       <InlineCompanionNote />
 
-      {afterOpen ? <AfterGrounding onClose={onClose} /> : <>
+      {afterOpen ? <AfterGrounding onClose={onClose} startPhase={afterStart} /> : <>
       {step === 0 && <p className="text-[13px] text-[var(--color-text-faint)] mt-5 mb-1">{t.companion.groundingIntro}</p>}
 
       {isBreathStep ? (
@@ -163,6 +164,9 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
           <button onClick={() => setAfterOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">
             {isEn ? 'What next?' : 'Wie geht es weiter?'}
             <ArrowRight size={14} />
+          </button>
+          <button onClick={() => { setAfterStart('breath'); setAfterOpen(true); }} data-testid="grounding-breath-choice" className="text-[13px] text-[var(--color-primary)] underline underline-offset-2">
+            {isEn ? '🌬 Choose a breathing exercise' : '🌬 Atemübung auswählen'}
           </button>
           <button onClick={onClose} className="text-[13px] text-[var(--color-text-faint)] underline">
             {t.common.close}

@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/Button';
 import { FitSummary } from '../../components/shared/FitSummary';
 import { useT } from '../../i18n';
 import { useFitFilter } from '../../state/fitFilterStore';
-import { availableChannels, filterByFit, isFitFilterActive, subjectOfResource } from '../../content/fitCriteria';
+import { availableChannels, bridgeMatchesFit, subjectsOfBridge, matchesFit, filterByFit, isFitFilterActive, subjectOfResource } from '../../content/fitCriteria';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import { bridgeNeeds, needsForValues, resourcesForNeeds } from '../bridges/bridgeValues';
@@ -73,8 +73,13 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
         (b.connectionTags ?? []).filter((v) => connection.includes(v)).length +
         (openChannels.length === 0 ? 0 : (b.accessChannels ?? []).filter((c) => openChannels.includes(c)).length),
     }));
-    return { matching: scored.filter((s) => s.matches > 0).sort((a, b) => b.matches - a.matches), rest: scored.filter((s) => s.matches === 0) };
-  }, [allBridges, need, obstacle, connection, openChannels]);
+    // "Je nach Schritt wird gefiltert": a Brücke fits when at least one of its steps fits what is
+    // there right now. Nothing is hidden — fitting ones come first, the others are only dimmed.
+    const active = isFitFilterActive(filter);
+    const withFit = scored.map((s) => ({ ...s, fits: !active || bridgeMatchesFit(s.bridge, filter), stepsFit: active ? subjectsOfBridge(s.bridge).filter((x) => matchesFit(x, filter)).length : 0 }));
+    const order = (a: (typeof withFit)[number], b: (typeof withFit)[number]) => Number(b.fits) - Number(a.fits) || b.matches - a.matches;
+    return { matching: withFit.filter((s) => s.matches > 0).sort(order), rest: withFit.filter((s) => s.matches === 0).sort(order) };
+  }, [allBridges, need, obstacle, connection, openChannels, filter]);
 
   function toggleResource(r: Resource) {
     const on = usedResources.some((u) => u.id === r.id);
@@ -96,16 +101,22 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
     );
   };
 
-  const bridgeRow = (b: Bridge) => (
-    <BridgeTile
-      key={b.id}
-      bridge={b}
-      onClick={() => setBridgeId(bridgeId === b.id ? null : b.id)}
-      toggle
-      selected={bridgeId === b.id}
-      subtitle={(b.connectionTags ?? []).slice(0, 3).join(' · ') || undefined}
-      trailing={bridgeId === b.id ? <span className="text-[16px] text-[var(--color-primary)] pr-1" aria-hidden="true">✓</span> : undefined}
-    />
+  const bridgeRow = (b: Bridge, info?: { fits: boolean; stepsFit: number }) => (
+    <div key={b.id} style={info && !info.fits ? { opacity: 0.6 } : undefined} data-fits={info ? String(info.fits) : undefined}>
+      <BridgeTile
+        bridge={b}
+        onClick={() => setBridgeId(bridgeId === b.id ? null : b.id)}
+        toggle
+        selected={bridgeId === b.id}
+        subtitle={(b.connectionTags ?? []).slice(0, 3).join(' · ') || undefined}
+        trailing={bridgeId === b.id ? <span className="text-[16px] text-[var(--color-primary)] pr-1" aria-hidden="true">✓</span> : undefined}
+        extra={info && isFitFilterActive(filter) ? (
+          <span className="block text-[11px] text-[var(--color-text-faint)]">
+            {info.fits ? t.fit.bridgeStepsFit.replace('{n}', String(info.stepsFit)).replace('{total}', String(b.levels.length)) : t.fit.bridgeNoStepFits}
+          </span>
+        ) : undefined}
+      />
+    </div>
   );
 
   const visibleResources = showMore ? shown.slice(0, MAX) : shown.slice(0, FIRST);
@@ -156,7 +167,7 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
             {scoredBridges.matching.length > 0 && (
               <>
                 <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{z.matchingBridgesLabel}</p>
-                <div className="flex flex-col gap-2.5 mb-3">{scoredBridges.matching.slice(0, 5).map((s) => bridgeRow(s.bridge))}</div>
+                <div className="flex flex-col gap-2.5 mb-3">{scoredBridges.matching.slice(0, 5).map((s) => bridgeRow(s.bridge, s))}</div>
               </>
             )}
             {(scoredBridges.rest.length > 0 || scoredBridges.matching.length > 5) && (
@@ -165,7 +176,7 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
                   {z.moreBridgesLabel.replace('{count}', String(scoredBridges.rest.length + Math.max(0, scoredBridges.matching.length - 5)))}
                 </summary>
                 <div className="flex flex-col gap-2.5 mt-2.5">
-                  {[...scoredBridges.matching.slice(5), ...scoredBridges.rest].map((s) => bridgeRow(s.bridge))}
+                  {[...scoredBridges.matching.slice(5), ...scoredBridges.rest].map((s) => bridgeRow(s.bridge, s))}
                 </div>
               </details>
             )}

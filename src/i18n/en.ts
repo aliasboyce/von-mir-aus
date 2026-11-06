@@ -2690,7 +2690,7 @@ const en: TranslationDictionary = {
   zugangskanaele: {
     page: {
       title: 'Access channels',
-      subtitle: 'What is available right now?',
+      subtitle: 'What is missing right now – and what still works?',
       intro: 'Not everything you know or can do is equally reachable right now. Say which routes you can use at the moment – the app then shows what is doable now. There is no right or wrong.',
       netLabel: 'Net of access channels',
       levelNone: 'Not right now',
@@ -3347,8 +3347,10 @@ const en: TranslationDictionary = {
   },
   fit: {
     channelsTitle: 'Access channels',
-    channelsQuestion: 'What is available right now?',
-    channelsHint: 'Through which channels can you reach something right now? An entry fits if it works through at least one of them.',
+    channelsQuestion: 'Which access is missing right now?',
+    channelsHint: 'Tap what is missing right now – it turns grey. Everything else counts as there, and the app only shows what works through the remaining channels. An entry fits if it works through at least one channel that is there.',
+    bridgeStepsFit: '{n} of {total} steps fit right now',
+    bridgeNoStepFits: 'No step fits right now – you may still look',
     channelsNone: 'Nothing selected yet',
     channelsPage: 'See the net & save a snapshot',
     channelsSummary: '{n} of 10 available',

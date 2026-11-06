@@ -35,7 +35,7 @@ export const TOUR_DEMOS: Record<string, DemoStep[]> = {
     P('Favorit', 'Mit dem Stern merke ich mir, was am besten hilft.', 'With the star I remember what helps most.'),
   ],
   skill: [
-    P('css:[data-testid="skills-breath-link"]', 'Hier sind die Atemübungen – mit Kreis, Welle und mehr.', 'Here are the breathing exercises – with circle, wave and more.'),
+    P('css:[data-testid="breath-skill-six"]', 'Atemübungen sind jetzt Skills – mit „Mitatmen“: Kreis, Welle oder Quadrat.', 'Breathing exercises are skills now – with “breathe along”: circle, wave or square.'),
     T('Stresstoleranz', 'Die Skills sind nach Bereichen sortiert – ich tippe einen an und probiere ihn aus.', 'Skills are sorted by area – I tap one and try it out.'),
     P('Neuer Skill', 'Eigene Skills kann ich jederzeit dazufügen.', 'I can add skills of my own at any time.'),
   ],

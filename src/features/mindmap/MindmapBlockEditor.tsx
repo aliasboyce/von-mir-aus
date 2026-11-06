@@ -74,32 +74,45 @@ function TodoEdit({ node, onPatch, L }: { node: MMNode; onPatch: (p: Partial<MMN
 function TableEdit({ node, onPatch, L }: { node: MMNode; onPatch: (p: Partial<MMNode>) => void; L: (de: string, en: string) => string }) {
   const grid = node.grid && node.grid.length ? node.grid : defaultGrid();
   const cols = Math.max(1, ...grid.map((r) => r.length));
+  const full = grid.map((row) => Array.from({ length: cols }, (_, k) => row[k] ?? ''));
   const set = (g: string[][]) => onPatch({ grid: g });
-  const cell = (r: number, c: number, v: string) => set(grid.map((row, i) => (i === r ? Array.from({ length: cols }, (_, k) => (k === c ? v : row[k] ?? '')) : row)));
+  const cell = (r: number, c: number, v: string) => set(full.map((row, i) => (i === r ? row.map((x, k) => (k === c ? v : x)) : row)));
+  const moveCol = (c: number, d: number) => set(full.map((row) => move(row, c, d)));
+  const insCol = (c: number) => cols < 8 && set(full.map((row) => [...row.slice(0, c + 1), '', ...row.slice(c + 1)]));
+  const delCol = (c: number) => cols > 1 && set(full.map((row) => row.filter((_, k) => k !== c)));
+  const insRow = (r: number) => set([...full.slice(0, r + 1), Array.from({ length: cols }, () => ''), ...full.slice(r + 1)]);
+  const mini = `${miniBtn} !w-7 !h-7`;
   return (
     <div className="flex flex-col gap-2" data-testid="mm-table-edit">
+      <p className="text-[11.5px] text-[var(--color-text-faint)]">{L('Pfeile verschieben, + fügt direkt dahinter eine neue Spalte/Zeile ein.', 'Arrows move, + inserts a new column/row right after.')}</p>
       <div className="overflow-x-auto">
         <div className="flex flex-col gap-1.5 min-w-max">
-          {grid.map((row, r) => (
-            <div key={r} className="flex gap-1.5 items-center">
-              {Array.from({ length: cols }, (_, c) => (
-                <input key={c} value={row[c] ?? ''} onChange={(e) => cell(r, c, e.target.value)} className={`${inputCls} !w-[110px] ${r === 0 && node.hdr !== false ? 'font-semibold' : ''}`} data-testid={`mm-cell-${r}-${c}`} aria-label={`${r + 1}/${c + 1}`} />
-              ))}
-              <button type="button" className={miniBtn} onClick={() => set(grid.length > 1 ? grid.filter((_, i) => i !== r) : grid)} disabled={grid.length <= 1} aria-label={L('Zeile entfernen', 'Remove row')} data-testid={`mm-row-del-${r}`}><Trash2 size={14} /></button>
-            </div>
-          ))}
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 items-center">
             {Array.from({ length: cols }, (_, c) => (
-              <button key={c} type="button" className={`${miniBtn} !w-[110px] !rounded-[var(--radius-md)] text-[12px]`} onClick={() => set(cols > 1 ? grid.map((row) => Array.from({ length: cols }, (_, k) => row[k] ?? '').filter((_, k) => k !== c)) : grid)} disabled={cols <= 1} aria-label={L('Spalte entfernen', 'Remove column')} data-testid={`mm-col-del-${c}`}>
-                <Trash2 size={13} />
-              </button>
+              <div key={c} className="w-[110px] flex justify-between shrink-0" data-testid={`mm-col-tools-${c}`}>
+                <button type="button" className={mini} onClick={() => moveCol(c, -1)} disabled={c === 0} aria-label={L('Spalte nach links', 'Column left')} data-testid={`mm-col-left-${c}`}>←</button>
+                <button type="button" className={mini} onClick={() => moveCol(c, 1)} disabled={c === cols - 1} aria-label={L('Spalte nach rechts', 'Column right')} data-testid={`mm-col-right-${c}`}>→</button>
+                <button type="button" className={mini} onClick={() => insCol(c)} disabled={cols >= 8} aria-label={L('Neue Spalte danach', 'New column after')} data-testid={`mm-col-ins-${c}`}><Plus size={13} /></button>
+                <button type="button" className={mini} onClick={() => delCol(c)} disabled={cols <= 1} aria-label={L('Spalte entfernen', 'Remove column')} data-testid={`mm-col-del-${c}`}><Trash2 size={13} /></button>
+              </div>
             ))}
           </div>
+          {full.map((row, r) => (
+            <div key={r} className="flex gap-1.5 items-center">
+              {row.map((v, c) => (
+                <input key={c} value={v} onChange={(e) => cell(r, c, e.target.value)} className={`${inputCls} !w-[110px] ${r === 0 && node.hdr !== false ? 'font-semibold' : ''}`} data-testid={`mm-cell-${r}-${c}`} aria-label={`${r + 1}/${c + 1}`} />
+              ))}
+              <button type="button" className={mini} onClick={() => set(move(full, r, -1))} disabled={r === 0} aria-label={L('Zeile nach oben', 'Row up')} data-testid={`mm-row-up-${r}`}><ArrowUp size={13} /></button>
+              <button type="button" className={mini} onClick={() => set(move(full, r, 1))} disabled={r === full.length - 1} aria-label={L('Zeile nach unten', 'Row down')} data-testid={`mm-row-down-${r}`}><ArrowDown size={13} /></button>
+              <button type="button" className={mini} onClick={() => insRow(r)} aria-label={L('Neue Zeile danach', 'New row after')} data-testid={`mm-row-ins-${r}`}><Plus size={13} /></button>
+              <button type="button" className={mini} onClick={() => set(full.length > 1 ? full.filter((_, i) => i !== r) : full)} disabled={full.length <= 1} aria-label={L('Zeile entfernen', 'Remove row')} data-testid={`mm-row-del-${r}`}><Trash2 size={13} /></button>
+            </div>
+          ))}
         </div>
       </div>
       <div className="flex gap-3 flex-wrap">
-        <button type="button" onClick={() => set([...grid, Array.from({ length: cols }, () => '')])} className="inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid="mm-row-add"><Plus size={15} /> {L('Zeile', 'Row')}</button>
-        <button type="button" onClick={() => cols < 8 && set(grid.map((row) => [...Array.from({ length: cols }, (_, k) => row[k] ?? ''), '']))} className="inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid="mm-col-add"><Plus size={15} /> {L('Spalte', 'Column')}</button>
+        <button type="button" onClick={() => set([...full, Array.from({ length: cols }, () => '')])} className="inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid="mm-row-add"><Plus size={15} /> {L('Zeile am Ende', 'Row at end')}</button>
+        <button type="button" onClick={() => cols < 8 && set(full.map((row) => [...row, '']))} className="inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid="mm-col-add"><Plus size={15} /> {L('Spalte am Ende', 'Column at end')}</button>
       </div>
     </div>
   );

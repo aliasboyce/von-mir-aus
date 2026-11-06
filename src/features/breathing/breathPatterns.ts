@@ -215,3 +215,28 @@ export function locate(phases: BreathPhase[], t: number): { index: number; progr
   }
   return { index: 0, progress: 0, level: 0, secLeft: 0, cycleFraction: 0 };
 }
+
+/**
+ * "Die Atemübungen sollen direkt zu den Skills mit rein – manche Skills sind
+ * Atemübungen, machen das Mitatmen aber gar nicht"-Auftrag: seeded text skills
+ * that are really breathing exercises, and the guided pattern that matches each.
+ * Those skills get a "Mitatmen" button; patterns without a seeded skill show up
+ * as their own skill-style card in the skills list.
+ */
+export const BREATH_SKILL_PATTERN: Record<string, string> = {
+  res_skill_478_atmung: '478',
+  res_skill_36_bauchatmung: 'long-out',
+  res_skill_box_atmung: 'box',
+  res_skill_physio_seufzer: 'sigh',
+  res_skill_voo_atem: 'hum',
+};
+
+export function breathHrefFor(patternId: string): string {
+  return `/entdecken/ressourcen/skills/atmen?muster=${encodeURIComponent(patternId)}`;
+}
+
+/** Patterns that have no seeded text skill of their own. */
+export function standaloneBreathPatterns(): BreathPattern[] {
+  const used = new Set(Object.values(BREATH_SKILL_PATTERN));
+  return BREATH_PATTERNS.filter((p) => !used.has(p.id));
+}

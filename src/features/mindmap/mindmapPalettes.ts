@@ -79,3 +79,40 @@ export function colorsOfMap(nodes: { color: string; fc?: string; bc?: string; tc
   edges.forEach((e) => add(e.color));
   return [...count.entries()].sort((a, b) => b[1] - a[1]).map(([c]) => c).slice(0, 16);
 }
+
+/* ---------------------------------------------------- recent & saved colours */
+
+const HEX6 = /^#[0-9a-fA-F]{6}$/;
+const recentStore = createKeyValueStore<string[]>('mindmap-recent-colors', []);
+const ownStore = createKeyValueStore<string[]>('mindmap-own-colors', []);
+const CEVT = 'mm-colors-changed';
+const cfire = () => window.dispatchEvent(new Event(CEVT));
+
+/** "Auch zuletzt genutzte Farben" — remembered whenever a colour is chosen */
+export function pushRecentColor(c: string) {
+  if (!HEX6.test(c)) return;
+  const low = c.toLowerCase();
+  recentStore.set([low, ...recentStore.get().filter((x) => x !== low)].slice(0, 10));
+  cfire();
+}
+/** "Eigene Farben speichern" — single colours kept by the person, in every colour picker */
+export function toggleOwnColor(c: string) {
+  if (!HEX6.test(c)) return;
+  const low = c.toLowerCase();
+  const cur = ownStore.get();
+  ownStore.set(cur.includes(low) ? cur.filter((x) => x !== low) : [low, ...cur].slice(0, 24));
+  cfire();
+}
+export function removeOwnColor(c: string) {
+  ownStore.set(ownStore.get().filter((x) => x !== c.toLowerCase()));
+  cfire();
+}
+export function useSavedColors(): { recent: string[]; own: string[] } {
+  const [, setV] = useState(0);
+  useEffect(() => {
+    const on = () => setV((v) => v + 1);
+    window.addEventListener(CEVT, on);
+    return () => window.removeEventListener(CEVT, on);
+  }, []);
+  return { recent: recentStore.get(), own: ownStore.get() };
+}

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Activity, Sparkles } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -84,7 +84,15 @@ export function BreathPage({ initialId, embedded }: { initialId?: string; embedd
   const { settings } = useSettings();
   const en = settings.language === 'en';
   const L = en ? TXT.en : TXT.de;
-  const [openId, setOpenId] = useState<string | null>(initialId ?? null);
+  const [searchParams] = useSearchParams();
+  const musterParam = searchParams.get('muster');
+  const [openId, setOpenId] = useState<string | null>(initialId ?? (musterParam && BREATH_PATTERNS.some((x) => x.id === musterParam) ? musterParam : null));
+  useEffect(() => {
+    if (!openId) return;
+    const el = document.querySelector(`[data-testid="breath-card-${openId}"]`);
+    if (el && 'scrollIntoView' in el) (el as HTMLElement).scrollIntoView({ block: 'start', behavior: 'smooth' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [running, setRunning] = useState<{ pattern: BreathPattern; options: BreathOptions } | null>(null);
   const [opts, setOpts] = useState<Record<string, BreathOptions>>(() => Object.fromEntries(BREATH_PATTERNS.map((p) => [p.id, optionsFor(p)])));
 

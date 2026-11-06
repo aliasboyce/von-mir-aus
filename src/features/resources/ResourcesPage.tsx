@@ -1,3 +1,4 @@
+import { BREATH_SKILL_PATTERN, breathHrefFor, standaloneBreathPatterns } from '../breathing/breathPatterns';
 import { buildResourcePayload } from '../../services/resourceShare';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from '../../state/SettingsContext';
@@ -124,6 +125,7 @@ export function ResourcesPage() {
   const [newSubName, setNewSubName] = useState('');
   const [, bumpSubs] = useState(0);
   const { filter: fitFilter } = useFitFilter();
+  const showBreathCards = typeScope === 'skills' && (filter === 'all' || filter === 'stresstoleranz') && !zoneFilter && !needFilter && !isFitFilterActive(fitFilter);
   const [items, setItems] = useState<Resource[]>(() => resourcesRepo.getAll());
   const [editing, setEditing] = useState<Resource | null>(null);
   // "Das Hinzufuegen-Feld soll nur bei Skills immer so aufgebaut
@@ -399,21 +401,6 @@ export function ResourcesPage() {
            * live count so a freshly saved chain is noticeable right here. */}
           {typeScope === 'skills' && (
             <Link
-              to="/entdecken/ressourcen/skills/atmen"
-              className="flex items-center gap-3 p-3.5 mb-3 rounded-[var(--radius-lg)]"
-              style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-border-strong)' }}
-              data-testid="skills-breath-link"
-            >
-              <Wind size={20} className="text-[var(--color-primary)] flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[14px] font-medium text-[var(--color-text)]">{settings.language === 'en' ? 'Breathing exercises' : 'Atemübungen'}</p>
-                <p className="text-[12px] text-[var(--color-text-muted)]">{settings.language === 'en' ? 'With circle, wave or square – and the Wesen breathing along.' : 'Mit Kreis, Welle oder Quadrat – und das Wesen atmet mit.'}</p>
-              </div>
-              <span className="text-[var(--color-primary)]" aria-hidden="true">→</span>
-            </Link>
-          )}
-          {typeScope === 'skills' && (
-            <Link
               to="/entdecken/ressourcen/skillketten"
               className="flex items-center gap-3 p-3.5 mb-4 rounded-[var(--radius-lg)]"
               style={{ background: 'var(--color-surface)', border: '1.5px solid var(--color-primary)' }}
@@ -555,7 +542,7 @@ export function ResourcesPage() {
             className="flex items-center gap-2 text-[13px] text-[var(--color-primary)] mb-5"
           >
             <Compass size={15} />
-            {t.resources.discoverCta}
+            {typeScope === 'orte' ? (settings.language === 'en' ? 'Discover places' : 'Orte entdecken') : typeScope === 'aktivitaeten' ? (settings.language === 'en' ? 'Discover activities' : 'Aktivitäten entdecken') : typeScope === 'hilfsmittel' ? (settings.language === 'en' ? 'Discover aids' : 'Hilfsmittel entdecken') : t.resources.discoverCta}
           </button>
         )}
 
@@ -739,10 +726,36 @@ export function ResourcesPage() {
 
         <FitFilterPanel hiddenUnmarked={hiddenUnmarked} />
 
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && !showBreathCards ? (
           <EmptyState title={isFitFilterActive(fitFilter) ? t.fit.noResults : t.resources.empty} action={isFitFilterActive(fitFilter) ? <p className="text-[12.5px] text-[var(--color-text-faint)] max-w-[280px]">{t.fit.noResultsHint}</p> : undefined} />
         ) : (
           <div className="grid grid-cols-2 gap-3 mb-4">
+            {showBreathCards && standaloneBreathPatterns().map((p) => (
+              <Card
+                key={`breath_${p.id}`}
+                padding="none"
+                interactive
+                className="overflow-hidden flex flex-col"
+                data-testid={`breath-skill-${p.id}`}
+                onClick={() => navigate(breathHrefFor(p.id))}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(breathHrefFor(p.id));
+                  }
+                }}
+              >
+                <div className="h-24 flex items-center justify-center text-[38px]" style={{ background: 'var(--color-primary-soft)' }} aria-hidden="true">{p.emoji}</div>
+                <div className="p-3 flex-1 flex flex-col">
+                  <p className="text-[11px] uppercase tracking-wide mb-1 text-[var(--color-text-faint)]">{categoryLabel('stresstoleranz')}</p>
+                  <p className="text-[14px] text-[var(--color-text)] mb-1">{settings.language === 'en' ? p.titleEn : p.title}</p>
+                  <p className="text-[12px] text-[var(--color-text-muted)] line-clamp-2 mb-2">{settings.language === 'en' ? p.shortEn : p.short}</p>
+                  <span className="mt-auto inline-flex items-center gap-1 text-[11.5px] text-[var(--color-primary)]"><Wind size={13} /> {settings.language === 'en' ? 'Breathe along' : 'Mitatmen'}</span>
+                </div>
+              </Card>
+            ))}
             {filtered.map((resource) => (
               <Card
                 key={resource.id}
@@ -775,6 +788,7 @@ export function ResourcesPage() {
                     {categoryLabel(resource.category)}
                   </p>
                   <p className="text-[14px] text-[var(--color-text)] mb-1">{resource.title}</p>
+                  {BREATH_SKILL_PATTERN[resource.id] && <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-primary)] mb-1"><Wind size={12} /> {settings.language === 'en' ? 'Breathe along' : 'Mitatmen'}</span>}
                   {resource.description && (
                     <p className="text-[12px] text-[var(--color-text-muted)] line-clamp-2 mb-2">
                       {resource.description}
@@ -1002,6 +1016,7 @@ export function ResourcesPage() {
         open={discoverOpen}
         onClose={() => setDiscoverOpen(false)}
         onAdopted={refresh}
+        scope={typeScope === 'skills' ? null : typeScope}
       />
       {cropSrc && (
         <ImageCropModal

@@ -66,8 +66,8 @@ export function TodoBody(p: BodyProps) {
         );
       })}
       {!T.rows.length && (
-        <text x={0} y={top + T.pad + T.titleH + fs * 1.4} fontSize={fs} fill={st.text} fillOpacity={0.45} textAnchor="middle" fontFamily={ff} style={{ userSelect: 'none' }}>
-          {p.placeholder || '…'}
+        <text x={0} y={top + T.pad + T.titleH + fs * 1.4} fontSize={fs} fill={st.text} fillOpacity={0.45} textAnchor="middle" fontFamily={ff} style={{ userSelect: 'none' }} data-folded={node.fold ? '1' : undefined}>
+          {node.fold ? `▸ ${(node.items ?? []).filter((i) => i.done).length}/${(node.items ?? []).length} ✓` : p.placeholder || '…'}
         </text>
       )}
     </>
@@ -117,6 +117,9 @@ export function TableBody(p: BodyProps) {
           {ln}
         </text>
       ))}
+      {T.hidden > 0 && (
+        <text x={0} y={top + T.h - fs * 0.6} fontSize={fs * 0.95} textAnchor="middle" fill={st.text} fillOpacity={0.55} fontFamily={ff} style={{ userSelect: 'none' }} data-folded="1">▸ +{T.hidden} ≡</text>
+      )}
       {/* the outline once more on top of the cells */}
       <path d={shapePath(node.shape, T.w, T.h, node.round)} fill="none" stroke={node.border === 'none' ? 'none' : st.stroke} strokeWidth={node.border === 'none' ? 0 : st.strokeWidth} pointerEvents="none" />
     </>
@@ -163,6 +166,12 @@ export function ProsConsBody(p: BodyProps) {
       {head(1, cc, node.cl ?? 'Contra', '−')}
       {col(0, pc, T.pros)}
       {col(1, cc, T.cons)}
+      {node.fold && (
+        <>
+          <text x={colX[0] + T.colW / 2} y={top + T.h - fs * 0.9} fontSize={fs} textAnchor="middle" fill={st.text} fillOpacity={0.6} fontFamily={ff} style={{ userSelect: 'none' }} data-folded="1">▸ {(node.pros ?? []).length}</text>
+          <text x={colX[1] + T.colW / 2} y={top + T.h - fs * 0.9} fontSize={fs} textAnchor="middle" fill={st.text} fillOpacity={0.6} fontFamily={ff} style={{ userSelect: 'none' }}>▸ {(node.cons ?? []).length}</text>
+        </>
+      )}
       <line x1={left + T.w / 2} x2={left + T.w / 2} y1={T.headTop + T.headH + 4} y2={top + T.h - T.pad * 0.7} stroke={st.text} strokeOpacity={0.12} />
     </>
   );

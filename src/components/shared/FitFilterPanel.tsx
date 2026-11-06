@@ -12,6 +12,7 @@ import {
   TIME_STEPS,
   activeCriteriaCount,
   availableChannels,
+  toggleMissingChannel,
   isFitFilterActive,
   timeLabel,
   type ChannelLevels,
@@ -66,10 +67,10 @@ export function FitFilterPanel({ hiddenUnmarked = 0, defaultOpen = false }: { hi
   };
 
   function toggleChannel(c: AccessChannel) {
-    const cur: ChannelLevels = { ...(filter.levels ?? {}) };
-    if ((cur[c] ?? 0) >= 1) delete cur[c];
-    else cur[c] = 2;
-    setFilter({ levels: Object.keys(cur).length === 0 ? null : cur });
+    setFilter({ levels: toggleMissingChannel(filter.levels, c, ACCESS_CHANNEL_ORDER) });
+  }
+  function nothingMissing() {
+    setFilter({ levels: Object.fromEntries(ACCESS_CHANNEL_ORDER.map((c) => [c, 2])) as ChannelLevels });
   }
 
   const summary: string[] = [];
@@ -129,16 +130,37 @@ export function FitFilterPanel({ hiddenUnmarked = 0, defaultOpen = false }: { hi
             <div className="grid grid-cols-2 gap-1.5">
               {ACCESS_CHANNEL_ORDER.map((c) => {
                 const meta = ACCESS_CHANNEL_META[c];
+                const missing = filter.levels !== null && (filter.levels[c] ?? 0) === 0;
+                const there = filter.levels !== null && !missing;
                 return (
-                  <Chip key={c} active={(filter.levels?.[c] ?? 0) >= 1} onClick={() => toggleChannel(c)} hint={meta.hint(t)}>
-                    <span className="inline-flex items-center gap-1.5">
-                      <meta.icon size={13} className="flex-shrink-0" />
-                      {meta.label(t)}
-                    </span>
-                  </Chip>
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => toggleChannel(c)}
+                    aria-pressed={missing}
+                    title={meta.hint(t)}
+                    data-testid={`fit-channel-${c}`}
+                    className="px-2.5 py-2 rounded-[var(--radius-md)] text-[12.5px] text-left flex items-center gap-1.5 transition-colors"
+                    style={{
+                      background: missing ? 'var(--color-surface-muted)' : there ? 'var(--color-primary-soft)' : 'var(--color-surface)',
+                      border: `1.5px ${missing ? 'dashed' : 'solid'} ${there ? 'var(--color-primary)' : 'var(--color-border-strong)'}`,
+                      color: missing ? 'var(--color-text-faint)' : 'var(--color-text)',
+                      opacity: missing ? 0.7 : 1,
+                      textDecoration: missing ? 'line-through' : 'none',
+                    }}
+                  >
+                    <meta.icon size={13} className="flex-shrink-0" />
+                    <span className="flex-1">{meta.label(t)}</span>
+                    {missing && <span className="text-[10.5px] no-underline" style={{ textDecoration: 'none' }}>{lang === 'en' ? 'missing' : 'fehlt'}</span>}
+                  </button>
                 );
               })}
             </div>
+            {filter.levels === null && (
+              <button type="button" onClick={nothingMissing} data-testid="fit-channels-nothing-missing" className="mt-2 text-[12.5px] text-[var(--color-primary)]">
+                {lang === 'en' ? 'Nothing is missing right now' : 'Gerade fehlt nichts'}
+              </button>
+            )}
             <Link to="/entdecken/zugangskanaele" className="inline-block mt-2 text-[12.5px] text-[var(--color-primary)] underline underline-offset-2">
               {f.channelsPage}
             </Link>

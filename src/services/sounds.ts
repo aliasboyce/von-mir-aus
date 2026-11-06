@@ -120,19 +120,21 @@ function scheduleClick(audioCtx: AudioContext) {
  * die untere Hauptnavigation eigenstaendig anfuehlt. */
 function scheduleMenu(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
-  // 180 Hz war am Handy nicht hoerbar -> 360 Hz plus eine leise Oberschwingung bei 720 Hz
-  [[360, 0.085], [720, 0.03]].forEach(([f, g]) => {
+  // Der warme, tiefe Hauptmenü-Ton: Grundton 180 Hz (so war er ursprünglich) + Obertöne bei 360 und 540 Hz.
+  // Handy-Lautsprecher geben unter ca. 350 Hz kaum etwas wieder – die Obertöne sorgen dafür, dass man den tiefen Ton
+  // dort trotzdem hört (das Ohr ergänzt den Grundton). Weicher Einsatz, etwas längeres Ausklingen.
+  [[180, 0.07], [360, 0.075], [540, 0.03]].forEach(([f, g]) => {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
     osc.frequency.value = f;
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(g, now + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+    gain.gain.linearRampToValueAtTime(g, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start(now);
-    osc.stop(now + 0.1);
+    osc.stop(now + 0.18);
   });
 }
 

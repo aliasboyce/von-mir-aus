@@ -1,7 +1,7 @@
 import { LinkPreview } from '../../components/shared/LinkPreview';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, Link as LinkIcon, Pencil, Trash2, NotebookPen, Check, FileDown, Link2, Timer as TimerIcon } from 'lucide-react';
+import { Wind, Heart, Link as LinkIcon, Pencil, Trash2, NotebookPen, Check, FileDown, Link2, Timer as TimerIcon } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
@@ -22,6 +22,7 @@ import { subjectOfResource } from '../../content/fitCriteria';
 import { umstandLabel } from '../bridges/conditions';
 import { useSettings } from '../../state/SettingsContext';
 import { kindText, kindOfCategory } from './kindText';
+import { BREATH_SKILL_PATTERN, breathHrefFor } from '../breathing/breathPatterns';
 
 interface ResourceDetailModalProps {
   resource: Resource | null;
@@ -110,6 +111,11 @@ export function ResourceDetailModal({
         {RESOURCE_CATEGORY_TO_GROUP[resource.category] === 'faehigkeiten' && (
           <Button fullWidth onClick={() => navigate(`/entdecken/ressourcen/skill-start/${resource.id}`)}>
             {t.skillRun.startCta}
+          </Button>
+        )}
+        {BREATH_SKILL_PATTERN[resource.id] && (
+          <Button fullWidth variant="secondary" icon={<Wind size={17} />} data-testid="skill-mitatmen" onClick={() => navigate(breathHrefFor(BREATH_SKILL_PATTERN[resource.id]))}>
+            {settings.language === 'en' ? 'Breathe along (guided)' : 'Mitatmen (geführt)'}
           </Button>
         )}
 

@@ -1,6 +1,7 @@
 import type { Bridge } from '../types';
 import { symbolImage } from '../../components/shared/symbolImage';
 import { builtInBridgeColor } from '../../components/shared/itemColors';
+import { withSeedBridgeFit } from '../../content/seedBridgeFit';
 
 /**
  * Point 4 — each bridge's image now actually matches its own theme (a
@@ -164,4 +165,4 @@ const RAW_DEMO_BRIDGES: Bridge[] = [
 
 ];
 
-export const DEMO_BRIDGES: Bridge[] = RAW_DEMO_BRIDGES.map((b) => ({ ...b, image: symbolImage(b.title, builtInBridgeColor(b.category), '🌉') }));
+export const DEMO_BRIDGES: Bridge[] = RAW_DEMO_BRIDGES.map((b) => withSeedBridgeFit({ ...b, image: symbolImage(b.title, builtInBridgeColor(b.category), '🌉') }));

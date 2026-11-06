@@ -1,7 +1,7 @@
-import { createContext, useContext, useState } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { Image as ImageIcon, Pipette, Plus, Trash2, X } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
-import { BUILTIN_PALETTES, colorsOfMap, deletePalette, paletteName, savePalette, setActivePalette, usePalettes, type MMPalette } from './mindmapPalettes';
+import { BUILTIN_PALETTES, colorsOfMap, deletePalette, paletteName, pushRecentColor, removeOwnColor, savePalette, setActivePalette, toggleOwnColor, useSavedColors, usePalettes, type MMPalette } from './mindmapPalettes';
 
 /** the colours used on the current map (offered when an own palette is made) */
 export const MapColorsContext = createContext<string[]>([]);
@@ -10,9 +10,18 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 const chipCls = (active: boolean) => `px-3 py-1 rounded-full text-[12.5px] border shrink-0 ${active ? 'text-white border-transparent' : 'text-[var(--color-text-muted)] border-[var(--color-border-strong)]'}`;
 const activeBg = { background: 'var(--color-primary)' };
 
+/** photos on the current map (offered when a colour is picked from a photo) */
+export const MapPhotosContext = createContext<string[]>([]);
+
+type EyeDropperCtor = new () => { open: () => Promise<{ sRGBHex: string }> };
+const eyeDropper = (): EyeDropperCtor | undefined => (typeof window !== 'undefined' ? (window as unknown as { EyeDropper?: EyeDropperCtor }).EyeDropper : undefined);
+
+const swatch = (c: string, on: boolean, size = 28) => ({ width: size, height: size, background: c, border: '1.5px solid rgba(0,0,0,0.16)', outline: on ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }) as const;
+
 /**
- * Colour choice with palettes: pick a palette (ready-made or your own), then a colour from it.
- * Optionally "no colour" (for fills, borders …) and any own colour.
+ * Colour choice, kept short so the map stays visible: first what you used last and your own saved colours
+ * (the quick start), then ONE palette row (pick the palette from a small list), then own colour, pipette
+ * and "from a photo". Optionally "no colour" (for fills, borders …).
  */
 export function ColorField({
   value,
@@ -37,40 +46,181 @@ export function ColorField({
   compact?: boolean;
 }) {
   const { palettes, active } = usePalettes();
+  const { recent, own } = useSavedColors();
   const [edit, setEdit] = useState(false);
+  const [photo, setPhoto] = useState(false);
+  const [manage, setManage] = useState(false);
   const L = (de: string, en: string) => (lang === 'en' ? en : de);
   const cur = value && HEX.test(value) ? value.toLowerCase() : undefined;
   const inPalette = cur ? active.colors.some((c) => c.toLowerCase() === cur) : false;
+  const pick = (c: string) => {
+    onChange(c);
+    pushRecentColor(c);
+  };
+  const Eye = eyeDropper();
+  async function pipette() {
+    if (!Eye) return;
+    try {
+      const r = await new Eye().open();
+      if (HEX.test(r.sRGBHex)) pick(r.sRGBHex.toLowerCase());
+    } catch { /* cancelled */ }
+  }
+  const small = 'text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]';
+  const row = 'flex gap-2 items-center overflow-x-auto pb-1';
+  const showQuick = !compact || recent.length > 0 || own.length > 0;
   return (
     <div data-testid={testId}>
       {label && <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{label}</p>}
-      {!compact && (
-        <div className="flex gap-1.5 overflow-x-auto pb-1.5 mb-1" role="tablist" aria-label={L('Farbpaletten', 'Colour palettes')}>
-          {palettes.map((p) => (
-            <button key={p.id} type="button" role="tab" aria-selected={p.id === active.id} onClick={() => setActivePalette(p.id)} className={chipCls(p.id === active.id)} style={p.id === active.id ? activeBg : undefined} data-testid={`${testId}-pal-${p.id}`}>
-              {paletteName(p, lang)}
-            </button>
-          ))}
-          <button type="button" onClick={() => setEdit(true)} className={`${chipCls(false)} inline-flex items-center gap-1`} data-testid={`${testId}-pal-edit`}>
-            <Plus size={13} /> {L('Eigene Palette', 'Own palette')}
-          </button>
+      {showQuick && (recent.length > 0 || own.length > 0 || cur) && (
+        <div className="flex flex-col gap-1.5 mb-2" data-testid={`${testId}-quick`}>
+          {recent.length > 0 && (
+            <div>
+              <p className={small}>{L('Zuletzt benutzt', 'Recently used')}</p>
+              <div className={row}>
+                {recent.slice(0, compact ? 6 : 10).map((c) => (
+                  <button key={c} type="button" onClick={() => pick(c)} className="rounded-full shrink-0" style={swatch(c, !none && cur === c)} aria-label={c} data-testid={`${testId}-recent`} />
+                ))}
+              </div>
+            </div>
+          )}
+          {(own.length > 0 || (cur && !own.includes(cur))) && (
+            <div>
+              <p className={small}>
+                {L('Meine Farben', 'My colours')}
+                {own.length > 0 && (
+                  <button type="button" onClick={() => setManage((v) => !v)} className="ml-2 normal-case underline underline-offset-2" data-testid={`${testId}-own-manage`}>
+                    {manage ? L('fertig', 'done') : L('aufräumen', 'tidy up')}
+                  </button>
+                )}
+              </p>
+              <div className={row}>
+                {own.map((c) => (
+                  <span key={c} className="relative shrink-0">
+                    <button type="button" onClick={() => (manage ? removeOwnColor(c) : pick(c))} className="rounded-full block" style={swatch(c, !none && cur === c)} aria-label={manage ? L('Farbe entfernen', 'Remove colour') + ' ' + c : c} data-testid={`${testId}-own`} />
+                    {manage && <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--color-surface)] shadow flex items-center justify-center pointer-events-none"><X size={10} /></span>}
+                  </span>
+                ))}
+                {cur && !own.includes(cur) && (
+                  <button type="button" onClick={() => toggleOwnColor(cur)} className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]" data-testid={`${testId}-own-add`}>
+                    <Plus size={12} /> <span className="w-3.5 h-3.5 rounded-full inline-block" style={{ background: cur, border: '1px solid rgba(0,0,0,0.2)' }} /> {L('merken', 'save')}
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
-      <div className="flex flex-wrap gap-2 items-center">
+      {!compact && (
+        <div className="flex items-center gap-2 mb-1.5">
+          <p className={small}>{L('Palette', 'Palette')}</p>
+          <select value={active.id} onChange={(e) => (e.target.value === '__new' ? setEdit(true) : setActivePalette(e.target.value))} className="text-[12.5px] rounded-full border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-2.5 py-1 max-w-[190px]" aria-label={L('Farbpalette', 'Colour palette')} data-testid={`${testId}-pal-select`}>
+            {palettes.map((p) => (
+              <option key={p.id} value={p.id}>{paletteName(p, lang)}</option>
+            ))}
+            <option value="__new">+ {L('Eigene Palette …', 'Own palette …')}</option>
+          </select>
+        </div>
+      )}
+      <div className={row} data-testid={`${testId}-row`}>
         {onNone && (
-          <button type="button" onClick={onNone} className="w-7 h-7 rounded-full flex items-center justify-center text-[13px]" style={{ background: 'var(--color-surface)', border: '1.5px dashed var(--color-text-faint)', color: 'var(--color-text-muted)', outline: none ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={noneLabel ?? L('Ohne', 'None')} title={noneLabel ?? L('Ohne', 'None')} aria-pressed={!!none} data-testid={`${testId}-none`}>
+          <button type="button" onClick={onNone} className="w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[13px]" style={{ background: 'var(--color-surface)', border: '1.5px dashed var(--color-text-faint)', color: 'var(--color-text-muted)', outline: none ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={noneLabel ?? L('Ohne', 'None')} title={noneLabel ?? L('Ohne', 'None')}>
             ⌀
           </button>
         )}
         {active.colors.map((c) => (
-          <button key={c} type="button" onClick={() => onChange(c)} className="w-7 h-7 rounded-full" style={{ background: c, border: '1.5px solid rgba(0,0,0,0.16)', outline: !none && cur === c.toLowerCase() ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={c} data-testid={`${testId}-sw`} />
+          <button key={c} type="button" onClick={() => pick(c)} className="rounded-full shrink-0" style={swatch(c, !none && cur === c.toLowerCase())} aria-label={c} data-testid={`${testId}-sw`} />
         ))}
-        <label className="relative w-7 h-7 rounded-full overflow-hidden cursor-pointer" style={{ background: cur && !inPalette && !none ? cur : 'conic-gradient(#e8a83d, #6fbf73, #4a8f9e, #9a7bc4, #d9778a, #e8a83d)', outline: cur && !inPalette && !none ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} title={L('Eigene Farbe', 'Own colour')}>
-          <input type="color" value={cur ?? '#6aa08a'} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" aria-label={L('Eigene Farbe', 'Own colour')} data-testid={`${testId}-custom`} />
+        <label className="relative w-7 h-7 shrink-0 rounded-full overflow-hidden cursor-pointer" style={{ background: cur && !inPalette && !none ? cur : 'conic-gradient(#e8a83d, #6fbf73, #4a8f9e, #9a7bc4, #d9778a, #e8a83d)', outline: cur && !inPalette && !none ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} title={L('Eigene Farbe', 'Own colour')}>
+          <input type="color" value={cur ?? '#6aa08a'} onChange={(e) => pick(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" aria-label={L('Eigene Farbe', 'Own colour')} data-testid={`${testId}-custom`} />
         </label>
+        {Eye && (
+          <button type="button" onClick={() => void pipette()} className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center border border-[var(--color-border-strong)] text-[var(--color-text-muted)]" title={L('Pipette: Farbe vom Bildschirm', 'Pipette: pick a colour from the screen')} aria-label={L('Pipette', 'Pipette')} data-testid={`${testId}-pipette`}>
+            <Pipette size={14} />
+          </button>
+        )}
+        <button type="button" onClick={() => setPhoto(true)} className="shrink-0 h-7 px-2.5 rounded-full inline-flex items-center gap-1 text-[12px] border border-[var(--color-border-strong)] text-[var(--color-text-muted)]" title={L('Farbe aus einem Foto wählen', 'Pick a colour from a photo')} data-testid={`${testId}-photo`}>
+          <ImageIcon size={13} /> {L('Foto', 'Photo')}
+        </button>
       </div>
       {edit && <PaletteModal lang={lang} startColor={cur} onClose={() => setEdit(false)} />}
+      {photo && <PhotoColorModal lang={lang} onClose={() => setPhoto(false)} onPick={(c) => { pick(c); setPhoto(false); }} />}
     </div>
+  );
+}
+
+/** pick a colour from a photo: your own (from the device) or one that is already on the map */
+export function PhotoColorModal({ lang, onClose, onPick }: { lang: 'de' | 'en'; onClose: () => void; onPick: (c: string) => void }) {
+  const L = (de: string, en: string) => (lang === 'en' ? en : de);
+  const mapPhotos = useContext(MapPhotosContext);
+  const [src, setSrc] = useState<string | null>(mapPhotos[0] ?? null);
+  const [col, setCol] = useState<string | null>(null);
+  const [err, setErr] = useState('');
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (!src) return;
+    const img = new Image();
+    img.onload = () => {
+      const cv = canvasRef.current;
+      if (!cv) return;
+      const max = 320;
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      cv.width = Math.max(1, Math.round(img.width * k));
+      cv.height = Math.max(1, Math.round(img.height * k));
+      cv.getContext('2d', { willReadFrequently: true })?.drawImage(img, 0, 0, cv.width, cv.height);
+      setErr('');
+    };
+    img.onerror = () => setErr(L('Dieses Bild lässt sich nicht lesen.', 'This image cannot be read.'));
+    img.src = src;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src]);
+
+  function sample(e: React.PointerEvent<HTMLCanvasElement>) {
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const r = cv.getBoundingClientRect();
+    const x = Math.min(cv.width - 1, Math.max(0, Math.floor(((e.clientX - r.left) / r.width) * cv.width)));
+    const y = Math.min(cv.height - 1, Math.max(0, Math.floor(((e.clientY - r.top) / r.height) * cv.height)));
+    try {
+      const d = cv.getContext('2d')!.getImageData(x, y, 1, 1).data;
+      if (d[3] === 0) return;
+      setCol('#' + [d[0], d[1], d[2]].map((v) => v.toString(16).padStart(2, '0')).join(''));
+    } catch {
+      setErr(L('Aus diesem Bild kann keine Farbe gelesen werden.', 'No colour can be read from this image.'));
+    }
+  }
+  function onFile(f: File | undefined) {
+    if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => setSrc(String(fr.result));
+    fr.readAsDataURL(f);
+  }
+  return (
+    <Modal open onClose={onClose} title={L('Farbe aus einem Foto', 'Colour from a photo')}>
+      <div className="flex flex-col gap-3" data-testid="mm-photo-color">
+        <p className="text-[12.5px] text-[var(--color-text-muted)]">{L('Tipp oder zieh über das Bild – unten siehst du die Farbe. Das Foto bleibt auf deinem Gerät.', 'Tap or drag over the picture – the colour shows below. The photo stays on your device.')}</p>
+        <div className="flex gap-2 flex-wrap items-center">
+          <label className="px-3 py-1.5 rounded-full text-[13px] border border-[var(--color-border-strong)] cursor-pointer">
+            {L('Foto wählen …', 'Choose a photo …')}
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} data-testid="mm-photo-color-file" />
+          </label>
+          {mapPhotos.slice(0, 6).map((u, i) => (
+            <button key={i} type="button" onClick={() => setSrc(u)} className="w-10 h-10 rounded-[var(--radius-md)] bg-cover bg-center border border-[var(--color-border)]" style={{ backgroundImage: `url(${u})`, outline: src === u ? '2px solid var(--color-primary)' : 'none' }} aria-label={L('Foto von der Mindmap', 'Photo from the map')} />
+          ))}
+        </div>
+        {src ? (
+          <canvas ref={canvasRef} onPointerDown={sample} onPointerMove={(e) => { if (e.buttons) sample(e); }} className="w-full rounded-[var(--radius-md)] touch-none" style={{ maxHeight: 280, objectFit: 'contain', cursor: 'crosshair' }} data-testid="mm-photo-color-canvas" />
+        ) : (
+          <p className="text-[13px] text-[var(--color-text-faint)]">{L('Wähle zuerst ein Foto.', 'Choose a photo first.')}</p>
+        )}
+        {err && <p className="text-[12.5px]" style={{ color: 'var(--color-danger, #c0392b)' }} role="status">{err}</p>}
+        <div className="flex items-center gap-3">
+          <span className="w-10 h-10 rounded-full" style={{ background: col ?? 'transparent', border: '1.5px solid rgba(0,0,0,0.2)' }} data-testid="mm-photo-color-preview" />
+          <span className="text-[13px] text-[var(--color-text-muted)]">{col ?? L('noch keine Farbe', 'no colour yet')}</span>
+          <button type="button" disabled={!col} onClick={() => col && onPick(col)} className="ml-auto px-4 py-2 rounded-full text-[14px] text-white disabled:opacity-40" style={activeBg} data-testid="mm-photo-color-take">{L('Diese Farbe nehmen', 'Use this colour')}</button>
+        </div>
+      </div>
+    </Modal>
   );
 }
 

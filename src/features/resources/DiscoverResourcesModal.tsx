@@ -9,30 +9,50 @@ import { resourceCategoryLabel } from './resourceMeta';
 import { createId } from '../../services/storage/repository';
 import { getAdoptedResourceImpulses, markResourceImpulseAdopted } from '../../services/adoptedImpulsesStore';
 import type { Resource } from '../../data/types';
+import { RESOURCE_CATEGORY_TO_GROUP } from './resourceMeta';
+import { useSettings } from '../../state/SettingsContext';
 import { PhotoBackground } from '../../components/shared/PhotoBackground';
 
 interface DiscoverResourcesModalProps {
   open: boolean;
   onClose: () => void;
   onAdopted: () => void;
+  /** "Nur noch passende Vorschläge": limits the ideas to Hilfsmittel, Orte or Aktivitäten */
+  scope?: 'hilfsmittel' | 'orte' | 'aktivitaeten' | null;
 }
 
-function randomImpulse(excludeId?: string): ResourceImpulse {
+function inScope(i: ResourceImpulse, scope: DiscoverResourcesModalProps['scope']): boolean {
+  if (!scope) return true;
+  const g = RESOURCE_CATEGORY_TO_GROUP[i.category];
+  if (scope === 'orte') return g === 'orte_gruppe';
+  if (scope === 'aktivitaeten') return g === 'aktivitaeten';
+  return g !== 'orte_gruppe' && g !== 'aktivitaeten' && i.category !== 'menschen';
+}
+
+function randomImpulse(scope: DiscoverResourcesModalProps['scope'], excludeId?: string): ResourceImpulse {
   const adopted = new Set(getAdoptedResourceImpulses());
-  const notAdopted = RESOURCE_IMPULSES.filter((i) => !adopted.has(i.impulseId));
-  const basePool = notAdopted.length > 0 ? notAdopted : RESOURCE_IMPULSES;
+  const all = RESOURCE_IMPULSES.filter((i) => inScope(i, scope));
+  const notAdopted = all.filter((i) => !adopted.has(i.impulseId));
+  const basePool = notAdopted.length > 0 ? notAdopted : all;
   const pool = basePool.filter((i) => i.impulseId !== excludeId);
   const source = pool.length > 0 ? pool : basePool;
   return source[Math.floor(Math.random() * source.length)];
 }
 
-export function DiscoverResourcesModal({ open, onClose, onAdopted }: DiscoverResourcesModalProps) {
+export function DiscoverResourcesModal({ open, onClose, onAdopted, scope = null }: DiscoverResourcesModalProps) {
   const t = useT();
-  const [current, setCurrent] = useState(() => randomImpulse());
+  const { settings } = useSettings();
+  const en = settings.language === 'en';
+  const [current, setCurrent] = useState(() => randomImpulse(scope));
+  const [lastScope, setLastScope] = useState(scope);
+  if (lastScope !== scope) {
+    setLastScope(scope);
+    setCurrent(randomImpulse(scope));
+  }
   const [adopted, setAdopted] = useState(false);
 
   function next() {
-    setCurrent(randomImpulse(current.impulseId));
+    setCurrent(randomImpulse(scope, current.impulseId));
     setAdopted(false);
   }
 
@@ -51,7 +71,7 @@ export function DiscoverResourcesModal({ open, onClose, onAdopted }: DiscoverRes
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={t.resources.discoverTitle} subtitle={t.resources.discoverSubtitle}>
+    <Modal open={open} onClose={onClose} title={t.resources.discoverTitle} subtitle={scope === 'orte' ? (en ? 'A place that is not yet yours – want to save it?' : 'Ein Ort, der noch nicht deiner ist – magst du ihn speichern?') : scope === 'aktivitaeten' ? (en ? 'An activity that is not yet yours – want to save it?' : 'Eine Beschäftigung, die noch nicht deine ist – magst du sie speichern?') : t.resources.discoverSubtitle}>
       <div className="flex flex-col gap-4">
         <PhotoBackground src={current.image} className="h-32 rounded-[var(--radius-lg)] bg-cover bg-center" />
         <div>

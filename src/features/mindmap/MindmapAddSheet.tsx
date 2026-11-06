@@ -119,7 +119,7 @@ export function MindmapAddSheet(p: AddSheetProps) {
             {p.parentName !== undefined && (
               <label className="flex items-center gap-2 text-[13px] text-[var(--color-text)] rounded-[var(--radius-md)] bg-[var(--color-primary-soft)] px-3 py-2">
                 <input type="checkbox" checked={p.copyStyle} onChange={(e) => p.setCopyStyle(e.target.checked)} data-testid="mm-add-copystyle" />
-                {fmt(L('Aussehen von „{n}“ übernehmen', 'Take the look of “{n}”'), { n: p.parentName || '…' })}
+                {fmt(L('Farbe & Form von „{n}“ übernehmen – das bleibt so, bis du etwas anderes einstellst', 'Take colour & shape of “{n}” – it stays this way until you set something else'), { n: p.parentName || '…' })}
               </label>
             )}
             {p.clipCount > 0 && (

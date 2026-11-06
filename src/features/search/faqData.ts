@@ -1,5 +1,5 @@
 /**
- * Häufige Fragen („FAQ“) in der Lupe – die zehn Dinge, die am ehesten missverstanden werden.
+ * Häufige Fragen („FAQ“) in der Lupe – die Dinge, die am ehesten missverstanden werden.
  * Diese Liste lässt sich jederzeit ergänzen: einfach einen weiteren Eintrag unten anhängen.
  * `to` ist optional (öffnet die passende Seite), `toLabel` der Text des Knopfes.
  */
@@ -70,5 +70,16 @@ export const FAQ: FaqItem[] = [
     de: { q: 'Das Wesen ist im Weg oder sagt zu viel – was tun?', a: 'Du kannst das Wesen mit dem Finger verschieben, wohin du magst. Wenn es etwas sagt, hilft „nerv nich ♥“ für diese Sitzung – und in den Einstellungen und unter „Das Wesen“ lässt sich einstellen, wie viel es spricht, schmuggelt oder stört. Es ist für dich da, nicht umgekehrt.', toLabel: 'Zu den Einstellungen' },
     en: { q: 'The Wesen is in the way or says too much – what can I do?', a: 'You can drag the Wesen wherever you like. When it says something, “nerv nich ♥” helps for this session – and in Settings and under “The Wesen” you can set how much it talks, smuggles or disturbs. It is there for you, not the other way round.', toLabel: 'To settings' },
     to: '/einstellungen',
+  },
+  {
+    id: 'zugang-fehlt',
+    de: { q: 'Bei „Zugangskanäle“ soll ich markieren, was fehlt – nicht, was geht?', a: 'Ja. Wenn gerade etwas nicht erreichbar ist (zum Beispiel Sprache, Bewegung oder Denken), tippst du genau das an – es wird grau. Die App rechnet daraus selbst, was trotzdem geht, und blendet Brücken-Schritte, Orte und Aktivitäten entsprechend aus oder blass. „Nichts fehlt“ ist auch eine gültige Antwort.', toLabel: 'Zugangskanäle öffnen' },
+    en: { q: 'In “Access channels” I mark what is missing – not what works?', a: 'Yes. If something is out of reach right now (say speech, movement or thinking), tap exactly that – it turns grey. The app works out by itself what still works and hides or dims bridge steps, places and activities accordingly. “Nothing is missing” is a valid answer too.', toLabel: 'Open access channels' },
+    to: '/entdecken/zugangskanaele',
+  },
+  {
+    id: 'mindmap-farbe',
+    de: { q: 'Mindmap: Wie bekomme ich Farben und Formen schnell einheitlich?', a: 'Knoten antippen → unten „Farbe“. Neue Unterknoten übernehmen Farbe und Form automatisch. „Ab hier alles in dieser Farbe“ färbt einen ganzen Ast, und „Aktuellen Stil speichern“ legt eine Voreinstellung an, die du mit einem Tipp auf anderes anwenden kannst.' },
+    en: { q: 'Mind map: how do I get colours and shapes consistent quickly?', a: 'Tap a node → “Colour” at the bottom. New child nodes take over colour and shape automatically. “Everything from here in this colour” paints a whole branch, and “Save current style” creates a preset you can apply to other things with one tap.' },
   },
 ];

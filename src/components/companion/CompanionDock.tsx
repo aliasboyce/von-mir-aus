@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather, Footprints, Radio, Zap, Wind, Hand } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { X } from 'lucide-react';
 import { LichtCompanion } from './LichtCompanion';
+import { CompanionMenu } from './CompanionMenu';
 import { DistractionOverlay } from './DistractionOverlay';
 import { DinoGame } from './DinoGame';
 import { GroundingOverlay } from './GroundingOverlay';
@@ -406,44 +407,26 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
   }
 
   /** "Liebevoller Störsender" and "10 Sekunden Schmuggel" — shared by the hero and the floating menu */
-  function renderExtraMenuItems() {
-    const en = settings.language === 'en';
-    return (
-      <>
-        <button
-          onClick={() => {
-            setMenuOpen(false);
-            setStoerOpen(true);
-          }}
-          className="companion-menu__item"
-        >
-          <Radio size={15} />
-          {en ? 'Loving interrupter' : 'Liebevoller Störsender'}
-        </button>
-        <button
-          onClick={() => {
-            setMenuOpen(false);
-            setSchmuggelOpen(true);
-          }}
-          className="companion-menu__item"
-        >
-          <Zap size={15} />
-          {en ? '10-second smuggle' : '10 Sekunden Schmuggel'}
-        </button>
-        <button
-          onClick={() => {
-            setMenuOpen(false);
-            navigate('/entdecken/ressourcen/skills/atmen');
-          }}
-          className="companion-menu__item"
-          data-testid="companion-breathe"
-        >
-          <Wind size={15} />
-          {en ? 'Breathe together' : 'Gemeinsam atmen'}
-        </button>
-      </>
-    );
-  }
+  const menuProps = {
+    en: settings.language === 'en',
+    scale,
+    isSleeping,
+    showFeedback: !!TEST_PHASE,
+    t,
+    onClose: () => setMenuOpen(false),
+    onTip: requestTip,
+    onDistraction: () => { setMenuOpen(false); setDistractionOpen(true); },
+    onDino: () => { setMenuOpen(false); setDinoGameOpen(true); },
+    onGrounding: () => { setMenuOpen(false); setGroundingOpen(true); },
+    onTooMuch: () => { setMenuOpen(false); setTooMuchOpen(true); },
+    onStoer: () => { setMenuOpen(false); setStoerOpen(true); },
+    onSchmuggel: () => { setMenuOpen(false); setSchmuggelOpen(true); },
+    onBreathe: () => { setMenuOpen(false); navigate('/entdecken/ressourcen/skills/atmen'); },
+    onSleep: toggleSleep,
+    onAway: sendAway,
+    onChange: () => { setMenuOpen(false); navigate('/einstellungen#begleiter-einstellungen'); },
+    onFeedback: () => { setMenuOpen(false); setQuickFbOpen(true); },
+  };
 
   if (!settings.brainEnabled) return null;
 
@@ -488,9 +471,11 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
             <div className="flex-1 min-w-0">
               <span>{tip}</span>
               <div className="companion-tip__actions" style={{ justifyContent: 'center' }}>
-                <button onClick={sendAway} className="companion-tip__nerv" data-testid="companion-nerv-nich" aria-label={settings.language === 'en' ? 'Not now – send the companion away' : 'Nerv nich – Wesen wegschicken'}>
-                  {settings.language === 'en' ? 'not now' : 'nerv nich'} ♥
-                </button>
+                {tipKind === 'auto' && (
+                  <button onClick={sendAway} className="companion-tip__nerv" data-testid="companion-nerv-nich" aria-label={settings.language === 'en' ? 'Not now – send the companion away' : 'Nerv nich – Wesen wegschicken'}>
+                    {settings.language === 'en' ? 'not now' : 'nerv nich'} ♥
+                  </button>
+                )}
                 {tipKind === 'auto' && (
                   <button onClick={disableTipsThisSession} className="companion-tip__no-more">
                     {t.companion.noMoreTipsSession}
@@ -507,96 +492,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
             </button>
           </div>
         )}
-        {menuOpen && (
-          <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right', maxWidth: `calc(${scale} * min(300px, 100vw - 32px))` }}>
-            <div className="flex items-start justify-between gap-2">
-              <p data-hint className="companion-menu__hint">{t.companion.moveHint}</p>
-              <button onClick={() => setMenuOpen(false)} aria-label={t.common.close} className="companion-menu__close">
-                <X size={15} />
-              </button>
-            </div>
-            <button onClick={requestTip} className="companion-menu__item" data-testid="companion-request-tip">
-              <MessageCircle size={15} />
-              {t.companion.requestTip}
-            </button>
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                setDistractionOpen(true);
-              }}
-              className="companion-menu__item"
-            >
-              <Sparkles size={15} />
-              {t.companion.distractMe}
-            </button>
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                setDinoGameOpen(true);
-              }}
-              className="companion-menu__item"
-            >
-              <Footprints size={15} />
-              {t.dinoGame.title}
-            </button>
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                setGroundingOpen(true);
-              }}
-              className="companion-menu__item"
-            >
-              <Compass size={15} />
-              <span>
-                {t.companion.helpMeOrient}
-                <span className="companion-menu__subtext">{t.companion.helpMeOrientSubtext}</span>
-              </span>
-            </button>
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                setTooMuchOpen(true);
-              }}
-              className="companion-menu__item"
-            >
-              <Feather size={15} />
-              {t.companion.tooMuchCta}
-            </button>
-            {renderExtraMenuItems()}
-            <button onClick={toggleSleep} className="companion-menu__item">
-              {isSleeping ? <Sun size={15} /> : <Moon size={15} />}
-              {isSleeping ? t.companion.wake : t.companion.sleep}
-            </button>
-            {TEST_PHASE && <button
-            onClick={() => {
-              setMenuOpen(false);
-              setQuickFbOpen(true);
-            }}
-            className="companion-menu__item"
-            data-testid="companion-quick-feedback"
-          >
-            <MessageCircle size={15} />
-            {settings.language === 'en' ? 'Quick note to Boycie' : 'Kurz was an Boycie melden'}
-          </button>}
-          <button onClick={sendAway} className="companion-menu__item" data-testid="companion-send-away">
-              <Hand size={15} />
-              {settings.language === 'en' ? 'Send away' : 'Wegschicken'}
-            </button>
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                navigate('/einstellungen#begleiter-einstellungen');
-              }}
-              className="companion-menu__item"
-            >
-              <Shuffle size={15} />
-              {t.companion.changeCompanion}
-            </button>
-            <Link to="/einstellungen/wesen-info" onClick={() => setMenuOpen(false)} className="companion-menu__more">
-              {t.companion.whatCanIDoLink}
-            </Link>
-          </div>
-        )}
+        {menuOpen && <CompanionMenu {...menuProps} />}
         {distractionOpen && <DistractionOverlay onClose={() => setDistractionOpen(false)} />}
         {dinoGameOpen && <DinoGame onClose={() => setDinoGameOpen(false)} />}
         {groundingOpen && <GroundingOverlay onClose={() => setGroundingOpen(false)} />}
@@ -623,9 +519,11 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
           <div className="flex-1 min-w-0">
             <span>{tip}</span>
             <div className="companion-tip__actions">
-              <button onClick={sendAway} className="companion-tip__nerv" data-testid="companion-nerv-nich" aria-label={settings.language === 'en' ? 'Not now – send the companion away' : 'Nerv nich – Wesen wegschicken'}>
-                {settings.language === 'en' ? 'not now' : 'nerv nich'} ♥
-              </button>
+              {tipKind === 'auto' && (
+                <button onClick={sendAway} className="companion-tip__nerv" data-testid="companion-nerv-nich" aria-label={settings.language === 'en' ? 'Not now – send the companion away' : 'Nerv nich – Wesen wegschicken'}>
+                  {settings.language === 'en' ? 'not now' : 'nerv nich'} ♥
+                </button>
+              )}
               {tipKind === 'auto' && (
                 <button onClick={disableTipsThisSession} className="companion-tip__no-more">
                   {t.companion.noMoreTipsSession}
@@ -643,96 +541,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         </div>
       )}
 
-      {menuOpen && (
-        <div className="companion-menu animate-in" style={{ transform: `scale(${1 / scale})`, transformOrigin: 'bottom right', maxWidth: `calc(${scale} * min(300px, 100vw - 32px))` }}>
-            <div className="flex items-start justify-between gap-2">
-              <p data-hint className="companion-menu__hint">{t.companion.moveHint}</p>
-              <button onClick={() => setMenuOpen(false)} aria-label={t.common.close} className="companion-menu__close">
-                <X size={15} />
-              </button>
-            </div>
-          <button onClick={requestTip} className="companion-menu__item" data-testid="companion-request-tip">
-            <MessageCircle size={15} />
-            {t.companion.requestTip}
-          </button>
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              setDistractionOpen(true);
-            }}
-            className="companion-menu__item"
-          >
-            <Sparkles size={15} />
-            {t.companion.distractMe}
-          </button>
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                setDinoGameOpen(true);
-              }}
-              className="companion-menu__item"
-            >
-              <Footprints size={15} />
-              {t.dinoGame.title}
-            </button>
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              setGroundingOpen(true);
-            }}
-            className="companion-menu__item"
-          >
-            <Compass size={15} />
-            <span>
-              {t.companion.helpMeOrient}
-              <span className="companion-menu__subtext">{t.companion.helpMeOrientSubtext}</span>
-            </span>
-          </button>
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              setTooMuchOpen(true);
-            }}
-            className="companion-menu__item"
-          >
-            <Feather size={15} />
-            {t.companion.tooMuchCta}
-          </button>
-          {renderExtraMenuItems()}
-          <button onClick={toggleSleep} className="companion-menu__item">
-            {isSleeping ? <Sun size={15} /> : <Moon size={15} />}
-            {isSleeping ? t.companion.wake : t.companion.sleep}
-          </button>
-          {TEST_PHASE && <button
-            onClick={() => {
-              setMenuOpen(false);
-              setQuickFbOpen(true);
-            }}
-            className="companion-menu__item"
-            data-testid="companion-quick-feedback"
-          >
-            <MessageCircle size={15} />
-            {settings.language === 'en' ? 'Quick note to Boycie' : 'Kurz was an Boycie melden'}
-          </button>}
-          <button onClick={sendAway} className="companion-menu__item" data-testid="companion-send-away">
-            <Hand size={15} />
-            {settings.language === 'en' ? 'Send away' : 'Wegschicken'}
-          </button>
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              navigate('/einstellungen#begleiter-einstellungen');
-            }}
-            className="companion-menu__item"
-          >
-            <Shuffle size={15} />
-            {t.companion.changeCompanion}
-          </button>
-          <Link to="/einstellungen/wesen-info" onClick={() => setMenuOpen(false)} className="companion-menu__more">
-            {t.companion.whatCanIDoLink}
-          </Link>
-        </div>
-      )}
+      {menuOpen && <CompanionMenu {...menuProps} />}
 
       <div
         className={['companion-grab-wrap', picked ? 'companion-grab-wrap--picked' : '', justReleased ? 'companion-grab-wrap--released' : '', exit === 'away' ? `companion-exit-away${walkClass}` : exit === 'back' ? `companion-exit-back${walkClass}` : '']
