@@ -9,8 +9,8 @@ const TXT = {
     sub: 'Die App ist ein Baukasten. Sie hilft erst, wenn sie zu dir passt – und das darf langsam gehen.',
     points: [
       { icon: '🌱', h: 'Du musst nichts auf einmal einrichten', t: 'Nimm dir pro Tag eine Kleinigkeit vor – oder gar nichts. Leer lassen ist erlaubt. Es geht nichts verloren.' },
-      { icon: '🎨', h: 'Zuerst: dass es sich nach dir anfühlt', t: 'Such dir ein Wesen oder Tier, eine Welt und Farben aus (Einstellungen). Wenn dir ein Teil zu viel ist, wähle weniger Umfang oder blende ihn aus.' },
-      { icon: '🔍', h: 'Dann: einmal in Ruhe stöbern', t: 'Unter „Entdecken“ liegt vieles bereit. Du musst nichts davon nutzen. Schau, was dich neugierig macht oder entlastet – und fang mit genau einem Ding an.' },
+      { icon: '🎨', h: 'Zuerst: dass es sich nach dir anfühlt', t: 'Such dir ein Wesen oder Tier, eine Welt und Farben aus (Einstellungen → Wesen und Design). Wenn dir ein Teil zu viel ist, wähle weniger Umfang oder blende ihn aus.' },
+      { icon: '🔍', h: 'Dann: einmal in Ruhe stöbern', t: 'Unter „Entdecken“ liegt vieles bereit – „Erforschen“ zum Verstehen, „Tun“ zum Ausprobieren. Du musst nichts davon nutzen. Schau, was dich neugierig macht oder entlastet – und fang mit genau einem Ding an.' },
       { icon: '🧩', h: 'Danach: anpassen, bis es hilft', t: 'Ändere Namen, Bilder, Zeiten, Schritte. Eine Routine mit 2 statt 6 Karten ist auch eine Routine. Was nicht passt: „Das hilft gerade nicht“ – das geht immer.' },
       { icon: '🔗', h: 'Alles hängt zusammen', t: 'Eine neue Schutzstrategie kann zugleich ein Garten-Eintrag und eine Routine sein – es bleibt ein einziger Eintrag, nicht mehrere Kopien. Hindernisse und alte Schutzstrategien verknüpfst du dort, wo du etwas anlegst.' },
       { icon: '📅', h: 'Nach ein paar Tagen', t: 'Schau, was wirklich geholfen hat, und lass den Rest ruhen. Die App soll nicht mehr werden, nur klarer.' },
@@ -24,8 +24,8 @@ const TXT = {
     sub: 'The app is a toolkit. It only helps once it fits you – and that is allowed to take time.',
     points: [
       { icon: '🌱', h: 'You do not have to set everything up at once', t: 'Take one small thing per day – or nothing. Leaving it empty is fine. Nothing is lost.' },
-      { icon: '🎨', h: 'First: make it feel like yours', t: 'Pick a being or animal, a world and colours (Settings). If a part is too much, choose a smaller scope or hide it.' },
-      { icon: '🔍', h: 'Then: browse in peace', t: 'Under "Explore" there is a lot. You do not have to use any of it. See what makes you curious or eases things – and start with just one.' },
+      { icon: '🎨', h: 'First: make it feel like yours', t: 'Pick a being or animal, a world and colours (Settings → Companion and Design). If a part is too much, choose a smaller scope or hide it.' },
+      { icon: '🔍', h: 'Then: browse in peace', t: 'Under "Explore" there is a lot – parts for understanding what is going on, and parts for trying things out ("Do"). You do not have to use any of it. See what makes you curious or eases things – and start with just one.' },
       { icon: '🧩', h: 'Then: adjust until it helps', t: 'Change names, pictures, times, steps. A routine with 2 cards instead of 6 is still a routine. If something does not fit: "This does not help right now" – always possible.' },
       { icon: '🔗', h: 'Everything is connected', t: 'A new protection strategy can be a garden entry and a routine at the same time – still one single entry, not several copies. Link obstacles and old strategies where you create something.' },
       { icon: '📅', h: 'After a few days', t: 'See what really helped and let the rest rest. The app should not become more, only clearer.' },

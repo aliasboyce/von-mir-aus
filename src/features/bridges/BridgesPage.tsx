@@ -1,6 +1,7 @@
 import { SearchButton } from '../../components/navigation/SearchButton';
 import { useEffect, useMemo, useState } from 'react';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { FitEmpty } from '../../components/shared/FitEmpty';
 import { useFitFilter } from '../../state/fitFilterStore';
 import { bridgeMatchesFit, isFitFilterActive } from '../../content/fitCriteria';
 import { goBack } from '../../services/navigation';
@@ -230,7 +231,7 @@ export function BridgesPage() {
 
       {filtered.length === 0 ? (
         <div className="mb-4">
-          <EmptyState title={isFitFilterActive(fitFilter) ? t.fit.noResults : value || need ? t.bridges.emptyFiltered : t.bridges.empty} />
+          isFitFilterActive(fitFilter) ? <FitEmpty hiddenUnmarked={hiddenUnmarked} /> : <EmptyState title={value || need ? t.bridges.emptyFiltered : t.bridges.empty} />
           {(value || need) && (
             <Button fullWidth variant="secondary" icon={<Plus size={16} />} onClick={openNew} className="mt-3">
               {t.bridges.newBridgeFor.replace('{what}', [value, need].filter(Boolean).join(' · '))}
@@ -263,6 +264,9 @@ export function BridgesPage() {
               </PhotoBackground>
               <div className="p-3">
                 <p className="text-[14px] text-[var(--color-text)] leading-snug mb-1 line-clamp-2">{bridge.title}</p>
+                {fitFilter.includeUnmarked && isFitFilterActive(fitFilter) && !bridgeMatchesFit(bridge, { ...fitFilter, includeUnmarked: false }) && (
+                  <span className="inline-block text-[10px] px-1.5 py-0.5 mb-1 rounded-full border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]" data-testid="no-details-badge">{t.fit.noDetails}</span>
+                )}
                 <p className="text-[11px] text-[var(--color-text-faint)]">
                   {bridge.levels.length} {bridge.levels.length === 1 ? t.bridges.stepOne : t.bridges.stepMany}
                 </p>

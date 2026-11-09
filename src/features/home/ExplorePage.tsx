@@ -195,7 +195,7 @@ export function ExplorePage() {
           <HelpButton helpKey="entdecken" />
         </div>
       </div>
-      <p className="text-[14px] text-[var(--color-text-muted)] mb-3">{t.resources.subtitle}</p>
+      <p className="text-[14px] text-[var(--color-text-muted)] mb-3">{t.explore.subtitle}</p>
       <PasteSharedButton className="mb-3" />
       <div className="flex gap-1 p-1 rounded-full mb-4" style={{ background: 'var(--color-surface-muted)' }} role="group" aria-label={t.nav.explore}>
         {(['map', 'list'] as const).map((v) => (

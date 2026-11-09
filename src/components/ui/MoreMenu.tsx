@@ -1,3 +1,4 @@
+import { useSettings } from '../../state/SettingsContext';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, Ellipsis } from 'lucide-react';
@@ -20,7 +21,9 @@ export interface MoreItem {
  * Das „⋯“: eine ruhige Stelle für alles, was nicht jedes Mal gebraucht wird (Übersichten, Einstellungen der Seite,
  * Erklärtexte). Hält die Seite leer und übersichtlich. Öffnet unter dem Knopf, schließt beim Antippen daneben.
  */
-export function MoreMenu({ items, label = 'Mehr', testId = 'more-menu', align = 'right', children }: { items: MoreItem[]; label?: string; testId?: string; align?: 'right' | 'left'; children?: ReactNode }) {
+export function MoreMenu({ items, label, testId = 'more-menu', align = 'right', children }: { items: MoreItem[]; label?: string; testId?: string; align?: 'right' | 'left'; children?: ReactNode }) {
+  const { settings } = useSettings();
+  const aria = label ?? (settings.language === 'en' ? 'More' : 'Mehr');
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
   useEffect(() => {
@@ -36,7 +39,7 @@ export function MoreMenu({ items, label = 'Mehr', testId = 'more-menu', align = 
   };
   return (
     <>
-      <button type="button" onClick={(e) => toggle(e.currentTarget)} aria-label={label} aria-expanded={open} aria-haspopup="menu" data-testid={testId} className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text)] hover:bg-[var(--color-surface-muted)] transition-colors">
+      <button type="button" onClick={(e) => toggle(e.currentTarget)} aria-label={aria} aria-expanded={open} aria-haspopup="menu" data-testid={testId} className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text)] hover:bg-[var(--color-surface-muted)] transition-colors">
         <Ellipsis size={22} />
       </button>
       {open && createPortal(

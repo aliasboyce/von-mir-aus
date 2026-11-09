@@ -423,3 +423,22 @@ export const ACTION_EXAMPLES_DE = [
   'lesen', 'arbeiten', 'liegen bleiben dürfen', 'Hilfe holen', 'eine Kleinigkeit erledigen',
   'schlafen/ruhen', 'Grenze setzen', 'sprechen', 'kreativ werden',
 ];
+
+// ---------------------------------------------------------------------
+// "Man muss nicht immer etwas finden": every step can also be answered with "nothing of these / not right now".
+// The marker is stored like any other chosen word (German wording; shown in the app language via zl) and is exclusive:
+// choosing it clears the other picks of that step, choosing a real item removes it.
+// ---------------------------------------------------------------------
+export type NothingStep = 'body' | 'feeling' | 'protection' | 'care' | 'need' | 'obstacle' | 'connection';
+export const NOTHING_CHOICES: Record<NothingStep, string[]> = {
+  body: ['gerade nichts spürbar', 'möchte ich gerade nicht spüren'],
+  feeling: ['weiß ich gerade nicht', 'möchte ich gerade nicht spüren'],
+  protection: ['gerade nichts davon'],
+  care: ['gerade nichts davon', 'gerade nicht'],
+  need: ['weiß ich gerade nicht', 'möchte ich gerade nicht spüren'],
+  obstacle: ['gerade keine Hindernisse', 'weiß ich gerade nicht'],
+  connection: ['gerade nichts davon', 'weiß ich gerade nicht'],
+};
+export const NOTHING_MARKERS: ReadonlySet<string> = new Set(Object.values(NOTHING_CHOICES).flat());
+/** the real words of a list, without the "nothing of these" markers */
+export const realWords = (list: string[]): string[] => list.filter((w) => !NOTHING_MARKERS.has(w));

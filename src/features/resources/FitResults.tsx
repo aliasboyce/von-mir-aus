@@ -17,6 +17,17 @@ import type { NeedDirection, Resource } from '../../data/types';
 
 const customCategoryStore = createCustomCategoryStore('resource-custom-categories');
 
+export type ResourceKind = 'skills' | 'hilfsmittel' | 'orte' | 'aktivitaeten';
+/** Which kind of thing a resource is (Skills, Hilfsmittel, Orte, Aktivitäten) – same split as the Ressourcen start page. */
+export function resourceKindOf(r: Resource, customGroup?: Map<string, string | undefined>): ResourceKind {
+  const cg = customGroup ?? new Map(customCategoryStore.getAll().map((c) => [c.id, c.group]));
+  const group = RESOURCE_CATEGORY_TO_GROUP[r.category] ?? cg.get(r.category);
+  if (group === 'faehigkeiten') return 'skills';
+  if (r.category === 'orte' || group === 'orte_gruppe') return 'orte';
+  if (r.category === 'aktivitaeten' || group === 'aktivitaeten') return 'aktivitaeten';
+  return 'hilfsmittel';
+}
+
 const PREVIEW_COUNT = 6;
 
 interface Row {

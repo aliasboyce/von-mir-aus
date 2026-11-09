@@ -548,6 +548,24 @@ Es gibt offenbar mehrere PARALLELE/AELTERE Implementierungen derselben Konzepte 
 - MiniCurve (Tageskurven-Vorschau in Tagebuch/Wochenrückblick/Check-in): dieselbe feste-Breite-Ursache vorsorglich behoben
 - Ressourcen-Karten, Bild-Karussell, Diagramm-Komponenten (MediLogChart/PolyvagalDayChart/TensionDayChart) systematisch geprüft — bereits korrekt, keine Änderung nötig
 
+## 🟢 Erledigt (06.11.2026 mittags — Zugang offener, Hinweis-Karten, Einstellungen als Menü)
+- Zugang: offene Schutz-Frage, Gruppen „Vielleicht verspürst du den Impuls …“ / „oder“ / „Sonstiges“, Eigenes ergänzen in jeder Gruppe (Keys `protection-a`/`protection-b`); „Nichts davon“-Zeile (`NothingChoices`, Marker in `zugangContent.ts`, `realWords()` filtert sie aus der Logik) bei Körper, Gefühl, Schutz, Fürsorge, Bedürfnis, Hindernis, Wert
+- Zugang → Regulieren: Umschalter „passend“ / „Alle Skills & Ketten“ (`regulate-scope`); Handeln-Liste nach Art gruppiert (`suggest-kind-*`, `resourceKindOf` in `FitResults.tsx`)
+- Zurück-Logik: Skill-Lauf (Abbrechen, Zurück zur Übung, Ohne Speichern beenden, Speichern; TopBar-Zurück in der Reflexion = zurück zur Übung); Zugang „Überspringen“ → „Abbrechen“
+- Hinweis-Karten: `services/hintCards.ts` + `components/hints/HintCard.tsx`; Auslöser nach Zugang/Skill/Routine + Tipp auf der Startseite (max. 1/Tag); ✕ = Ruhezeit (20 h bzw. 4 Tage), „Gar nicht mehr anzeigen“ = dauerhaft; Einstellungen → Erinnerungen & Tagesrahmen (Schalter `hintCards`, „wieder anzeigen“); Speicherschlüssel `hint-cards`
+- Einstellungen: Menü + 6 Unterseiten per `?bereich=` (design, wesen, erinnerungen, sprache, daten, info; `alle` = alte Gesamtansicht für Tests/Altlinks); Welt-Wahl lässt Hell/Dunkel + Farben frei; Tag beginnen/abschließen: wählbare Türen (`dayStartOptions`/`dayEndOptions`)
+- Ruhiger: Skills-Intro einklappbar, Entdecken-Einleitung korrigiert; Anleitung/Hilfe/Suche/Tour-Texte an neue Struktur angepasst
+- Tests: t143 neu; lib.mjs biegt `/einstellungen` auf `?bereich=alle` um und schaltet Hinweis-Karten standardmäßig aus
+
+## 🟢 Erledigt (06.11.2026 — Ton, Mehr-Menü, Alle zeigen, Englisch)
+- Menü-Ton: Original (180 Hz sine, exakt wie in der Ton-Werkstatt gewählt) wiederhergestellt; Einstellungen → „Ton des Hauptmenüs“ mit 3 Varianten (original/thud/phone), `settings.menuSound`
+- Mindmap: Leiste mit „Mehr“ (`mm-more`, `mm-more-sheet`); Rahmen, Zeichnen, Ebenen, Zustände | Kopieren, Duplizieren, Mehr auswählen, Alles darunter, In neue Karte | Ausschneiden, Gruppe
+- Filter: `FitEmpty`, Footer „Alle zeigen“ (`fit-show-all`) + „Ohne Angaben mit anzeigen“ (`fit-toggle-unmarked`), Badge „Noch ohne Angaben“ (`no-details-badge`) bei Brücken
+- Wesen: Tipps passend zu fehlenden Zugangskanälen (`pageTips.ts` ACCESS_TIPS)
+- Englisch: MoreMenu-Aria-Label, Brücken-Bedürfnisse (zl), neue Texte alle zweisprachig; Crawl t140/t141
+- Routinen/Garten: Anlegen-Knöpfe sekundär
+- Tests: t142 neu; t7, t63, t77, t79, t122–t125, t139 angepasst
+
 ## 🟢 Erledigt (04.11.2026 — Mindmap, Atmen, Zugangskanäle, Wesen)
 - Mindmap: Schnellfarbe in der Leiste (`mm-quick-color`), zuletzt benutzte + eigene Farben, Pipette/Foto-Farbwahl, ein Paletten-Auswahlfeld; Unterknoten erben Farbe/Form (abschaltbar über Hinzufügen-Blatt); Voreinstellungen speichern/anwenden; „Ab hier alles in dieser Farbe“
 - Mindmap: Text-Schloss (Text unabhängig von Formgröße), Zuklappen für To-do/Tabelle/Pro&Contra/Text, einseitiges Ziehen/Strecken, „Alles darunter“ markieren, Verbindungen zwischen Markiertem laufen mit (und färben mit), Tabellen: Spalten/Zeilen verschieben + gezielt einfügen

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { HintCard } from '../../components/hints/HintCard';
 import { goBack as goBackSafe } from '../../services/navigation';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useNavigate, Link } from 'react-router-dom';
@@ -17,6 +18,7 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { createId } from '../../services/storage/repository';
 import { SuggestionMultiSelect } from './SuggestionMultiSelect';
+import { NothingChoices } from './NothingChoices';
 import { NamingInput } from './NamingInput';
 import { ZugangBranch, type ZugangIntent } from './ZugangBranch';
 import { bandForValue } from '../polyvagal/arousalBands';
@@ -35,6 +37,8 @@ import {
   NEED_CATEGORY_GROUPS,
   OBSTACLES_DE,
   CONNECTION_ITEMS_DE,
+  NOTHING_MARKERS,
+  realWords,
 } from './zugangContent';
 import { PROTECTION_TO_NEEDS_DE } from './protectionToNeeds';
 import { findSimilarPastEntry } from './zugangPatterns';
@@ -199,7 +203,13 @@ export function ZugangPage() {
   }, [step, ichJetzt, body, survivalState, tensionValue, feelings, protectionStrategy, careWish, selfSufficient, need, obstacle, bridgeId, connection, action, reflection, branch, intent, choice, regulateTried, usedResources, showIntro, saved]);
 
   function toggle(list: string[], setList: (v: string[]) => void, value: string) {
-    setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
+    // "nothing of these / not right now" answers the step on its own: it clears the other picks, and a real pick removes it
+    if (NOTHING_MARKERS.has(value)) {
+      setList(list.includes(value) ? [] : [value]);
+      return;
+    }
+    const base = realWords(list);
+    setList(base.includes(value) ? base.filter((v) => v !== value) : [...base, value]);
   }
 
   function goNext() {
@@ -497,7 +507,7 @@ export function ZugangPage() {
           <div className="flex items-center gap-1">
             <HelpButton helpKey="zugang" />
             <button onClick={() => navigate('/')} className="text-[14px] text-[var(--color-text-faint)]">
-              {t.common.skip}
+              {t.common.cancel}
             </button>
           </div>
         )}
@@ -557,7 +567,7 @@ export function ZugangPage() {
             mode={branch === 'regulate' ? 'regulate' : 'choose'}
             band={survivalState || noState ? bandForValue(tensionValue) : null}
             intent={intent}
-            needWords={need}
+            needWords={realWords(need)}
             onTry={(title) => setRegulateTried((list) => (list.includes(title) ? list : [...list, title]))}
             onChoose={(c) => {
               setChoice(c);
@@ -595,7 +605,7 @@ export function ZugangPage() {
                   terms={body}
                   onAdd={(v) => {
                     if (!BODY_SENSATIONS_DE.includes(v) && !getCustomSuggestions('body').includes(v)) addCustomSuggestion('body', v);
-                    setBody([...body, v]);
+                    setBody([...realWords(body), v]);
                   }}
                   onRemove={(v) => setBody(body.filter((b) => b !== v))}
                 />
@@ -614,7 +624,7 @@ export function ZugangPage() {
                   onToggle={(v) => toggle(body, setBody, v)}
                   onAddCustom={(v) => {
                     addCustomSuggestion('body', v);
-                    setBody([...body, v]);
+                    setBody([...realWords(body), v]);
                   }}
                   onEditCustom={(o, n) => {
                     editCustomSuggestion('body', o, n);
@@ -638,7 +648,7 @@ export function ZugangPage() {
                 onToggle={(v) => toggle(body, setBody, v)}
                 onAddCustom={(v) => {
                   addCustomSuggestion('body', v);
-                  setBody([...body, v]);
+                  setBody([...realWords(body), v]);
                 }}
                 onEditCustom={(o, n) => {
                   editCustomSuggestion('body', o, n);
@@ -653,6 +663,7 @@ export function ZugangPage() {
             <Link to="/entdecken/koerper" className="text-[12px] text-[var(--color-primary)] block mt-4">
               {t.zugang.bodyRefLink}
             </Link>
+            <NothingChoices step="body" selected={body} onPick={(v) => toggle(body, setBody, v)} />
           </div>
         )}
 
@@ -685,7 +696,7 @@ export function ZugangPage() {
                   terms={feelings}
                   onAdd={(v) => {
                     if (!getCustomSuggestions('feeling').includes(v) && !FEELING_GROUPS.some((g) => g.sub.includes(v) || g.subEn.includes(v))) addCustomSuggestion('feeling', v);
-                    setFeelings([...feelings, v]);
+                    setFeelings([...realWords(feelings), v]);
                   }}
                   onRemove={(v) => setFeelings(feelings.filter((f) => f !== v))}
                 />
@@ -743,7 +754,7 @@ export function ZugangPage() {
               onToggle={(v) => toggle(feelings, setFeelings, v)}
               onAddCustom={(v) => {
                 addCustomSuggestion('feeling', v);
-                setFeelings([...feelings, v]);
+                setFeelings([...realWords(feelings), v]);
               }}
               onEditCustom={(o, n) => {
                 editCustomSuggestion('feeling', o, n);
@@ -788,6 +799,7 @@ export function ZugangPage() {
             {recognitionAnswer === 'ja' && (
               <p className="text-[12px] text-[var(--color-primary)] mt-3">🌱 {t.zugang.recognitionYesNote}</p>
             )}
+            <NothingChoices step="feeling" selected={feelings} onPick={(v) => toggle(feelings, setFeelings, v)} />
           </div>
         )}
 
@@ -798,24 +810,53 @@ export function ZugangPage() {
               // Three clearly named groups instead of one mixed list:
               // protective patterns / calmer-open states / everything else.
               const toggle = (v: string) => {
-                const next = protectionStrategy.includes(v) ? protectionStrategy.filter((p) => p !== v) : [...protectionStrategy, v];
+                const next = NOTHING_MARKERS.has(v) ? (protectionStrategy.includes(v) ? [] : [v]) : (realWords(protectionStrategy).includes(v) ? realWords(protectionStrategy).filter((p) => p !== v) : [...realWords(protectionStrategy), v]);
                 setProtectionStrategy(next);
                 offerGardenIfRelevant(next);
               };
-              const noop = () => {};
+              const addOwn = (key: 'protection-a' | 'protection-b', v: string) => {
+                addCustomSuggestion(key, v);
+                const next = [...realWords(protectionStrategy), v];
+                setProtectionStrategy(next);
+                offerGardenIfRelevant(next);
+              };
+              const editOwn = (key: 'protection-a' | 'protection-b', o: string, n: string) => {
+                editCustomSuggestion(key, o, n);
+                setProtectionStrategy(protectionStrategy.map((p) => (p === o ? n : p)));
+              };
+              const deleteOwn = (key: 'protection-a' | 'protection-b', v: string) => {
+                removeCustomSuggestion(key, v);
+                setProtectionStrategy(protectionStrategy.filter((p) => p !== v));
+              };
               const patterns = PROTECTION_STRATEGIES_DE.filter((x) => !PROTECTION_POSITIVE_DE.includes(x) && x !== 'weiß ich nicht');
               const calm = PROTECTION_STRATEGIES_DE.filter((x) => PROTECTION_POSITIVE_DE.includes(x));
-              const other = PROTECTION_STRATEGIES_DE.filter((x) => x === 'weiß ich nicht');
+              const other = ['weiß ich nicht', 'gerade nichts davon'];
               const groupLabel = 'text-[12px] text-[var(--color-text-faint)] mb-2';
               return (
                 <div className="flex flex-col gap-5">
                   <div data-testid="protection-group-patterns">
                     <p className={groupLabel}>{t.zugang.step4GroupPatterns}</p>
-                    <SuggestionMultiSelect suggestions={patterns} customSuggestions={[]} selected={protectionStrategy} onToggle={toggle} onAddCustom={noop} onEditCustom={noop} onDeleteCustom={noop} hideAddCustom />
+                    <SuggestionMultiSelect
+                      suggestions={patterns}
+                      customSuggestions={getCustomSuggestions('protection-a')}
+                      selected={protectionStrategy}
+                      onToggle={toggle}
+                      onAddCustom={(v) => addOwn('protection-a', v)}
+                      onEditCustom={(o, n) => editOwn('protection-a', o, n)}
+                      onDeleteCustom={(v) => deleteOwn('protection-a', v)}
+                    />
                   </div>
                   <div data-testid="protection-group-calm">
                     <p className={groupLabel}>{t.zugang.step4GroupCalm}</p>
-                    <SuggestionMultiSelect suggestions={calm} customSuggestions={[]} selected={protectionStrategy} onToggle={toggle} onAddCustom={noop} onEditCustom={noop} onDeleteCustom={noop} hideAddCustom />
+                    <SuggestionMultiSelect
+                      suggestions={calm}
+                      customSuggestions={getCustomSuggestions('protection-b')}
+                      selected={protectionStrategy}
+                      onToggle={toggle}
+                      onAddCustom={(v) => addOwn('protection-b', v)}
+                      onEditCustom={(o, n) => editOwn('protection-b', o, n)}
+                      onDeleteCustom={(v) => deleteOwn('protection-b', v)}
+                    />
                   </div>
                   <div data-testid="protection-group-other">
                     <p className={groupLabel}>{t.zugang.step4GroupOther}</p>
@@ -826,7 +867,7 @@ export function ZugangPage() {
                       onToggle={toggle}
                       onAddCustom={(v) => {
                         addCustomSuggestion('protection', v);
-                        const next = [...protectionStrategy, v];
+                        const next = [...realWords(protectionStrategy), v];
                         setProtectionStrategy(next);
                         offerGardenIfRelevant(next);
                       }}
@@ -880,7 +921,7 @@ export function ZugangPage() {
                     return (
                       <button
                         key={n}
-                        onClick={() => !added && setNeed([...need, n])}
+                        onClick={() => !added && setNeed([...realWords(need), n])}
                         disabled={added}
                         className="px-3 py-1.5 rounded-full text-[13px] flex items-center gap-1"
                         style={{
@@ -930,7 +971,7 @@ export function ZugangPage() {
               onToggle={(v) => toggle(careWish, setCareWish, v)}
               onAddCustom={(v) => {
                 addCustomSuggestion('care', v);
-                setCareWish([...careWish, v]);
+                setCareWish([...realWords(careWish), v]);
               }}
               onEditCustom={(o, n) => {
                 editCustomSuggestion('care', o, n);
@@ -942,6 +983,7 @@ export function ZugangPage() {
               }}
             />
 
+            <NothingChoices step="care" selected={careWish} onPick={(v) => toggle(careWish, setCareWish, v)} />
             {/* "Kann ich mir das gerade selber geben oder brauche ich Hilfe
              * ist aufeinmal weg, das soll da bleiben"-Fund — the card used
              * to disappear for good as soon as it was answered (and never
@@ -1028,7 +1070,7 @@ export function ZugangPage() {
                   onToggle={(v) => toggle(need, setNeed, v)}
                   onAddCustom={(v) => {
                     addCustomSuggestion('need', v);
-                    setNeed([...need, v]);
+                    setNeed([...realWords(need), v]);
                   }}
                   onEditCustom={(o, n) => {
                     editCustomSuggestion('need', o, n);
@@ -1041,6 +1083,7 @@ export function ZugangPage() {
                 />
               </div>
             </div>
+            <NothingChoices step="need" selected={need} onPick={(v) => toggle(need, setNeed, v)} />
             <Link to="/entdecken/beduerfnis-kompass" className="text-[12px] text-[var(--color-primary)] block mt-4">
               {t.zugang.needsRefLink}
             </Link>
@@ -1057,7 +1100,7 @@ export function ZugangPage() {
               onToggle={(v) => toggle(obstacle, setObstacle, v)}
               onAddCustom={(v) => {
                 addCustomSuggestion('obstacle', v);
-                setObstacle([...obstacle, v]);
+                setObstacle([...realWords(obstacle), v]);
               }}
               onEditCustom={(o, n) => {
                 editCustomSuggestion('obstacle', o, n);
@@ -1068,6 +1111,7 @@ export function ZugangPage() {
                 setObstacle(obstacle.filter((o2) => o2 !== v));
               }}
             />
+            <NothingChoices step="obstacle" selected={obstacle} onPick={(v) => toggle(obstacle, setObstacle, v)} />
             <Link to="/entdecken/schutzstrategien" className="text-[12px] text-[var(--color-primary)] block text-center mt-4">
               {t.zugang.obstaclesRefLink}
             </Link>
@@ -1087,7 +1131,7 @@ export function ZugangPage() {
               onToggle={(v) => toggle(connection, setConnection, v)}
               onAddCustom={(v) => {
                 addCustomSuggestion('connection', v);
-                setConnection([...connection, v]);
+                setConnection([...realWords(connection), v]);
               }}
               onEditCustom={(o, n) => {
                 editCustomSuggestion('connection', o, n);
@@ -1098,6 +1142,7 @@ export function ZugangPage() {
                 setConnection(connection.filter((c) => c !== v));
               }}
             />
+            <NothingChoices step="connection" selected={connection} onPick={(v) => toggle(connection, setConnection, v)} />
             <Link to="/entdecken/wertekompass" className="text-[12px] text-[var(--color-primary)] block text-center mt-4">
               {t.zugang.wertekompassLink}
             </Link>
@@ -1217,6 +1262,7 @@ export function ZugangPage() {
             </div>
           </div>
         )}
+        {shownStep === FINAL_STEP && saved && <HintCard hintId="after-zugang" />}
       </div>
 
       {!saved && !inBranch && step !== FINAL_STEP && !(step === 5 && selfSufficient === 'nein') && (

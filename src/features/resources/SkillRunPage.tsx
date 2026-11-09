@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
+import { HintCard } from '../../components/hints/HintCard';
 import { goBack } from '../../services/navigation';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
@@ -122,7 +123,15 @@ export function SkillRunPage() {
     setStage('reflect');
   }
 
+  // From the reflection back to the exercise (nothing lost, the clock simply runs on)
+  function backToRun() {
+    setEndedAt(null);
+    setNow(Date.now());
+    setStage('run');
+  }
+
   function cancelRun() {
+    if (stage === 'done') { goBack(navigate); return; }
     if (elapsedSec > 10 && !window.confirm(t.skillRun.cancelConfirm)) return;
     goBack(navigate);
   }
@@ -155,7 +164,7 @@ export function SkillRunPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="skillLauf" />} />
+      <TopBar onBack={stage === 'reflect' ? backToRun : cancelRun} action={<HelpButton helpKey="skillLauf" />} />
       <div className="px-5 pb-12">
         <p className="text-[12px] uppercase tracking-wide mb-1" style={{ color: catColor }}>
           {t.skillRun.startCta}
@@ -254,9 +263,9 @@ export function SkillRunPage() {
             <Button fullWidth data-sound="complete" onClick={finishRun}>
               {t.skillRun.endCta}
             </Button>
-            <button onClick={cancelRun} className="w-full text-center text-[13px] text-[var(--color-text-faint)] mt-3 py-2">
+            <Button fullWidth variant="ghost" onClick={cancelRun} className="mt-2" data-testid="skill-cancel">
               {t.skillRun.cancel}
-            </button>
+            </Button>
           </>
         )}
 
@@ -316,9 +325,13 @@ export function SkillRunPage() {
               <textarea className="input" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
 
-            <Button fullWidth className="mt-6" onClick={save}>
+            <Button fullWidth className="mt-6" onClick={save} data-testid="skill-save">
               {t.skillRun.save}
             </Button>
+            <div className="flex gap-2 mt-2">
+              <Button fullWidth variant="secondary" onClick={backToRun} data-testid="skill-back-to-run">{t.skillRun.backToRun}</Button>
+              <Button fullWidth variant="ghost" onClick={() => goBack(navigate)} data-testid="skill-discard">{t.skillRun.discard}</Button>
+            </div>
           </div>
         )}
 
@@ -341,6 +354,7 @@ export function SkillRunPage() {
             </div>
           </div>
         )}
+        {stage === 'done' && saved && <HintCard hintId="after-skill" />}
       </div>
     </div>
   );

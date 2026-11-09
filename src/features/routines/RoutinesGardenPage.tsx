@@ -65,7 +65,7 @@ export function RoutinesGardenPage() {
         <p className="text-[14px] text-[var(--color-text-muted)] mb-2 text-center">{rt.pageSub}</p>
         <div className="mb-3" />
 
-        <Button fullWidth icon={<Plus size={17} />} onClick={() => navigate('/entdecken/routinen/neu')} className="mb-5" data-testid="routine-new">
+        <Button variant="secondary" fullWidth icon={<Plus size={17} />} onClick={() => navigate('/entdecken/routinen/neu')} className="mb-5" data-testid="routine-new">
           {rt.newRoutine}
         </Button>
 

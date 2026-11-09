@@ -225,7 +225,7 @@ export function IntroFlow() {
             {en ? 'Done – show me the app' : 'Erledigt – zeig mir die App'}
           </Button>
           <button type="button" onClick={() => { setInstallStep(false); setScopeStep(true); }} className="text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 py-1" data-testid="install-later">
-            {en ? 'Later (you find this under Settings → Test version)' : 'Später (du findest das unter Einstellungen → Test-Version)'}
+            {en ? 'Later (you find this under Settings → Help & about → Test version)' : 'Später (du findest das unter Einstellungen → Hilfe & Über → Test-Version)'}
           </button>
         </div>
       </div>

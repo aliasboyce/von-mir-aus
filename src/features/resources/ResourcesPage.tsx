@@ -52,6 +52,7 @@ import type { NeedDirection } from '../../data/types';
 import { HILFSMITTEL_MAIN, subtypesFor, customSubStoreFor, type SubType } from '../../content/hilfsmittelCategories';
 import { EnergyLevelPicker } from '../../components/shared/EnergyLevelPicker';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { FitEmpty } from '../../components/shared/FitEmpty';
 import { FitProfileFields } from '../../components/shared/FitProfileFields';
 import { countHiddenUnmarked, filterByFit, isFitFilterActive, subjectOfResource } from '../../content/fitCriteria';
 import { chainFitSubject } from './chainFit';
@@ -388,11 +389,22 @@ export function ResourcesPage() {
           </p>
           {typeScope === 'skills' && (
             <div className="rounded-[var(--radius-lg)] p-4 mb-4 mt-2" style={{ background: 'var(--color-surface-muted)' }}>
-              {t.resources.skillsIntro.split('\n\n').map((para, i) => (
-                <p key={i} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-2 last:mb-0">
-                  {para}
-                </p>
-              ))}
+              {(() => {
+                const paras = t.resources.skillsIntro.split('\n\n');
+                return (
+                  <>
+                    <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{paras[0]}</p>
+                    {paras.length > 1 && (
+                      <details className="mt-2" data-testid="skills-intro-more">
+                        <summary className="text-[12.5px] text-[var(--color-primary)] cursor-pointer py-1">{t.resources.skillsIntroMore}</summary>
+                        {paras.slice(1).map((para, i) => (
+                          <p key={i} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-2">{para}</p>
+                        ))}
+                      </details>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
           {/* "Es sollte bei Skills eine Unterseite mit Skillketten geben"-
@@ -727,7 +739,7 @@ export function ResourcesPage() {
         <FitFilterPanel hiddenUnmarked={hiddenUnmarked} />
 
         {filtered.length === 0 && !showBreathCards ? (
-          <EmptyState title={isFitFilterActive(fitFilter) ? t.fit.noResults : t.resources.empty} action={isFitFilterActive(fitFilter) ? <p className="text-[12.5px] text-[var(--color-text-faint)] max-w-[280px]">{t.fit.noResultsHint}</p> : undefined} />
+          isFitFilterActive(fitFilter) ? <FitEmpty hiddenUnmarked={hiddenUnmarked} /> : <EmptyState title={t.resources.empty} />
         ) : (
           <div className="grid grid-cols-2 gap-3 mb-4">
             {showBreathCards && standaloneBreathPatterns().map((p) => (

@@ -180,6 +180,13 @@ export function countHiddenUnmarked(subjects: FitSubject[], f: FitFilter): numbe
   }).length;
 }
 
+/** true if an entry is only visible because "ohne Angaben mit anzeigen" is on – it has no details for an active criterion */
+export function shownOnlyBecauseUnmarked(s: FitSubject, f: FitFilter): boolean {
+  if (!f.includeUnmarked || !isFitFilterActive(f)) return false;
+  const r = evaluate(s, f);
+  return !r.includes('no') && r.includes('unmarked');
+}
+
 export function filterByFit<T>(items: T[], subjectOf: (item: T) => FitSubject, f: FitFilter): T[] {
   if (!isFitFilterActive(f)) return items;
   return items.filter((i) => matchesFit(subjectOf(i), f));

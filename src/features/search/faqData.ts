@@ -15,7 +15,7 @@ export const FAQ: FaqItem[] = [
     id: 'daten',
     de: { q: 'Wo sind meine Daten – und was passiert, wenn ich das Handy wechsle?', a: 'Alles bleibt auf diesem Gerät (nichts liegt auf einem Server). Wenn du das Handy wechselst oder den Browser-Speicher löschst, ist es weg – außer du hast vorher eine Sicherung gemacht. Unter Einstellungen → Sicherung kannst du alles als Datei speichern und auf dem neuen Gerät wieder einlesen.', toLabel: 'Zu den Einstellungen' },
     en: { q: 'Where is my data – and what happens if I change phones?', a: 'Everything stays on this device (nothing lives on a server). If you change phones or clear the browser storage it is gone – unless you made a backup first. Under Settings → Backup you can save everything as a file and load it on the new device.', toLabel: 'To settings' },
-    to: '/einstellungen',
+    to: '/einstellungen?bereich=daten',
   },
   {
     id: 'zuviel',
@@ -63,13 +63,13 @@ export const FAQ: FaqItem[] = [
     id: 'auge',
     de: { q: 'Was macht der Augen-Knopf („Schnell weg“)?', a: 'Ein Tipp verdeckt die App sofort mit einem neutralen Bildschirm (Uhrzeit und Datum). Zweimal schnell tippen bringt dich zurück – genau auf die Seite, auf der du warst (mit PIN, falls du eine eingestellt hast). Der Knopf lässt sich wie das Wesen verschieben, wenn er im Weg ist. Ein- und ausschalten kannst du ihn in den Einstellungen.', toLabel: 'Zu den Einstellungen' },
     en: { q: 'What does the eye button (“Hide now”) do?', a: 'One tap covers the app at once with a neutral screen (time and date). Two quick taps bring you back – exactly to the page you were on (with a PIN if you set one). The button can be dragged like the Wesen if it is in the way. You can switch it on and off in Settings.', toLabel: 'To settings' },
-    to: '/einstellungen',
+    to: '/einstellungen?bereich=sprache',
   },
   {
     id: 'wesen',
     de: { q: 'Das Wesen ist im Weg oder sagt zu viel – was tun?', a: 'Du kannst das Wesen mit dem Finger verschieben, wohin du magst. Wenn es etwas sagt, hilft „nerv nich ♥“ für diese Sitzung – und in den Einstellungen und unter „Das Wesen“ lässt sich einstellen, wie viel es spricht, schmuggelt oder stört. Es ist für dich da, nicht umgekehrt.', toLabel: 'Zu den Einstellungen' },
     en: { q: 'The Wesen is in the way or says too much – what can I do?', a: 'You can drag the Wesen wherever you like. When it says something, “nerv nich ♥” helps for this session – and in Settings and under “The Wesen” you can set how much it talks, smuggles or disturbs. It is there for you, not the other way round.', toLabel: 'To settings' },
-    to: '/einstellungen',
+    to: '/einstellungen?bereich=wesen',
   },
   {
     id: 'zugang-fehlt',

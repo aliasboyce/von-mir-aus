@@ -27,6 +27,9 @@ export const ZUGANG_EN: Record<string, string> = {
   'wie eingemauert': 'as if walled in', 'eingefrorene Mimik': 'frozen expression', Schluckbeschwerden: 'trouble swallowing',
   'Druck im Kopf': 'pressure in my head', 'sehr flache Atmung': 'very shallow breathing', 'Blutdruck sackt ab': 'blood pressure dropping', 'schlaffe Muskeln': 'limp muscles',
   'wie durch Watte': 'as if through cotton wool', 'aus dem Körper schweben': 'floating out of my body', sprachlos: 'speechless', 'glanzloser Blick': 'dull gaze',
+  // "nothing of these" choices
+  'gerade nichts spürbar': 'nothing noticeable right now', 'möchte ich gerade nicht spüren': 'I do not want to feel it right now', 'weiß ich gerade nicht': 'I do not know right now',
+  'gerade nichts davon': 'nothing of these right now', 'gerade nicht': 'not right now', 'gerade keine Hindernisse': 'no obstacles right now',
   // protection strategies
   abschalten: 'switching off', 'nichts mehr fühlen': 'feeling nothing', 'Kontrolle zurückgewinnen': 'regaining control', analysieren: 'analysing',
   'möglichst still werden': 'getting as quiet as possible', Rückzug: 'withdrawing', 'perfekt sein wollen': 'wanting to be perfect',

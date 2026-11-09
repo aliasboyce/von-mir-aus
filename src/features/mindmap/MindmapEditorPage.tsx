@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE } from 'react';
 import { deleteVersionsOf, saveVersion, versionsOf, type MapVersion } from './mindmapVersions';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, ChevronLeft, CornerDownRight, Copy, CopyPlus, Ellipsis, ExternalLink, FileDown, FolderTree, History, Image as ImageIcon, Layers, ListChecks, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload, ChevronUp, ChevronRight, PanelBottom, PanelLeft } from 'lucide-react';
+import { Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, ChevronLeft, CornerDownRight, Copy, CopyPlus, Ellipsis, MoreHorizontal, ExternalLink, FileDown, FolderTree, History, Image as ImageIcon, Layers, ListChecks, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload, ChevronUp, ChevronRight, PanelBottom, PanelLeft } from 'lucide-react';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { useCamera } from '../../components/canvas/useCamera';
 import { useSettings } from '../../state/SettingsContext';
@@ -143,6 +143,7 @@ function Editor({ initial }: { initial: MindMap }) {
   const [connectFrom, setConnectFrom] = useState<string | null>(null);
   const [styleOpen, setStyleOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [tab, setTab] = useState<StyleTab>('shape');
   const [textEdit, setTextEdit] = useState<Sel>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -1507,8 +1508,21 @@ function Editor({ initial }: { initial: MindMap }) {
   const mapColors = useMemo(() => colorsOfMap(map.nodes, map.edges), [map.nodes, map.edges]);
   const mapPhotos = useMemo(() => map.nodes.filter((n) => n.img).map((n) => n.img as string).slice(0, 12), [map.nodes]);
 
+  useEffect(() => { setMoreOpen(false); }, [sel?.kind, (sel as { id?: string } | null)?.id, tool]);
   const quickOn = !!selNode && quickOpen && !styleOpen && !drawing && !layersOpen && tool === 'select';
-  const panelsOn = (layersOpen && !drawing) || (!!(selNode || selEdge) && styleOpen && !drawing && !layersOpen) || quickOn;
+  const moreOn = moreOpen && !drawing && !layersOpen && !styleOpen && !quickOpen;
+  const panelsOn = moreOn || (layersOpen && !drawing) || (!!(selNode || selEdge) && styleOpen && !drawing && !layersOpen) || quickOn;
+  /** buttons in the "Mehr" sheet: wide, with icon and full word, so rarely used things stay findable without crowding the bar */
+  const moreChip = (testId: string, icon: React.ReactNode, label: string, onClick: () => void, opts: { active?: boolean; danger?: boolean; keepOpen?: boolean } = {}) => (
+    <button key={testId} type="button" data-testid={testId} aria-pressed={opts.active ? true : undefined}
+      onClick={() => { if (!opts.keepOpen) setMoreOpen(false); onClick(); }}
+      className={`flex items-center gap-2 px-3 py-2.5 rounded-[var(--radius-md)] border text-[13.5px] text-left ${opts.active ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]' : 'border-[var(--color-border-strong)] text-[var(--color-text)]'}`}>
+      {icon}<span className="leading-tight">{label}</span>
+    </button>
+  );
+  const moreBtnBar = (testId = 'mm-more') => (
+    <button type="button" onClick={() => { setMoreOpen((v) => !v); setStyleOpen(false); setQuickOpen(false); setLayersOpen(false); }} className={barBtn(moreOn)} aria-expanded={moreOn} data-testid={testId}><MoreHorizontal size={19} />{lang === 'en' ? 'More' : 'Mehr'}</button>
+  );
   const barButtons = (
     <>
                 {!sel && tool !== 'multi' && (
@@ -1516,16 +1530,13 @@ function Editor({ initial }: { initial: MindMap }) {
                     <button type="button" onClick={addNode} className={barBtn()} data-testid="mm-add-node"><Plus size={20} />{T.addNode}</button>
                     <button type="button" onClick={addFreeText} className={barBtn()} data-testid="mm-add-text"><Type size={19} />{X.addText}</button>
                     <button type="button" onClick={addNote} className={barBtn()} data-testid="mm-add-note"><StickyNote size={19} />{T.addNote}</button>
-                    <button type="button" onClick={addFrame} className={barBtn()} data-testid="mm-add-frame"><SquareDashed size={19} />{T.addFrame}</button>
-                    <button type="button" onClick={() => { setTool('draw'); setConnectFrom(null); }} className={barBtn()} data-testid="mm-draw"><PenLine size={19} />{X.pen}</button>
                     {clipNow && clipNow.nodes.length > 0 && (
                       <button type="button" onClick={() => pasteClip()} className={barBtn()} data-testid="mm-paste-clip"><ClipboardPaste size={19} />{X.paste}</button>
                     )}
                     <button type="button" onClick={() => openAdd()} className={barBtn()} data-testid="mm-add-more"><ListChecks size={19} />{lang === 'en' ? 'Add …' : 'Hinzufügen …'}</button>
                     <button type="button" onClick={() => { setTool('multi'); setConnectFrom(null); }} className={barBtn()} data-testid="mm-multi"><BoxSelect size={19} />{X.multi}</button>
                     <button type="button" onClick={() => { setTool(tool === 'connect' ? 'select' : 'connect'); setConnectFrom(null); }} className={barBtn(tool === 'connect')} data-testid="mm-connect"><Spline size={19} />{T.connect}</button>
-                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={19} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
-                    <button type="button" onClick={() => setVersionsOpen(true)} className={barBtn()} data-testid="mm-versions-btn"><History size={19} />{lang === 'en' ? 'States' : 'Zustände'}</button>
+                    {moreBtnBar()}
                   </>
                 )}
                 {!sel && tool === 'multi' && (
@@ -1547,12 +1558,7 @@ function Editor({ initial }: { initial: MindMap }) {
                     {selNode.shape === 'maplink' && <button type="button" onClick={() => openLinked(selNode)} className={barBtn()} data-testid="mm-open-map"><ExternalLink size={19} />{X.openMap}</button>}
                     {selNode.shape !== 'frame' && selNode.shape !== 'draw' && <button type="button" onClick={() => addChild(selNode)} className={barBtn()} data-testid="mm-add-child"><CornerDownRight size={19} />{T.child}</button>}
                     {selNode.shape !== 'draw' && <button type="button" onClick={() => { setTool('connect'); setConnectFrom(selNode.id); }} className={barBtn()} data-testid="mm-connect-from"><Spline size={19} />{T.connect}</button>}
-                    <button type="button" onClick={doCopy} className={barBtn()} data-testid="mm-copy"><Copy size={18} />{X.copy}</button>
-                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
-                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={18} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
-                    <button type="button" onClick={() => setTool('multi')} className={barBtn()} data-testid="mm-multi-from"><BoxSelect size={19} />{X.moreSelect}</button>
-                    {selNode.shape !== 'frame' && selNode.shape !== 'draw' && map.edges.some((e) => e.from === selNode.id) && <button type="button" onClick={() => selectBelow(selNode.id)} className={barBtn()} data-testid="mm-select-below"><CornerDownRight size={19} />{lang === 'en' ? 'Select all below' : 'Alles darunter'}</button>}
-                    <button type="button" onClick={() => { setNewMapRemove(false); setNewMapOpen(true); }} className={barBtn()} data-testid="mm-to-newmap"><FolderTree size={18} />{X.toNewMap}</button>
+                    {moreBtnBar()}
                     <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
                   </>
                 )}
@@ -1560,12 +1566,7 @@ function Editor({ initial }: { initial: MindMap }) {
                   <>
                     <button type="button" onClick={() => setStyleOpen((v) => !v)} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
                     <button type="button" onClick={() => { setQuickOpen((v) => !v); setStyleOpen(false); setLayersOpen(false); }} className={barBtn(quickOn)} data-testid="mm-quick-color"><span className="w-[19px] h-[19px] rounded-full inline-block" style={{ background: selNode.fc ?? selNode.color, border: '1.5px solid rgba(0,0,0,0.25)' }} />{lang === 'en' ? 'Colour' : 'Farbe'}</button>
-                    <button type="button" onClick={doCopy} className={barBtn()} data-testid="mm-copy"><Copy size={18} />{X.copy}</button>
-                    <button type="button" onClick={doCut} className={barBtn()} data-testid="mm-cut"><Scissors size={18} />{X.cut}</button>
-                    <button type="button" onClick={duplicateSelected} className={barBtn()} data-testid="mm-duplicate"><CopyPlus size={18} />{T.duplicate}</button>
-                    <button type="button" onClick={() => { setLayersOpen((v) => !v); setStyleOpen(false); }} className={barBtn(layersOpen)} data-testid="mm-layers-btn"><Layers size={18} />{lang === 'en' ? 'Layers' : 'Ebenen'}</button>
-                    <button type="button" onClick={toggleGroup} className={barBtn(grouped)} data-testid="mm-group"><Users size={18} />{grouped ? X.ungroup : X.group}</button>
-                    <button type="button" onClick={() => { setNewMapRemove(false); setNewMapOpen(true); }} className={barBtn()} data-testid="mm-to-newmap"><FolderTree size={18} />{X.toNewMap}</button>
+                    {moreBtnBar()}
                     <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
                   </>
                 )}
@@ -1867,6 +1868,34 @@ function Editor({ initial }: { initial: MindMap }) {
                 onToggleLock={(nid) => patchNode(nid, { lock: undefined })}
                 onClose={() => setLayersOpen(false)}
               />
+            </div>
+          )}
+          {moreOn && (
+            <div className="px-4 pt-3 max-h-[34vh] overflow-y-auto" data-testid="mm-more-sheet">
+              <div className="grid grid-cols-2 gap-2">
+                {!sel && tool !== 'multi' && (<>
+                  {moreChip('mm-add-frame', <SquareDashed size={18} />, T.addFrame, addFrame)}
+                  {moreChip('mm-draw', <PenLine size={18} />, X.pen, () => { setTool('draw'); setConnectFrom(null); })}
+                  {moreChip('mm-layers-btn', <Layers size={18} />, lang === 'en' ? 'Layers' : 'Ebenen', () => { setLayersOpen(true); setStyleOpen(false); })}
+                  {moreChip('mm-versions-btn', <History size={18} />, lang === 'en' ? 'Saved states' : 'Zustände', () => setVersionsOpen(true))}
+                </>)}
+                {selNode && !multiSel && (<>
+                  {moreChip('mm-copy', <Copy size={18} />, X.copy, doCopy)}
+                  {moreChip('mm-duplicate', <CopyPlus size={18} />, T.duplicate, duplicateSelected)}
+                  {moreChip('mm-layers-btn', <Layers size={18} />, lang === 'en' ? 'Layers' : 'Ebenen', () => { setLayersOpen(true); setStyleOpen(false); })}
+                  {moreChip('mm-multi-from', <BoxSelect size={18} />, X.moreSelect, () => setTool('multi'))}
+                  {selNode.shape !== 'frame' && selNode.shape !== 'draw' && map.edges.some((e) => e.from === selNode.id) && moreChip('mm-select-below', <CornerDownRight size={18} />, lang === 'en' ? 'Select all below' : 'Alles darunter', () => selectBelow(selNode.id))}
+                  {moreChip('mm-to-newmap', <FolderTree size={18} />, X.toNewMap, () => { setNewMapRemove(false); setNewMapOpen(true); })}
+                </>)}
+                {selNode && multiSel && (<>
+                  {moreChip('mm-copy', <Copy size={18} />, X.copy, doCopy)}
+                  {moreChip('mm-cut', <Scissors size={18} />, X.cut, doCut)}
+                  {moreChip('mm-duplicate', <CopyPlus size={18} />, T.duplicate, duplicateSelected)}
+                  {moreChip('mm-layers-btn', <Layers size={18} />, lang === 'en' ? 'Layers' : 'Ebenen', () => { setLayersOpen(true); setStyleOpen(false); })}
+                  {moreChip('mm-group', <Users size={18} />, grouped ? X.ungroup : X.group, toggleGroup, { active: grouped })}
+                  {moreChip('mm-to-newmap', <FolderTree size={18} />, X.toNewMap, () => { setNewMapRemove(false); setNewMapOpen(true); })}
+                </>)}
+              </div>
             </div>
           )}
           {quickOn && selNode && (

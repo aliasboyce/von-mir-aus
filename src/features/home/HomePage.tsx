@@ -1,3 +1,5 @@
+import { HintCard } from '../../components/hints/HintCard';
+import { nextTip } from '../../services/hintCards';
 import { ContinueCard } from './ContinueCard';
 import { NurJetztHome } from '../nurJetzt/NurJetztHome';
 import { scopeOf } from '../../services/scope';
@@ -113,8 +115,8 @@ export function HomePage() {
       testerThanksSaid.set(true);
       say(
         settings.language === 'en'
-          ? 'Thank you for testing “von mir aus”. If something stands out, you can report it any time: Settings → Test version → “Report something”.'
-          : 'Danke, dass du „von mir aus“ testest. Wenn dir etwas auffällt, kannst du es jederzeit melden: Einstellungen → Test-Version → „Etwas melden“.',
+          ? 'Thank you for testing “von mir aus”. If something stands out, you can report it any time: Settings → Help & about → Test version → “Report something”.'
+          : 'Danke, dass du „von mir aus“ testest. Wenn dir etwas auffällt, kannst du es jederzeit melden: Einstellungen → Hilfe & Über → Test-Version → „Etwas melden“.',
       );
     }, 3500);
     return () => window.clearTimeout(timer);
@@ -519,6 +521,16 @@ export function HomePage() {
       )}
 
       {aboutOpen && <AboutVonMirAusModal text={ABOUT_VON_MIR_AUS_TEXT} onClose={() => setAboutOpen(false)} />}
+      <HomeTip />
     </div>
   );
+}
+
+/** At most one occasional hint card per day, only after the start page has been calm for a moment */
+function HomeTip() {
+  const { settings } = useSettings();
+  const [id] = useState(() => nextTip()?.id ?? null);
+  // never while the first introduction or the guided tour is still running
+  if (!settings.introSeen || settings.tourActive || !settings.companionChosen) return null;
+  return id ? <HintCard hintId={id} delayMs={4000} /> : null;
 }

@@ -77,3 +77,14 @@ export function formatBytes(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
+
+const EN_LABELS: Record<string, string> = {
+  'Briefe an mich': 'Letters to myself', 'Brücken': 'Bridges', 'Check-in-Verläufe': 'Check-in history', 'Denkmaschine': 'Thought machine',
+  'Einstellungen': 'Settings', 'Garten': 'Garden', 'Kalender': 'Calendar', 'Lesezeichen': 'Bookmarks', 'Loslassen': 'Letting go',
+  'Medi-Log': 'Medication log', 'Parkbox & Wartezimmer': 'Park box & waiting room', 'Postfach & Erinnerungen': 'Mailbox & reminders',
+  'Ressourcen': 'Resources', 'Schutzstrategien & Hindernisse': 'Protection strategies & obstacles', 'Sicherheitsnetz': 'Safety net',
+  'Skills & Zugang': 'Skills & Zugang', 'Sonstiges': 'Other', 'Sortierungen': 'Orderings', 'Tagebuch & Vorlagen': 'Diary & templates',
+  'Wertekompass': 'Values compass', 'Wesen & Ablenkung': 'Companion & distraction', 'Wesen & Aussehen': 'Companion & look', 'Zugang': 'Zugang',
+};
+/** English name of a storage category (the stored label is German) */
+export const storageLabelEn = (label: string): string => EN_LABELS[label] ?? label;

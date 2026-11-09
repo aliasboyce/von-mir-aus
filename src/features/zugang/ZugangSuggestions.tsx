@@ -4,7 +4,10 @@ import { Button } from '../../components/ui/Button';
 import { FitSummary } from '../../components/shared/FitSummary';
 import { useT } from '../../i18n';
 import { useFitFilter } from '../../state/fitFilterStore';
+import { realWords } from './zugangContent';
+import { FitEmpty } from '../../components/shared/FitEmpty';
 import { availableChannels, bridgeMatchesFit, subjectsOfBridge, matchesFit, filterByFit, isFitFilterActive, subjectOfResource } from '../../content/fitCriteria';
+import { resourceKindOf, type ResourceKind } from '../resources/FitResults';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import { bridgeNeeds, needsForValues, resourcesForNeeds } from '../bridges/bridgeValues';
@@ -48,7 +51,7 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
   const allBridges = useMemo(() => bridgesRepo.getAll(), []);
   const contacts = useMemo(() => networkRepo.getAll().filter((e) => e.category === 'person').slice(0, 4), []);
 
-  const needWords = useMemo(() => Array.from(new Set([...need, ...needsForValues(connection)])), [need, connection]);
+  const needWords = useMemo(() => Array.from(new Set([...realWords(need), ...needsForValues(realWords(connection))])), [need, connection]);
 
   const { shown, total, hiddenByFilter } = useMemo(() => {
     const matched = resourcesForNeeds(needWords, allResources).map((m) => ({
@@ -65,7 +68,7 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
   );
 
   const scoredBridges = useMemo(() => {
-    const picked = new Set([...need, ...obstacle]);
+    const picked = new Set([...realWords(need), ...realWords(obstacle)]);
     const scored = allBridges.map((b) => ({
       bridge: b,
       matches:
@@ -136,13 +139,21 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
         <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{z.suggestResourcesTitle}</p>
         {shown.length === 0 ? (
           <div className="rounded-[var(--radius-lg)] p-3.5" style={{ background: 'var(--color-surface-muted)' }}>
-            <p className="text-[13px] text-[var(--color-text)] leading-relaxed">
-              {total > 0 && hiddenByFilter > 0 ? t.fit.noResultsHint : z.suggestNoResources}
-            </p>
+            {total > 0 && hiddenByFilter > 0 ? <FitEmpty /> : <p className="text-[13px] text-[var(--color-text)] leading-relaxed">{z.suggestNoResources}</p>}
           </div>
         ) : (
           <>
-            <div className="flex flex-col gap-2">{visibleResources.map((m) => resourceRow(m.resource, m.resource.id))}</div>
+            {(['skills', 'hilfsmittel', 'orte', 'aktivitaeten'] as ResourceKind[]).map((kind) => {
+              const list = visibleResources.filter((m) => resourceKindOf(m.resource) === kind);
+              if (list.length === 0) return null;
+              const label = { skills: t.fit.groupSkills, hilfsmittel: t.fit.groupHilfsmittel, orte: t.fit.groupOrte, aktivitaeten: t.fit.groupAktivitaeten }[kind];
+              return (
+                <div key={kind} className="mb-3" data-testid={`suggest-kind-${kind}`}>
+                  <p className="text-[12.5px] font-medium text-[var(--color-text)] mb-1.5">{label}</p>
+                  <div className="flex flex-col gap-2">{list.map((m) => resourceRow(m.resource, m.resource.id))}</div>
+                </div>
+              );
+            })}
             {shown.length > FIRST && !showMore && (
               <button type="button" onClick={() => setShowMore(true)} className="text-[12.5px] text-[var(--color-primary)] mt-2">
                 {z.suggestMore} ({shown.length - FIRST})

@@ -344,7 +344,7 @@ export function BridgeDetailPage() {
             <div className="flex flex-wrap gap-1.5 mt-2.5">
               {allNeeds.map((n) => (
                 <span key={n} className="px-2.5 py-1 rounded-full text-[12px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
-                  {n}
+                  {zl(n)}
                 </span>
               ))}
             </div>

@@ -16,6 +16,44 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-ordnung-hinweise-einstellungen',
+    date: '2026',
+    items: [
+      'Zugang: Die Schutz-Frage ist offener („Vielleicht versuchst du gerade …“), die zweite Gruppe heißt nur „oder“, und du kannst direkt in jeder Gruppe etwas Eigenes ergänzen. Bei Körper, Gefühl, Fürsorge, Bedürfnis, Hindernis und Wert gibt es immer eine leise Zeile wie „weiß ich gerade nicht“, „möchte ich gerade nicht spüren“ oder „gerade keine Hindernisse“ – du musst nicht immer etwas finden.',
+      'Zugang → „Ich reguliere mich erst“: oben schaltest du zwischen „passend“ und „Alle Skills & Ketten“ um. Bei „Bedürfnis, Wert, Handeln“ sind die Ressourcen nach Art sortiert (Skills, Hilfsmittel, Orte, Aktivitäten).',
+      'Zurück/Abbrechen/Weiter/Fertig klarer: Im Skill-Lauf gibt es „Abbrechen“, in der Reflexion „Speichern“, „Zurück zur Übung“ und „Ohne Speichern beenden“; das Zurück-Pfeilchen führt dorthin, wo du eben warst. Im Zugang heißt „Überspringen“ jetzt „Abbrechen“ (dein Stand bleibt als Entwurf).',
+      'Neu: sanfte Hinweis-Karten – nach einem Zugang, einem Skill oder einer Routine und ab und zu auf der Startseite (höchstens eine pro Tag). Mit ✕ schließt du sie für jetzt, mit „Gar nicht mehr anzeigen“ kommt genau diese Karte nicht wieder. In den Einstellungen kannst du alle ausschalten oder wieder zurückholen.',
+      'Einstellungen sind jetzt ein Menü mit Unterseiten: Design, Wesen, Erinnerungen & Tagesrahmen, Sprache/Umfang/Schutz, Meine Daten, Hilfe & Über. Eine Welt zu wählen lässt hell/dunkel und alle Farben weiter frei.',
+      '„Tag beginnen“ und „Tag abschließen“: In den Einstellungen wählst du, welche Türen (Skill, Medikamente, Tagebuch, Routine, Parkbox, Loslassen) dabei sind.',
+      'Ruhiger: Die lange Skills-Erklärung ist einklappbar, Entdecken hat eine passende Einleitung, die Anleitung und Hilfetexte stimmen wieder mit der App überein.',
+    ],
+    itemsEn: [
+      'Zugang: the protection question is more open (“Maybe you are trying …”), the second group is just “or”, and you can add your own words right inside each group. For body, feeling, care, need, obstacle and value there is always a quiet line such as “I do not know right now”, “I do not want to feel it right now” or “no obstacles right now” – you do not always have to find something.',
+      'Zugang → “I regulate first”: at the top you switch between “fitting” and “All skills & chains”. In “need, value, action” the resources are sorted by kind (skills, tools, places, activities).',
+      'Back/Cancel/Next/Done is clearer: the skill run has “Cancel”, the reflection has “Save”, “Back to the exercise” and “End without saving”; the back arrow goes where you just were. In Zugang “Skip” is now “Cancel” (your progress stays as a draft).',
+      'New: gentle hint cards – after a Zugang pass, a skill or a routine, and now and then on the start page (at most one per day). ✕ closes one for now, “Never show again” keeps exactly that card away. In Settings you can switch all off or bring them back.',
+      'Settings are now a menu with sub-pages: Design, Companion, Reminders & day frame, Language/scope/protection, My data, Help & about. Choosing a world leaves light/dark and all colours free.',
+      '“Begin the day” and “Close the day”: in Settings you choose which doors (skill, medication, diary, routine, park box, let go) are part of them.',
+      'Calmer: the long skills explanation can be folded away, Explore has a fitting intro, and the guide and help texts match the app again.',
+    ],
+  },
+  {
+    id: '2026-ton-mehr-alle-zeigen',
+    date: '2026',
+    items: [
+      'Menü-Ton: In den Einstellungen wählst du zwischen drei Tönen – Original (tief, dumpf, leicht), Klopfen (wie ein Block-Klick bei Minecraft) und Original mit mehr Hörbarkeit am Handy. Antippen spielt den Ton vor.',
+      'Mindmap: Die Leiste ist ruhiger. Selten gebrauchtes (Rahmen, Zeichnen, Ebenen, Zustände, Kopieren, Gruppe …) liegt jetzt unter „Mehr“, mit großen beschrifteten Feldern.',
+      'Filter: Einträge ohne Angaben (zum Beispiel Brücken) sind jetzt klar benannt. „Alle zeigen“ setzt den Filter zurück, „Ohne Angaben mit anzeigen“ zeigt sie mit der Markierung „Noch ohne Angaben“. Wenn nichts passt, kommt ein freundlicher Hinweis mit beiden Auswegen.',
+      'Das Wesen sagt bei einem fehlenden Zugangskanal leise, was auch ohne diesen geht – keine Aufgaben. Routinen/Garten: „Neu“-Knöpfe sind leiser, damit „Starten“ die Hauptaktion bleibt.',
+    ],
+    itemsEn: [
+      'Menu sound: in Settings you pick one of three tones – Original (deep, dull, light), Knock (like a block click in Minecraft) and Original that is easier to hear on a phone. Tapping plays it.',
+      'Mind map: the bar is calmer. Rarely used things (frame, draw, layers, saved states, copy, group …) now sit under “More”, as big labelled fields.',
+      'Filters: entries without details (bridges, for example) are now named clearly. “Show all” resets the filter, “Show those without details too” shows them with a “No details yet” mark. If nothing fits, a friendly note offers both ways out.',
+      'When an access channel is missing, the companion softly says what works without it – no tasks. Routines/Garden: “new” buttons are quieter so “Start” stays the main action.',
+    ],
+  },
+  {
     id: '2026-mindmap-atmen-zugang',
     date: '2026',
     items: [

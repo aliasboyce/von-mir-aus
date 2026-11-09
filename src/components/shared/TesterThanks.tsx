@@ -7,14 +7,14 @@ const TXT = {
     thanks: 'Danke, dass du „von mir aus“ testest.',
     body: 'Wenn dir etwas auffällt – etwas hilft, drückt, fehlt oder nicht funktioniert – kannst du es jederzeit melden. Anonym, ca. 1 Minute, alles freiwillig.',
     cta: 'Etwas melden',
-    where: 'Du findest den Link auch jederzeit unter Einstellungen → Test-Version.',
+    where: 'Du findest den Link auch jederzeit unter Einstellungen → Hilfe & Über → Test-Version.',
     hintSafari: 'Die Umfrage öffnet sich im Browser. Danach kommst du mit dem Zurück-Pfeil oder über deine App vom Startbildschirm wieder hierher.',
   },
   en: {
     thanks: 'Thank you for testing “von mir aus”.',
     body: 'Whenever you notice something – it helps, weighs on you, is missing or does not work – you can report it. Anonymous, about 1 minute, everything optional.',
     cta: 'Report something',
-    where: 'You can always find the link under Settings → Test version.',
+    where: 'You can always find the link under Settings → Help & about → Test version.',
     hintSafari: 'The survey opens in the browser. Afterwards use the back arrow or your app on the home screen to come back here.',
   },
 };

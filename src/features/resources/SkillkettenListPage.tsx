@@ -7,6 +7,7 @@ import { useT } from '../../i18n';
 import { skillkettenRepo } from './skillkettenRepo';
 import { resourcesRepo } from './resourcesRepo';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { FitEmpty } from '../../components/shared/FitEmpty';
 import { FitSummary } from '../../components/shared/FitSummary';
 import { countHiddenUnmarked, filterByFit, isFitFilterActive } from '../../content/fitCriteria';
 import { useFitFilter } from '../../state/fitFilterStore';
@@ -38,7 +39,7 @@ export function SkillkettenListPage() {
         {all.length > 0 && <FitFilterPanel hiddenUnmarked={hidden} />}
 
         {ketten.length === 0 ? (
-          <p className="text-[13px] text-[var(--color-text-faint)]">{isFitFilterActive(filter) && all.length > 0 ? `${t.fit.noResults} ${t.fit.noResultsHint}` : t.resources.skillkettenEmptyState}</p>
+          isFitFilterActive(filter) && all.length > 0 ? <FitEmpty hiddenUnmarked={hidden} /> : <p className="text-[13px] text-[var(--color-text-faint)]">{t.resources.skillkettenEmptyState}</p>
         ) : (
           <div className="flex flex-col gap-2.5">
             {ketten.map((k) => (

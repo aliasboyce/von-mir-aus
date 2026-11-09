@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { HintCard } from '../../components/hints/HintCard';
 import { goBack } from '../../services/navigation';
 import { playSound } from '../../services/sounds';
 import { triggerHaptic } from '../../services/haptics';
@@ -633,6 +634,7 @@ function Player({ routine, energy }: { routine: Routine; energy?: EnergyLevel })
           {tStage === 'saved' && <p className="text-[13px] text-[var(--color-primary)] mt-3" data-testid="routine-tension-saved">✓ {lang === 'en' ? `Saved: tension ${tVal}.` : `Eingetragen: Anspannung ${tVal}.`}</p>}
           <div className="mt-6 flex flex-col gap-2 w-full" style={{ maxWidth: 320 }}>
             <Button fullWidth onClick={() => goBack(navigate, '/entdecken/garten')} data-testid="routine-close-done">{rt.close}</Button>
+            <HintCard hintId="after-routine" delayMs={1800} />
             <Link to="/wochenrueckblick" replace className="text-[13px] text-[var(--color-primary)] underline underline-offset-2">{rt.toReview}</Link>
           </div>
         </div>

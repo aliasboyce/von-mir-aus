@@ -5,7 +5,8 @@ import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
 import { LichtCompanion } from '../../components/companion/LichtCompanion';
 import { routinesRepo } from '../routines/routinesRepo';
-import { doneOptions, markOpened, markWent, toggleManual, wentOptions, type DayOptionId, type DayPhase } from './dayFlowRepo';
+import { useSettings } from '../../state/SettingsContext';
+import { dayOptionsFor, doneOptions, markOpened, markWent, toggleManual, wentOptions, type DayOptionId, type DayPhase } from './dayFlowRepo';
 import { useDayFlowTexts } from './dayFlowTexts';
 
 interface Option {
@@ -34,22 +35,21 @@ export function DayFlowPage({ phase }: { phase: DayPhase }) {
   const routines = routinesRepo.getAll().sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   const start = phase === 'start';
 
-  const options: Option[] = start
-    ? [
-        { id: 'skill', emoji: '✨', title: dx.skill, sub: dx.skillSub, to: '/entdecken/ressourcen/skills' },
-        { id: 'medi', emoji: '💊', title: dx.medi, sub: dx.mediSub, to: '/entdecken/medi-log' },
-        { id: 'diary', emoji: '📓', title: dx.diaryStart, sub: dx.diaryStartSub, to: '/sicherheit/tagebuch?template=builtin-tag-ausrichten' },
-        { id: 'routine', emoji: '🔁', title: dx.routine, sub: dx.routineSub },
-      ]
-    : [
-        { id: 'skill', emoji: '✨', title: dx.skill, sub: dx.skillSub, to: '/entdecken/ressourcen/skills' },
-        { id: 'diary', emoji: '📓', title: dx.diaryEnd, sub: dx.diaryEndSub, to: '/sicherheit/tagebuch?template=builtin-abendlicher-rueckblick' },
-        { id: 'park', emoji: '📦', title: dx.park, sub: dx.parkSub, to: '/parkbox' },
-        { id: 'letgo', emoji: '🍃', title: dx.letgo, sub: dx.letgoSub, to: '/entdecken/loslassen' },
-        { id: 'routine', emoji: '🔁', title: dx.routine, sub: dx.routineSub },
-      ];
+  const { settings } = useSettings();
+  const defs: Record<DayOptionId, Option> = {
+    skill: { id: 'skill', emoji: '✨', title: dx.skill, sub: dx.skillSub, to: '/entdecken/ressourcen/skills' },
+    medi: { id: 'medi', emoji: '💊', title: dx.medi, sub: dx.mediSub, to: '/entdecken/medi-log' },
+    diary: start
+      ? { id: 'diary', emoji: '📓', title: dx.diaryStart, sub: dx.diaryStartSub, to: '/sicherheit/tagebuch?template=builtin-tag-ausrichten' }
+      : { id: 'diary', emoji: '📓', title: dx.diaryEnd, sub: dx.diaryEndSub, to: '/sicherheit/tagebuch?template=builtin-abendlicher-rueckblick' },
+    routine: { id: 'routine', emoji: '🔁', title: dx.routine, sub: dx.routineSub },
+    park: { id: 'park', emoji: '📦', title: dx.park, sub: dx.parkSub, to: '/parkbox' },
+    letgo: { id: 'letgo', emoji: '🍃', title: dx.letgo, sub: dx.letgoSub, to: '/entdecken/loslassen' },
+  };
+  // the person decides in the settings which doors appear here
+  const options: Option[] = dayOptionsFor(settings, phase).map((id) => defs[id]);
   const doneCount = options.filter((o) => done.has(o.id)).length;
-  const allDone = doneCount === options.length;
+  const allDone = options.length > 0 && doneCount === options.length;
 
   function open(o: Option) {
     markWent(phase, o.id);

@@ -184,13 +184,24 @@ export function FitFilterPanel({ hiddenUnmarked = 0, defaultOpen = false }: { hi
         </div>
       )}
 
-      {active && (hiddenUnmarked > 0 || filter.includeUnmarked) && (
-        <p className="px-3.5 pb-3 text-[11.5px] text-[var(--color-text-muted)]">
-          {filter.includeUnmarked ? f.unmarkedShown : f.hiddenUnmarked.replace('{n}', String(hiddenUnmarked))} ·{' '}
-          <button type="button" onClick={() => setFilter({ includeUnmarked: !filter.includeUnmarked })} className="text-[var(--color-primary)] underline">
-            {filter.includeUnmarked ? f.hideUnmarked : f.showUnmarked}
-          </button>
-        </p>
+      {active && (
+        <div className="px-3.5 pb-3 flex flex-col gap-2" data-testid="fit-footer">
+          {(hiddenUnmarked > 0 || filter.includeUnmarked) && (
+            <p className="text-[12px] text-[var(--color-text-muted)] leading-snug" data-testid="fit-hidden-note">
+              {filter.includeUnmarked ? f.unmarkedShown : f.hiddenUnmarked.replace('{n}', String(hiddenUnmarked))}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {(hiddenUnmarked > 0 || filter.includeUnmarked) && (
+              <button type="button" onClick={() => setFilter({ includeUnmarked: !filter.includeUnmarked })} className="rounded-full border px-3 py-1.5 text-[12.5px]" style={{ borderColor: 'var(--color-border-strong)', color: 'var(--color-text)' }} data-testid="fit-toggle-unmarked">
+                {filter.includeUnmarked ? f.hideUnmarked : f.showUnmarked}
+              </button>
+            )}
+            <button type="button" onClick={reset} className="rounded-full px-3 py-1.5 text-[12.5px] text-white" style={{ background: 'var(--color-primary)' }} data-testid="fit-show-all">
+              {f.showAllFit}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

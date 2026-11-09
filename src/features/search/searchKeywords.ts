@@ -63,7 +63,7 @@ export const STATIC_FUNCS: StaticFunc[] = [
     emoji: '💾',
     de: ['Sicherung (Backup) erstellen & einspielen', 'Alle deine Daten als eine Datei sichern und später wieder einspielen – zum Beispiel auf einem neuen Gerät.'],
     en: ['Backup: save & restore', 'Save all your data as one file and restore it later — for example on a new device.'],
-    to: '/einstellungen',
+    to: '/einstellungen?bereich=daten',
     kw: 'backup sicherung datensicherung export import wiederherstellen datei speichern umziehen neues handy',
   },
   {
@@ -71,7 +71,7 @@ export const STATIC_FUNCS: StaticFunc[] = [
     emoji: '🌍',
     de: ['Sprache wechseln (Deutsch / English)', 'Die ganze App auf Deutsch oder Englisch stellen.'],
     en: ['Change language (Deutsch / English)', 'Switch the whole app between German and English.'],
-    to: '/einstellungen',
+    to: '/einstellungen?bereich=sprache',
     kw: 'sprache language englisch deutsch english german',
   },
   {
@@ -79,7 +79,7 @@ export const STATIC_FUNCS: StaticFunc[] = [
     emoji: '🎨',
     de: ['Farben, Hell/Dunkel & Schrift', 'Aussehen der App anpassen: Farbwelt, hell oder dunkel, Schriftgröße.'],
     en: ['Colours, light/dark & text size', 'Adjust how the app looks: colour world, light or dark, text size.'],
-    to: '/einstellungen',
+    to: '/einstellungen?bereich=design',
     kw: 'farben design dunkel hell dark light schrift schriftgröße größer kleiner theme palette modus aussehen',
   },
   {
@@ -87,7 +87,7 @@ export const STATIC_FUNCS: StaticFunc[] = [
     emoji: '🔒',
     de: ['App-Sperre (PIN)', 'Die App mit einer PIN vor fremden Blicken schützen.'],
     en: ['App lock (PIN)', 'Protect the app from prying eyes with a PIN.'],
-    to: '/einstellungen',
+    to: '/einstellungen?bereich=sprache',
     kw: 'sperre pin code passwort schützen sicher lock privatsphäre',
   },
   {
@@ -95,7 +95,7 @@ export const STATIC_FUNCS: StaticFunc[] = [
     emoji: '🔔',
     de: ['Erinnerungen', 'Sanfte Erinnerungen an Check-in, Termine oder eigene Dinge einstellen.'],
     en: ['Reminders', 'Set gentle reminders for check-ins, appointments or your own things.'],
-    to: '/einstellungen',
+    to: '/einstellungen?bereich=erinnerungen',
     kw: 'erinnerung erinnern benachrichtigung push wecker reminder notification',
   },
   {
@@ -103,7 +103,7 @@ export const STATIC_FUNCS: StaticFunc[] = [
     emoji: '🧹',
     de: ['Von vorne beginnen / alles löschen', 'Alle Daten auf diesem Gerät löschen und neu starten.'],
     en: ['Start over / delete everything', 'Delete all data on this device and start fresh.'],
-    to: '/einstellungen',
+    to: '/einstellungen?bereich=daten',
     kw: 'zurücksetzen löschen reset neu anfangen alles weg daten löschen',
   },
   {

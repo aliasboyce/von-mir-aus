@@ -999,6 +999,9 @@ export interface UserSettings {
   dayStartTime?: string;
   dayEndEnabled?: boolean;
   dayEndTime?: string;
+  /** which doors "Den Tag beginnen" / "Tag abschließen" show (ids: skill, medi, diary, routine, park, letgo); undefined = the default set */
+  dayStartOptions?: string[];
+  dayEndOptions?: string[];
   /** "Haptisches Feedback"-Auftrag — Web Vibration API is the only
    * reliable haptics mechanism available in a PWA (no native haptics
    * without a wrapper like Capacitor). Default true, but must be
@@ -1011,6 +1014,8 @@ export interface UserSettings {
    * synthesized tone — no audio files, generated on the fly via the
    * Web Audio API, so there's nothing to source/host/license. */
   soundsEnabled: boolean;
+  /** Which tone the bottom main menu makes: 'original' (pure deep tone, default), 'thud' (dull Minecraft-like knock), 'phone' (deep tone with a quiet overtone so phone speakers still play it). */
+  menuSound?: 'original' | 'thud' | 'phone';
   brainEnabled: boolean;
   brainState: BrainState;
   /** "Hilfsmittel in den Weg legen": the Wesen shows one of the person's own Ressourcen on the start page now and then. On unless switched off. */
@@ -1023,6 +1028,8 @@ export interface UserSettings {
   companionAway?: boolean;
   /** no messages by themselves at all – the Wesen only speaks when it is tapped */
   companionQuiet?: boolean;
+  /** gentle hint cards after a function ends and now and then on the start page; on unless set to false */
+  hintCards?: boolean;
   /** animal companions: 'grow' = baby that grows up over 30 active days (default), 'adult' = always fully grown, 'baby' = always a baby */
   companionAgeMode?: 'grow' | 'adult' | 'baby';
   /** Audit follow-up, "Nur jetzt" — a session-scoped, deliberately NOT

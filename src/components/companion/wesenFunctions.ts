@@ -272,7 +272,7 @@ Bei Dissoziation, Stress oder Erschöpfung ist das Wissen darüber, was du hast 
 Es legt dir über den Tag verteilt eine deiner eigenen Ressourcen in den Weg: „Hey, du hast da übrigens …“. Du musst nicht suchen, nicht entscheiden, nicht erinnern. Passt es gerade nicht, tippst du auf „Gerade nicht“ – dann kommt es erst später wieder.
 
 ### Du bestimmst
-Du kannst es jederzeit in den Einstellungen unter „Mein Wesen“ ausschalten.
+Du kannst es jederzeit in den Einstellungen unter „Wesen“ ausschalten.
 
 ### Fachlicher Hintergrund
 **Psychologisch.** Unter Stress oder in Dissoziation ist Wissen oft zustandsabhängig: Es ist vorhanden, aber im jetzigen Zustand nicht abrufbar. Dabei ist *Wiedererkennen* viel leichter als *freies Erinnern* – ein sichtbarer Hinweis (Cue) ersetzt die Suche im Kopf. Eine einzelne Option statt einer Liste schützt vor Entscheidungsüberlastung (Choice Overload). Das Prinzip kennt man aus der „Nudging“-Forschung: Die Umgebung so gestalten, dass das Hilfreiche das Naheliegende ist. Dass es *deine eigenen* Ressourcen sind, stärkt Selbstkohärenz und Selbstwirksamkeit – du wirst an dich erinnert, nicht belehrt.
@@ -289,7 +289,7 @@ With dissociation, stress or exhaustion, knowing what you have and what helps yo
 Spread over the day it puts one of your own resources in your way: "Hey, by the way, you have …". You do not have to search, decide or remember. If it does not fit right now, tap "Not now" – then it only comes back later.
 
 ### You decide
-You can switch it off at any time in the settings under "My companion".
+You can switch it off at any time in the settings under "Companion".
 
 ### Professional background
 **Psychological.** Under stress or in dissociation, knowledge is often state-dependent: it is there, but not retrievable in the present state. *Recognising* is much easier than *free recall* – a visible cue replaces the search in your head. A single option instead of a list protects against choice overload. The principle is known from "nudging" research: shape the environment so that the helpful thing is the obvious one. Because these are *your own* resources, it strengthens self-coherence and self-efficacy – you are reminded of yourself, not taught.

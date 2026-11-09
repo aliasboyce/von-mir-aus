@@ -15,6 +15,7 @@ export const ALL_STORAGE_KEYS: string[] = [
   'legacy-3d-maps',
   'migration-legacy-3d-v1',
   'search-recent',
+  'hint-cards',
   'project-hub-layout',
   'mindmap-folders',
   'budget-recurring',

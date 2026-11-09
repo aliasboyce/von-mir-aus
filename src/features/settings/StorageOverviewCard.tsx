@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { HardDrive } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { useT } from '../../i18n';
-import { computeStorageUsage, formatBytes } from '../../services/storageUsage';
+import { useSettings } from '../../state/SettingsContext';
+import { computeStorageUsage, formatBytes, storageLabelEn } from '../../services/storageUsage';
 
 /**
  * Audit follow-up, Langzeitproblem 2 / "Idee einer Übersicht des eigenen
@@ -13,6 +14,7 @@ import { computeStorageUsage, formatBytes } from '../../services/storageUsage';
  */
 export function StorageOverviewCard() {
   const t = useT();
+  const { settings } = useSettings();
   const usage = useMemo(() => computeStorageUsage(), []);
   const percent = Math.min(100, (usage.totalBytes / usage.approxQuotaBytes) * 100);
 
@@ -35,7 +37,7 @@ export function StorageOverviewCard() {
         <div className="flex flex-col gap-1.5 mb-1">
           {usage.categories.slice(0, 6).map((c) => (
             <div key={c.label} className="flex items-center justify-between">
-              <span className="text-[12px] text-[var(--color-text-muted)]">{c.label}</span>
+              <span className="text-[12px] text-[var(--color-text-muted)]">{settings.language === 'en' ? storageLabelEn(c.label) : c.label}</span>
               <span className="text-[12px] text-[var(--color-text-faint)]">{formatBytes(c.bytes)}</span>
             </div>
           ))}

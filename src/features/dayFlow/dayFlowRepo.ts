@@ -96,3 +96,15 @@ export function doneOptions(phase: DayPhase): Set<DayOptionId> {
   if (worriesRepo.getAll().some((x) => x.createdAt >= since)) done.add('letgo');
   return done;
 }
+
+export const ALL_DAY_OPTIONS: DayOptionId[] = ['skill', 'medi', 'diary', 'routine', 'park', 'letgo'];
+/** what each phase offers unless the person changed it in the settings */
+export const DEFAULT_DAY_OPTIONS: Record<DayPhase, DayOptionId[]> = {
+  start: ['skill', 'medi', 'diary', 'routine'],
+  end: ['skill', 'diary', 'park', 'letgo', 'routine'],
+};
+export function dayOptionsFor(settings: Pick<UserSettings, 'dayStartOptions' | 'dayEndOptions'>, phase: DayPhase): DayOptionId[] {
+  const chosen = phase === 'start' ? settings.dayStartOptions : settings.dayEndOptions;
+  if (!chosen) return DEFAULT_DAY_OPTIONS[phase];
+  return ALL_DAY_OPTIONS.filter((o) => chosen.includes(o));
+}

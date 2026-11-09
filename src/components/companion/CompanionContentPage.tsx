@@ -203,7 +203,7 @@ export function CompanionContentPage() {
 
   return (
     <div className="animate-in">
-      <TopBar onBack={() => navigate('/einstellungen')} action={<HelpButton helpKey="wesenInhalte" />} />
+      <TopBar onBack={() => navigate('/einstellungen?bereich=wesen')} action={<HelpButton helpKey="wesenInhalte" />} />
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1">{t.companionContent.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{t.companionContent.subtitle}</p>

@@ -5,6 +5,7 @@ import { Sparkles, GitBranch, Play, Wind, Compass, Check } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
+import { FitEmpty } from '../../components/shared/FitEmpty';
 import { FitSummary } from '../../components/shared/FitSummary';
 import { useT } from '../../i18n';
 import { useFitRows } from '../resources/FitResults';
@@ -55,6 +56,8 @@ export function ZugangBranch({
   const b = t.zugang.branch;
   const rows = useFitRows();
   const [showAll, setShowAll] = useState(false);
+  // 'zone' = what suits the state and the "Was geht gerade?" filter; 'all' = every skill and chain, no filter
+  const [scope, setScope] = useState<'zone' | 'all'>('zone');
 
   const leaning: 'regulate' | 'need' | null = intent === 'regulate' ? 'regulate' : intent === 'act' ? 'need' : band ? (band.inWindow ? 'need' : 'regulate') : null;
   const zoneLabel = band ? t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones].label : null;
@@ -108,9 +111,10 @@ export function ZugangBranch({
   }
 
   // mode === 'regulate'
-  const skillRows = rows.skills.filter((r) => !zoneSkillIds || zoneSkillIds.has(r.id));
-  const chainRows = rows.ketten.filter((r) => !chainIdsInZone || chainIdsInZone.has(r.id));
-  const hidden = countHiddenUnmarked(
+  const everything = scope === 'all';
+  const skillRows = everything ? rows.all.skills : rows.skills.filter((r) => !zoneSkillIds || zoneSkillIds.has(r.id));
+  const chainRows = everything ? rows.all.ketten : rows.ketten.filter((r) => !chainIdsInZone || chainIdsInZone.has(r.id));
+  const hidden = everything ? 0 : countHiddenUnmarked(
     [...rows.all.skills.filter((r) => !zoneSkillIds || zoneSkillIds.has(r.id)), ...rows.all.ketten.filter((r) => !chainIdsInZone || chainIdsInZone.has(r.id))].map((r) => r.subject),
     rows.filter,
   );
@@ -127,13 +131,29 @@ export function ZugangBranch({
         {zoneLabel ? b.regulateSuitsZone.replace('{zone}', zoneLabel) : b.regulateNoZone}
       </p>
 
-      <FitFilterPanel hiddenUnmarked={hidden} />
-      {!isFitFilterActive(rows.filter) && <p className="text-[11.5px] text-[var(--color-text-faint)] -mt-2 mb-4">{b.filterTip}</p>}
+      <div className="flex rounded-full p-1 mb-4" style={{ background: 'var(--color-surface-muted)' }} role="group" aria-label={b.scopeLabel} data-testid="regulate-scope">
+        {([['zone', zoneLabel ? b.scopeZone.replace('{zone}', zoneLabel) : b.scopeFit], ['all', b.scopeAll]] as const).map(([k, label]) => (
+          <button key={k} type="button" onClick={() => setScope(k)} aria-pressed={scope === k} data-testid={`regulate-scope-${k}`}
+            className="flex-1 rounded-full px-3 py-2 text-[13px] leading-tight"
+            style={{ background: scope === k ? 'var(--color-surface)' : 'transparent', color: 'var(--color-text)', boxShadow: scope === k ? 'var(--shadow-sm)' : 'none' }}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {everything ? (
+        <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mb-4" data-testid="regulate-all-note">
+          {b.scopeAllNote} <Link to="/entdecken/ressourcen/skills" className="text-[var(--color-primary)] underline underline-offset-2" data-testid="regulate-all-link">{b.toAllSkills}</Link>
+        </p>
+      ) : (
+        <>
+          <FitFilterPanel hiddenUnmarked={hidden} />
+          {!isFitFilterActive(rows.filter) && <p className="text-[11.5px] text-[var(--color-text-faint)] -mt-2 mb-4">{b.filterTip}</p>}
+        </>
+      )}
 
       {empty ? (
         <div className="rounded-[var(--radius-lg)] p-3.5 mb-4" style={{ background: 'var(--color-surface-muted)' }}>
-          <p className="text-[13.5px] text-[var(--color-text)] mb-1">{t.fit.noResults}</p>
-          <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed">{t.fit.noResultsHint}</p>
+          {isFitFilterActive(rows.filter) ? <FitEmpty hiddenUnmarked={hidden} /> : <p className="text-[13.5px] text-[var(--color-text)] mb-1">{t.fit.noResults}</p>}
           <Link to="/sicherheit" className="inline-block mt-2 text-[12.5px] text-[var(--color-primary)] underline underline-offset-2">{b.noneSafety}</Link>
         </div>
       ) : (

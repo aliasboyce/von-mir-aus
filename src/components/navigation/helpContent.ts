@@ -309,13 +309,13 @@ For areas with little access you can jump straight to resources, bridges or cont
 • **Zustand und Gefühl:** Wie fühlt sich dein Nervensystem an, was fühlst du?
 • **Schutzstrategie und Fürsorge:** Wie stellt dein System gerade Sicherheit her, und was würdest du dir von einem sicheren Menschen wünschen?
 • **Bedürfnis, Hindernis, Wert:** Was brauchst du, was steht im Weg, was ist dir wichtig?
-• **Abzweigung:** Jetzt entscheidest du: Du regulierst dich erst (Skills, Skillketten), um dir das Bedürfnis erfüllen zu können – oder der Zustand passt und du kümmerst dich gleich um Bedürfnis, Wert und Handeln.
+• **Abzweigung:** Jetzt entscheidest du: Du regulierst dich erst (Skills, Skillketten – oben schaltest du zwischen „passend“ und „Alle Skills & Ketten“ um), um dir das Bedürfnis erfüllen zu können – oder der Zustand passt und du kümmerst dich gleich um Bedürfnis, Wert und Handeln.
 • **Was geht gerade?** Energie, Zeit, Zugangskanäle, Einsatz – nur, was du sagen magst.
-• **Passendes:** Du siehst Ressourcen und Brücken, die dazu passen. Entweder direkt zu den Ressourcen, oder eine Brücke nutzen, wenn du mehr Anleitung brauchst.
+• **Passendes:** Du siehst Ressourcen (nach Art sortiert: Skills, Hilfsmittel, Orte, Aktivitäten) und Brücken, die dazu passen. Entweder direkt zu den Ressourcen, oder eine Brücke nutzen, wenn du mehr Anleitung brauchst.
 • **Danach:** Dein Durchgang wird zuerst gespeichert. Erst wenn du die Ressourcen oder die Brücke genutzt hast, fragt die App – freiwillig –, wie es danach war. „Hat gerade nicht gepasst“ ist eine vollwertige Antwort.
 
 ### Freiheit
-„Ich weiß nicht“ ist an jeder Stelle eine vollwertige Antwort. „Das hilft gerade nicht“ geht immer. Du kannst aussteigen, ohne dass etwas verloren geht, und später weitermachen.`,
+„Ich weiß nicht“ ist an jeder Stelle eine vollwertige Antwort. Unter den Auswahlen steht außerdem immer eine leise Zeile wie „weiß ich gerade nicht“, „möchte ich gerade nicht spüren“ oder „gerade keine Hindernisse“ – du musst nicht immer etwas finden. Bei der Schutzstrategie kannst du in jeder Gruppe selbst etwas ergänzen. „Das hilft gerade nicht“ geht immer. Du kannst aussteigen, ohne dass etwas verloren geht, und später weitermachen.`,
     bodyEn: `A deeper, guided path for moments when access to yourself feels difficult. You go step by step, with the companion at your side.
 
 ### The path
@@ -984,14 +984,15 @@ The link below leads to letters to your future self.`,
     titleEn: `Settings`,
     body: `Hier passt du die App an dich an.
 
+Oben siehst du sechs Bereiche – tippe einen an, mit „Zurück“ kommst du zur Übersicht.
+
 • **So fängst du an:** die kurze Einstiegs-Erklärung, jederzeit wieder aufrufbar (oben)
-• **Sprache und Darstellung:** Schrift, Farben, Welten, weniger Bewegung
-• **Wesen:** ein- oder ausschalten, was es sagt und zeigt
-• **Erinnerungen:** sanfte Hinweise und Termine
-• **Über die App:** die Idee dahinter
-• **Umfang und Schutz:** wie viel du siehst (Nötigstes / Sicherheitsplan / Alles), Einfach-Darstellung, App-Sperre mit PIN, „Schnell weg“-Knopf
-• **Meine Daten:** Export und Import als Datei, Sicherungs-Erinnerung (abschaltbar)
-• **Gefahrenzone:** alles zurücksetzen oder löschen
+• **Design:** Welt, hell/dunkel und Farben (frei kombinierbar), Schrift, weniger Bewegung, Töne
+• **Wesen:** Begleiter wählen, ein- oder ausschalten, was es sagt und zeigt
+• **Erinnerungen & Tagesrahmen:** sanfte Hinweise und Termine; „Tag beginnen“ und „Tag abschließen“ ein-/ausschalten, Uhrzeit und welche Türen dabei sind; Hinweis-Karten
+• **Sprache, Umfang & Schutz:** Sprache, wie viel du siehst (Nötigstes / Sicherheitsplan / Alles), Einfach-Darstellung, App-Sperre mit PIN, „Schnell weg“-Knopf
+• **Meine Daten:** Export und Import als Datei, Sicherungs-Erinnerung (abschaltbar), Datenschutz, alles zurücksetzen oder löschen
+• **Hilfe & Über:** die Idee dahinter, Anleitung, Test-Version und Rückmeldung
 
 Alles bleibt auf deinem Gerät. Du kannst das Wesen und einzelne Funktionen ganz abschalten.
 
@@ -1008,13 +1009,15 @@ Du kannst das Wesen wegschicken und per Knopf auf der Startseite wieder herbeiru
 Statt eines Lichtwesens kann dich ein Tier begleiten – von Wolf bis Drache, Corgi, Papagei oder Piepmatz, jeweils in drei natürlichen Farbvarianten. Tippe ein Tier unter „Begleittiere“ an und richte es ein: Name, Farbe, kleines Extra zum Tragen (allgemeine wie Schleife, Halstuch, Krone, Blume, Brille, Mütze – und eigene je Tierart, z. B. Halsband beim Hund oder Doktorhut bei der Eule; bei Hunden ein Geschirr), etwas zum Halten oder Dabeihaben (z. B. Knochen, Buch – der Otter hält Muschel, Stein, Fisch, Seestern oder Perle, die Krähe Münze, Diamant, Schlüssel, Ring oder Perle) und wie es spricht. Das Tier zieht als Baby ein und wächst mit den Tagen, an denen du in der App irgendetwas machst – nach 30 solcher Tage ist es ausgewachsen. Das ist keine Serie: Pausen sind in Ordnung, es schrumpft nie, und du kannst es auch gleich erwachsen oder immer Baby lassen. Beim Wegschicken und Herbeirufen läuft es auf seine Art (der Hund galoppiert, die Gans watschelt, der Papagei fliegt).`,
     bodyEn: `Here you adapt the app to you.
 
-• **Language and appearance:** font, colours, reduced motion
-• **Companion:** switch on or off what it says and shows
-• **Reminders:** gentle hints and appointments
-• **About the app:** the idea behind it
-• **Scope and protection:** how much you see (essentials / safety plan / everything), simple view, app lock with PIN, “Hide now” button
-• **My data:** export and import as a file, backup reminder (can be switched off)
-• **Danger zone:** reset or delete everything
+Six areas are shown at the top – tap one; "Back" returns to the overview.
+
+• **How to start:** the short intro, always available (top)
+• **Design:** world, light/dark and colours (freely combinable), font, reduced motion, sounds
+• **Companion:** choose a companion, switch on or off what it says and shows
+• **Reminders & day frame:** gentle hints and dates; switch "Begin the day" / "Close the day" on or off, set the time and which doors are in them; hint cards
+• **Language, scope & protection:** language, how much you see (essentials / safety plan / everything), simple view, app lock with PIN, "Hide now" button
+• **My data:** export and import as a file, backup reminder (can be turned off), privacy, reset or delete everything
+• **Help & about:** the idea behind it, guide, test version and feedback
 
 Everything stays on your device. You can switch off the companion and individual features entirely.
 
@@ -1167,7 +1170,7 @@ Here you collect things for the day. Mark whether you want to or should, and fee
   skillLauf: {
     title: `Skill oder Skillkette starten`,
     titleEn: `Start a skill or skill chain`,
-    body: `Die Uhr zählt einfach mit, es gibt kein Ende, das du erreichen musst. Du siehst die Schritte der Anleitung (bei einer Kette nacheinander) und kannst jederzeit beenden.
+    body: `Die Uhr zählt einfach mit, es gibt kein Ende, das du erreichen musst. Du siehst die Schritte der Anleitung (bei einer Kette nacheinander) und kannst jederzeit „Abbrechen“ (nichts wird gespeichert) oder „Skill beenden“ (dann folgt die kurze Reflexion – dort geht „Zurück zur Übung“ oder „Ohne Speichern beenden“).
 
 Danach schaust du kurz, wo deine Anspannung jetzt ist. Das landet in Kurve und Rückblick, dort siehst du, wann du zurückgeschwungen bist.`,
     bodyEn: `The clock simply runs along, there is no end you have to reach. You see the instruction steps (for a chain one after another) and can stop at any time.

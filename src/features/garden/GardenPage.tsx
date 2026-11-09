@@ -396,7 +396,7 @@ export function GardenPage({ embedded = false }: { embedded?: boolean }) {
 
         <GardenRewardCard onChange={refresh} />
 
-        <Button fullWidth icon={<Plus size={17} />} onClick={openCreate} className="mb-5" data-testid="garden-add">
+        <Button variant="secondary" fullWidth icon={<Plus size={17} />} onClick={openCreate} className="mb-5" data-testid="garden-add">
           {t.garden.addNew}
         </Button>
 

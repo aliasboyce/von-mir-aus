@@ -78,6 +78,9 @@ export function setCompanionLanguage(lang: 'de' | 'en'): void {
   currentLanguage = lang;
   setUiLanguage(lang);
 }
+export function getCompanionLanguage(): 'de' | 'en' {
+  return currentLanguage;
+}
 export function textFor(line: CompanionLine): string {
   return currentLanguage === 'en' ? line.textEn : line.text;
 }

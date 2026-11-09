@@ -12,7 +12,10 @@ import { GENTLE_SCHEDULES } from '../../components/shared/GentleRemindersSync';
 import { GENTLE_HINTS } from '../../content/gentleHints';
 import { notifyHint, vibrationSupported, hintFlags, hintModeFrom } from '../../services/hintFeedback';
 import { HelpButton } from '../../components/navigation/HelpButton';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { resetHints } from '../../services/hintCards';
+import { ALL_DAY_OPTIONS, dayOptionsFor, type DayOptionId, type DayPhase } from '../dayFlow/dayFlowRepo';
+import { previewMenuSound, type MenuSoundVariant } from '../../services/sounds';
 import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell, X, CalendarPlus, ShieldCheck, ChevronRight } from 'lucide-react';
 import { getAllLichtwesen, getAnyLichtwesen } from '../../components/companion/customLichtwesen';
 import { customLichtwesenRepo } from '../../components/companion/customLichtwesen';
@@ -112,6 +115,22 @@ export function SettingsPage() {
   const [feedbackCopied, setFeedbackCopied] = useState(false);
   const [quickFbOpen, setQuickFbOpen] = useState(false);
   const [startGuideOpen, setStartGuideOpen] = useState(false);
+  const [hintsReset, setHintsReset] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // the settings are split into sub-pages: ?bereich=design|wesen|erinnerungen|sprache|daten|info (none = the overview)
+  const section = searchParams.get('bereich');
+  const show = (k: string) => section === k || section === 'alle'; // 'alle' = everything on one page (kept for old links)
+  const en = settings.language === 'en';
+  const SECTIONS: { id: string; emoji: string; title: string; sub: string }[] = [
+    { id: 'design', emoji: '🎨', title: en ? 'Design' : 'Design', sub: en ? 'World, light/dark, colours, text size, motion, sounds' : 'Welt, hell/dunkel, Farben, Schrift, Bewegung, Töne' },
+    { id: 'wesen', emoji: '🧸', title: en ? 'Companion' : 'Wesen', sub: en ? 'Your companion: name, look, behaviour' : 'Dein Begleiter: Name, Aussehen, Verhalten' },
+    { id: 'erinnerungen', emoji: '🔔', title: en ? 'Reminders & day frame' : 'Erinnerungen & Tagesrahmen', sub: en ? 'Reminders, begin/close the day, hint cards' : 'Erinnerungen, Tag beginnen/abschließen, Hinweis-Karten' },
+    { id: 'sprache', emoji: '🌐', title: en ? 'Language & scope' : 'Sprache, Umfang & Schutz', sub: en ? 'Language, how much is shown, app lock' : 'Sprache, wie viel zu sehen ist, App-Sperre' },
+    { id: 'daten', emoji: '📦', title: en ? 'My data' : 'Meine Daten', sub: en ? 'Backup, export, privacy, start over' : 'Sicherung, Export, Datenschutz, neu anfangen' },
+    { id: 'info', emoji: '💡', title: en ? 'Help & about' : 'Hilfe & Über', sub: en ? 'Help, guide, test version, feedback' : 'Hilfe, Anleitung, Test-Version, Rückmeldung' },
+  ];
+  const current = SECTIONS.find((x) => x.id === section);
   const [installOpen, setInstallOpen] = useState(false);
   const [newReminderLabel, setNewReminderLabel] = useState('');
   const [newReminderTime, setNewReminderTime] = useState('18:00');
@@ -153,10 +172,11 @@ export function SettingsPage() {
   // companion section so the person doesn't have to hunt for it.
   useEffect(() => {
     if (window.location.hash !== '#begleiter-einstellungen') return;
+    if (section !== 'wesen') { navigate('/einstellungen?bereich=wesen#begleiter-einstellungen', { replace: true }); return; }
     const el = document.getElementById('begleiter-einstellungen');
     el?.scrollIntoView({ behavior: settings.reduceMotion ? 'auto' : 'smooth', block: 'start' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [section]);
   const [resetConfirming, setResetConfirming] = useState(false);
   const [createPaletteOpen, setCreatePaletteOpen] = useState(false);
   const [customPalettes, setCustomPalettes] = useState(() => customPalettesRepo.getAll());
@@ -231,14 +251,32 @@ export function SettingsPage() {
 
   return (
     <div className="animate-in">
-      <TopBar action={<HelpButton helpKey="einstellungen" />} />
+      <TopBar onBack={current ? () => navigate('/einstellungen') : undefined} action={<HelpButton helpKey="einstellungen" />} />
       <div className="px-5 pb-6">
-        <h1 className="text-[24px] mb-4">{t.settings.title}</h1>
-        <button type="button" onClick={() => setStartGuideOpen(true)} className="mb-6 w-full text-left rounded-[var(--radius-md)] px-4 py-3 border border-[var(--color-border-strong)] text-[14px] text-[var(--color-text)] bg-[var(--color-surface)]" data-testid="start-guide-open">
-          🧭 {startGuideLabel(settings.language === 'en')}
-        </button>
+        <h1 className="text-[24px] mb-4" data-testid="settings-title">{current ? `${current.emoji} ${current.title}` : t.settings.title}</h1>
+        {!current && section !== 'alle' && (
+          <>
+            <button type="button" onClick={() => setStartGuideOpen(true)} className="mb-4 w-full text-left rounded-[var(--radius-md)] px-4 py-3 border border-[var(--color-border-strong)] text-[14px] text-[var(--color-text)] bg-[var(--color-surface)]" data-testid="start-guide-open">
+              🧭 {startGuideLabel(settings.language === 'en')}
+            </button>
+            <nav className="flex flex-col gap-2.5" aria-label={t.settings.title} data-testid="settings-menu">
+              {SECTIONS.map((x) => (
+                <Link key={x.id} to={`/einstellungen?bereich=${x.id}`} data-testid={`settings-open-${x.id}`} className="flex items-center gap-3 rounded-[var(--radius-lg)] px-4 py-3.5 bg-[var(--color-surface)] border border-[var(--color-border)]">
+                  <span className="text-[24px] flex-shrink-0" aria-hidden="true">{x.emoji}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[15.5px] text-[var(--color-text)] leading-snug">{x.title}</span>
+                    <span className="block text-[12.5px] text-[var(--color-text-muted)] leading-snug" data-hint>{x.sub}</span>
+                  </span>
+                  <ChevronRight size={18} className="text-[var(--color-text-faint)] flex-shrink-0" />
+                </Link>
+              ))}
+            </nav>
+          </>
+        )}
         {startGuideOpen && <StartGuideModal open onClose={() => setStartGuideOpen(false)} />}
 
+        {show('sprache') && (
+        <>
         {/* ================= Sprache ================= */}
         <SectionLabel>🌐 {t.settings.language}</SectionLabel>
         <Card className="mb-6 flex gap-2" padding="md">
@@ -254,6 +292,10 @@ export function SettingsPage() {
           ))}
         </Card>
 
+        </>
+        )}
+        {show('design') && (
+        <>
         {/* ================= Darstellung ================= */}
         <SectionLabel>🎨 {t.settings.appearance}</SectionLabel>
         <WorldPicker />
@@ -430,27 +472,6 @@ export function SettingsPage() {
           </div>
         </Card>
 
-        <Card className="mb-6" padding="md" data-testid="settings-dayflow">
-          <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{dayFx.settingsTitle}</p>
-          <p className="text-[12px] text-[var(--color-text-faint)] mb-3" data-hint>{dayFx.settingsHint}</p>
-          <ToggleRow label={dayFx.settingsStartOn} checked={settings.dayStartEnabled !== false} onChange={(v) => updateSettings({ dayStartEnabled: v })} />
-          {settings.dayStartEnabled !== false && (
-            <label className="flex items-center gap-2 mt-2 mb-3 text-[13px] text-[var(--color-text-muted)]">
-              {dayFx.settingsStartTime}
-              <input type="time" className="input" style={{ width: 120 }} value={settings.dayStartTime ?? '05:00'} onChange={(e) => e.target.value && updateSettings({ dayStartTime: e.target.value })} data-testid="settings-day-start-time" />
-            </label>
-          )}
-          <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
-            <ToggleRow label={dayFx.settingsEndOn} checked={settings.dayEndEnabled !== false} onChange={(v) => updateSettings({ dayEndEnabled: v })} />
-            {settings.dayEndEnabled !== false && (
-              <label className="flex items-center gap-2 mt-2 text-[13px] text-[var(--color-text-muted)]">
-                {dayFx.settingsEndTime}
-                <input type="time" className="input" style={{ width: 120 }} value={settings.dayEndTime ?? '19:00'} onChange={(e) => e.target.value && updateSettings({ dayEndTime: e.target.value })} data-testid="settings-day-end-time" />
-              </label>
-            )}
-          </div>
-        </Card>
-
         <Card className="mb-6" padding="md">
           <ToggleRow
             label={t.settings.reduceMotion}
@@ -483,6 +504,28 @@ export function SettingsPage() {
             onChange={(v) => updateSettings({ soundsEnabled: v })}
           />
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.soundsHint}</p>
+          {settings.soundsEnabled && (
+            <div className="mt-3 pt-3 border-t border-[var(--color-border)]" data-testid="menu-sound-picker">
+              <p className="text-[13.5px] text-[var(--color-text)] mb-0.5">{settings.language === 'en' ? 'Tone of the main menu' : 'Ton des Hauptmenüs'}</p>
+              <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{settings.language === 'en' ? 'Tap to hear it – the chosen one stays.' : 'Antippen zum Anhören – der gewählte bleibt.'}</p>
+              <div className="flex flex-col gap-2">
+                {([
+                  ['original', settings.language === 'en' ? 'Original – deep, dull, light' : 'Original – tief, dumpf, leicht'],
+                  ['thud', settings.language === 'en' ? 'Knock – like a block click in Minecraft' : 'Klopfen – wie ein Block-Klick bei Minecraft'],
+                  ['phone', settings.language === 'en' ? 'Original, easier to hear on a phone' : 'Original, am Handy besser hörbar'],
+                ] as [MenuSoundVariant, string][]).map(([id, label]) => {
+                  const on = (settings.menuSound ?? 'original') === id;
+                  return (
+                    <button key={id} type="button" data-no-tap-feedback="" aria-pressed={on} data-testid={`menu-sound-${id}`}
+                      onClick={() => { updateSettings({ menuSound: id }); previewMenuSound(id); }}
+                      className={`text-left px-4 py-2.5 rounded-xl border text-[14px] ${on ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-text)]' : 'border-[var(--color-border-strong)] text-[var(--color-text)]'}`}>
+                      {on ? '● ' : '○ '}{label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {getAnyLichtwesen(settings.selectedBrainId).animal && (
             <p className="text-[12px] text-[var(--color-text-faint)] mt-3 pt-3 border-t border-[var(--color-border)] leading-relaxed" data-testid="animal-silent-note">
               {settings.language === 'en' ? 'Your animal companion makes no sounds at all – pets are completely silent.' : 'Dein Haustier-Begleiter macht gar keine Geräusche – Haustiere sind ganz ohne Ton.'}
@@ -490,8 +533,11 @@ export function SettingsPage() {
           )}
         </Card>
 
+        </>
+        )}
+        {show('sprache') && (
+        <>
         {/* ================= Mein Wesen ================= */}
-        <div id="begleiter-einstellungen" />
         {/* ================= Umfang & Schutz ================= */}
         <SectionLabel>🔒 {settings.language === 'en' ? 'Scope and protection' : 'Umfang und Schutz'}</SectionLabel>
         <Card padding="md" className="mb-3" data-testid="scope-card">
@@ -500,7 +546,11 @@ export function SettingsPage() {
           <ScopePicker simple={!!settings.simple} onChange={(sc) => updateSettings({ scope: sc, scopeChosen: true })} onSimple={(v) => updateSettings({ simple: v })} />
         </Card>
         <AppLockCard />
-
+        </>
+        )}
+        {show('wesen') && (
+        <>
+        <div id="begleiter-einstellungen" />
         <SectionLabel>🧸 {t.settings.brain}</SectionLabel>
         <Card className="mb-6" padding="md">
           <label className="flex flex-col gap-1.5 mb-3 pb-3 border-b border-[var(--color-border)]">
@@ -656,6 +706,48 @@ export function SettingsPage() {
           >
             <Info size={13} /> {t.companionAbout.settingsLinkCta}
           </Link>
+        </Card>
+
+        </>
+        )}
+        {show('erinnerungen') && (
+        <>
+        <SectionLabel>🌅 {settings.language === 'en' ? 'Begin and close the day' : 'Tag beginnen & abschließen'}</SectionLabel>
+        <Card className="mb-6" padding="md" data-testid="settings-dayflow">
+          <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{dayFx.settingsTitle}</p>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-3" data-hint>{dayFx.settingsHint}</p>
+          <ToggleRow label={dayFx.settingsStartOn} checked={settings.dayStartEnabled !== false} onChange={(v) => updateSettings({ dayStartEnabled: v })} />
+          {settings.dayStartEnabled !== false && (
+            <label className="flex items-center gap-2 mt-2 mb-3 text-[13px] text-[var(--color-text-muted)]">
+              {dayFx.settingsStartTime}
+              <input type="time" className="input" style={{ width: 120 }} value={settings.dayStartTime ?? '05:00'} onChange={(e) => e.target.value && updateSettings({ dayStartTime: e.target.value })} data-testid="settings-day-start-time" />
+            </label>
+          )}
+          <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+            <ToggleRow label={dayFx.settingsEndOn} checked={settings.dayEndEnabled !== false} onChange={(v) => updateSettings({ dayEndEnabled: v })} />
+            {settings.dayEndEnabled !== false && (
+              <label className="flex items-center gap-2 mt-2 text-[13px] text-[var(--color-text-muted)]">
+                {dayFx.settingsEndTime}
+                <input type="time" className="input" style={{ width: 120 }} value={settings.dayEndTime ?? '19:00'} onChange={(e) => e.target.value && updateSettings({ dayEndTime: e.target.value })} data-testid="settings-day-end-time" />
+              </label>
+            )}
+          </div>
+          <DayOptionPicker phase="start" />
+          <DayOptionPicker phase="end" />
+        </Card>
+
+        <SectionLabel>💬 {settings.language === 'en' ? 'Hint cards' : 'Hinweis-Karten'}</SectionLabel>
+        <Card className="mb-6" padding="md" data-testid="settings-hintcards">
+          <ToggleRow
+            label={settings.language === 'en' ? 'Show gentle hint cards' : 'Sanfte Hinweis-Karten anzeigen'}
+            checked={settings.hintCards !== false}
+            onChange={(v) => updateSettings({ hintCards: v })}
+          />
+          <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5 leading-relaxed">{settings.language === 'en' ? 'After a function ends, and now and then on the start page, a small card shows what it is good for and how it connects to other parts.' : 'Nach dem Ende einer Funktion und ab und zu auf der Startseite zeigt eine kleine Karte, wofür sie gut ist und womit sie verbunden ist.'}</p>
+          <button type="button" onClick={() => { resetHints(); setHintsReset(true); }} className="mt-3 text-[13px] text-[var(--color-primary)] underline underline-offset-2 py-1" data-testid="hintcards-reset">
+            {settings.language === 'en' ? 'Bring back all hidden hints' : 'Alle ausgeblendeten Hinweise wieder anzeigen'}
+          </button>
+          {hintsReset && <p className="text-[12px] text-[var(--color-text-muted)] mt-1" data-testid="hintcards-reset-done">✓ {settings.language === 'en' ? 'Done – they may show up again.' : 'Erledigt – sie dürfen wieder auftauchen.'}</p>}
         </Card>
 
         {/* ================= Erinnerungen ================= */}
@@ -839,6 +931,10 @@ export function SettingsPage() {
           )}
         </Card>
 
+        </>
+        )}
+        {show('info') && (
+        <>
         {/* ================= Test-Version: Installieren & Rückmeldung ================= */}
         <SectionLabel>🧪 {settings.language === 'en' ? 'Test version' : 'Test-Version'}</SectionLabel>
         <TestPhaseNote className="mb-3 !text-left" />
@@ -975,6 +1071,10 @@ export function SettingsPage() {
           <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed font-medium">{t.settings.notTherapyDisclaimer}</p>
         </Card>
 
+        </>
+        )}
+        {show('daten') && (
+        <>
         {/* ================= Meine Daten ================= */}
         <SectionLabel>📦 {t.settings.privacySection}</SectionLabel>
         <Card padding="md" className="mb-3" data-testid="privacy-card">
@@ -1091,6 +1191,8 @@ export function SettingsPage() {
             </div>
           )}
         </Card>
+        </>
+        )}
       </div>
 
       <CreatePaletteModal
@@ -1227,5 +1329,41 @@ function ToggleRow({
         className="w-5 h-5 flex-shrink-0 accent-[var(--color-primary)] disabled:opacity-40"
       />
     </label>
+  );
+}
+
+/** Which doors "Den Tag beginnen" / "Tag abschließen" show – the person decides. */
+function DayOptionPicker({ phase }: { phase: DayPhase }) {
+  const { settings, updateSettings } = useSettings();
+  const dx = useDayFlowTexts();
+  const en = settings.language === 'en';
+  if ((phase === 'start' ? settings.dayStartEnabled : settings.dayEndEnabled) === false) return null;
+  const active = dayOptionsFor(settings, phase);
+  const label: Record<DayOptionId, string> = {
+    skill: dx.skill, medi: dx.medi, diary: phase === 'start' ? dx.diaryStart : dx.diaryEnd,
+    routine: dx.routine, park: dx.park, letgo: dx.letgo,
+  };
+  function toggle(id: DayOptionId) {
+    const next = ALL_DAY_OPTIONS.filter((o) => (o === id ? !active.includes(o) : active.includes(o)));
+    updateSettings(phase === 'start' ? { dayStartOptions: next } : { dayEndOptions: next });
+  }
+  return (
+    <div className="mt-3 pt-3 border-t border-[var(--color-border)]" data-testid={`day-options-${phase}`}>
+      <p className="text-[13px] text-[var(--color-text)] mb-0.5">{phase === 'start' ? (en ? 'What is in “Begin the day”' : 'Was bei „Tag beginnen“ dabei ist') : (en ? 'What is in “Close the day”' : 'Was bei „Tag abschließen“ dabei ist')}</p>
+      <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{en ? 'Tap to switch a door on or off.' : 'Antippen, um eine Tür ein- oder auszuschalten.'}</p>
+      <div className="flex flex-wrap gap-2">
+        {ALL_DAY_OPTIONS.map((id) => {
+          const on = active.includes(id);
+          return (
+            <button key={id} type="button" onClick={() => toggle(id)} aria-pressed={on} data-testid={`day-option-${phase}-${id}`}
+              className="rounded-full px-3.5 py-1.5 text-[13px] border"
+              style={on ? { background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', color: 'var(--color-text)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
+              {on ? '✓ ' : ''}{label[id]}
+            </button>
+          );
+        })}
+      </div>
+      {active.length === 0 && <p className="text-[12px] text-[var(--color-text-muted)] mt-2">{en ? 'No door chosen – the page will be empty.' : 'Keine Tür gewählt – die Seite bleibt leer.'}</p>}
+    </div>
   );
 }

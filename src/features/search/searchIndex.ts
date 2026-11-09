@@ -96,7 +96,7 @@ const SOURCES: DataSource[] = [
   { key: 'access-gap-entries', emoji: '🔑', de: 'Zugang (Lücke)', en: 'Access (gap)', to: () => '/zugang/rueckblick' },
   { key: 'wertekompass-value-cards', emoji: '🧭', de: 'Wertekompass', en: 'Value compass', to: () => '/entdecken/wertekompass' },
   { key: 'tension-entries', emoji: '📈', de: 'Spannung', en: 'Tension', to: () => '/entdecken/tageskurve' },
-  { key: 'custom-reminders', emoji: '🔔', de: 'Erinnerung', en: 'Reminder', to: () => '/einstellungen' },
+  { key: 'custom-reminders', emoji: '🔔', de: 'Erinnerung', en: 'Reminder', to: () => '/einstellungen?bereich=erinnerungen' },
   { key: 'vocab-cards', emoji: '🔤', de: 'Vokabel', en: 'Vocabulary', to: () => '/' },
   { key: 'diary-templates', emoji: '📓', de: 'Tagebuch-Vorlage', en: 'Diary template', to: () => '/sicherheit/tagebuch' },
   { key: 'mailbox', emoji: '📬', de: 'Postfach', en: 'Postfach', to: () => '/' },
