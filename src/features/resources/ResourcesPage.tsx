@@ -90,6 +90,19 @@ function shareKindOf(r: Resource): ShareKind {
   return r.hilfsmittelDetails ? 'hilfsmittel' : 'ressource';
 }
 
+/** On the skills page the filters start folded, so the page opens calm: a short row instead of ~40 chips. Opens by itself when a filter is active. */
+function CalmFilters({ enabled, startOpen, label, hint, children }: { enabled: boolean; startOpen: boolean; label: string; hint: string; children: React.ReactNode }) {
+  if (!enabled) return <>{children}</>;
+  return (
+    <details open={startOpen} className="mb-4 rounded-[var(--radius-lg)] px-3" style={{ background: 'var(--color-surface-muted)' }} data-testid="skills-filters">
+      <summary className="text-[13px] text-[var(--color-text)] cursor-pointer py-2.5">
+        {label} <span className="text-[12px] text-[var(--color-text-faint)]">· {hint}</span>
+      </summary>
+      <div className="pt-1">{children}</div>
+    </details>
+  );
+}
+
 export function ResourcesPage() {
   const t = useT();
   const say = useCompanionSay();
@@ -537,9 +550,13 @@ export function ResourcesPage() {
             <Button fullWidth icon={<Plus size={17} />} onClick={openNew}>
               {t.resources.addNewSkillCta}
             </Button>
-            <Button fullWidth variant="secondary" icon={<Link2 size={17} />} onClick={() => navigate('/entdecken/ressourcen/skillketten/neu')}>
-              {t.resources.addNewSkillChainCta}
-            </Button>
+          </div>
+        ) : null}
+        {typeScope === 'skills' ? (
+          <div className="mb-3">
+            <button type="button" onClick={() => navigate('/entdecken/ressourcen/skillketten/neu')} className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] underline underline-offset-2 py-1.5" data-testid="skills-new-chain">
+              <Link2 size={14} />{t.resources.addNewSkillChainCta}
+            </button>
           </div>
         ) : (
           <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-2">
@@ -570,6 +587,7 @@ export function ResourcesPage() {
          * stay in das Netzwerk, not a second place here) get their own
          * final, unlabelled-as-a-group row instead of a "Sonstiges"
          * heading that would just repeat the chip's own label. */}
+        <CalmFilters enabled={typeScope === 'skills'} startOpen={filter !== 'all' || !!zoneFilter || isFitFilterActive(fitFilter)} label={settings.language === 'en' ? 'Filter & sort' : 'Filtern & sortieren'} hint={settings.language === 'en' ? 'by category and “what fits right now”' : 'nach Kategorie und „was passt gerade“'}>
         <div className="mb-5">
           <div className="flex flex-wrap gap-2 mb-3">
             <Chip selected={filter === 'all'} onClick={() => setFilter('all')}>
@@ -737,6 +755,7 @@ export function ResourcesPage() {
         </div>
 
         <FitFilterPanel hiddenUnmarked={hiddenUnmarked} />
+        </CalmFilters>
 
         {filtered.length === 0 && !showBreathCards ? (
           isFitFilterActive(fitFilter) ? <FitEmpty hiddenUnmarked={hiddenUnmarked} /> : <EmptyState title={t.resources.empty} />

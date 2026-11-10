@@ -26,6 +26,7 @@ import { CONNECTION_ITEMS_DE, NEED_CATEGORY_GROUPS } from '../zugang/zugangConte
 import { BridgeFormModal } from './BridgeFormModal';
 import { AboutVonMirAusModal } from '../../components/shared/AboutVonMirAusModal';
 import { BRIDGES_INFO_TEXT } from '../../content/aboutContent';
+import { HintCard } from '../../components/hints/HintCard';
 import { BridgeBuiltAnimation } from './BridgeBuiltAnimation';
 import { BridgePrintView } from './BridgePrintView';
 import { DiscoverBridgesModal } from './DiscoverBridgesModal';
@@ -98,6 +99,7 @@ export function BridgesPage() {
   }
   const [creating, setCreating] = useState<Bridge | null>(null);
   const [justBuilt, setJustBuilt] = useState<string | null>(null);
+  const [bridgeHint, setBridgeHint] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [discoverOpen, setDiscoverOpen] = useState(false);
   const [pasteOpen, setPasteOpen] = useState(false);
@@ -295,7 +297,8 @@ export function BridgesPage() {
 
       {pasteOpen && <PasteSharedModal onClose={() => setPasteOpen(false)} />}
       {infoOpen && <AboutVonMirAusModal text={BRIDGES_INFO_TEXT} onClose={() => setInfoOpen(false)} />}
-      {justBuilt && <BridgeBuiltAnimation title={justBuilt} onDone={() => setJustBuilt(null)} />}
+      {justBuilt && <BridgeBuiltAnimation title={justBuilt} onDone={() => { setJustBuilt(null); setBridgeHint(true); }} />}
+      {bridgeHint && <HintCard hintId="after-bruecke" delayMs={400} />}
 
       <DiscoverBridgesModal
         open={discoverOpen}

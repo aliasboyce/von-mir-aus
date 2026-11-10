@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { phaseFor, seasonFor, pick, type SkyPhase } from '../../services/skyTime';
 import { useResolvedTheme } from '../../state/ThemeEffect';
 import { useSettings } from '../../state/SettingsContext';
+import { HomeEffectLayer } from './HomeEffectLayer';
+import type { HomeEffectDensity, HomeEffectId } from '../../services/homeEffects';
 
 /**
  * "Kugeln komplett weg, stattdessen nur Sonnenlicht und Sternenhimmel
@@ -77,8 +79,14 @@ export function SkyAmbiance() {
     };
   }, []);
 
+  const effect = (settings.homeEffect ?? 'auto') as HomeEffectId;
+  const density = (settings.homeEffectDensity ?? 'normal') as HomeEffectDensity;
+  const showSky = !settings.world && !settings.homeSkyOff;
+  // seasonal particles only in the 'auto' mode and without a chosen world; any chosen effect shows independently
+  const showSeason = effect === 'auto' && !settings.world;
+  const showChosen = effect !== 'auto' && effect !== 'off';
   // a chosen Ästhetik-Welt replaces the time-of-day sky
-  if (settings.world) return null;
+  if (!showSky && !showSeason && !showChosen) return null;
   const isNight = phase === 'night';
   const backgrounds = resolvedTheme === 'dark' ? SKY_BACKGROUNDS_DARK : SKY_BACKGROUNDS;
   const isLight = resolvedTheme !== 'dark';
@@ -86,11 +94,13 @@ export function SkyAmbiance() {
 
   return (
     <div className="absolute inset-x-0 top-0 h-[220px] overflow-hidden rounded-t-[inherit] pointer-events-none" aria-hidden="true" style={{ zIndex: -1, ...SKY_FADE_MASK }}>
-      <div className="absolute inset-0" style={{ background, animation: 'sky-settle-in 1.4s ease-out both' }} />
+      {showSky && <div className="absolute inset-0" style={{ background, animation: 'sky-settle-in 1.4s ease-out both' }} />}
 
-      {isNight && <NightStars variant={nightVariant} light={isLight} />}
+      {showSky && isNight && <NightStars variant={nightVariant} light={isLight} />}
 
-      {season === 'herbst' &&
+      {showChosen && <HomeEffectLayer kind={effect} density={density} />}
+
+      {showSeason && season === 'herbst' &&
         Array.from({ length: 7 }, (_, i) => (
           <div
             key={i}
@@ -106,7 +116,7 @@ export function SkyAmbiance() {
             }}
           />
         ))}
-      {season === 'winter' &&
+      {showSeason && season === 'winter' &&
         Array.from({ length: 7 }, (_, i) => (
           <div
             key={i}
@@ -114,7 +124,7 @@ export function SkyAmbiance() {
             style={{ left: `${6 + i * 13}%`, top: -10, width: 4, height: 4, background: '#ffffff', animation: `snow-fall-ambient ${8 + (i % 3)}s linear ${i * 1.3}s infinite` }}
           />
         ))}
-      {season === 'fruehling' &&
+      {showSeason && season === 'fruehling' &&
         Array.from({ length: 7 }, (_, i) => (
           <div
             key={i}
@@ -122,7 +132,7 @@ export function SkyAmbiance() {
             style={{ left: `${8 + i * 13}%`, top: -10, width: 6, height: 6, background: i % 2 === 0 ? '#f6c9d6' : '#fdeef2', animation: `petal-fall ${8 + (i % 3)}s linear ${i * 1.2}s infinite` }}
           />
         ))}
-      {season === 'sommer' &&
+      {showSeason && season === 'sommer' &&
         Array.from({ length: 5 }, (_, i) => (
           <div
             key={i}

@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Archive, ListChecks, Pin, PinOff, Plus } from 'lucide-react';
+import { Archive, FolderCog, ListChecks, Pin, PinOff, Plus } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { MoreMenu } from '../../components/ui/MoreMenu';
 import { useL } from '../projects/useL';
-import { ListEditSheet } from './ListSheets';
+import { CategoryManagerSheet, ListEditSheet } from './ListSheets';
 import { ListPhoto } from './ListPhoto';
-import { LISTS_CHANGED, byPinThenNewest, listsRepo, progress, saveList, type UserList } from './listsModel';
+import { RucksackIcon } from '../safetyPlan/RucksackIcon';
+import { LISTS_CHANGED, byPinThenNewest, listCategoriesStore, listsRepo, progress, saveList, type ListCategory, type UserList } from './listsModel';
 
 export function ListsPage() {
   const { L } = useL();
@@ -15,13 +16,18 @@ export function ListsPage() {
   const [lists, setLists] = useState<UserList[]>(() => listsRepo.getAll());
   const [creating, setCreating] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
+  const [cats, setCats] = useState<ListCategory[]>(() => listCategoriesStore.get());
+  const [catFilter, setCatFilter] = useState<string>('all');
+  const [manage, setManage] = useState(false);
   useEffect(() => {
-    const f = () => setLists(listsRepo.getAll());
+    const f = () => { setLists(listsRepo.getAll()); setCats(listCategoriesStore.get()); };
     window.addEventListener(LISTS_CHANGED, f);
     return () => window.removeEventListener(LISTS_CHANGED, f);
   }, []);
 
-  const live = lists.filter((l) => !l.archived).sort(byPinThenNewest);
+  const activeFilter = catFilter === 'all' || catFilter === 'none' || cats.some((c) => c.id === catFilter) ? catFilter : 'all';
+  const matches = (l: UserList) => activeFilter === 'all' || (activeFilter === 'none' ? !l.categoryId || !cats.some((c) => c.id === l.categoryId) : l.categoryId === activeFilter);
+  const live = lists.filter((l) => !l.archived && matches(l)).sort(byPinThenNewest);
   const pinned = live.filter((l) => l.pinned);
   const rest = live.filter((l) => !l.pinned);
   const archived = lists.filter((l) => l.archived).sort(byPinThenNewest);
@@ -33,7 +39,7 @@ export function ListsPage() {
       <li key={l.id} className="flex items-stretch rounded-2xl overflow-hidden border" style={{ borderColor: l.color, background: `${l.color}1c` }} data-testid="list-card">
         <button type="button" onClick={() => navigate(`/listen/${l.id}`)} className="flex-1 min-w-0 flex items-center gap-3 text-left py-3 pl-3 min-h-[64px]" data-testid={`list-open-${l.id}`}>
           <span className="w-12 h-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center text-[24px]" style={{ background: `${l.color}40` }} aria-hidden>
-            {l.photo ? <ListPhoto id={l.photo} className="w-full h-full" /> : l.emoji}
+            {l.photo ? <ListPhoto id={l.photo} className="w-full h-full" /> : l.role === 'rucksack' ? <RucksackIcon size={30} accent={l.color} /> : l.emoji}
           </span>
           <span className="min-w-0 flex-1">
             <span className="block text-[16px] text-[var(--color-text)] truncate">{l.title}</span>
@@ -71,6 +77,19 @@ export function ListsPage() {
           <Plus size={18} /> {L('Neue Liste', 'New list')}
         </button>
 
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3" data-testid="lists-categories">
+          {cats.length > 0 && (
+            <>
+              <button type="button" onClick={() => setCatFilter('all')} aria-pressed={activeFilter === 'all'} className="shrink-0 px-3 py-1.5 rounded-full text-[13px] border" style={activeFilter === 'all' ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' } : { borderColor: 'var(--color-border-strong)' }}>{L('Alle', 'All')}</button>
+              {cats.map((c) => (
+                <button key={c.id} type="button" onClick={() => setCatFilter(c.id)} aria-pressed={activeFilter === c.id} className="shrink-0 px-3 py-1.5 rounded-full text-[13px] border" style={activeFilter === c.id ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' } : { borderColor: 'var(--color-border-strong)' }} data-testid="lists-cat-chip">{c.emoji} {c.name}</button>
+              ))}
+              <button type="button" onClick={() => setCatFilter('none')} aria-pressed={activeFilter === 'none'} className="shrink-0 px-3 py-1.5 rounded-full text-[13px] border" style={activeFilter === 'none' ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' } : { borderColor: 'var(--color-border-strong)' }}>{L('Ohne', 'None')}</button>
+            </>
+          )}
+          <button type="button" onClick={() => setManage(true)} className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] text-[var(--color-primary)]" data-testid="lists-manage-cats"><FolderCog size={15} />{cats.length === 0 ? L('Kategorien anlegen', 'Add categories') : L('Kategorien', 'Categories')}</button>
+        </div>
+
         {live.length === 0 && (
           <div className="text-center text-[14px] text-[var(--color-text-muted)] py-8" data-testid="lists-empty">
             <ListChecks size={34} className="mx-auto mb-2 opacity-60" />
@@ -83,7 +102,18 @@ export function ListsPage() {
             <ul className="flex flex-col gap-2.5">{pinned.map(card)}</ul>
           </section>
         )}
-        {rest.length > 0 && (
+        {activeFilter === 'all' && cats.length > 0 ? (
+          <>
+            {[...cats.map((c) => ({ key: c.id, title: `${c.emoji} ${c.name}`, items: rest.filter((l) => l.categoryId === c.id) })), { key: 'none', title: L('Ohne Kategorie', 'No category'), items: rest.filter((l) => !l.categoryId || !cats.some((c) => c.id === l.categoryId)) }]
+              .filter((g) => g.items.length > 0)
+              .map((g) => (
+                <section key={g.key} className="mb-4" data-testid={`lists-cat-${g.key}`}>
+                  <h2 className="text-[13px] text-[var(--color-text-muted)] mb-2">{g.title}</h2>
+                  <ul className="flex flex-col gap-2.5">{g.items.map(card)}</ul>
+                </section>
+              ))}
+          </>
+        ) : rest.length > 0 && (
           <section className="mb-4">
             {pinned.length > 0 && <h2 className="text-[13px] text-[var(--color-text-muted)] mb-2">{L('Weitere Listen', 'More lists')}</h2>}
             <ul className="flex flex-col gap-2.5">{rest.map(card)}</ul>
@@ -96,6 +126,7 @@ export function ListsPage() {
           </section>
         )}
       </div>
+      {manage && <CategoryManagerSheet onClose={() => setManage(false)} />}
       {creating && <ListEditSheet onClose={() => setCreating(false)} onSave={(l) => { const s = saveList(l); setCreating(false); navigate(`/listen/${s.id}`); }} />}
     </div>
   );

@@ -15,7 +15,6 @@ import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { resetHints } from '../../services/hintCards';
 import { ALL_DAY_OPTIONS, dayOptionsFor, type DayOptionId, type DayPhase } from '../dayFlow/dayFlowRepo';
-import { previewMenuSound, type MenuSoundVariant } from '../../services/sounds';
 import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell, X, CalendarPlus, ShieldCheck, ChevronRight } from 'lucide-react';
 import { getAllLichtwesen, getAnyLichtwesen } from '../../components/companion/customLichtwesen';
 import { customLichtwesenRepo } from '../../components/companion/customLichtwesen';
@@ -45,6 +44,8 @@ import { customRemindersRepo, type CustomReminder } from '../../services/customR
 import { downloadBackup, importBackup } from '../../services/backup';
 import { createId } from '../../services/storage/repository';
 import { BUILT_IN_PALETTE_IDS } from '../../data/types';
+import { WesenColorPicker } from '../worlds/WesenColorPicker';
+import { EffectPicker } from '../worlds/EffectPicker';
 import { WorldPicker } from '../worlds/WorldPicker';
 import { ScopePicker } from '../scope/ScopePicker';
 import { WesenInfoButton } from '../../components/companion/WesenInfoButton';
@@ -298,7 +299,17 @@ export function SettingsPage() {
         <>
         {/* ================= Darstellung ================= */}
         <SectionLabel>🎨 {t.settings.appearance}</SectionLabel>
+        <Card className="mb-3" padding="md" data-testid="settings-calmhome">
+          <ToggleRow
+            label={settings.language === 'en' ? 'Calm start page' : 'Ruhige Startseite'}
+            checked={settings.calmHome !== false}
+            onChange={(v) => updateSettings({ calmHome: v })}
+          />
+          <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5 leading-relaxed">{settings.language === 'en' ? 'On: only the essentials are visible, the rest sits behind one “More” button. Off: the fuller start page as before.' : 'An: nur das Wichtigste ist sichtbar, der Rest steckt hinter einem „Mehr“-Knopf. Aus: die volle Startseite wie vorher.'}</p>
+        </Card>
         <WorldPicker />
+        <WesenColorPicker />
+        <EffectPicker />
         <Card className="mb-3" padding="md">
           <p className="text-[13px] text-[var(--color-text-muted)] mb-2">{t.settings.theme}</p>
           <div className="flex flex-wrap gap-2">
@@ -504,28 +515,6 @@ export function SettingsPage() {
             onChange={(v) => updateSettings({ soundsEnabled: v })}
           />
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{t.settings.soundsHint}</p>
-          {settings.soundsEnabled && (
-            <div className="mt-3 pt-3 border-t border-[var(--color-border)]" data-testid="menu-sound-picker">
-              <p className="text-[13.5px] text-[var(--color-text)] mb-0.5">{settings.language === 'en' ? 'Tone of the main menu' : 'Ton des Hauptmenüs'}</p>
-              <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{settings.language === 'en' ? 'Tap to hear it – the chosen one stays.' : 'Antippen zum Anhören – der gewählte bleibt.'}</p>
-              <div className="flex flex-col gap-2">
-                {([
-                  ['original', settings.language === 'en' ? 'Original – deep, dull, light' : 'Original – tief, dumpf, leicht'],
-                  ['thud', settings.language === 'en' ? 'Knock – like a block click in Minecraft' : 'Klopfen – wie ein Block-Klick bei Minecraft'],
-                  ['phone', settings.language === 'en' ? 'Original, easier to hear on a phone' : 'Original, am Handy besser hörbar'],
-                ] as [MenuSoundVariant, string][]).map(([id, label]) => {
-                  const on = (settings.menuSound ?? 'original') === id;
-                  return (
-                    <button key={id} type="button" data-no-tap-feedback="" aria-pressed={on} data-testid={`menu-sound-${id}`}
-                      onClick={() => { updateSettings({ menuSound: id }); previewMenuSound(id); }}
-                      className={`text-left px-4 py-2.5 rounded-xl border text-[14px] ${on ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-text)]' : 'border-[var(--color-border-strong)] text-[var(--color-text)]'}`}>
-                      {on ? '● ' : '○ '}{label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
           {getAnyLichtwesen(settings.selectedBrainId).animal && (
             <p className="text-[12px] text-[var(--color-text-faint)] mt-3 pt-3 border-t border-[var(--color-border)] leading-relaxed" data-testid="animal-silent-note">
               {settings.language === 'en' ? 'Your animal companion makes no sounds at all – pets are completely silent.' : 'Dein Haustier-Begleiter macht gar keine Geräusche – Haustiere sind ganz ohne Ton.'}

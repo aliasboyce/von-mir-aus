@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { useSettings } from '../../state/SettingsContext';
 import { planTexts } from './planTexts';
 
-export type PdfParts = { personal: boolean; plan: boolean; clinic: boolean };
+export type PdfParts = { personal: boolean; plan: boolean; clinic: boolean; /** Notfallrucksack; fehlt = mit drauf, sobald es einen gibt */ rucksack?: boolean };
 
 interface SharePlanModalProps {
   open: boolean;
@@ -15,6 +15,7 @@ interface SharePlanModalProps {
   onPartsChange: (p: PdfParts) => void;
   hasPersonal: boolean;
   hasClinic: boolean;
+  hasRucksack?: boolean;
   onPdf: () => Promise<boolean>;
   onPrint: () => void;
   onText: () => void;
@@ -25,17 +26,18 @@ interface SharePlanModalProps {
  * jedem Sicherheitsplan individuell neu entscheidbar." Auch ein Plan ohne
  * die persönlichen Angaben und ohne den Klinik-Teil ist als PDF möglich.
  */
-export function SharePlanModal({ open, onClose, planName, parts, onPartsChange, hasPersonal, hasClinic, onPdf, onPrint, onText }: SharePlanModalProps) {
+export function SharePlanModal({ open, onClose, planName, parts, onPartsChange, hasPersonal, hasClinic, hasRucksack = false, onPdf, onPrint, onText }: SharePlanModalProps) {
   const { settings } = useSettings();
   const T = planTexts(settings.language);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const none = !parts.personal && !parts.plan && !parts.clinic;
+  const none = !parts.personal && !parts.plan && !parts.clinic && !(hasRucksack && parts.rucksack !== false);
 
   const rows: { key: keyof PdfParts; label: string; empty: boolean }[] = [
     { key: 'plan', label: T.partPlan, empty: false },
     { key: 'personal', label: T.partPersonal, empty: !hasPersonal },
     { key: 'clinic', label: T.partClinic, empty: !hasClinic },
+    ...(hasRucksack ? [{ key: 'rucksack' as const, label: `🎒 ${T.partRucksack}`, empty: false }] : []),
   ];
 
   async function makePdf() {
@@ -60,7 +62,7 @@ export function SharePlanModal({ open, onClose, planName, parts, onPartsChange, 
               <input
                 type="checkbox"
                 className="w-5 h-5 flex-shrink-0"
-                checked={parts[r.key]}
+                checked={r.key === 'rucksack' ? parts.rucksack !== false : !!parts[r.key]}
                 onChange={(e) => onPartsChange({ ...parts, [r.key]: e.target.checked })}
                 data-testid={`part-${r.key}`}
               />

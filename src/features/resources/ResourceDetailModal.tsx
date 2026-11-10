@@ -1,4 +1,5 @@
 import { LinkPreview } from '../../components/shared/LinkPreview';
+import { AttachedLists } from '../lists/AttachedLists';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Wind, Heart, Link as LinkIcon, Pencil, Trash2, NotebookPen, Check, FileDown, Link2, Timer as TimerIcon } from 'lucide-react';
@@ -104,6 +105,8 @@ export function ResourceDetailModal({
         )}
 
         <FitSummary subject={subjectOfResource(resource)} />
+
+        <AttachedLists kind="resource" refId={resource.id} contextTitle={resource.title} />
 
         {/* "Es soll den Button geben 'Skill starten'"-Auftrag — opens the
          * run page (count-up timer without an end + the step list),

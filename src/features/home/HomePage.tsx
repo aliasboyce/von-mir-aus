@@ -81,6 +81,9 @@ export function HomePage() {
   const { settings, updateSettings } = useSettings();
   const scope = scopeOf(settings);
   const lean = scope === 'core' || !!settings.simple;
+  const calm = settings.calmHome !== false;
+  const [moreOpen, setMoreOpen] = useState(false);
+  const showMore = !calm || moreOpen;
   const [showScopeModal, setShowScopeModal] = useState(false);
   const [reminderDismissed, setReminderDismissed] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -413,7 +416,7 @@ export function HomePage() {
           </Card>
         </Link>
       </div>
-      {!lean ? (
+      {!lean && showMore ? (
       <button onClick={() => setShowIntentPicker(true)} className="text-[12.5px] text-[var(--color-primary)] mt-3 mb-6 block mx-auto">
         {t.home.intentPickerEntryCta}
       </button>
@@ -422,15 +425,27 @@ export function HomePage() {
         </>
       )}
 
-      {!lean && <GardenRewardCard />}
+      {showMore && !lean && <GardenRewardCard />}
 
-      {!lean && <ResourceNudgeCard />}
+      {showMore && !lean && <ResourceNudgeCard />}
 
       <ImportantContactsStrip />
 
-      {!lean && <TodaySoFar />}
+      {showMore && !lean && <TodaySoFar />}
 
-      {scope !== 'core' && (<>
+      {calm && scope !== 'core' && (
+        <button
+          type="button"
+          onClick={() => setMoreOpen((v) => !v)}
+          aria-expanded={moreOpen}
+          className="block mx-auto my-4 px-4 py-2 rounded-full text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]"
+          data-testid="home-more-toggle"
+        >
+          {moreOpen ? (isEn ? 'Show less' : 'Weniger zeigen') : (isEn ? 'More: everyday, garden, today …' : 'Mehr: Alltag, Garten, Heute …')}
+        </button>
+      )}
+
+      {showMore && scope !== 'core' && (<>
       {/* everyday helpers, together in one calm place */}
       <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{isEn ? 'Everyday' : 'Alltag'}</p>
       <div className="grid grid-cols-2 gap-2 mb-6" data-testid="home-everyday">
@@ -453,9 +468,9 @@ export function HomePage() {
       </div>
       </>)}
 
-      {!lean && <AchievementSection />}
+      {showMore && !lean && <AchievementSection />}
 
-      {scope !== 'core' && (<button
+      {showMore && scope !== 'core' && (<button
         onClick={() => setShowNurJetztExplainer(true)}
         className="flex items-center justify-center gap-2 mx-auto mt-4 text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2"
         data-testid="nurjetzt-entry"
@@ -464,7 +479,7 @@ export function HomePage() {
         {t.home.nurJetztEntryCta}
       </button>)}
 
-      {!lean && scope === 'all' && <ContinueCard lang={isEn ? 'en' : 'de'} />}
+      {showMore && !lean && scope === 'all' && <ContinueCard lang={isEn ? 'en' : 'de'} />}
 
       {scope !== 'all' && (
         <button type="button" onClick={() => setShowScopeModal(true)} className="block mx-auto mt-5 text-[13px] text-[var(--color-primary)] underline underline-offset-2" data-testid="home-show-more">

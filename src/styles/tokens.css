@@ -72,9 +72,9 @@
 
   /* ---- Motion ---- */
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-sm: 180ms;
-  --duration-md: 500ms;
-  --duration-lg: 600ms;
+  --duration-sm: 260ms;
+  --duration-md: 750ms;
+  --duration-lg: 900ms;
 
   /* ---- Layout ---- */
   --app-max-width: 480px;      /* mobile-first "app frame" */

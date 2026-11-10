@@ -16,6 +16,40 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-rucksack-listen-effekte',
+    date: '2026',
+    items: [
+      'Neu: Notfallrucksack beim Sicherheitsplan (freiwillig) – mit „Durchgehen“, „Fertig gepackt“ und Übernahme ins PDF.',
+      'Listen haben jetzt Kategorien und lassen sich an Brücken, Ressourcen, Routinen, Projekte und Kontakte hängen.',
+      'Neu in Einstellungen → Design: Bewegung auf der Startseite (Blätter, Blüten, Funkeln, Sterne, Schnee …) – oder aus – und „Wesen-Farben“ in 5 Stimmungen.',
+      'Das Wörterbuch hat jetzt alle Begriffe der App, mit Suche, Rubriken und Links. Antippen-Animationen sind etwas deutlicher.',
+    ],
+    itemsEn: [
+      'New: optional emergency backpack in the safety plan – with “go through”, “finished packing” and PDF inclusion.',
+      'Lists now have categories and can be attached to bridges, resources, routines, projects and contacts.',
+      'New in Settings → Design: motion on the start page (leaves, blossoms, sparkle, stars, snow …) – or off – and “companion colours” in 5 moods.',
+      'The dictionary now holds every term of the app, with search, sections and links. Tap animations are a little clearer.',
+    ],
+  },
+  {
+    id: '2026-woerterbuch-ruhe',
+    date: '2026',
+    items: [
+      'Neu: „Kleines Wörterbuch“ (unter Entdecken und in der Suche) – jedes Wort der App in ein, zwei ruhigen Sätzen und womit es zusammenhängt.',
+      'Ruhiger: Die Startseite zeigt nur das Wichtigste, der Rest steckt hinter „Mehr“. Wenn du die volle Startseite lieber magst: Einstellungen → Design → „Ruhige Startseite“ ausschalten.',
+      'Ruhiger: Auf der Skills-Seite sind die Filter eingeklappt, „Neue Skillkette“ ist nur noch ein leiser Link.',
+      'Mehr Hinweis-Karten: nach dem Check-in, nach einer Skillkette und nach einer gebauten Brücke – dazu ein paar Tipps auf der Startseite.',
+      'Der Ton beim Antippen im Menü ist jetzt immer der tiefe, dumpfe „Original“-Ton.',
+    ],
+    itemsEn: [
+      'New: “Little dictionary” (under Explore and in search) – every word of the app in a calm sentence or two and what it is connected to.',
+      'Calmer: the start page shows only the essentials, the rest sits behind “More”. If you prefer the fuller start page: Settings → Design → switch off “Calm start page”.',
+      'Calmer: on the skills page the filters are folded, “New skill chain” is just a quiet link.',
+      'More hint cards: after a check-in, after a skill chain and after building a bridge – plus a few tips on the start page.',
+      'The menu tap sound is now always the deep, dull “original” one.',
+    ],
+  },
+  {
     id: '2026-ordnung-hinweise-einstellungen',
     date: '2026',
     items: [

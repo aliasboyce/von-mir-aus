@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AttachedLists } from '../lists/AttachedLists';
 import { ProjectIcon } from './ui';
 import { CheckCheck, FileDown, LayoutGrid, Orbit, Settings2, Zap } from 'lucide-react';
 import { QuickNoteFab } from './ProjectSubShell';
@@ -131,6 +132,7 @@ export function ProjectHub({ api, onLooks, onInfos, onShare, onFinish, onAddBloc
       </div>
 
       <ProjectSlipStrip api={api} />
+      <AttachedLists kind="project" refId={p.id} contextTitle={p.title} />
 
       {effective === 'circle' ? (
         <>

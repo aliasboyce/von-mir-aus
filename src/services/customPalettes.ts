@@ -5,6 +5,8 @@ export interface CustomPalette {
   name: string;
   bg: string;
   primary: string;
+  /** dunkle Farbwelt: Flächen werden heller als der Hintergrund statt weißer (zusammen mit dem dunklen Modus gedacht) */
+  dark?: boolean;
 }
 
 export const customPalettesRepo = createRepository<CustomPalette>('custom-theme-palettes');
@@ -34,6 +36,20 @@ function mix(hex: string, target: [number, number, number], amount: number): str
 export function derivePaletteVars(palette: CustomPalette): Record<string, string> {
   const white: [number, number, number] = [255, 255, 255];
   const black: [number, number, number] = [20, 18, 14];
+  if (palette.dark) {
+    return {
+      '--color-bg': palette.bg,
+      '--color-bg-soft': mix(palette.bg, black, 0.18),
+      '--color-surface': mix(palette.bg, white, 0.07),
+      '--color-surface-muted': mix(palette.bg, white, 0.035),
+      '--color-border': mix(palette.bg, white, 0.14),
+      '--color-border-strong': mix(palette.bg, white, 0.26),
+      '--color-primary': palette.primary,
+      '--color-primary-strong': mix(palette.primary, white, 0.2),
+      '--color-primary-soft': mix(palette.bg, hexToRgb(palette.primary), 0.3),
+      '--color-primary-soft-text': mix(palette.primary, white, 0.45),
+    };
+  }
   return {
     '--color-bg': palette.bg,
     '--color-bg-soft': mix(palette.bg, black, 0.04),
@@ -59,4 +75,9 @@ export function createCustomPalette(name: string, bg: string, primary: string): 
  * of a "protected" palette ending up deletable through this function. */
 export function deleteCustomPalette(id: string): void {
   customPalettesRepo.remove(id);
+}
+
+/** mixes two #rrggbb colours (t = 0 → a, t = 1 → b) */
+export function mixHex(a: string, b: string, t: number): string {
+  return mix(a, hexToRgb(b), t);
 }

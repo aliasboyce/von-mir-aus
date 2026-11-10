@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
+import { HintCard } from '../../components/hints/HintCard';
 import { Check } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -340,6 +341,7 @@ export function SkillketteRunPage() {
           </div>
         )}
 
+        {phase === 'done' && saved && <HintCard hintId="after-skillkette" />}
         {phase === 'done' && saved && (
           <div className="mt-4 rounded-[var(--radius-xl)] p-5" style={{ background: 'var(--color-primary-soft)' }}>
             <p className="text-[16px] font-medium text-[var(--color-text)] mb-2">{t.skillRun.doneTitle}</p>

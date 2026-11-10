@@ -6,6 +6,7 @@ import type { TierColorSet } from './tierColorsStore';
 import type { PersonalInfo, ClinicWishes } from './personalInfoStore';
 import { planTexts } from './planTexts';
 import { CLINIC_FIELDS } from './ClinicWishesCard';
+import type { RucksackPacked } from './rucksackStore';
 
 interface SafetyPlanPrintViewProps {
   plan: SafetyPlan | null;
@@ -15,7 +16,8 @@ interface SafetyPlanPrintViewProps {
   helpItemsLabel: string;
   /** localized section titles by key (plan.sections[].title is empty) */
   sectionTitles: Record<string, string>;
-  parts: { personal: boolean; plan: boolean; clinic: boolean };
+  parts: { personal: boolean; plan: boolean; clinic: boolean; rucksack?: boolean };
+  rucksack?: { title: string; items: string[]; lastPacked?: RucksackPacked } | null;
   personal: PersonalInfo;
   clinic: ClinicWishes;
   lang: string;
@@ -59,7 +61,7 @@ const TIER_ORDER: WarningTier[] = ['gelb', 'orange', 'rot'];
  * the person's own, individual plan, not the general numbers that are
  * the same for everyone.
  */
-export function SafetyPlanPrintView({ plan, tierLabels, tierColors, warningSignalsLabel, helpItemsLabel, sectionTitles, parts, personal, clinic, lang }: SafetyPlanPrintViewProps) {
+export function SafetyPlanPrintView({ plan, tierLabels, tierColors, warningSignalsLabel, helpItemsLabel, sectionTitles, parts, personal, clinic, rucksack, lang }: SafetyPlanPrintViewProps) {
   if (!plan) return null;
   const T = planTexts(lang);
   const medLine = (m: { name: string; dose?: string; when?: string }) => [m.name, m.dose, m.when].filter((x) => x && x.trim()).join(' · ');
@@ -75,7 +77,8 @@ export function SafetyPlanPrintView({ plan, tierLabels, tierColors, warningSigna
   const showPersonal = parts.personal && hasPersonal;
   const showClinic = parts.clinic && CLINIC_FIELDS.some((k) => lines(clinic[k]).length > 0);
   const showPlan = parts.plan;
-  const heading = showPlan ? plan.name : showPersonal ? T.personalTitle.replace(/ \(.*\)$/, '') : T.clinicTitle;
+  const showRucksack = !!rucksack && parts.rucksack !== false && (rucksack.items.length > 0 || !!rucksack.lastPacked);
+  const heading = showPlan ? plan.name : showPersonal ? T.personalTitle.replace(/ \(.*\)$/, '') : showClinic ? T.clinicTitle : T.rucksackTitle;
 
   function resolveLabel(kind: 'resource' | 'bridge' | 'contact', id: string): string | null {
     if (kind === 'resource') return resourcesRepo.getById(id)?.title ?? null;
@@ -198,6 +201,38 @@ export function SafetyPlanPrintView({ plan, tierLabels, tierColors, warningSigna
               </ul>
             </section>
           ))}
+
+      {showRucksack && rucksack && (
+        <section data-testid="print-rucksack" style={{ ...box, borderLeft: '6px solid #D9893D' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 6, color: '#333' }}>🎒 {T.rucksackTitle}</h2>
+          {rucksack.lastPacked ? (
+            <>
+              <p style={{ fontSize: 11.5, color: '#666', margin: '0 0 8px' }}>
+                {T.rucksackPackedOn} {new Date(rucksack.lastPacked.at).toLocaleDateString(lang === 'en' ? 'en-US' : 'de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+              </p>
+              <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', color: '#555', marginBottom: 3 }}>{T.rucksackPacked}</h3>
+              <ul style={{ margin: '0 0 8px', paddingLeft: 0, listStyle: 'none' }}>
+                {rucksack.lastPacked.packed.map((x, i) => <li key={i} style={{ fontSize: 13, lineHeight: 1.7, color: '#2a2a2a' }}>☑ {x}</li>)}
+              </ul>
+              {rucksack.lastPacked.notPacked.length > 0 && (
+                <>
+                  <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', color: '#555', marginBottom: 3 }}>{T.rucksackNot}</h3>
+                  <ul style={{ margin: '0 0 8px', paddingLeft: 0, listStyle: 'none' }}>
+                    {rucksack.lastPacked.notPacked.map((x, i) => <li key={i} style={{ fontSize: 13, lineHeight: 1.7, color: '#777', textDecoration: 'line-through' }}>☐ {x}</li>)}
+                  </ul>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, textTransform: 'uppercase', color: '#555', marginBottom: 3 }}>{T.rucksackList}</h3>
+              <ul style={{ margin: '0 0 8px', paddingLeft: 0, listStyle: 'none' }}>
+                {rucksack.items.map((x, i) => <li key={i} style={{ fontSize: 13, lineHeight: 1.7, color: '#2a2a2a' }}>☐ {x}</li>)}
+              </ul>
+            </>
+          )}
+        </section>
+      )}
 
       {showClinic && (
         <section data-testid="print-clinic" style={box}>

@@ -992,6 +992,13 @@ export interface UserSettings {
   world?: string;
   /** world as a still picture without moving parts */
   worldStill?: boolean;
+  /** Effekt oben auf der Startseite: 'auto' (Jahreszeit, wie bisher) | 'off' | ein gewählter Effekt – siehe services/homeEffects.ts */
+  homeEffect?: string;
+  homeEffectDensity?: 'few' | 'normal' | 'many';
+  /** Wesen-Farben: welche der 5 Voreinstellungen gilt, solange die Palette „Wesen-Farben“ aktiv ist (folgt dann auch einem Wesenwechsel) */
+  wesenColorPreset?: number;
+  /** Himmelsfarbe oben ausblenden (nur schlicht) */
+  homeSkyOff?: boolean;
   /** "Ich kenne mich aus": hides only the small hint/example/instruction lines on pages (not info texts, not ? help). */
   minimalHints?: boolean;
   /** "Tag beginnen" / "Tag abschließen": gentle full-screen invitation on the first opening of the day (from this time on). */
@@ -1015,7 +1022,6 @@ export interface UserSettings {
    * Web Audio API, so there's nothing to source/host/license. */
   soundsEnabled: boolean;
   /** Which tone the bottom main menu makes: 'original' (pure deep tone, default), 'thud' (dull Minecraft-like knock), 'phone' (deep tone with a quiet overtone so phone speakers still play it). */
-  menuSound?: 'original' | 'thud' | 'phone';
   brainEnabled: boolean;
   brainState: BrainState;
   /** "Hilfsmittel in den Weg legen": the Wesen shows one of the person's own Ressourcen on the start page now and then. On unless switched off. */
@@ -1030,6 +1036,8 @@ export interface UserSettings {
   companionQuiet?: boolean;
   /** gentle hint cards after a function ends and now and then on the start page; on unless set to false */
   hintCards?: boolean;
+  /** Calm start page: only the essentials are visible, the rest sits behind one "More" button. undefined counts as on; false = the old, fuller start page. */
+  calmHome?: boolean;
   /** animal companions: 'grow' = baby that grows up over 30 active days (default), 'adult' = always fully grown, 'baby' = always a baby */
   companionAgeMode?: 'grow' | 'adult' | 'baby';
   /** Audit follow-up, "Nur jetzt" — a session-scoped, deliberately NOT

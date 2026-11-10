@@ -21,6 +21,8 @@ import { LinkedItemsPicker } from './LinkedItemsPicker';
 import { TierColorEditor } from './TierColorEditor';
 import { PersonalInfoCard } from './PersonalInfoCard';
 import { ClinicWishesCard } from './ClinicWishesCard';
+import { RucksackCard } from './RucksackCard';
+import { getRucksackList, rucksackStore } from './rucksackStore';
 import { SharePlanModal, type PdfParts } from './SharePlanModal';
 import { personalInfoStore, clinicWishesStore, personalHasContent, clinicHasContent, DEFAULT_PDF_PARTS } from './personalInfoStore';
 import { planTexts } from './planTexts';
@@ -233,6 +235,8 @@ export function SafetyPlanPage() {
   const parts: PdfParts = plan?.pdfParts ?? DEFAULT_PDF_PARTS;
   const personalData = personalInfoStore.get();
   const clinicData = clinicWishesStore.get();
+  const rucksackList = getRucksackList();
+  const rucksackData = rucksackList ? { title: rucksackList.title, items: rucksackList.items.map((i) => i.text), lastPacked: rucksackStore.get().lastPacked } : null;
 
   function setParts(next: PdfParts) {
     if (!plan) return;
@@ -277,6 +281,12 @@ export function SafetyPlanPage() {
       for (const k of ['treatment', 'placement', 'placementFallback', 'never', 'excludedMeds', 'history', 'additions'] as const) {
         if (C[k] && C[k]!.trim()) out.push(T[k], C[k]!.trim(), '');
       }
+    }
+    if (parts.rucksack !== false && rucksackData && (rucksackData.items.length > 0 || rucksackData.lastPacked)) {
+      out.push('', `${T.rucksackTitle}:`);
+      if (rucksackData.lastPacked) {
+        out.push(...rucksackData.lastPacked.packed.map((x) => `[x] ${x}`), ...rucksackData.lastPacked.notPacked.map((x) => `[ ] ${x} (${T.rucksackNot})`));
+      } else out.push(...rucksackData.items.map((x) => `[ ] ${x}`));
     }
     return out.join('\n').trim();
   }
@@ -346,6 +356,7 @@ export function SafetyPlanPage() {
 
         <PersonalInfoCard />
         <ClinicWishesCard />
+        <RucksackCard />
 
         {hasExamples && (
           <div className="rounded-[var(--radius-md)] px-3.5 py-3 mb-5 flex flex-col gap-2" style={{ border: '1.5px dashed var(--color-border-strong)' }} data-testid="examples-hint">
@@ -648,6 +659,7 @@ export function SafetyPlanPage() {
         parts={parts}
         personal={personalData}
         clinic={clinicData}
+        rucksack={rucksackData}
         lang={lang}
       />
 
@@ -659,6 +671,7 @@ export function SafetyPlanPage() {
         onPartsChange={setParts}
         hasPersonal={personalHasContent(personalData)}
         hasClinic={clinicHasContent(clinicData)}
+        hasRucksack={!!rucksackData && (rucksackData.items.length > 0 || !!rucksackData.lastPacked)}
         onPdf={sharePdf}
         onPrint={printNow}
         onText={sharePlan}

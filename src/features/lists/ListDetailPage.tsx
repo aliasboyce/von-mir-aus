@@ -1,15 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Archive, ArchiveRestore, Check, Copy, Eye, EyeOff, Pencil, Pin, PinOff, Plus, RotateCcw, StickyNote } from 'lucide-react';
+import { X, Archive, ArchiveRestore, Check, Copy, Eye, EyeOff, Pencil, Pin, PinOff, Plus, RotateCcw, StickyNote } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { MoreMenu } from '../../components/ui/MoreMenu';
 import { deleteOwnMedia } from '../../services/mediaStore';
+import { bridgesRepo } from '../bridges/bridgesRepo';
+import { resourcesRepo } from '../resources/resourcesRepo';
+import { routinesRepo } from '../routines/routinesRepo';
+import { projectsRepo } from '../projects/projectModel';
+import { networkRepo } from '../safetyNet/networkRepo';
 import { useToast } from '../budget/budgetUi';
 import { useL } from '../projects/useL';
 import { CopySheet, ItemSheet, ListEditSheet } from './ListSheets';
 import { ListPhoto } from './ListPhoto';
-import { LISTS_CHANGED, copyItemTo, listsRepo, newItem, newList, progress, removeList, saveList, type ListItem, type UserList } from './listsModel';
+import { Link } from 'react-router-dom';
+import { RucksackIcon } from '../safetyPlan/RucksackIcon';
+import { RucksackPlayButton, RucksackPlayer } from '../safetyPlan/RucksackPlayer';
+import { finishPacking, rucksackStore } from '../safetyPlan/rucksackStore';
+import { LINK_KIND_LABEL, LISTS_CHANGED, copyItemTo, listCategoriesStore, linksOfList, listsRepo, newItem, newList, progress, removeList, saveList, type ListItem, type UserList } from './listsModel';
 
 export function ListDetailPage() {
   const { id = '' } = useParams();
@@ -20,6 +29,7 @@ export function ListDetailPage() {
   const [edit, setEdit] = useState(false);
   const [itemId, setItemId] = useState<string | null>(null);
   const [copyId, setCopyId] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
   const [toast, say] = useToast();
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -50,7 +60,9 @@ export function ListDetailPage() {
     setFresh('');
     input.current?.focus();
   };
-  const toggle = (i: ListItem) => patch(i.id, (x) => ({ ...x, done: !x.done }));
+  const isRucksack = list.role === 'rucksack';
+  // Rucksack: offen → eingepackt → durchgestrichen → offen
+  const toggle = (i: ListItem) => patch(i.id, (x) => (isRucksack ? (x.done && !x.skipped ? { ...x, done: false, skipped: true } : x.skipped ? { ...x, done: false, skipped: false } : { ...x, done: true, skipped: false }) : { ...x, done: !x.done }));
   const toggleSub = (i: ListItem, sid: string) => patch(i.id, (x) => ({ ...x, sub: x.sub.map((s) => (s.id === sid ? { ...s, done: !s.done } : s)) }));
 
   const p = progress(list);
@@ -83,9 +95,9 @@ export function ListDetailPage() {
             { id: 'pin', label: list.pinned ? L('Nicht mehr oben anheften', 'Unpin') : L('Oben anheften', 'Pin to top'), icon: list.pinned ? <PinOff size={17} /> : <Pin size={17} />, onClick: () => put({ ...list, pinned: !list.pinned }) },
             ...(check ? [
               { id: 'hide', label: L('Erledigtes ausblenden', 'Hide done items'), icon: list.hideDone ? <Eye size={17} /> : <EyeOff size={17} />, checked: !!list.hideDone, onClick: () => put({ ...list, hideDone: !list.hideDone }) },
-              { id: 'reset', label: L('Alle Haken entfernen', 'Clear all ticks'), hint: L('Die Liste bleibt, nur die Haken gehen – gut für Wiederkehrendes', 'The list stays, only the ticks go – good for repeating things'), icon: <RotateCcw size={17} />, onClick: () => { const before = list; put({ ...list, items: list.items.map((i) => ({ ...i, done: false, sub: i.sub.map((s) => ({ ...s, done: false })) })) }); say(L('Alle Haken entfernt.', 'All ticks cleared.'), { label: L('Zurück', 'Undo'), run: () => put(before) }); } },
+              { id: 'reset', label: L('Alle Haken entfernen', 'Clear all ticks'), hint: L('Die Liste bleibt, nur die Haken gehen – gut für Wiederkehrendes', 'The list stays, only the ticks go – good for repeating things'), icon: <RotateCcw size={17} />, onClick: () => { const before = list; put({ ...list, items: list.items.map((i) => ({ ...i, done: false, skipped: false, sub: i.sub.map((s) => ({ ...s, done: false })) })) }); say(L('Alle Haken entfernt.', 'All ticks cleared.'), { label: L('Zurück', 'Undo'), run: () => put(before) }); } },
             ] : []),
-            { id: 'dup', label: L('Liste doppeln', 'Duplicate list'), icon: <Copy size={17} />, onClick: () => { const c = newList({ ...list, title: `${list.title} ${L('(Kopie)', '(copy)')}`, pinned: false, archived: false, photo: undefined, items: list.items.map((i) => newItem(i.text, { note: i.note, sub: i.sub.map((s) => ({ ...s, id: `${s.id}_c${Math.random().toString(36).slice(2, 5)}`, done: false })) })) }); saveList(c); say(L('Kopie angelegt.', 'Copy created.'), { label: L('Öffnen', 'Open'), run: () => navigate(`/listen/${c.id}`) }); } },
+            { id: 'dup', label: L('Liste doppeln', 'Duplicate list'), icon: <Copy size={17} />, onClick: () => { const c = newList({ ...list, title: `${list.title} ${L('(Kopie)', '(copy)')}`, role: undefined, pinned: false, archived: false, photo: undefined, items: list.items.map((i) => newItem(i.text, { note: i.note, sub: i.sub.map((s) => ({ ...s, id: `${s.id}_c${Math.random().toString(36).slice(2, 5)}`, done: false })) })) }); saveList(c); say(L('Kopie angelegt.', 'Copy created.'), { label: L('Öffnen', 'Open'), run: () => navigate(`/listen/${c.id}`) }); } },
             { id: 'archive', label: list.archived ? L('Aus dem Archiv holen', 'Restore from archive') : L('Archivieren', 'Archive'), hint: list.archived ? undefined : L('Verschwindet von der Übersicht, nichts geht verloren', 'Leaves the overview, nothing is lost'), icon: list.archived ? <ArchiveRestore size={17} /> : <Archive size={17} />, divider: true, onClick: () => { put({ ...list, archived: !list.archived, pinned: list.archived ? list.pinned : false }); if (!list.archived) navigate('/listen'); } },
           ]} />
         </div>
@@ -93,7 +105,7 @@ export function ListDetailPage() {
       <div className="px-5 pb-28">
         {list.photo && <ListPhoto id={list.photo} className="w-full h-32 rounded-2xl mb-3" />}
         <div className="flex items-center gap-3 mb-1">
-          <span className="w-11 h-11 rounded-xl flex items-center justify-center text-[24px] shrink-0" style={{ background: `${list.color}40`, border: `1.5px solid ${list.color}` }} aria-hidden>{list.emoji}</span>
+          <span className="w-11 h-11 rounded-xl flex items-center justify-center text-[24px] shrink-0" style={{ background: `${list.color}40`, border: `1.5px solid ${list.color}` }} aria-hidden>{isRucksack ? <RucksackIcon size={30} accent={list.color} /> : list.emoji}</span>
           <div className="min-w-0 flex-1">
             <h1 className="text-[22px] leading-tight break-words" data-testid="list-heading">{list.title}</h1>
             <p className="text-[12.5px] text-[var(--color-text-muted)]" data-testid="list-progress">
@@ -102,7 +114,20 @@ export function ListDetailPage() {
             </p>
           </div>
         </div>
+        <ListBelongsTo list={list} />
         {list.note && <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed whitespace-pre-wrap my-3 flex gap-2"><StickyNote size={15} className="shrink-0 mt-1" />{list.note}</p>}
+
+        {isRucksack && (
+          <div className="rounded-2xl border p-3 my-3 flex flex-col gap-2" style={{ borderColor: list.color, background: `${list.color}14` }} data-testid="rucksack-bar">
+            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{L('Notfallrucksack beim Sicherheitsplan. Ein Tipp auf den Haken: eingepackt → durchgestrichen (nicht dabei) → offen.', 'Emergency backpack in the safety plan. Tap the box: packed → crossed out (not with me) → open.')}</p>
+            <div className="flex flex-wrap gap-2 items-center">
+              <RucksackPlayButton onClick={() => setPlaying(true)} />
+              <button type="button" onClick={() => { finishPacking(); say(L('Gepackt – der Stand steht jetzt im PDF, die Liste ist wieder frei.', 'Packed – the state is now in the PDF, the list is clear again.')); }} className="h-12 px-5 rounded-full border text-[14.5px]" style={{ borderColor: list.color }} data-testid="rucksack-finish-bar">{L('Fertig gepackt', 'Finished packing')}</button>
+              <Link to="/sicherheit/plan" className="text-[13.5px] text-[var(--color-primary)] underline underline-offset-2 py-2" data-testid="rucksack-to-plan">{L('Zum Sicherheitsplan', 'To the safety plan')}</Link>
+            </div>
+            {rucksackStore.get().lastPacked && <p className="text-[12px] text-[var(--color-text-faint)]">{L('Zuletzt gepackt: ', 'Last packed: ')}{new Date(rucksackStore.get().lastPacked!.at).toLocaleDateString('de-DE')}</p>}
+          </div>
+        )}
 
         <form className="flex gap-2 my-4" onSubmit={(e) => { e.preventDefault(); add(); }}>
           <input ref={input} className="input flex-1" value={fresh} onChange={(e) => setFresh(e.target.value)} placeholder={L('Neuer Punkt …', 'New item …')} enterKeyHint="done" data-testid="list-add-input" />
@@ -117,13 +142,13 @@ export function ListDetailPage() {
               <div className="flex items-start">
                 {check ? (
                   <button type="button" onClick={() => toggle(i)} className="w-12 min-h-[48px] shrink-0 flex items-center justify-center" aria-label={i.done ? L('Wieder öffnen', 'Reopen') : L('Abhaken', 'Tick off')} aria-pressed={i.done} data-testid="list-check">
-                    <span className="w-[26px] h-[26px] rounded-lg border-2 flex items-center justify-center transition-colors" style={{ borderColor: i.done ? list.color : 'var(--color-border-strong)', background: i.done ? list.color : 'transparent' }}>{i.done && <Check size={16} color="#fff" strokeWidth={3} />}</span>
+                    <span className="w-[26px] h-[26px] rounded-lg border-2 flex items-center justify-center transition-colors" style={{ borderColor: i.done || i.skipped ? list.color : 'var(--color-border-strong)', background: i.done && !i.skipped ? list.color : 'transparent' }}>{i.skipped ? <X size={16} color={list.color} strokeWidth={3} /> : i.done && <Check size={16} color="#fff" strokeWidth={3} />}</span>
                   </button>
                 ) : (
                   <span className="w-9 min-h-[48px] shrink-0 flex items-center justify-end pr-1 text-[22px] leading-none" style={{ color: list.color }} aria-hidden>•</span>
                 )}
                 <button type="button" onClick={() => setItemId(i.id)} className="flex-1 min-w-0 text-left py-3 pr-1" data-testid="list-item-open">
-                  <span className="block text-[15.5px] leading-snug break-words" style={{ color: i.done ? 'var(--color-text-faint)' : 'var(--color-text)', textDecoration: i.done ? 'line-through' : 'none' }}>{i.text}</span>
+                  <span className="block text-[15.5px] leading-snug break-words" style={{ color: i.done || i.skipped ? 'var(--color-text-faint)' : 'var(--color-text)', textDecoration: i.done || i.skipped ? 'line-through' : 'none' }}>{i.text}</span>
                   {i.note && <span className="block text-[12.5px] text-[var(--color-text-muted)] mt-0.5 whitespace-pre-wrap" style={i.done ? { opacity: 0.6 } : undefined}>{i.note}</span>}
                 </button>
                 <button type="button" onClick={() => setCopyId(i.id)} className="w-11 h-12 shrink-0 flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('In eine andere Liste legen', 'Put on another list')} title={L('Auch auf eine andere Liste', 'Also on another list')} data-testid="list-item-to-other">
@@ -193,7 +218,37 @@ export function ListDetailPage() {
           onNew={(title, move) => { const t = saveList(newList({ title, kind: list.kind, color: list.color })); doCopy(t, move, itemCopy); }}
         />
       )}
+      {playing && <RucksackPlayer onClose={() => setPlaying(false)} />}
       {toast}
+    </div>
+  );
+}
+
+function targetOf(kind: string, id: string): { label: string; to: string } | null {
+  if (kind === 'bridge') { const b = bridgesRepo.getById(id); return b ? { label: b.title, to: `/bruecken/${id}` } : null; }
+  if (kind === 'resource') { const r = resourcesRepo.getById(id); return r ? { label: r.title, to: `/entdecken/ressourcen?open=${id}` } : null; }
+  if (kind === 'routine') { const r = routinesRepo.getById(id); return r ? { label: r.title, to: '/entdecken/garten' } : null; }
+  if (kind === 'project') { const p = projectsRepo.getById(id); return p ? { label: p.title, to: `/entdecken/projekte/${id}` } : null; }
+  if (kind === 'contact') { const c = networkRepo.getById(id); return c ? { label: c.name, to: '/sicherheit/netzwerk' } : null; }
+  return null;
+}
+
+/** Kategorie + „hängt dran“: wo diese Liste verknüpft ist, mit Sprung dorthin */
+function ListBelongsTo({ list }: { list: UserList }) {
+  const { lang } = useL();
+  const cat = list.categoryId ? listCategoriesStore.get().find((c) => c.id === list.categoryId) : undefined;
+  const targets = linksOfList(list.id)
+    .map((x) => ({ x, t: targetOf(x.kind, x.refId) }))
+    .filter((r): r is { x: typeof r.x; t: { label: string; to: string } } => !!r.t);
+  if (!cat && targets.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 my-2" data-testid="list-belongs">
+      {cat && <span className="text-[12.5px] px-2.5 py-1 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text-muted)]">{cat.emoji} {cat.name}</span>}
+      {targets.map(({ x, t }) => (
+        <Link key={`${x.kind}${x.refId}`} to={t.to} className="text-[12.5px] px-2.5 py-1 rounded-full text-[var(--color-primary)] border border-[var(--color-primary)]" data-testid="list-belongs-link">
+          {lang === 'en' ? LINK_KIND_LABEL[x.kind][1] : LINK_KIND_LABEL[x.kind][0]}: {t.label} →
+        </Link>
+      ))}
     </div>
   );
 }

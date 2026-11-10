@@ -3,6 +3,8 @@ import { useSettings } from './SettingsContext';
 import { customPalettesRepo, derivePaletteVars } from '../services/customPalettes';
 import { BUILT_IN_PALETTE_IDS } from '../data/types';
 import { ensureContrast, parseColor, toHex } from '../services/contrast';
+import { WESEN_PALETTE_ID, saveWesenPalette, type WesenPreset } from '../services/wesenColors';
+import { getAnyLichtwesen } from '../components/companion/customLichtwesen';
 
 const CUSTOM_PALETTE_VAR_NAMES = [
   '--color-bg',
@@ -25,6 +27,9 @@ const CUSTOM_PALETTE_VAR_NAMES = [
  */
 export function ThemeEffect() {
   const { settings } = useSettings();
+  // Wesen-Farben: solange diese Palette aktiv ist, folgt sie der Farbe des Wesens (auch nach einem Wechsel)
+  const wesenColor = getAnyLichtwesen(settings.selectedBrainId).color;
+  const wesenKey = settings.palette === WESEN_PALETTE_ID ? `${wesenColor}|${settings.wesenColorPreset ?? 4}` : '';
 
   useEffect(() => {
     const root = document.documentElement;
@@ -47,6 +52,7 @@ export function ThemeEffect() {
 
   useEffect(() => {
     const root = document.documentElement;
+    if (settings.palette === WESEN_PALETTE_ID) saveWesenPalette(wesenColor, (settings.wesenColorPreset ?? 4) as WesenPreset['n']);
     const isBuiltIn = BUILT_IN_PALETTE_IDS.includes(settings.palette);
 
     if (isBuiltIn) {
@@ -67,7 +73,7 @@ export function ThemeEffect() {
       const vars = derivePaletteVars(custom);
       Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
     }
-  }, [settings.palette]);
+  }, [settings.palette, wesenKey]);
 
   // Whatever the palette: text stays readable. Runs after the palette /
   // theme effects above; only sets a colour when the stylesheet's own value
@@ -103,7 +109,7 @@ export function ThemeEffect() {
     fix('--color-primary-strong', 4.5);
     const soft = get('--color-primary-soft');
     if (soft) fix('--color-primary-soft-text', 4.5, [soft]);
-  }, [settings.palette, settings.themeMode, resolvedTheme]);
+  }, [settings.palette, settings.themeMode, resolvedTheme, wesenKey]);
 
   useEffect(() => {
     document.documentElement.setAttribute(

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { AttachedLists } from '../lists/AttachedLists';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -111,6 +112,7 @@ export function RoutineEditorPage() {
       <TopBar onBack={() => goBack(navigate, '/entdecken/garten')} />
       <div className="px-5 pb-10">
         <h1 className="text-[24px] mb-4">{existing ? rt.editorEdit : rt.editorNew}</h1>
+        {existing && <AttachedLists kind="routine" refId={existing.id} contextTitle={existing.title} />}
 
         <label className="block mb-4">
           <span className="block text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5">{rt.titleLabel}</span>

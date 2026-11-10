@@ -139,11 +139,11 @@ button {
  * viewport afterwards.
  */
 @keyframes card-reveal {
-  from { opacity: 0; transform: scale(0.92) translateY(14px); }
+  from { opacity: 0; transform: scale(0.88) translateY(22px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 .card-reveal {
-  animation: card-reveal 0.6s cubic-bezier(0.2, 0.8, 0.3, 1);
+  animation: card-reveal 0.85s cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 @media (prefers-reduced-motion: reduce) {
   .card-reveal {
@@ -384,16 +384,31 @@ button {
 }
 
 .page-transition {
-  animation: page-transition-in 0.55s var(--ease-soft) both;
+  animation: page-transition-in 0.8s var(--ease-soft) both;
 }
 
 /* Press feedback used across cards, chips, and rows app-wide */
 .press-feedback {
-  transition: transform 0.15s var(--ease-soft);
+  transition: transform 0.28s var(--ease-soft);
 }
 .press-feedback:active {
-  transform: scale(0.97);
+  transform: scale(0.94);
 }
+
+/* Deutlicheres Antippen (hooks/useTapPulse.ts): kurzes Eindrücken, Zurückfedern und ein auslaufender Ring */
+@keyframes tap-pulse {
+  0%   { transform: scale(1);    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 38%, transparent); }
+  28%  { transform: scale(0.93); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 30%, transparent); }
+  62%  { transform: scale(1.025); box-shadow: 0 0 0 11px color-mix(in srgb, var(--color-primary) 10%, transparent); }
+  100% { transform: scale(1);    box-shadow: 0 0 0 16px color-mix(in srgb, var(--color-primary) 0%, transparent); }
+}
+.tap-pulse {
+  animation: tap-pulse 0.5s var(--ease-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tap-pulse { animation: none; }
+}
+[data-reduce-motion='true'] .tap-pulse { animation: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-in {
@@ -675,19 +690,81 @@ button {
   0% { transform: translateY(-20px) translateX(0) rotate(0deg); opacity: 0; }
   10% { opacity: 0.5; }
   90% { opacity: 0.5; }
-  100% { transform: translateY(340px) translateX(30px) rotate(220deg); opacity: 0; }
+  100% { transform: translateY(var(--fall, 340px)) translateX(30px) rotate(220deg); opacity: 0; }
 }
 @keyframes snow-fall-ambient {
   0% { transform: translateY(-20px) translateX(0); opacity: 0; }
   10% { opacity: 0.6; }
   90% { opacity: 0.6; }
-  100% { transform: translateY(340px) translateX(18px); opacity: 0; }
+  100% { transform: translateY(var(--fall, 340px)) translateX(18px); opacity: 0; }
 }
 @keyframes petal-fall {
   0% { transform: translateY(-20px) translateX(0) rotate(0deg); opacity: 0; }
   10% { opacity: 0.55; }
   90% { opacity: 0.55; }
-  100% { transform: translateY(340px) translateX(-24px) rotate(-160deg); opacity: 0; }
+  100% { transform: translateY(var(--fall, 340px)) translateX(-24px) rotate(-160deg); opacity: 0; }
+}
+@keyframes fx-sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  45% { opacity: 0.95; transform: scale(1.1) rotate(45deg); }
+  70% { opacity: 0.35; transform: scale(0.7) rotate(70deg); }
+}
+@keyframes star-fall {
+  0% { transform: translateY(-20px) translateX(0) rotate(0deg) scale(0.8); opacity: 0; }
+  12% { opacity: 0.85; }
+  50% { transform: translateY(calc(var(--fall, 340px) * 0.5)) translateX(10px) rotate(90deg) scale(1.05); opacity: 0.7; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(var(--fall, 340px)) translateX(-8px) rotate(180deg) scale(0.85); opacity: 0; }
+}
+@keyframes fx-ray {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.85; }
+}
+@keyframes fx-firefly {
+  0% { transform: translate(0, 0); opacity: 0.2; }
+  25% { transform: translate(18px, -10px); opacity: 1; }
+  50% { transform: translate(6px, 14px); opacity: 0.35; }
+  75% { transform: translate(-16px, 4px); opacity: 1; }
+  100% { transform: translate(0, 0); opacity: 0.2; }
+}
+@keyframes fx-bubble {
+  0% { transform: translateY(0) translateX(0) scale(0.7); opacity: 0; }
+  12% { opacity: 0.9; }
+  50% { transform: translateY(calc(var(--fall, 340px) * -0.5)) translateX(10px) scale(1); opacity: 0.85; }
+  100% { transform: translateY(calc(var(--fall, 340px) * -1)) translateX(-6px) scale(1.12); opacity: 0; }
+}
+@keyframes fx-heart {
+  0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0; }
+  14% { opacity: 0.85; }
+  50% { transform: translateY(calc(var(--fall, 340px) * -0.5)) translateX(12px) scale(1); opacity: 0.75; }
+  100% { transform: translateY(calc(var(--fall, 340px) * -1)) translateX(-10px) scale(0.9); opacity: 0; }
+}
+@keyframes fx-butterfly {
+  0% { transform: translate(0, 0); opacity: 0; }
+  8% { opacity: 0.9; }
+  25% { transform: translate(28vw, -16px); }
+  50% { transform: translate(55vw, 14px); }
+  75% { transform: translate(82vw, -10px); }
+  92% { opacity: 0.9; }
+  100% { transform: translate(108vw, 6px); opacity: 0; }
+}
+.fx-wings { animation: fx-flap 0.5s ease-in-out infinite; transform-origin: 50% 60%; }
+@keyframes fx-flap {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.55); }
+}
+@keyframes fx-rain {
+  0% { transform: translateY(-10px); opacity: 0; }
+  15% { opacity: 0.85; }
+  100% { transform: translateY(calc(var(--fall, 340px) + 20px)); opacity: 0; }
+}
+@keyframes fx-feather {
+  0% { transform: translateY(-20px) translateX(0) rotate(-20deg); opacity: 0; }
+  10% { opacity: 0.9; }
+  30% { transform: translateY(calc(var(--fall, 340px) * 0.3)) translateX(26px) rotate(25deg); }
+  60% { transform: translateY(calc(var(--fall, 340px) * 0.6)) translateX(-22px) rotate(-30deg); }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(var(--fall, 340px)) translateX(14px) rotate(20deg); opacity: 0; }
 }
 @keyframes pollen-drift {
   0%, 100% { transform: translateY(0) translateX(0); opacity: 0.15; }
@@ -950,9 +1027,9 @@ button {
 .proj-pop { animation: proj-pop 520ms cubic-bezier(.2,.9,.3,1.2) both; }
 .proj-float { animation: proj-float 5.5s ease-in-out infinite; }
 .proj-glow { animation: proj-glow 2.6s ease-in-out infinite; }
-.proj-tile { transition: transform 160ms ease, box-shadow 220ms ease; }
+.proj-tile { transition: transform 260ms ease, box-shadow 320ms ease; }
 .proj-tile:hover { box-shadow: 0 0 0 5px color-mix(in srgb, var(--tile-c) 20%, transparent), 0 0 22px 4px color-mix(in srgb, var(--tile-c) 40%, transparent); }
-.proj-tile:active { transform: scale(0.94); }
+.proj-tile:active { transform: scale(0.9); }
 .proj-center-ring { animation: proj-ring 3.2s ease-out infinite; }
 @media (prefers-reduced-motion: reduce) {
   .proj-pop, .proj-float, .proj-glow, .proj-center-ring { animation: none !important; }

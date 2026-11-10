@@ -196,6 +196,7 @@ export function ExplorePage() {
         </div>
       </div>
       <p className="text-[14px] text-[var(--color-text-muted)] mb-3">{t.explore.subtitle}</p>
+      <Link to="/entdecken/glossar" className="inline-block text-[13px] text-[var(--color-primary)] underline underline-offset-2 mb-3 py-1" data-testid="explore-glossar-link">📖 {lang === 'en' ? 'Dictionary: what means what?' : 'Wörterbuch: Was heißt was?'}</Link>
       <PasteSharedButton className="mb-3" />
       <div className="flex gap-1 p-1 rounded-full mb-4" style={{ background: 'var(--color-surface-muted)' }} role="group" aria-label={t.nav.explore}>
         {(['map', 'list'] as const).map((v) => (

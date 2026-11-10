@@ -18,6 +18,7 @@ import { tensionRepo } from '../polyvagal/tensionRepo';
 import { MiniCurve } from '../polyvagal/MiniCurve';
 import { WeatherWheel } from './WeatherWheel';
 import { CheckInFollowUp } from './CheckInFollowUp';
+import { HintCard } from '../../components/hints/HintCard';
 import { WeatherAnimation } from './WeatherAnimation';
 import { useSettings } from '../../state/SettingsContext';
 import { createId } from '../../services/storage/repository';
@@ -404,6 +405,7 @@ export function InnerWeatherPage() {
             </div>
           )}
           <CheckInFollowUp />
+          <HintCard hintId="after-checkin" delayMs={2500} />
           <div className="w-full flex flex-col gap-3 mt-4">
             <Button
               fullWidth

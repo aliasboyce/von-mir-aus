@@ -629,8 +629,23 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Mehr Sprüche-Vorlagen und mehr Prompt-Vorlagen
 - Weitere Insider-Texte fürs Wesen-Spiel (die ersten Sätze nach Zeit-Kategorien sind drin: <8 s / 8–20 s / 20–35 s / ab 35 s — Schwellen mit dem Nutzer abstimmen)
 - Tagebuch-Formatierung in Briefen an mich (bisher nur Tagebuch); Buch-Wort auch für Mindmaps?
-- Mail-Adresse für „Kurz was an Boycie melden“ eintragen (QUICK_FEEDBACK_MAIL in services/testSupport.ts; wird dann im Dialog angezeigt)
 - Rechte der 8 Ablenkungsbilder (public/ablenkung) klären, bevor die App über den geschlossenen Test hinaus verteilt wird (fremde Memes, Figuren, ein Foto einer realen Person)
+
+## Stand 10.11.2026 (erledigt)
+- Menü-Ton fest = „Original“ (tief, dumpf); Auswahl entfernt.
+- Mail für „Kurz was an Boycie melden“: vonmirausjetzt@gmx.de eingetragen.
+- Wörterbuch: /entdecken/glossar – 194 Einträge in 7 Rubriken (Begriffe der App, Funktionen [automatisch aus appOverviewData], Zugang & Zustände, Fachwörter, Skills & Methoden, Sicherheit, Darstellung), Suche, Link pro Eintrag. Daten: features/glossar/glossarData.ts (neue Begriffe dort in TERMS eintragen).
+- Skills-Seite ruhiger: Filter eingeklappt (öffnen sich selbst, wenn ein Filter aktiv ist), „Neue Skillkette“ als leiser Link.
+- Startseite ruhiger (Schalter: Einstellungen → Design → „Ruhige Startseite“, settings.calmHome; undefined = an): Alltag, Garten, Heute, Erfolge, Weiter-Karte stecken hinter „Mehr“.
+- Mehr Hinweis-Karten: after-checkin, after-skillkette, after-bruecke; Tipps: skillketten, mindmap, suche, startseite.
+- PrivacyPage: „Darstellung“ → „Design“.
+- Notfallrucksack (Sicherheitsplan, freiwillig): features/safetyPlan/rucksack*.ts(x), Liste mit role 'rucksack', Player „Durchgehen“, „Fertig gepackt“ → PDF + Reset.
+- Listen: Kategorien (list-categories) + Verknüpfungen (list-links) an Brücke, Ressource, Routine, Projekt, Kontakt (AttachedLists.tsx).
+- Animationen: Antippen deutlicher (useTapPulse, längere Übergänge/Karten-Einblendung).
+- Startseiten-Bewegung wählbar (services/homeEffects.ts, HomeEffectLayer, EffectPicker; 15 Optionen, Dichte, Himmel an/aus).
+- Wesen-Farben (services/wesenColors.ts, WesenColorPicker): 5 Voreinstellungen als automatisch gepflegte eigene Palette, mit „Zurück zum vorigen Stand“.
+- BEISPIELE_DURCHSICHT.md: Bericht zu irritierenden Vorlagen – noch nichts geändert, wartet auf Entscheidung.
+- Offen/ehrlich: nicht auf echtem Handy getestet; Playwright-Gesamttest (alte Suite) ging mit dem Container verloren, nur Schnelltest + tsc + Build.
 
 ## Grundsatzprinzipien (als Leitlinie bei jeder künftigen Entscheidung)
 - Resonanz statt Optimierung, Wahl statt Zwang, Zugang statt Leistung

@@ -4,6 +4,7 @@ import { WorldAmbiance } from '../features/worlds/WorldAmbiance';
 import { markFirstUse, requestPersistentStorage } from '../services/testSupport';
 import { pendingLetterStore } from '../features/briefAnMich/lettersRepo';
 import { useEffect, useRef, useState } from 'react';
+import { useTapPulse } from '../hooks/useTapPulse';
 import { runStartupMigrations } from '../services/migrations';
 import { Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -81,6 +82,7 @@ export function AppShell() {
   }, [location.pathname]);
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
+  useTapPulse(!settings.reduceMotion);
   // Runs once, synchronously, before any page below reads saved data.
   useState(() => {
     runStartupMigrations();

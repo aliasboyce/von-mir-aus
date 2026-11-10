@@ -115,83 +115,21 @@ function scheduleClick(audioCtx: AudioContext) {
 }
 
 
-/** "Anderer Ton fuer die Hauptmenue-Punkte"-Auftrag — gewaehlt: die
- * waermere, tonale Variante (B) statt des Rausch-Klicks, damit sich
- * die untere Hauptnavigation eigenstaendig anfuehlt. */
-export type MenuSoundVariant = 'original' | 'thud' | 'phone';
-let menuVariant: MenuSoundVariant = 'original';
-
-/** Plays one of the three main-menu tones. 'original' is exactly the tone that was picked in the sound workshop
- * (pure sine, 180 Hz, soft 15 ms attack, gone after 90 ms): dull, deep, light. */
-function playMenuVariant(audioCtx: AudioContext, variant: MenuSoundVariant) {
+/** Main-menu tone: the original from the sound workshop – a pure sine, 180 Hz, soft 15 ms attack, gone after 90 ms.
+ * Deep, dull, light. (Once chosen by ear on 10.11.; the other variants were removed.) */
+function scheduleMenu(audioCtx: AudioContext) {
   const now = audioCtx.currentTime;
-  if (variant === 'thud') {
-    // Minecraft-like: a dull wooden "tock" – a sine that drops from ~260 to ~120 Hz, plus a tiny muffled tick.
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(260, now);
-    osc.frequency.exponentialRampToValueAtTime(120, now + 0.07);
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.13, now + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(now);
-    osc.stop(now + 0.12);
-    const source = audioCtx.createBufferSource();
-    source.buffer = getNoiseBuffer(audioCtx);
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 420;
-    const g2 = audioCtx.createGain();
-    g2.gain.setValueAtTime(0.05, now);
-    g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.03);
-    source.connect(filter);
-    filter.connect(g2);
-    g2.connect(audioCtx.destination);
-    source.start(now);
-    source.stop(now + 0.04);
-    return;
-  }
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.type = 'sine';
   osc.frequency.value = 180;
   gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(variant === 'phone' ? 0.1 : 0.09, now + 0.015);
+  gain.gain.linearRampToValueAtTime(0.09, now + 0.015);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
   osc.connect(gain);
   gain.connect(audioCtx.destination);
   osc.start(now);
   osc.stop(now + 0.1);
-  if (variant === 'phone') {
-    // one quiet overtone an octave up: phone speakers play it, the ear still hears the deep note
-    const o2 = audioCtx.createOscillator();
-    const g2 = audioCtx.createGain();
-    o2.type = 'sine';
-    o2.frequency.value = 360;
-    g2.gain.setValueAtTime(0, now);
-    g2.gain.linearRampToValueAtTime(0.035, now + 0.015);
-    g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
-    o2.connect(g2);
-    g2.connect(audioCtx.destination);
-    o2.start(now);
-    o2.stop(now + 0.09);
-  }
-}
-
-function scheduleMenu(audioCtx: AudioContext) {
-  playMenuVariant(audioCtx, menuVariant);
-}
-
-/** Settings preview: play a variant right away (needs a user gesture, which the tap is). */
-export function previewMenuSound(variant: MenuSoundVariant) {
-  const audioCtx = getContext();
-  if (!audioCtx) return;
-  const go = () => { try { playMenuVariant(audioCtx, variant); } catch { /* nice-to-have */ } };
-  if (audioCtx.state !== 'running') Promise.race([audioCtx.resume(), new Promise((r) => setTimeout(r, 300))]).then(go).catch(() => {});
-  else go();
 }
 
 /** "Extra Ton fuer Kreuz/Schliessen"-Auftrag — gewaehlt: Variante A,
@@ -472,9 +410,8 @@ export function playCompanionSound(kind: CompanionSoundKind, settings: Pick<User
   }
 }
 
-export function playSound(kind: SoundKind, settings: Pick<UserSettings, 'soundsEnabled'> & { menuSound?: MenuSoundVariant }) {
+export function playSound(kind: SoundKind, settings: Pick<UserSettings, 'soundsEnabled'>) {
   if (!settings.soundsEnabled) return;
-  menuVariant = settings.menuSound ?? 'original';
   const audioCtx = getContext();
   if (!audioCtx) return;
 

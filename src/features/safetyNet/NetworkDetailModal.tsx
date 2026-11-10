@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AttachedLists } from '../lists/AttachedLists';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { buildShareText } from '../../services/sharedLinks';
 import { useNavigate } from 'react-router-dom';
@@ -179,6 +180,8 @@ export function NetworkDetailModal({
           )}
 
           {active.category === 'person' && <NextAppointmentBlock personId={active.id} personName={active.name} />}
+
+          <AttachedLists kind="contact" refId={active.id} contextTitle={active.name} />
 
           {(active.phone || active.email) && (
             <div className="flex gap-2">

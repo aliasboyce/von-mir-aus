@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, Check, Copy, MoveRight, Plus, X } from 'lucide-reac
 import { Modal } from '../../components/ui/Modal';
 import { PhotoField, DeleteButton, ghostBtn, primaryBtn, pill } from '../budget/budgetUi';
 import { useL } from '../projects/useL';
-import { LIST_COLORS, LIST_EMOJIS, itemId, newList, type ListItem, type ListKind, type UserList } from './listsModel';
+import { CATEGORY_SUGGESTIONS, LIST_COLORS, LIST_EMOJIS, addListCategory, itemId, listCategoriesStore, newList, removeListCategory, renameListCategory, type ListCategory, type ListItem, type ListKind, type UserList } from './listsModel';
 
 const lbl = 'block text-[12.5px] text-[var(--color-text-muted)] mb-1';
 
@@ -23,10 +23,13 @@ export function ListEditSheet({ initial, onClose, onSave, onDelete }: { initial?
   const [color, setColor] = useState(initial?.color ?? LIST_COLORS[1]);
   const [photo, setPhoto] = useState<string | undefined>(initial?.photo);
   const [note, setNote] = useState(initial?.note ?? '');
+  const [categoryId, setCategoryId] = useState<string | undefined>(initial?.categoryId);
+  const [cats, setCats] = useState<ListCategory[]>(() => listCategoriesStore.get());
+  const [newCat, setNewCat] = useState('');
   const save = () => {
     if (!title.trim()) return;
     const base = initial ?? newList({ title: title.trim() });
-    onSave({ ...base, title: title.trim(), kind, emoji: emoji || '📝', color, photo, note: note.trim() || undefined });
+    onSave({ ...base, title: title.trim(), kind, emoji: emoji || '📝', color, photo, categoryId, note: note.trim() || undefined });
   };
   return (
     <Modal open onClose={onClose} title={initial ? L('Liste ändern', 'Change list') : L('Neue Liste', 'New list')}>
@@ -67,6 +70,19 @@ export function ListEditSheet({ initial, onClose, onSave, onDelete }: { initial?
             <label className="relative w-9 h-9 rounded-full overflow-hidden cursor-pointer" style={{ background: 'conic-gradient(#e8a83d,#7fb069,#6aa8c9,#9a7bc4,#d9778a,#e8a83d)' }} title={L('Eigene Farbe', 'Own colour')}>
               <input type="color" value={/^#[0-9a-f]{6}$/i.test(color) ? color : '#6aa8c9'} onChange={(e) => setColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" aria-label={L('Eigene Farbe', 'Own colour')} />
             </label>
+          </div>
+        </div>
+        <div data-testid="list-category-picker">
+          <span className={lbl}>{L('Kategorie (freiwillig)', 'Category (optional)')}</span>
+          <div className="flex gap-1.5 flex-wrap">
+            <button type="button" onClick={() => setCategoryId(undefined)} className={pill(!categoryId)} style={!categoryId ? { background: 'var(--color-primary)' } : undefined}>{L('Keine', 'None')}</button>
+            {cats.map((c) => (
+              <button key={c.id} type="button" onClick={() => setCategoryId(c.id)} className={pill(categoryId === c.id)} style={categoryId === c.id ? { background: 'var(--color-primary)' } : undefined} data-testid="list-category-option">{c.emoji} {c.name}</button>
+            ))}
+          </div>
+          <div className="flex gap-2 mt-1.5">
+            <input className="input flex-1" value={newCat} onChange={(e) => setNewCat(e.target.value)} placeholder={L('Neue Kategorie …', 'New category …')} data-testid="list-category-new-input" />
+            <button type="button" disabled={!newCat.trim()} onClick={() => { const c = addListCategory(newCat); setCats(listCategoriesStore.get()); setCategoryId(c.id); setNewCat(''); }} className="px-4 rounded-full border border-[var(--color-border-strong)] disabled:opacity-40" data-testid="list-category-new">{L('Anlegen', 'Create')}</button>
           </div>
         </div>
         <PhotoField id={photo} onChange={setPhoto} L={L} label={L('Foto (freiwillig, bleibt auf diesem Gerät)', 'Photo (optional, stays on this device)')} testId="list-photo" />
@@ -179,6 +195,42 @@ export function CopySheet({ item, lists, fromId, onClose, onPick, onNew }: {
           <input className="input flex-1" value={name} onChange={(e) => setName(e.target.value)} placeholder={L('Neue Liste …', 'New list …')} data-testid="list-copy-new-name" />
           <button type="button" disabled={!name.trim()} onClick={() => onNew(name.trim(), move)} className="h-11 px-4 rounded-full text-white text-[14px] disabled:opacity-40" style={{ background: 'var(--color-primary)' }} data-testid="list-copy-new"><Plus size={16} className="inline -mt-0.5" /> {L('Anlegen', 'Create')}</button>
         </div>
+      </div>
+    </Modal>
+  );
+}
+
+
+/** Kategorien anlegen, umbenennen, löschen (Listen bleiben dabei erhalten, nur ohne Kategorie). */
+export function CategoryManagerSheet({ onClose }: { onClose: () => void }) {
+  const { L } = useL();
+  const [cats, setCats] = useState<ListCategory[]>(() => listCategoriesStore.get());
+  const [name, setName] = useState('');
+  const reload = () => setCats(listCategoriesStore.get());
+  const unused = CATEGORY_SUGGESTIONS.filter((x) => !cats.some((c) => c.name.toLowerCase() === x.de.toLowerCase() || c.name.toLowerCase() === x.en.toLowerCase()));
+  return (
+    <Modal open onClose={onClose} title={L('Kategorien', 'Categories')}>
+      <div className="flex flex-col gap-3.5" data-testid="category-manager">
+        <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{L('Damit sortierst du deine Listen. Beim Löschen einer Kategorie bleiben die Listen erhalten.', 'Use them to sort your lists. Deleting a category keeps the lists.')}</p>
+        {cats.length === 0 && <p className="text-[13px] text-[var(--color-text-faint)]">{L('Noch keine Kategorie.', 'No category yet.')}</p>}
+        <ul className="flex flex-col gap-2">
+          {cats.map((c) => (
+            <li key={c.id} className="flex items-center gap-2" data-testid="category-row">
+              <input className="input w-14 text-center" value={c.emoji} onChange={(e) => { renameListCategory(c.id, c.name, Array.from(e.target.value).slice(-2).join('') || '🗂️'); reload(); }} aria-label={L('Symbol', 'Symbol')} />
+              <input className="input flex-1" value={c.name} onChange={(e) => { renameListCategory(c.id, e.target.value || ' ', undefined); reload(); }} aria-label={L('Name', 'Name')} />
+              <button type="button" onClick={() => { removeListCategory(c.id); reload(); }} className="w-10 h-10 flex items-center justify-center text-[var(--color-danger)]" aria-label={L('Kategorie löschen', 'Delete category')} data-testid="category-delete"><X size={17} /></button>
+            </li>
+          ))}
+        </ul>
+        {unused.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap">
+            {unused.map((x) => <button key={x.de} type="button" onClick={() => { addListCategory(L(x.de, x.en), x.emoji); reload(); }} className={pill(false)} data-testid="category-suggestion">+ {x.emoji} {L(x.de, x.en)}</button>)}
+          </div>
+        )}
+        <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (name.trim()) { addListCategory(name); setName(''); reload(); } }}>
+          <input className="input flex-1" value={name} onChange={(e) => setName(e.target.value)} placeholder={L('Eigene Kategorie …', 'Own category …')} data-testid="category-name-input" />
+          <button type="submit" disabled={!name.trim()} className={primaryBtn} style={{ background: 'var(--color-primary)' }} data-testid="category-add">{L('Anlegen', 'Create')}</button>
+        </form>
       </div>
     </Modal>
   );

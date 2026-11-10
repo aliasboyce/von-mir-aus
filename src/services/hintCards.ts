@@ -38,6 +38,24 @@ export const HINTS: HintDef[] = [
     links: [{ to: '/entdecken/garten', de: 'Zum Garten', en: 'To the garden' }],
   },
   {
+    id: 'after-checkin', kind: 'after',
+    de: { title: 'Check-in gemacht', text: 'Danke fürs Hinschauen. Dein Check-in landet in der Tageskurve – so siehst du mit der Zeit, wie es dir über den Tag geht, ohne etwas auswerten zu müssen. Du kannst jederzeit einen neuen machen, wenn sich etwas ändert.' },
+    en: { title: 'Check-in done', text: 'Thanks for looking. Your check-in goes into the day curve – over time you see how you are across the day without having to analyse anything. You can make a new one whenever something changes.' },
+    links: [{ to: '/entdecken/tageskurve', de: 'Tageskurve', en: 'Day curve' }, { to: '/zugang', de: 'Zum Zugang', en: 'To Zugang' }],
+  },
+  {
+    id: 'after-skillkette', kind: 'after',
+    de: { title: 'Kette durch', text: 'Eine Skillkette nimmt dir das Überlegen ab: Du musst nicht wissen, was als Nächstes kommt. Du kannst Ketten ändern oder eigene bauen – und jeden Schritt überspringen, wenn er gerade nicht hilft.' },
+    en: { title: 'Chain done', text: 'A skill chain takes the thinking off you: you do not have to know what comes next. You can change chains or build your own – and skip any step that does not help right now.' },
+    links: [{ to: '/entdecken/ressourcen/skillketten', de: 'Meine Skillketten', en: 'My skill chains' }, { to: '/wochenrueckblick', de: 'Wochenrückblick', en: 'Weekly review' }],
+  },
+  {
+    id: 'after-bruecke', kind: 'after',
+    de: { title: 'Brücke gebaut 🌉', text: 'Eine Brücke darf klein bleiben und in deinem Tempo wachsen. Sie hängt an Bedürfnissen und Werten – darum findest du sie auch im Zugang wieder. Hindernisse und Ressourcen kannst du jederzeit ergänzen.' },
+    en: { title: 'Bridge built 🌉', text: 'A bridge may stay small and grow at your pace. It is tied to needs and values – so you also find it again in Zugang. You can add obstacles and resources any time.' },
+    links: [{ to: '/bruecken', de: 'Meine Brücken', en: 'My bridges' }, { to: '/entdecken/glossar', de: 'Wörterbuch', en: 'Dictionary' }],
+  },
+  {
     id: 'tip-zugang-ressourcen', kind: 'tip',
     de: { title: 'Zugang und Ressourcen', text: 'Im Zugang findest du am Ende passende Skills, Orte und Hilfsmittel aus deiner Sammlung. Je mehr du in „Ressourcen" einträgst, desto besser passen die Vorschläge.' },
     en: { title: 'Zugang and resources', text: 'At the end of Zugang you find fitting skills, places and tools from your collection. The more you add under “Resources”, the better the suggestions fit.' },
@@ -54,6 +72,36 @@ export const HINTS: HintDef[] = [
     de: { title: 'Zurückschauen', text: 'Rückblick der Zugänge, Tageskurve und Wochenrückblick zeigen Muster, ohne zu bewerten. Schau rein, wenn du neugierig bist – nicht als Pflicht.' },
     en: { title: 'Looking back', text: 'The pass review, day curve and weekly review show patterns without judging. Take a look when you are curious – not as a duty.' },
     links: [{ to: '/zugang/rueckblick', de: 'Rückblick der Zugänge', en: 'Review of passes' }, { to: '/wochenrueckblick', de: 'Wochenrückblick', en: 'Weekly review' }],
+  },
+  {
+    id: 'tip-glossar', kind: 'tip',
+    de: { title: 'Was heißt was?', text: 'Im Wörterbuch stehen alle Wörter der App – Fachwörter, Begriffe, Funktionen – mit Suche, Rubriken und einem Link, der direkt dorthin führt.' },
+    en: { title: 'What means what?', text: 'The dictionary holds every word used in the app – technical terms, app terms, functions – with search, sections and a link that takes you right there.' },
+    links: [{ to: '/entdecken/glossar', de: 'Zum Wörterbuch', en: 'To the dictionary' }],
+  },
+  {
+    id: 'tip-skillketten', kind: 'tip',
+    de: { title: 'Skills hintereinander', text: 'Mehrere Skills lassen sich zu einer Kette verbinden. Dann läuft eine feste Reihenfolge ab, und du musst nicht überlegen, was als Nächstes kommt – gut für Tage, an denen der Kopf voll ist.' },
+    en: { title: 'Skills in a row', text: 'Several skills can be linked into a chain. A fixed order then runs and you do not have to think about what comes next – good for days when your head is full.' },
+    links: [{ to: '/entdecken/ressourcen/skillketten', de: 'Zu den Skillketten', en: 'To skill chains' }],
+  },
+  {
+    id: 'tip-mindmap', kind: 'tip',
+    de: { title: 'Sortieren auf einer Fläche', text: 'Wenn viel durcheinander ist, hilft manchmal eine Mindmap: Gedanken, Karten und Bilder auf einer Fläche hin- und herschieben. Sie kann auf Dinge in der App verweisen.' },
+    en: { title: 'Sorting on one canvas', text: 'When a lot is tangled, a mind map can help: move thoughts, cards and pictures around on one canvas. It can point to things in the app.' },
+    links: [{ to: '/entdecken/mindmap', de: 'Zur Mindmap', en: 'To mind map' }],
+  },
+  {
+    id: 'tip-suche', kind: 'tip',
+    de: { title: 'Nicht sicher, wo etwas ist?', text: 'Oben auf der Startseite ist die Lupe. Schreib ein Wort wie „Atmen“, „Angst“ oder „Schlaf“ – die Suche zeigt, was dazu in der App steht.' },
+    en: { title: 'Not sure where something is?', text: 'The magnifier is at the top of the start page. Type a word like “breathing”, “fear” or “sleep” – search shows what the app has on it.' },
+    links: [{ to: '/suche', de: 'Zur Suche', en: 'To search' }],
+  },
+  {
+    id: 'tip-startseite', kind: 'tip',
+    de: { title: 'Startseite ruhiger oder voller', text: 'Die Startseite zeigt nur das Wichtigste; der Rest steckt hinter „Mehr“. Wenn dir die volle Startseite lieber ist, kannst du das in den Einstellungen unter „Design“ umstellen.' },
+    en: { title: 'Start page calmer or fuller', text: 'The start page shows only the essentials; the rest sits behind “More”. If you prefer the fuller start page, you can switch that in Settings under “Design”.' },
+    links: [{ to: '/einstellungen?bereich=design', de: 'Zu Design', en: 'To Design' }],
   },
   {
     id: 'tip-bruecken', kind: 'tip',

@@ -1,4 +1,5 @@
 import { imageForShare } from '../../services/shareImage';
+import { AttachedLists } from '../lists/AttachedLists';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSettings } from '../../state/SettingsContext';
@@ -501,6 +502,8 @@ export function BridgeDetailPage() {
         <button onClick={() => setShowAccessGap(true)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
           🌉 {t.bridges.accessGapEntryCta}
         </button>
+
+        <AttachedLists kind="bridge" refId={bridge.id} contextTitle={bridge.title} />
 
         {bridge.tip && (
           <div className="flex items-start gap-3 rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)] p-4 mb-5">

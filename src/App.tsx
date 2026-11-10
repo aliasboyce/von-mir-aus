@@ -47,6 +47,7 @@ import { CompanionAboutPage } from './features/settings/CompanionAboutPage';
 import { PrivacyPage } from './features/settings/PrivacyPage';
 import { SourceLibraryPage } from './features/sources/SourceLibraryPage';
 import { NeedsCompassPage } from './features/accessWheel/NeedsCompassPage';
+import { GlossarPage } from './features/glossar/GlossarPage';
 import { ZugangskanaelePage } from './features/zugangskanaele/ZugangskanaelePage';
 import { BookmarksPage } from './features/bookmarks/BookmarksPage';
 import { FavoritesPage } from './features/favorites/FavoritesPage';
@@ -132,6 +133,7 @@ function App() {
                 <Route path="/kalender" element={<CalendarPage />} />
                 <Route path="/kalender/uebersicht" element={<CalendarOverviewPage />} />
                 <Route path="/quellen" element={<SourceLibraryPage />} />
+                <Route path="/entdecken/glossar" element={<GlossarPage />} />
                 <Route path="/entdecken/zugangskanaele" element={<ZugangskanaelePage />} />
                 <Route path="/entdecken/beduerfnis-kompass" element={<NeedsCompassPage />} />
                 <Route path="/entdecken/tageskurve" element={<PolyvagalPage />} />
