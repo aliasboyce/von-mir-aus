@@ -78,7 +78,7 @@ export function normalizePlan(plan: SafetyPlan): SafetyPlan {
 const EXAMPLES = {
   de: {
     warn: { gelb: 'Ich schlafe schlechter und bin abends unruhig.', orange: 'Ich ziehe mich mehr zurück als sonst.', rot: 'Ich habe das Gefühl, die Kontrolle zu verlieren.' },
-    help: { gelb: 'Kurz an die frische Luft gehen.', orange: '5-4-3-2-1: fünf Dinge sehen, vier hören, drei fühlen …', rot: 'Kaltes Wasser ins Gesicht, jemanden anrufen.' },
+    help: { gelb: 'Kurz an die frische Luft gehen.', orange: '5-4-3-2-1: fünf Dinge sehen, vier hören, drei fühlen …', rot: 'Jemanden anrufen. Wenn es für dich passt: kaltes Wasser ins Gesicht (nicht bei Herz- oder Kreislaufproblemen).' },
     sections: {
       waserschwert: 'Laute Musik in der Nacht.',
       wasbrauche: 'Ruhe und dass jemand kurz nachfragt, ohne zu drängen.',
@@ -88,7 +88,7 @@ const EXAMPLES = {
   },
   en: {
     warn: { gelb: 'I sleep worse and feel restless in the evening.', orange: 'I withdraw more than usual.', rot: 'I feel like I am losing control.' },
-    help: { gelb: 'Step outside for a moment.', orange: '5-4-3-2-1: see five things, hear four, feel three …', rot: 'Cold water on my face, call someone.' },
+    help: { gelb: 'Step outside for a moment.', orange: '5-4-3-2-1: see five things, hear four, feel three …', rot: 'Call someone. If it suits you: cold water on my face (not with heart or circulation problems).' },
     sections: {
       waserschwert: 'Loud music at night.',
       wasbrauche: 'Quiet, and someone checking in briefly without pushing.',
@@ -115,7 +115,18 @@ const OLD_SEED_TEXTS = new Set([
  * example wherever a part of the general plan is still empty. Examples are
  * never part of the PDF or the share text.
  */
+const OLD_ROT_EXAMPLES = ['Kaltes Wasser ins Gesicht, jemanden anrufen.', 'Cold water on my face, call someone.'];
+
 export function ensureExamples(plan: SafetyPlan, lang: 'de' | 'en'): SafetyPlan {
+  if (plan.examplesVersion === 1 && plan.name === 'Allgemeiner Plan') {
+    // Version 2: das Beispiel für Stufe Rot bekommt einen Hinweis zu Kälte (nur, wenn es unverändert ist)
+    const ex2 = EXAMPLES[lang];
+    return {
+      ...plan,
+      helpItems: plan.helpItems.map((h) => (h.example && OLD_ROT_EXAMPLES.includes(h.text) ? { ...h, text: ex2.help.rot } : h)),
+      examplesVersion: 2,
+    };
+  }
   if (plan.examplesVersion || plan.name !== 'Allgemeiner Plan') return plan;
   const ex = EXAMPLES[lang];
   const warningSignals = plan.warningSignals.map((w) => (OLD_SEED_TEXTS.has(w.text) ? { ...w, example: true } : w));
@@ -134,5 +145,5 @@ export function ensureExamples(plan: SafetyPlan, lang: 'de' | 'en'): SafetyPlan 
     if (items.length === 0 && examples.length === 0 && ex.sections[sec.key]) examples = [ex.sections[sec.key]];
     return { ...sec, items, examples };
   });
-  return { ...plan, warningSignals, helpItems, sections, examplesVersion: 1 };
+  return { ...plan, warningSignals, helpItems, sections, examplesVersion: 2 };
 }

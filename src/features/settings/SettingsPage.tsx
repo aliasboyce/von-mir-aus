@@ -46,6 +46,7 @@ import { createId } from '../../services/storage/repository';
 import { BUILT_IN_PALETTE_IDS } from '../../data/types';
 import { WesenColorPicker } from '../worlds/WesenColorPicker';
 import { EffectPicker } from '../worlds/EffectPicker';
+import { WorldPackPicker } from '../worlds/WorldPackPicker';
 import { WorldPicker } from '../worlds/WorldPicker';
 import { ScopePicker } from '../scope/ScopePicker';
 import { WesenInfoButton } from '../../components/companion/WesenInfoButton';
@@ -307,6 +308,7 @@ export function SettingsPage() {
           />
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5 leading-relaxed">{settings.language === 'en' ? 'On: only the essentials are visible, the rest sits behind one “More” button. Off: the fuller start page as before.' : 'An: nur das Wichtigste ist sichtbar, der Rest steckt hinter einem „Mehr“-Knopf. Aus: die volle Startseite wie vorher.'}</p>
         </Card>
+        <WorldPackPicker />
         <WorldPicker />
         <WesenColorPicker />
         <EffectPicker />
@@ -733,6 +735,14 @@ export function SettingsPage() {
             onChange={(v) => updateSettings({ hintCards: v })}
           />
           <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5 leading-relaxed">{settings.language === 'en' ? 'After a function ends, and now and then on the start page, a small card shows what it is good for and how it connects to other parts.' : 'Nach dem Ende einer Funktion und ab und zu auf der Startseite zeigt eine kleine Karte, wofür sie gut ist und womit sie verbunden ist.'}</p>
+          <div className="mt-3">
+            <ToggleRow
+              label={settings.language === 'en' ? 'Show each hint only the first time' : 'Jede Hinweis-Karte nur beim ersten Mal'}
+              checked={settings.hintsOnce !== false}
+              onChange={(v) => updateSettings({ hintsOnce: v })}
+            />
+            <p className="text-[12px] text-[var(--color-text-faint)] mt-1 leading-relaxed">{settings.language === 'en' ? 'On: every card shows once and then rests – less text. Off: cards may come back after a pause.' : 'An: jede Karte zeigt sich einmal und ruht dann – weniger Text. Aus: Karten dürfen nach einer Pause wiederkommen.'}</p>
+          </div>
           <button type="button" onClick={() => { resetHints(); setHintsReset(true); }} className="mt-3 text-[13px] text-[var(--color-primary)] underline underline-offset-2 py-1" data-testid="hintcards-reset">
             {settings.language === 'en' ? 'Bring back all hidden hints' : 'Alle ausgeblendeten Hinweise wieder anzeigen'}
           </button>

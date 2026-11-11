@@ -647,6 +647,17 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - BEISPIELE_DURCHSICHT.md: Bericht zu irritierenden Vorlagen – noch nichts geändert, wartet auf Entscheidung.
 - Offen/ehrlich: nicht auf echtem Handy getestet; Playwright-Gesamttest (alte Suite) ging mit dem Container verloren, nur Schnelltest + tsc + Build.
 
+## Stand 11.11.2026 (erledigt)
+- Englisch-/Zurück-Durchlauf über 73 Routen (Playwright, crawl.mjs): keine Fehler, kein toter Zurück-Weg; deutsch bleibt nur in Quellen/Lesezeichen (Hinweis auf Englisch ergänzt).
+- „Was brauchst du heute?“: features/home/HomeWays.tsx, settings.homeWay (halt|verstehen|tun|alle), Gruppen aus appOverviewData (acute | understand | regulate+act); Tipp-Karte erscheint erst nach der Wahl.
+- Rucksack ↔ Netzwerk: RucksackNotify.tsx („Wem sage ich Bescheid?“, wichtige Kontakte, tel:/sms:), im Player (Zusammenfassung + Fußzeile).
+- Welt-Pakete: features/worlds/worldPacks.ts + WorldPackPicker.tsx (10 Pakete, Farbwelt „pack-welt“ aus Weltfarbe, settings.worldPack, Zurück-Knopf).
+- Hinweis-Karten nur beim ersten Mal: hintCards.seen + settings.hintsOnce (Schalter in Einstellungen → Erinnerungen).
+- Vorsicht-Markierung: services/skillCaution.ts + components/shared/CautionMark.tsx (Badge in Karten/Tiles, Note in Detail, Skill-Lauf, Skillkette, Atem-Seite); gilt auch für eigene Skills mit „Gegenanzeigen“.
+- Beispiele durchgesehen (11.11.2026), Entscheidungen umgesetzt: Warnhinweise (Carotis, Oculocardiac, TIPP, Eiswasser, Sicherheitsplan Rot), Umformulierungen (Bereitwilligkeit, Verhaltensänderung→„Kleine Fortschritte würdigen“, Fakten-Check, PLEASE), 6 Brücken → Skills/Ressource/Aktivität, Starter-Ressourcen mit richtigem Typ, Doppelungen raus, Hinweis „bei dir kann das anders sein“ bei 5 sensiblen Impulsen, Netzwerk-Beispiele neutral. Migration: services/exampleCleanup.ts (Flag `migration-example-cleanup-v1`, ändert nur Unverändertes) + data/seed/exampleRevisions.ts.
+- Neue Welten: Märchenwald, Unterwasser, Himmel, Lagerfeuer, Cozy Corner (+5 Welt-Pakete). Herbst, Schneewelt (=Winter), Berge gab es schon.
+- Offen: Sprüche und Insider-Texte (Nutzerin arbeitet daran), Handy-Test, fachliche Durchsicht der Warn-/Gegenanzeigentexte.
+
 ## Grundsatzprinzipien (als Leitlinie bei jeder künftigen Entscheidung)
 - Resonanz statt Optimierung, Wahl statt Zwang, Zugang statt Leistung
 - "Das hilft gerade nicht" muss bei Übungen immer möglich sein

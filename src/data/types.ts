@@ -990,6 +990,8 @@ export interface UserSettings {
   backupReminder?: boolean;
   /** Ästhetik-Welt (see features/worlds): complete landscape look behind the app; undefined = none */
   world?: string;
+  /** Welt-Paket (Welt + Farbe + Bewegung als ein Klick): id des zuletzt angewendeten Pakets */
+  worldPack?: string;
   /** world as a still picture without moving parts */
   worldStill?: boolean;
   /** Effekt oben auf der Startseite: 'auto' (Jahreszeit, wie bisher) | 'off' | ein gewählter Effekt – siehe services/homeEffects.ts */
@@ -1036,8 +1038,12 @@ export interface UserSettings {
   companionQuiet?: boolean;
   /** gentle hint cards after a function ends and now and then on the start page; on unless set to false */
   hintCards?: boolean;
+  /** Hinweis-Karten nur beim ersten Mal zeigen; undefined = an, false = sie dürfen (nach einer Pause) wiederkommen */
+  hintsOnce?: boolean;
   /** Calm start page: only the essentials are visible, the rest sits behind one "More" button. undefined counts as on; false = the old, fuller start page. */
   calmHome?: boolean;
+  /** „Was brauchst du heute?“ – gemerkter Weg auf der Startseite (undefined = noch nicht gewählt) */
+  homeWay?: 'halt' | 'verstehen' | 'tun' | 'alle';
   /** animal companions: 'grow' = baby that grows up over 30 active days (default), 'adult' = always fully grown, 'baby' = always a baby */
   companionAgeMode?: 'grow' | 'adult' | 'baby';
   /** Audit follow-up, "Nur jetzt" — a session-scoped, deliberately NOT

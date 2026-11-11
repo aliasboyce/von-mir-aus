@@ -16,6 +16,36 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-beispiele-welten',
+    date: '2026',
+    items: [
+      'Beispiele überarbeitet: Warnhinweise bei körperlich intensiven Skills (u. a. Carotis, Augendruck, TIPP, Eiswasser), freundlichere Formulierungen bei einigen Skills, neutralere Netzwerk-Beispiele. Eigene Änderungen bleiben unberührt.',
+      'Einzelübungen (Salamander-Blick, Schulterkreisen, Isometrischer Hand-Zug, Zum Atem zurückkehren) sind jetzt Skills; Musik & Klang und Etwas aufschreiben liegen bei Ressourcen/Aktivitäten. Doppelte Impulse sind weg.',
+      'Fünf neue Welten: Märchenwald, Unterwasser, Himmel, Lagerfeuer, Cozy Corner – mit je einem Welt-Paket.',
+    ],
+    itemsEn: [
+      'Examples revised: warnings on physically intense skills (incl. carotid, eye pressure, TIPP, ice water), friendlier wording on some skills, more neutral network examples. Your own changes stay untouched.',
+      'Single exercises (salamander look, shoulder circles, isometric hand pull, returning to the breath) are now skills; Music & sound and Write something down sit with resources/activities. Duplicate impulses are gone.',
+      'Five new worlds: Fairytale forest, Underwater, Sky, Campfire, Cozy corner – each with a world package.',
+    ],
+  },
+  {
+    id: '2026-wege-pakete-vorsicht',
+    date: '2026',
+    items: [
+      'Neu auf der Startseite: „Was brauchst du heute?“ – drei Wege (Halt, Verstehen, Tun). Die App merkt sich deine Wahl; „Alles zeigen“ bringt die volle Startseite zurück.',
+      'Neu in Einstellungen → Design: Welt-Pakete. Ein Tipp = Welt + passende Farben + Bewegung, mit „Zurück“.',
+      'Notfallrucksack: „Wem sage ich Bescheid?“ – wichtige Kontakte direkt im Durchgehen, zum Anrufen oder mit vorbereiteter Nachricht.',
+      'Hinweis-Karten zeigen sich nur beim ersten Mal (abschaltbar). Körperlich intensive Skills tragen eine „Vorsicht“-Markierung mit Hinweis, wann sie nicht passen.',
+    ],
+    itemsEn: [
+      'New on the start page: “What do you need today?” – three ways (Support, Understand, Do). The app remembers your choice; “Show everything” brings back the full start page.',
+      'New in Settings → Design: world packages. One tap = world + matching colours + motion, with “Back”.',
+      'Emergency backpack: “Who do I let know?” – important contacts right in the walk-through, to call or with a prepared message.',
+      'Hint cards show only the first time (can be switched off). Physically intense skills carry a “Caution” mark with a note on when they do not fit.',
+    ],
+  },
+  {
     id: '2026-rucksack-listen-effekte',
     date: '2026',
     items: [

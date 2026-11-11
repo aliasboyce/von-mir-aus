@@ -57,6 +57,7 @@ import { FitProfileFields } from '../../components/shared/FitProfileFields';
 import { countHiddenUnmarked, filterByFit, isFitFilterActive, subjectOfResource } from '../../content/fitCriteria';
 import { chainFitSubject } from './chainFit';
 import { useFitFilter } from '../../state/fitFilterStore';
+import { CautionBadge } from '../../components/shared/CautionMark';
 
 seedResourcesIfEmpty();
 migrateResourceAccessChannelsIfNeeded();
@@ -819,6 +820,7 @@ export function ResourcesPage() {
                     {categoryLabel(resource.category)}
                   </p>
                   <p className="text-[14px] text-[var(--color-text)] mb-1">{resource.title}</p>
+                  <CautionBadge resource={resource} />
                   {BREATH_SKILL_PATTERN[resource.id] && <span className="inline-flex items-center gap-1 text-[11px] text-[var(--color-primary)] mb-1"><Wind size={12} /> {settings.language === 'en' ? 'Breathe along' : 'Mitatmen'}</span>}
                   {resource.description && (
                     <p className="text-[12px] text-[var(--color-text-muted)] line-clamp-2 mb-2">

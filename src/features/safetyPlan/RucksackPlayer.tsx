@@ -4,6 +4,7 @@ import { useL } from '../projects/useL';
 import { LISTS_CHANGED, saveList, type UserList } from '../lists/listsModel';
 import { RucksackIcon } from './RucksackIcon';
 import { finishPacking, getRucksackList, rucksackCounts } from './rucksackStore';
+import { RucksackNotify } from './RucksackNotify';
 
 /**
  * „Durchgehen“: ein Punkt nach dem anderen, groß. Ein Klick = eingepackt (Haken), ein Klick = nicht dabei (durchgestrichen),
@@ -14,6 +15,7 @@ export function RucksackPlayer({ onClose, onFinished }: { onClose: () => void; o
   const [list, setList] = useState<UserList | undefined>(() => getRucksackList());
   const [idx, setIdx] = useState(0);
   const [done, setDone] = useState(false);
+  const [notifyOpen, setNotifyOpen] = useState(false);
 
   useEffect(() => {
     const f = () => setList(getRucksackList());
@@ -74,6 +76,7 @@ export function RucksackPlayer({ onClose, onFinished }: { onClose: () => void; o
                 </li>
               ))}
             </ul>
+            <RucksackNotify />
             <button type="button" onClick={finish} className="h-14 px-8 rounded-full text-white text-[16px] mt-2" style={{ background: 'var(--color-primary)' }} data-testid="rucksack-finish">
               {L('Fertig gepackt', 'Finished packing')}
             </button>
@@ -103,6 +106,10 @@ export function RucksackPlayer({ onClose, onFinished }: { onClose: () => void; o
       </div>
       {!done && items.length > 0 && (
         <div className="px-6 pb-6 text-center">
+          <button type="button" onClick={() => setNotifyOpen((v) => !v)} aria-expanded={notifyOpen} className="block mx-auto text-[13px] text-[var(--color-primary)] underline underline-offset-2 py-2" data-testid="rucksack-notify-toggle">
+            {L('Wem sage ich Bescheid?', 'Who do I let know?')}
+          </button>
+          {notifyOpen && <div className="flex justify-center mb-2 max-h-[42vh] overflow-y-auto"><RucksackNotify compact /></div>}
           <button type="button" onClick={() => setDone(true)} className="text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 py-2" data-testid="rucksack-to-end">{L('Zum Abschluss springen', 'Jump to the end')}</button>
         </div>
       )}

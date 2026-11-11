@@ -39,3 +39,7 @@ Geprüft: Ressourcen/Skills, Hilfsmittel, Brücken (+ Brücken-Impulse), Ressour
 - Sicherheitsplan-Beispiele außer Rot-Hilfe: gut, vor allem „Mir sagen, ich solle mich zusammenreißen“ bei „Was andere nicht tun sollen“.
 
 *Wenn du möchtest, setze ich die Punkte um, die du absegnest (am besten: Block 1 sofort, Block 2–5 nach deiner Wahl).*
+
+
+---
+**Stand 11.11.2026: Entscheidungen umgesetzt** – Block 1 (Warnhinweise statt Entfernen), 2 (umformuliert), 3 (Einzelübungen → Skills, Ressourcen-Typen, Doppelungen raus), 4 (nur Hinweis „bei dir kann das anders sein“), 5 (Netzwerk neutral), 6 unverändert.

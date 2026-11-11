@@ -6,8 +6,9 @@ import { HelpButton } from '../../components/navigation/HelpButton';
 import { Card } from '../../components/ui/Card';
 import { useSettings } from '../../state/SettingsContext';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
-import { BREATH_PATTERNS, hasHolds, type BreathPattern, type BreathVisual, type Evidence } from './breathPatterns';
+import { BREATH_PATTERNS, BREATH_SKILL_PATTERN, hasHolds, type BreathPattern, type BreathVisual, type Evidence } from './breathPatterns';
 import { BreathGuide, type BreathOptions } from './BreathGuide';
+import { CautionNote } from '../../components/shared/CautionMark';
 
 const TXT = {
   de: {
@@ -183,6 +184,7 @@ export function BreathPage({ initialId, embedded }: { initialId?: string; embedd
                     )}
                   </div>
 
+                  <CautionNote resource={{ id: Object.entries(BREATH_SKILL_PATTERN).find(([, pid]) => pid === p.id)?.[0] ?? '' }} />
                   <button type="button" onClick={() => setRunning({ pattern: p, options: o })} className="self-start px-6 py-2.5 rounded-full text-[14px] text-white" style={{ background: 'var(--color-primary)' }} data-testid={`breath-start-${p.id}`}>
                     {L.start}
                   </button>

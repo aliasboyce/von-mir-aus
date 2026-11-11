@@ -24,6 +24,7 @@ import { umstandLabel } from '../bridges/conditions';
 import { useSettings } from '../../state/SettingsContext';
 import { kindText, kindOfCategory } from './kindText';
 import { BREATH_SKILL_PATTERN, breathHrefFor } from '../breathing/breathPatterns';
+import { CautionNote } from '../../components/shared/CautionMark';
 
 interface ResourceDetailModalProps {
   resource: Resource | null;
@@ -129,6 +130,7 @@ export function ResourceDetailModal({
          * Hilfsmittel) falls back to the plain description exactly as
          * before. Each sub-field only renders if it actually has
          * content, so a half-filled skill never shows empty labels. */}
+        <CautionNote resource={resource} />
         {resource.skillDetails ? (
           <SkillDetailsView details={resource.skillDetails} description={resource.description} />
         ) : resource.hilfsmittelDetails ? (

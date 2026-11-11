@@ -193,6 +193,107 @@ function Landscape({ id }: { id: WorldId }) {
           <path d={ridge(346, 10, 3.1)} fill={tint('#1f2d52', 48)} />
         </>
       );
+    case 'maerchenwald': {
+      const shrooms = [[78, 330, 24, '#e58ab8'], [150, 348, 17, '#b58be0'], [292, 336, 28, '#e58ab8'], [348, 352, 16, '#8fd0c4']] as const;
+      return (
+        <>
+          <path d={ridge(215, 14, 0.9)} fill={tint('#8a74c4', 16)} />
+          <path d={pines(240, 12, 66, 26, 5)} fill={tint('#6a58a8', 22)} />
+          <path d={ridge(272, 16, 2.6)} fill={tint('#7a62b4', 26)} />
+          <path d={pines(312, 8, 108, 42, 2)} fill={tint('#4f4492', 32)} />
+          <path d={ridge(348, 10, 4.2)} fill={tint('#5b4a9c', 40)} />
+          {shrooms.map(([x, y, r, c], i) => (
+            <g key={i}>
+              <circle cx={x} cy={y - r * 0.4} r={r * 1.5} fill={tint(c, 18)} className="w-anim w-ray" style={{ animationDelay: `${i * -2}s` }} />
+              <rect x={x - r * 0.22} y={y - r * 0.3} width={r * 0.44} height={r * 0.9} rx={r * 0.18} fill={tint('#f3e8f0', 60)} />
+              <path d={`M${x - r} ${y - r * 0.2} Q${x} ${y - r * 1.9} ${x + r} ${y - r * 0.2} Z`} fill={tint(c, 58)} />
+              <circle cx={x - r * 0.35} cy={y - r * 0.7} r={r * 0.13} fill={tint('#ffffff', 70)} />
+              <circle cx={x + r * 0.3} cy={y - r * 0.9} r={r * 0.1} fill={tint('#ffffff', 70)} />
+            </g>
+          ))}
+        </>
+      );
+    }
+    case 'unterwasser': {
+      const weeds = [30, 78, 128, 262, 312, 366];
+      return (
+        <>
+          <g className="w-ray w-anim" style={{ transformOrigin: '50% 0' }}>
+            <polygon points="90,0 130,0 190,400 60,400" fill="#e6fbff" opacity="0.09" />
+            <polygon points="240,0 270,0 360,400 250,400" fill="#e6fbff" opacity="0.08" />
+          </g>
+          <path d={ridge(300, 14, 0.7)} fill={tint('#3f8fa8', 24)} />
+          {weeds.map((x, i) => (
+            <g key={x} className="w-sway w-anim" style={{ transformOrigin: `${x}px 390px`, animationDelay: `${i * -0.9}s`, animationDuration: `${5 + (i % 3)}s` }}>
+              <path d={`M${x} 392 C${x - 12} 360 ${x + 12} 330 ${x} ${300 - (i % 3) * 18} C${x - 6} 330 ${x + 8} 360 ${x + 3} 392 Z`} fill={tint(['#3f9c7e', '#4aa88f', '#37866f'][i % 3], 46)} />
+            </g>
+          ))}
+          <path d="M196 392 C196 360 186 340 176 332 M196 392 C198 366 210 346 222 340 M196 392 C196 372 196 352 196 338" stroke={tint('#e58a8a', 56)} strokeWidth="6" fill="none" strokeLinecap="round" />
+          <path d={ridge(366, 10, 2.9)} fill={tint('#2f7490', 44)} />
+        </>
+      );
+    }
+    case 'himmel': {
+      const puff = (cx: number, cy: number, s: number, c: string, o: number) => (
+        <g key={`${cx}-${cy}`} opacity={o}>
+          <circle cx={cx} cy={cy} r={30 * s} fill={tint(c, 46)} />
+          <circle cx={cx - 32 * s} cy={cy + 8 * s} r={22 * s} fill={tint(c, 46)} />
+          <circle cx={cx + 34 * s} cy={cy + 10 * s} r={24 * s} fill={tint(c, 46)} />
+          <rect x={cx - 56 * s} y={cy + 8 * s} width={116 * s} height={24 * s} rx={12 * s} fill={tint(c, 46)} />
+        </g>
+      );
+      return (
+        <>
+          <circle cx="310" cy="120" r="70" fill={tint('#fff2c2', 22)} />
+          <circle cx="310" cy="120" r="34" fill={tint('#fff2c2', 40)} />
+          {puff(90, 250, 1.2, '#ffffff', 0.55)}
+          {puff(300, 290, 1.5, '#ffffff', 0.7)}
+          {puff(160, 340, 1.8, '#ffffff', 0.85)}
+          {puff(360, 368, 1.6, '#f7fbff', 0.9)}
+        </>
+      );
+    }
+    case 'lagerfeuer':
+      return (
+        <>
+          <path d={ridge(240, 12, 1.5)} fill={tint('#4a3a52', 24)} />
+          <path d={pines(276, 13, 84, 30, 6)} fill={tint('#2f2a45', 36)} />
+          <circle cx="200" cy="318" r="86" fill={tint('#f39a45', 22)} className="w-anim w-ray" />
+          <circle cx="200" cy="322" r="46" fill={tint('#f6b25c', 28)} />
+          <path d={ridge(352, 9, 3.3)} fill={tint('#3a2f3f', 46)} />
+          <rect x="160" y="344" width="84" height="10" rx="5" fill={tint('#6b4a33', 62)} transform="rotate(-12 200 349)" />
+          <rect x="156" y="344" width="84" height="10" rx="5" fill={tint('#5b3f2c', 62)} transform="rotate(12 198 349)" />
+          <g className="w-flame w-anim" style={{ transformOrigin: '200px 346px' }}>
+            <path d="M200 346 C176 336 178 306 196 288 C194 306 206 312 208 300 C214 312 224 332 200 346 Z" fill={tint('#f2862f', 62)} />
+            <path d="M200 346 C188 340 190 322 200 310 C202 322 212 328 200 346 Z" fill={tint('#ffd36b', 62)} />
+          </g>
+        </>
+      );
+    case 'cozy':
+      return (
+        <>
+          <rect x="0" y="0" width="400" height="400" fill={tint('#e9c4ac', 14)} />
+          <rect x="66" y="64" width="124" height="150" rx="8" fill={tint('#2f3a66', 38)} />
+          <circle cx="104" cy="108" r="2.4" fill="#fff6c8" opacity="0.8" className="w-anim w-star" />
+          <circle cx="152" cy="92" r="1.8" fill="#fff6c8" opacity="0.7" className="w-anim w-star" style={{ animationDelay: '-2s' }} />
+          <circle cx="132" cy="150" r="2" fill="#fff6c8" opacity="0.7" className="w-anim w-star" style={{ animationDelay: '-3s' }} />
+          <path d="M66 64 H190 V214 H66 Z M128 64 V214 M66 139 H190" stroke={tint('#a9806a', 56)} strokeWidth="5" fill="none" strokeLinejoin="round" />
+          <rect x="0" y="300" width="400" height="100" fill={tint('#c99a7e', 34)} />
+          <rect x="0" y="296" width="400" height="8" fill={tint('#a9806a', 38)} />
+          <circle cx="318" cy="196" r="78" fill={tint('#ffd49a', 26)} className="w-anim w-ray" />
+          <path d="M318 222 V356 M296 356 H340" stroke={tint('#7a5a48', 62)} strokeWidth="5" strokeLinecap="round" fill="none" />
+          <path d="M296 224 L304 180 H332 L340 224 Z" fill={tint('#f7d9a8', 62)} />
+          <rect x="108" y="258" width="132" height="86" rx="26" fill={tint('#b98a8a', 56)} />
+          <rect x="94" y="284" width="34" height="62" rx="16" fill={tint('#a97a7c', 58)} />
+          <rect x="220" y="284" width="34" height="62" rx="16" fill={tint('#a97a7c', 58)} />
+          <rect x="116" y="302" width="116" height="44" rx="14" fill={tint('#c99a9a', 58)} />
+          <path d="M126 318 C150 306 190 330 226 316 L226 344 H126 Z" fill={tint('#e8cf9a', 60)} />
+          <g className="w-sway w-anim" style={{ transformOrigin: '36px 356px' }}>
+            <path d="M36 356 C20 330 26 308 36 296 C46 308 52 330 36 356 Z M36 356 C14 340 6 322 12 306 C28 318 34 336 36 356 Z M36 356 C58 340 66 322 60 306 C44 318 38 336 36 356 Z" fill={tint('#6faa7e', 56)} />
+          </g>
+          <path d="M22 356 H50 L46 384 H26 Z" fill={tint('#c98f6e', 58)} />
+        </>
+      );
     case 'nacht':
       return (
         <>

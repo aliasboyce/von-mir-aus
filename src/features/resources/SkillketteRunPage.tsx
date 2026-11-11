@@ -17,6 +17,7 @@ import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import type { SkillUse, StepExtras } from '../../data/types';
 import { StepExtrasView } from './StepExtras';
+import { CautionNote } from '../../components/shared/CautionMark';
 
 function formatTime(total: number): string {
   const m = Math.floor(total / 60);
@@ -231,6 +232,7 @@ export function SkillketteRunPage() {
                           <p className="text-[15.5px] font-medium text-[var(--color-text)]">{s.title}</p>
                           {isCurrent && (
                             <div className="mt-2 animate-in">
+                              <CautionNote resource={resourcesRepo.getById(s.skillId)} />
                               {s.ziel && <p className="text-[13px] italic text-[var(--color-text-muted)] mb-2">{s.ziel}</p>}
                               {s.schritte.length > 0 ? (
                                 <ol className="flex flex-col gap-1.5 mb-3">

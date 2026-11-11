@@ -17,6 +17,7 @@ import { STARTER_AKTIVITAETEN, DEMO_RESOURCES, DBT_SKILL_RESOURCES } from '../da
 import { RESOURCE_IMPULSES } from '../data/seed/resourceImpulses.seed';
 import { BRIDGE_IMPULSES } from '../data/seed/bridgeImpulses.seed';
 import { routinesRepo, exampleRoutines } from '../features/routines/routinesRepo';
+import { migrateExampleCleanup } from './exampleCleanup';
 import { valuesForLegacyCategory } from '../features/bridges/bridgeValues';
 
 /**
@@ -123,12 +124,8 @@ const seedSkillsV3 = createKeyValueStore<boolean>('migration-seed-items-are-skil
  * DBT module whose zone they are used in. Moved regardless of where the
  * earlier category clean-up had put them, with their zone tags; a zone
  * list the person already edited is left alone. */
-const SEED_SKILL_HOME: Record<string, { category: string; zones: string[] }> = {
-  res_waldspaziergang: { category: 'emotionsregulation', zones: ['zone4'] },
-  res_klavier: { category: 'stresstoleranz', zones: ['zone4', 'zone5'] },
-  res_atemzitat: { category: 'achtsamkeit', zones: ['zone3'] },
-  res_waermequelle: { category: 'stresstoleranz', zones: ['zone4', 'zone5', 'zone6'] },
-};
+/** (11.11.2026) Die vier Starter-Einträge gehören NICHT mehr zwingend in Skill-Kategorien – sie liegen wieder bei Ort/Musik/Text/Hilfsmittel (siehe exampleCleanup.ts). */
+const SEED_SKILL_HOME: Record<string, { category: string; zones: string[] }> = {};
 function migrateSeedItemsToSkills() {
   if (seedSkillsV3.get()) return;
   Object.entries(SEED_SKILL_HOME).forEach(([id, home]) => {
@@ -348,4 +345,5 @@ export function runStartupMigrations() {
   migrateSeedSymbolImages();
   migrateNetworkExamples();
   migrateRoutineExamples();
+  migrateExampleCleanup();
 }

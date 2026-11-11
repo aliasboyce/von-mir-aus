@@ -16,6 +16,7 @@ import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { SKILL_CATEGORY_ZONE_COLOR } from './resourceMeta';
 import type { SkillUse } from '../../data/types';
+import { CautionNote } from '../../components/shared/CautionMark';
 
 function formatTime(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
@@ -171,6 +172,7 @@ export function SkillRunPage() {
         </p>
         <h1 className="text-[24px] mb-1">{skill.title}</h1>
         {skill.skillDetails?.subtitle && <p className="text-[14px] text-[var(--color-text-muted)] italic mb-3">{skill.skillDetails.subtitle}</p>}
+        {stage === 'run' && <CautionNote resource={skill} />}
 
         {(skill.contextPhoto || skill.contextVoice) && stage === 'run' && (
           <div className="rounded-[var(--radius-lg)] p-3 mb-3 flex flex-col gap-2" style={{ background: 'var(--color-surface-muted)' }}>

@@ -1,4 +1,5 @@
 import { HintCard } from '../../components/hints/HintCard';
+import { HomeWays } from './HomeWays';
 import { nextTip } from '../../services/hintCards';
 import { ContinueCard } from './ContinueCard';
 import { NurJetztHome } from '../nurJetzt/NurJetztHome';
@@ -399,6 +400,7 @@ export function HomePage() {
         </Link>
       ) : (
         <>
+      <HomeWays isEn={isEn} onOpenGrounding={() => setGroundingOpen(true)} fallback={(<>
       <p className="text-[11px] text-[var(--color-text-faint)] text-center mb-2">{t.home.forkOrLabel}</p>
       <div className="flex gap-2 mb-2">
         <Link to="/zugang" className="flex-1">
@@ -422,6 +424,7 @@ export function HomePage() {
       </button>
       ) : <div className="mb-6" />}
 
+      </>)} />
         </>
       )}
 
@@ -544,8 +547,10 @@ export function HomePage() {
 /** At most one occasional hint card per day, only after the start page has been calm for a moment */
 function HomeTip() {
   const { settings } = useSettings();
-  const [id] = useState(() => nextTip()?.id ?? null);
+  const [id] = useState(() => nextTip(settings.hintsOnce !== false)?.id ?? null);
   // never while the first introduction or the guided tour is still running
   if (!settings.introSeen || settings.tourActive || !settings.companionChosen) return null;
+  // solange „Was brauchst du heute?“ noch offen ist, gehört die Aufmerksamkeit dieser Frage
+  if (settings.homeWay === undefined) return null;
   return id ? <HintCard hintId={id} delayMs={4000} /> : null;
 }

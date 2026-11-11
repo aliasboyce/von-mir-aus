@@ -21,6 +21,7 @@ import { MoreMenu } from '../../components/ui/MoreMenu';
 import { createId } from '../../services/storage/repository';
 import type { Bookmark } from '../../data/types';
 import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
+import { useL } from '../projects/useL';
 
 type FilterValue = 'all' | string;
 
@@ -41,6 +42,7 @@ seedDefaultSources();
 
 export function BookmarksPage() {
   const t = useT();
+  const { lang } = useL();
   const { settings } = useSettings();
   const [printingPdf, setPrintingPdf] = useState(false);
 
@@ -154,6 +156,7 @@ export function BookmarksPage() {
       {pasteOpen && <PasteSharedModal onClose={() => setPasteOpen(false)} />}
       <div className="px-5 pb-6">
         <h1 className="text-[24px] mb-1">{t.bookmarks.title}</h1>
+        {lang === 'en' && <p className="text-[12.5px] text-[var(--color-text-faint)] mb-3" data-testid="german-note">{'Note: these help offers are German services; most information is in German.'}</p>}
         <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{t.bookmarks.subtitle}</p>
 
         <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-4">

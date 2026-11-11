@@ -68,6 +68,7 @@ export const SEED_AKTIVITAET_CHANNELS: Record<string, AccessChannel[]> = {
   res_akt_malen: ['sinne', 'ausfuehren', 'fuehlen'],
   res_akt_aufraeumen: ['ausfuehren', 'bewegung', 'ort_zeit'],
   res_akt_telefonieren: ['beziehung', 'ausfuehren', 'fuehlen'],
+  res_akt_aufschreiben: ['ausfuehren', 'fuehlen', 'denken'],
   res_akt_musik_tanzen: ['sinne', 'bewegung', 'koerper_innen'],
 };
 

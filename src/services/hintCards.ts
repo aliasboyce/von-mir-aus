@@ -118,6 +118,8 @@ interface HintState {
   snoozed: Record<string, string>;
   /** last time any occasional tip was shown (at most one per day) */
   lastTipAt?: string;
+  /** ids already shown once ("nur beim ersten Mal": they do not come back by themselves, only after "alle wieder anzeigen") */
+  seen?: string[];
 }
 const EMPTY: HintState = { forever: [], snoozed: {} };
 const store = createKeyValueStore<HintState>('hint-cards', EMPTY);
@@ -129,9 +131,10 @@ export const SNOOZE_TIP_MS = 4 * DAY;
 
 export const hintById = (id: string) => HINTS.find((h) => h.id === id);
 
-export function isHintAvailable(id: string): boolean {
+export function isHintAvailable(id: string, once = true): boolean {
   const s = read();
   if (s.forever.includes(id)) return false;
+  if (once && (s.seen ?? []).includes(id)) return false;
   const until = s.snoozed[id];
   return !until || new Date(until).getTime() <= Date.now();
 }
@@ -145,13 +148,19 @@ export function hideHintForever(id: string) {
   const s = read();
   store.set({ ...s, forever: s.forever.includes(id) ? s.forever : [...s.forever, id] });
 }
+/** the card was shown: with "nur beim ersten Mal" it does not come back by itself */
+export function markHintSeen(id: string) {
+  const s = read();
+  if ((s.seen ?? []).includes(id)) return;
+  store.set({ ...s, seen: [...(s.seen ?? []), id] });
+}
 export function resetHints() { store.set(EMPTY); }
 export function hintsHiddenCount(): number { return read().forever.length; }
 /** next occasional tip to show (at most one per day), or null */
-export function nextTip(): HintDef | null {
+export function nextTip(once = true): HintDef | null {
   const s = read();
   if (s.lastTipAt && Date.now() - new Date(s.lastTipAt).getTime() < DAY) return null;
-  return HINTS.filter((h) => h.kind === 'tip').find((h) => isHintAvailable(h.id)) ?? null;
+  return HINTS.filter((h) => h.kind === 'tip').find((h) => isHintAvailable(h.id, once)) ?? null;
 }
 /** an occasional tip was put on screen – no further tip for a day, even if it was not closed */
 export function markTipShown() {

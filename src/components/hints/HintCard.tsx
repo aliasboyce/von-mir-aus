@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
-import { hintById, isHintAvailable, markTipShown, snoozeHint, hideHintForever } from '../../services/hintCards';
+import { hintById, isHintAvailable, markHintSeen, markTipShown, snoozeHint, hideHintForever } from '../../services/hintCards';
 import { useSettings } from '../../state/SettingsContext';
 import { useL } from '../../features/projects/useL';
 import { Button } from '../ui/Button';
@@ -17,12 +17,13 @@ export function HintCard({ hintId, delayMs = 600 }: { hintId: string; delayMs?: 
   const { settings } = useSettings();
   const hint = hintById(hintId);
   const [open, setOpen] = useState(false);
+  const once = settings.hintsOnce !== false;
 
   useEffect(() => {
-    if (!hint || settings.hintCards === false || !isHintAvailable(hintId)) return;
-    const tm = window.setTimeout(() => { setOpen(true); if (hint.kind === 'tip') markTipShown(); }, delayMs);
+    if (!hint || settings.hintCards === false || !isHintAvailable(hintId, once)) return;
+    const tm = window.setTimeout(() => { setOpen(true); if (once) markHintSeen(hintId); if (hint.kind === 'tip') markTipShown(); }, delayMs);
     return () => window.clearTimeout(tm);
-  }, [hint, hintId, delayMs, settings.hintCards]);
+  }, [hint, hintId, delayMs, settings.hintCards, once]);
 
   if (!hint || !open) return null;
   const c = lang === 'en' ? hint.en : hint.de;

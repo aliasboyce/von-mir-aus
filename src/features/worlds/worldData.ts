@@ -4,7 +4,7 @@
  * mixed into the page's own background (see `tint`), so the text colours the
  * palette and the contrast check pick stay readable on top, in light and dark.
  */
-export type WorldId = 'wald' | 'meer' | 'wiese' | 'herbst' | 'winter' | 'berge' | 'nacht' | 'strand' | 'abendrot' | 'kirschbluete' | 'nebel' | 'regen' | 'polarlicht';
+export type WorldId = 'wald' | 'meer' | 'wiese' | 'herbst' | 'winter' | 'berge' | 'nacht' | 'strand' | 'abendrot' | 'kirschbluete' | 'nebel' | 'regen' | 'polarlicht' | 'maerchenwald' | 'unterwasser' | 'himmel' | 'lagerfeuer' | 'cozy';
 
 export interface WorldInfo {
   id: WorldId;
@@ -30,6 +30,11 @@ export const WORLDS: WorldInfo[] = [
   { id: 'nebel', palette: 'creme', wash: '#b9c4cc', de: { name: 'Morgennebel', sub: 'Stille Bäume, Nebel, der langsam zieht.' }, en: { name: 'Morning mist', sub: 'Quiet trees, slowly drifting mist.' } },
   { id: 'regen', palette: 'neutral', wash: '#9fb0c2', de: { name: 'Sanfter Regen', sub: 'Graue Hügel, leiser Regen – drinnen ist es gemütlich.' }, en: { name: 'Gentle rain', sub: 'Grey hills, soft rain – cosy inside.' } },
   { id: 'polarlicht', palette: 'abend', wash: '#4aa88f', de: { name: 'Polarlicht', sub: 'Ein stiller Winterhimmel mit sanft wehendem Licht.' }, en: { name: 'Northern lights', sub: 'A still winter sky with softly waving light.' } },
+  { id: 'maerchenwald', palette: 'lavendel', wash: '#a58fd6', de: { name: 'Märchenwald', sub: 'Violette Tannen, leuchtende Pilze, Funkeln.' }, en: { name: 'Fairytale forest', sub: 'Violet pines, glowing mushrooms, sparkles.' } },
+  { id: 'unterwasser', palette: 'meer', wash: '#5fb8c9', de: { name: 'Unterwasser', sub: 'Wiegender Tang, Lichtstrahlen, kleine Fische.' }, en: { name: 'Underwater', sub: 'Swaying seaweed, rays of light, little fish.' } },
+  { id: 'himmel', palette: 'neutral', wash: '#8ec5ee', de: { name: 'Himmel', sub: 'Weiche Wolken, viel Weite, ziehende Vögel.' }, en: { name: 'Sky', sub: 'Soft clouds, wide open space, drifting birds.' } },
+  { id: 'lagerfeuer', palette: 'sonnenaufgang', wash: '#d9803f', de: { name: 'Lagerfeuer', sub: 'Ein ruhiges Feuer, Funken, Sterne darüber.' }, en: { name: 'Campfire', sub: 'A quiet fire, embers, stars above.' } },
+  { id: 'cozy', palette: 'puder', wash: '#e5b79a', de: { name: 'Cozy Corner', sub: 'Sessel, Lampe, Pflanze und ein Fenster in die Nacht.' }, en: { name: 'Cozy corner', sub: 'Armchair, lamp, plant and a window into the night.' } },
 ];
 
 export const worldById = (id?: string): WorldInfo | undefined => WORLDS.find((w) => w.id === id);

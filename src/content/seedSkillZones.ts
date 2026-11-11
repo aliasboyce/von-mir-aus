@@ -13,6 +13,10 @@
  */
 export const SEED_SKILL_ZONES: Record<string, string[]> = {
   res_skill_tipp: ['zone5', 'zone6'],
+  res_skill_salamander_blick: ['zone5', 'zone6'],
+  res_skill_schulterkreisen: ['zone5', 'zone6'],
+  res_skill_isometrischer_zug: ['zone5', 'zone6'],
+  res_skill_zum_atem_zurueck: ['zone3', 'zone4'],
   res_skill_54321: ['zone4', 'zone5', 'zone6'],
   res_skill_voo_atem: ['zone4', 'zone5', 'zone6'],
   res_skill_gewichtswahrnehmung: ['zone4', 'zone5', 'zone6'],

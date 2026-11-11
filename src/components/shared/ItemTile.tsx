@@ -7,6 +7,7 @@ import { BRIDGE_CATEGORY_META } from '../../features/bridges/bridgeMeta';
 import { useT } from '../../i18n';
 import { createCustomCategoryStore } from '../../services/customCategories';
 import { RESOURCE_GROUP_COLOR as GROUP_COLOR, BRIDGE_GROUP_COLOR, NEUTRAL_COLOR } from './itemColors';
+import { CautionBadge } from './CautionMark';
 
 const customResourceCategories = createCustomCategoryStore('resource-custom-categories');
 
@@ -109,7 +110,7 @@ export function ItemTile({ image, color, emoji, label, title, subtitle, extra, o
 
 type TileExtra = Pick<BaseProps, 'onClick' | 'trailing' | 'compact' | 'selected' | 'toggle' | 'className' | 'testId' | 'subtitle' | 'extra'>;
 
-export function ResourceTile({ resource, ...rest }: { resource: Pick<Resource, 'title' | 'category' | 'image'> } & TileExtra) {
+export function ResourceTile({ resource, extra, ...rest }: { resource: Pick<Resource, 'title' | 'category' | 'image'> & Partial<Pick<Resource, 'id' | 'skillDetails'>> } & TileExtra) {
   const t = useT();
   const cat = resource.category as string;
   return (
@@ -119,6 +120,7 @@ export function ResourceTile({ resource, ...rest }: { resource: Pick<Resource, '
       emoji={RESOURCE_EMOJI[cat] ?? '✨'}
       label={(t.resources.categories as Record<string, string>)[cat] ?? customResourceCategories.getAll().find((c) => c.id === cat)?.label ?? cat}
       title={resource.title}
+      extra={resource.id ? (<>{extra}<CautionBadge resource={{ id: resource.id, skillDetails: resource.skillDetails }} /></>) : extra}
       {...rest}
     />
   );

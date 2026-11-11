@@ -11,6 +11,7 @@ import { useSettings } from '../../state/SettingsContext';
 import { APP_SOURCES } from '../../data/sourcesLibrary';
 import { triggerPrint } from '../../services/printSupport';
 import { SourceLibraryPrintView } from './SourceLibraryPrintView';
+import { useL } from '../projects/useL';
 
 /**
  * "Materialien"-Auftrag, Sections 17-21 — the global sources library.
@@ -37,6 +38,7 @@ function usedForText(v: string): string {
 
 export function SourceLibraryPage() {
   const t = useT();
+  const { lang } = useL();
   const navigate = useNavigate();
   const { settings } = useSettings();
   const [printing, setPrinting] = useState(false);
@@ -57,6 +59,7 @@ export function SourceLibraryPage() {
       <TopBar onBack={() => goBack(navigate)} action={<HelpButton helpKey="quellen" />} />
       <div className="px-5 pb-8">
         <h1 className="text-[24px] mb-1">{t.sourceLibrary.title}</h1>
+        {lang === 'en' && <p className="text-[12.5px] text-[var(--color-text-faint)] mb-3" data-testid="german-note">{'Note: the sources are mostly German-language books and articles.'}</p>}
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1 leading-relaxed">{t.sourceLibrary.subtitle}</p>
         <p className="text-[12px] text-[var(--color-text-faint)] mb-3">
           {t.sourceLibrary.totalCountLabel.replace('{count}', String(APP_SOURCES.length))}

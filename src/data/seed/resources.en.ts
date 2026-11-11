@@ -1,9 +1,39 @@
 /** English versions of the starter library (DBT skills, body exercises, small activities), by resource id */
 export const RESOURCES_EN: Record<string, { title: string; description: string }> = {
+  res_skill_salamander_blick: {
+    title: 'The salamander look',
+    description:
+      'Keep your head still, move your eyes far to the side until a yawn or swallow comes — releases inner freeze.\n\nHow: keep your head straight. Move only your eyes all the way to the right and stay for a few breaths until a yawn or swallow comes. Then to the other side. Stop at any time if you feel dizzy.\n\nBackground (a model, not proven): developed by Stanley Rosenberg (vagus regulation). The extreme eye movement without turning the head is meant to decouple the cranial nerves responsible for the freeze reaction. The involuntary yawn or swallow is seen as a sign that the system is releasing the freeze.',
+  },
+  res_skill_schulterkreisen: {
+    title: 'Shoulder circles (fixed gaze)',
+    description:
+      'Eyes fixed, shoulders moving — decouples the eye-neck unit that is locked in freeze.\n\nHow (about 45 seconds): fix your gaze on a point straight ahead on the wall, eyes stay on it. Circle your shoulders very slowly and widely backwards — head and eyes do not move.\n\nBackground (a model, not proven): from craniofacial therapy (Stanley Rosenberg). In freeze, eyes and neck work rigidly as a unit; moving the shoulders with a fixed gaze is meant to relax deep neck muscles and release the freeze.',
+  },
+  res_skill_isometrischer_zug: {
+    title: 'Isometric hand pull',
+    description:
+      'Discharging blocked energy through a short, successful “feat of strength” — without any outward movement.\n\nHow (5 repetitions): hook your fingers together in front of your chest. As you breathe out, try to pull your hands apart with maximum force without letting go. Hold for 5 seconds, let go completely as you breathe in. Repeat 5 times.\n\nBackground (a model, not proven): from body-oriented trauma therapy. The short, maximal tension without movement (isometrics) is meant to signal a “successful feat of strength” to the nervous system and discharge blocked energy.',
+  },
+  res_skill_zum_atem_zurueck: {
+    title: 'Returning to the breath',
+    description:
+      'The breath is always there — a small ladder that gently brings you back into your body. Pick the step that fits right now:\n\n1. One conscious breath – a single breath, without counting, without technique.\n2. A few deep breaths – deep in through the nose, no counting needed, just feeling.\n3. Calm, counted breath – if it feels good: 4 seconds in, short pause, 4 seconds out. You can stop at any time.\n4. A longer breath journey – follow your breath for a few minutes without changing it.\n\nIf counting feels tight or controlling, leave it out — simply noticing the breath is completely enough.',
+  },
+  res_musik_klang: {
+    title: 'Music & sound',
+    description:
+      'Sound can help you arrive in your body again. Pick the step that fits right now:\n\n1. Listen to a familiar, calm song.\n2. For one song, do nothing else – just listen.\n3. Hum along lightly or move gently to it.\n4. Put together a small playlist for exactly such moments.\n\nFamiliar music often works stronger than new music — the recognition alone can already calm. And if nothing fits right now: silence is okay too.',
+  },
+  res_akt_aufschreiben: {
+    title: 'Write something down',
+    description:
+      'Finding words without having to share them right away. A single word, a few sentences, a diary entry – or draw and create. It may be unfinished or illegible; nobody but you ever has to read it.',
+  },
   res_skill_tipp: {
     title: 'TIPP skills',
     description:
-      'Changing your body chemistry to come down quickly when tension is very high:\n\nTemperature: Briefly dip your face into cold water or put a cold pack on the back of your neck — this triggers the dive reflex, which noticeably lowers your pulse.\n\nIntense Exercise: 50 squats, sprinting or push-ups until exhausted, to burn off excess adrenaline.\n\nPaced Breathing: Breathe deep into your belly (e.g. 4 seconds) and breathe out clearly longer (e.g. 7 seconds).\n\nPaired Muscle Relaxation: Tense muscle groups extremely hard and consciously let go completely as you breathe out.',
+      '⚠️ Caution: Not with heart problems, very low pulse/blood pressure, an eating disorder with underweight, or if a doctor advised against it. Stop if dizzy. Each part can be chosen on its own.\n\nChanging your body chemistry to come down quickly when tension is very high:\n\nTemperature: Briefly dip your face into cold water or put a cold pack on the back of your neck — this triggers the dive reflex, which noticeably lowers your pulse.\n\nIntense Exercise: movement that burns off energy – as much as feels good: a few squats, brisk walking or jogging on the spot. Never to exhaustion.\n\nPaced Breathing: Breathe deep into your belly (e.g. 4 seconds) and breathe out clearly longer (e.g. 7 seconds).\n\nPaired Muscle Relaxation: Tense muscle groups extremely hard and consciously let go completely as you breathe out.',
   },
   res_skill_radikale_akzeptanz: {
     title: 'Radical acceptance',
@@ -18,12 +48,12 @@ export const RESOURCES_EN: Record<string, { title: string; description: string }
   res_skill_check_the_facts: {
     title: 'Check the facts',
     description:
-      'Checking whether the intensity of the emotion fits the real situation.\n\nYou ask yourself: “Am I reacting to reality right now, or to the catastrophe thoughts in my head?”',
+      'Checking whether the strength of the feeling fits what is happening right now – or whether it reminds you of earlier times.\n\nAsk yourself: “Does the strength of this feeling fit what is going on right now – or does it remind me of earlier?” Both may be true: even if it reminds you of earlier, the reaction had a reason.',
   },
   res_skill_please: {
     title: 'PLEASE skills',
     description:
-      'Keeping your physical foundation steady so you are less vulnerable to emotional chaos:\n\nPhysicaL illness — treat physical complaints (doctor visits).\nEat — eat a balanced diet.\nAvoid mood-altering substances — stay away from drugs/alcohol.\nSleep — get enough sleep.\nExercise — move every day.',
+      'Giving the body a basis as far as you can – none of it is a duty:\n\nPhysicaL illness — take physical complaints seriously (get them checked if needed).\nEat — regularly give the body something it tolerates well.\nAvoid mood-altering substances — keep substances that strongly change your mood consciously in view; with support if it is hard.\nSleep — protect sleep as well as you can.\nExercise — move in the way and amount that feels good.\n\nIf eating, substances or exercise are a difficult topic for you, skip that part – or talk it through with a professional.',
   },
   res_skill_54321: {
     title: 'The 5-4-3-2-1 method',
@@ -93,7 +123,7 @@ export const RESOURCES_EN: Record<string, { title: string; description: string }
   res_skill_carotis_druck: {
     title: 'Gentle carotid pressure',
     description:
-      'A reflex-like brake button for a racing pulse — via the pressure sensors in the neck.\n\nPlace two fingers gently on one side of the neck, below the angle of the jaw. Massage with very light, circular pressure for 10–15 seconds. Never both sides at the same time.\n\nFrom cardiology and neurology: the baroreceptors at the carotid artery trigger the parasympathetic brake reflexively.',
+      '⚠️ Caution: Not with heart or circulation problems, dizziness, or if pressure on the neck brings up fear or memories of choking or being held down. If unsure, choose another skill or check with a doctor first.\n\nA reflex-like brake button for a racing pulse — via the pressure sensors in the neck.\n\nPlace two fingers gently on one side of the neck, below the angle of the jaw. Massage with very light, circular pressure for 10–15 seconds. Never both sides at the same time.\n\nFrom cardiology and neurology: the baroreceptors at the carotid artery trigger the parasympathetic brake reflexively.',
   },
   res_skill_schmetterling_klopf: {
     title: 'Butterfly tapping',
@@ -103,7 +133,7 @@ export const RESOURCES_EN: Record<string, { title: string; description: string }
   res_skill_oculocardiac: {
     title: 'Oculocardiac reflex (eye pressure)',
     description:
-      'Minimal pressure on the closed eyelids can bring you back to reality from dissociative shock-freeze.\n\nClose your eyes. Place your fingertips very gently on your closed lids, apply minimal pressure for 10 seconds and breathe out calmly.\n\nFrom clinical neurology (oculocardiac reflex): works via the vagus nerve and calms deeply.',
+      '⚠️ Caution: Not with eye conditions (e.g. glaucoma, retina problems), after eye surgery, or if pressure on the face makes you anxious. Only very gently, never press on the eyeball itself. If unsure, choose another skill.\n\nMinimal pressure on the closed eyelids can bring you back to reality from dissociative shock-freeze.\n\nClose your eyes. Place your fingertips very gently on your closed lids, apply minimal pressure for 10 seconds and breathe out calmly.\n\nFrom clinical neurology (oculocardiac reflex): works via the vagus nerve and calms deeply.',
   },
   res_skill_self_holding: {
     title: 'Self-holding hug',
@@ -138,7 +168,7 @@ export const RESOURCES_EN: Record<string, { title: string; description: string }
   res_skill_willingness: {
     title: 'Willingness vs. willfulness',
     description:
-      'Opening up to the situation and doing what is needed right now, instead of stubbornly or defiantly shutting down.\n\nWillingness means: accepting reality as it is and acting from there. Willfulness means: digging in against what is, even when it achieves nothing. The question is: “What does this moment need from me — not, what do I actually want?”',
+      'Opening up to the situation and doing what is needed right now – as far as it feels right for you and your boundaries may stay.\n\nWillingness means: accepting reality as it is right now and taking one small step from there. Willfulness means: pushing against what is – which often has a good reason, such as protection, and is not a mistake. The question is: “What does this moment need – and what do I need?”',
   },
   res_skill_halbes_laecheln: {
     title: 'Inner smile & mindful body awareness',
@@ -191,9 +221,9 @@ export const RESOURCES_EN: Record<string, { title: string; description: string }
       'Acknowledging the feelings and reactions of yourself and others as understandable and true — even if you do not approve of the action itself.\n\n“It makes sense that you feel this way” is something different from “What you did was right”. Validation separates the feeling from the action and thereby creates closeness without approving of everything.',
   },
   res_skill_verhaltensaenderung: {
-    title: 'Behaviour change',
+    title: 'Acknowledging small steps',
     description:
-      'Consciously applying the principles of praise (positive reinforcement) and setting consequences in everyday life — with yourself and in dealing with others.\n\nBehaviour that is rewarded is more likely to be repeated. Consciously acknowledging small progress in yourself (or others) often works more lastingly than criticising what is not working yet.',
+      'Acknowledging yourself for small steps instead of only looking at what is not working yet.\n\nWhat is noticed kindly tends to repeat. You can say something good to yourself or give yourself a small reward – at your own pace. It is not about control or punishment, not even towards yourself.',
   },
   res_skill_dear_man: {
     title: 'DEAR MAN',
@@ -208,7 +238,7 @@ export const RESOURCES_EN: Record<string, { title: string; description: string }
   res_skill_eiskaltes_wasser: {
     title: 'Ice-cold water (dive reflex)',
     description:
-      'Cold water on the face triggers the “dive reflex”: the pulse drops, the body switches down within a short time. Helps with very high tension, flooding and panic — one minute is often enough.\n\nFrom DBT (the T of TIPP – temperature): the cold stimulus on the face and around the eyes activates the vagus nerve. The detailed version with all building blocks is in the TIPP skill.',
+      '⚠️ Caution: Not with heart problems, very low pulse/blood pressure or an eating disorder with underweight; stop if dizzy. Details are below under contraindications.\n\nCold water on the face triggers the “dive reflex”: the pulse drops, the body switches down within a short time. Helps with very high tension, flooding and panic — one minute is often enough.\n\nFrom DBT (the T of TIPP – temperature): the cold stimulus on the face and around the eyes activates the vagus nerve. The detailed version with all building blocks is in the TIPP skill.',
   },
   res_skill_bilaterale_stimulation: {
     title: 'Bilateral stimulation (alternating tapping)',

@@ -73,7 +73,7 @@ export function ThemeEffect() {
       const vars = derivePaletteVars(custom);
       Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
     }
-  }, [settings.palette, wesenKey]);
+  }, [settings.palette, wesenKey, settings.worldPack]);
 
   // Whatever the palette: text stays readable. Runs after the palette /
   // theme effects above; only sets a colour when the stylesheet's own value
@@ -109,7 +109,7 @@ export function ThemeEffect() {
     fix('--color-primary-strong', 4.5);
     const soft = get('--color-primary-soft');
     if (soft) fix('--color-primary-soft-text', 4.5, [soft]);
-  }, [settings.palette, settings.themeMode, resolvedTheme, wesenKey]);
+  }, [settings.palette, settings.themeMode, resolvedTheme, wesenKey, settings.worldPack]);
 
   useEffect(() => {
     document.documentElement.setAttribute(

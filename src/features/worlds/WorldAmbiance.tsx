@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useSettings } from '../../state/SettingsContext';
 import { tint, worldById, type WorldId } from './worldData';
 import { WorldScene } from './WorldScene';
@@ -125,6 +126,63 @@ export function Particles({ id }: { id: WorldId }) {
           ))}
         </>
       );
+    case 'maerchenwald':
+      return (
+        <>
+          {seq(10).map((i) => (
+            <span key={i} className="w-anim w-firefly" style={{ left: `${6 + r(i, 1) * 88}%`, bottom: `${8 + r(i, 2) * 44}%`, background: ['#f7b6e6', '#c9b4ff', '#a8f0e0'][i % 3], boxShadow: `0 0 10px 3px ${['rgba(247,182,230,.55)', 'rgba(201,180,255,.55)', 'rgba(168,240,224,.55)'][i % 3]}`, animationDelay: `${-r(i, 3) * 8}s`, animationDuration: `${8 + r(i, 4) * 6}s` }} />
+          ))}
+          {seq(16).map((i) => (
+            <span key={`s${i}`} className="w-anim w-star" style={{ left: `${r(i, 5) * 100}%`, top: `${r(i, 6) * 38}%`, width: 1.4 + r(i, 7) * 1.6, height: 1.4 + r(i, 7) * 1.6, animationDelay: `${-r(i, 8) * 6}s`, animationDuration: `${3 + r(i, 9) * 4}s` }} />
+          ))}
+        </>
+      );
+    case 'unterwasser':
+      return (
+        <>
+          {seq(8).map((i) => (
+            <span key={i} className="w-anim w-bubble" style={{ left: `${6 + r(i, 1) * 88}%`, width: 4 + r(i, 2) * 8, height: 4 + r(i, 2) * 8, animationDelay: `${-r(i, 3) * 14}s`, animationDuration: `${12 + r(i, 4) * 10}s` }} />
+          ))}
+          {seq(4).map((i) => (
+            <svg key={`f${i}`} className="w-anim w-bird" viewBox="0 0 30 14" width={26 - i * 3} height={12 - i} style={{ top: `${24 + i * 12}%`, animationDelay: `${-i * 15}s`, animationDuration: `${50 + i * 14}s` }}>
+              <path d="M2 7 C8 0 18 0 24 7 C18 14 8 14 2 7 Z M24 7 L30 2 L30 12 Z" fill={tint(['#f2a65e', '#f7d56b', '#e58aa8', '#9ad0e8'][i], 80)} />
+              <circle cx="8" cy="6" r="1.1" fill="#2f3a4a" />
+            </svg>
+          ))}
+        </>
+      );
+    case 'himmel':
+      return (
+        <>
+          {seq(4).map((i) => (
+            <span key={i} className="w-anim w-cloud" style={{ top: `${4 + i * 9}%`, width: 150 + i * 45, height: 30 + i * 6, animationDelay: `${-i * 22}s`, animationDuration: `${85 + i * 22}s` }} />
+          ))}
+          {seq(3).map((i) => (
+            <svg key={`b${i}`} className="w-anim w-bird" viewBox="0 0 26 10" width={22 - i * 3} height={9 - i} style={{ top: `${14 + i * 8}%`, animationDelay: `${-i * 17}s`, animationDuration: `${62 + i * 14}s` }}>
+              <path d="M1 8 q6 -9 12 -2 q6 -7 12 2" stroke={tint('#5f7288', 70)} strokeWidth="1.6" fill="none" strokeLinecap="round" />
+            </svg>
+          ))}
+        </>
+      );
+    case 'lagerfeuer':
+      return (
+        <>
+          {seq(22).map((i) => (
+            <span key={`s${i}`} className="w-anim w-star" style={{ left: `${r(i, 1) * 100}%`, top: `${r(i, 2) * 42}%`, width: 1.4 + r(i, 3) * 1.6, height: 1.4 + r(i, 3) * 1.6, animationDelay: `${-r(i, 4) * 6}s`, animationDuration: `${3 + r(i, 5) * 4}s` }} />
+          ))}
+          {seq(10).map((i) => (
+            <span key={i} className="w-anim w-ember" style={{ left: `${44 + r(i, 1) * 12}%`, animationDelay: `${-r(i, 3) * 9}s`, animationDuration: `${6 + r(i, 4) * 5}s`, ['--w-dx' as string]: `${(r(i, 6) - 0.5) * 80}px` } as React.CSSProperties} />
+          ))}
+        </>
+      );
+    case 'cozy':
+      return (
+        <>
+          {seq(14).map((i) => (
+            <span key={i} className="w-anim w-mote" style={{ left: `${40 + r(i, 1) * 56}%`, top: `${22 + r(i, 2) * 56}%`, animationDelay: `${-r(i, 3) * 12}s`, animationDuration: `${12 + r(i, 4) * 10}s` }} />
+          ))}
+        </>
+      );
     case 'nacht':
       return (
         <>
@@ -149,7 +207,7 @@ export function WorldAmbiance() {
   return (
     <div className="world-pin no-print" aria-hidden="true" data-testid="world-ambiance" data-world={info.id} data-still={settings.worldStill ? 'true' : 'false'}>
       <div className="world-layer">
-        <div className="absolute inset-x-0 top-0" style={{ height: '62%', background: `linear-gradient(180deg, ${tint(info.wash, info.id === 'nacht' ? 30 : 24)} 0%, transparent 100%)` }} />
+        <div className="absolute inset-x-0 top-0" style={{ height: '62%', background: `linear-gradient(180deg, ${tint(info.wash, ['nacht', 'lagerfeuer', 'maerchenwald'].includes(info.id) ? 30 : 24)} 0%, transparent 100%)` }} />
         <WorldScene id={info.id} height="62%" />
         {!settings.worldStill && <Particles id={info.id} />}
       </div>
