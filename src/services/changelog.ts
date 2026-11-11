@@ -16,6 +16,20 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-wesen-vorschlaege',
+    date: '2026',
+    items: [
+      'Neu im Wesen-Menü: „Schlag mir was vor“ – das Wesen macht dir zufällig eine kleine Idee aus allen Funktionen der App (auch mit deinen eigenen Skills, Ressourcen, Brücken und Menschen). „Direkt tun“ führt sofort dorthin.',
+      'Wesen-Spiel: Der Hinweis zu den Insider-Sätzen kommt nur beim allerersten Verlieren. Am Laptop reicht die Leertaste zum Weiterspielen. Das Spiel hat jetzt ein eigenes, gut sichtbares Wesen.',
+      'Acht neue Witze erscheinen zufällig bei „Überrasch mich“.',
+    ],
+    itemsEn: [
+      'New in the Wesen menu: “Suggest something” – the Wesen gives you a small random idea from any function of the app (also using your own skills, resources, bridges and people). “Do it now” takes you straight there.',
+      'Wesen game: the note about inside jokes only appears the very first time you lose. On a laptop, Space is enough to play again. The game now has its own, clearly visible companion.',
+      'Eight new jokes appear at random under “Surprise me”.',
+    ],
+  },
+  {
     id: '2026-beispiele-welten',
     date: '2026',
     items: [

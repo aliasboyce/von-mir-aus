@@ -218,6 +218,28 @@ It is an invitation, not an order and not a test. "That does not work right now"
   },
 };
 
+export const INFO_SUGGEST: { title: Bi; body: Bi } = {
+  title: { de: 'Schlag mir was vor', en: 'Suggest something' },
+  body: {
+    de: `### Wozu das gut ist
+Manchmal weiß man nicht, womit man anfangen soll – obwohl die App voller Dinge ist, die helfen könnten. Hier macht das Wesen dir **einen kleinen Vorschlag** aus irgendeiner Funktion der App, per Zufall.
+
+### Wie es funktioniert
+Du siehst einen Vorschlag („Du könntest …“, „Magst du …“). Mit **Direkt tun** kommst du genau dorthin. Mit **Noch eine Idee** kommt ein anderer. Manche Vorschläge greifen deine eigenen Skills, Ressourcen, Brücken, Routinen oder Menschen aus deinem Netzwerk auf.
+
+### Freiheit
+Alles ist eine Einladung, kein Auftrag. „Das passt gerade nicht“ ist immer eine gültige Antwort – und nichts wird gespeichert oder mitgezählt.`,
+    en: `### What it is for
+Sometimes you do not know where to start – even though the app is full of things that could help. Here the Wesen gives you **one small suggestion** from any function of the app, at random.
+
+### How it works
+You see a suggestion ("You could …", "Would you like …"). **Do it now** takes you exactly there. **Another idea** brings a different one. Some suggestions pick up your own skills, resources, bridges, routines or people from your network.
+
+### Freedom
+Everything is an invitation, not an order. "That does not fit right now" is always a valid answer – and nothing is saved or counted.`,
+  },
+};
+
 export const INFO_SCHMUGGEL: { title: Bi; body: Bi } = {
   title: { de: '10 Sekunden Schmuggel', en: '10-second smuggle' },
   body: {

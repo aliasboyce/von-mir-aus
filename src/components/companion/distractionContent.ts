@@ -1,4 +1,4 @@
-export type DistractionKind = 'fakt' | 'frage' | 'raetsel' | 'entweder_oder' | 'beobachtung' | 'brueckenwort' | 'wissen' | 'bild';
+export type DistractionKind = 'fakt' | 'frage' | 'raetsel' | 'entweder_oder' | 'beobachtung' | 'brueckenwort' | 'wissen' | 'bild' | 'witz';
 
 export type DistractionCategory = 'raetsel' | 'brueckenwoerter' | 'rechnen' | 'sudoku' | 'nachdenken' | 'fakten' | 'allgemeinwissen' | 'vokabeln' | 'alles';
 
@@ -1167,6 +1167,16 @@ export const DISTRACTION_ITEMS: DistractionItem[] = [
   { kind: 'bild', image: '/ablenkung/bild-6.jpg', text: 'Bild: Puppe schreibt Tagebuch – „dear diary what the fuck“', textEn: 'Picture: doll writing in her diary – "dear diary what the fuck"' },
   { kind: 'bild', image: '/ablenkung/bild-7.jpg', text: 'Bild: Lemur mit ausgebreiteten Armen – „I\'m about to lose it lose it“', textEn: 'Picture: lemur with arms spread – "I\'m about to lose it lose it"' },
   { kind: 'bild', image: '/ablenkung/bild-8.jpg', text: 'Bild: Puppe mit roten Federn auf dem Kopf und Schürze, schaut ratlos', textEn: 'Picture: puppet with red feathers on its head and an apron, looking puzzled' },
+
+  // ---- Witze ("Überrasch mich"): zufällig, wie die Bilder ----
+  { kind: 'witz', text: 'Der Student geht so lange zur Mensa, bis er bricht.', textEn: 'The student keeps going to the canteen until he breaks. (German pun: “Der Krug geht so lange zum Brunnen, bis er bricht” – the jug goes to the well until it breaks.)' },
+  { kind: 'witz', text: 'Wie berechnet man den Inhalt eines Schafes?\nNatürlich mit dem Wollumen.', textEn: 'How do you calculate the content of a sheep?\nWith the wool-ume, of course. (German pun: Wollumen / Volumen.)' },
+  { kind: 'witz', text: 'Unterhalten sich zwei Hunde:\nSagt der eine: „Mein Herrchen ist dumm.“\nFragt der andere: „Wieso denn?“\n„Ich habe ihm schon zum hundertsten Mal das Stöckchen gebracht und er hat es wieder weggeworfen.“', textEn: 'Two dogs are talking.\nOne says: “My owner is dumb.”\nThe other asks: “Why?”\n“I’ve brought him the stick for the hundredth time and he threw it away again.”' },
+  { kind: 'witz', text: 'Ed has no girlfriend...\n\'Cause Sheeran away.', textEn: 'Ed has no girlfriend...\n\'Cause Sheeran away.' },
+  { kind: 'witz', text: 'Professoren haben rausgefunden, sind dann aber wieder reingegangen.', textEn: 'Professors found out, but then went back in. (German pun: herausgefunden – “found out” / “went out”.)' },
+  { kind: 'witz', text: 'Was sagt man, wenn man 25% von seinem Dach verliert?\nAch.', textEn: 'What do you say when you lose 25% of your roof?\n“Ach.” (German pun: Dach minus ein Viertel = “ach”.)' },
+  { kind: 'witz', text: 'In welcher Liga spielen Pilze?\nIn der Champignonsleague!', textEn: 'Which league do mushrooms play in?\nThe Champignons League! (Pun on Champions League.)' },
+  { kind: 'witz', text: 'Wenn du dich alleine fühlst, denke daran, dass immer jemand an dich denkt: das Finanzamt.', textEn: 'If you feel alone, remember that someone is always thinking of you: the tax office.' },
 
   // ---- Small observation tasks ----
   { kind: 'beobachtung', text: 'Schau dich kurz um: Wie viele verschiedene Farben kannst du in den nächsten 10 Sekunden entdecken?', textEn: 'Look around for a moment: how many different colors can you spot in the next 10 seconds?' },

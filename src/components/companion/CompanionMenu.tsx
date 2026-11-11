@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather, Footprints, Radio, Zap, Wind, Hand, Info } from 'lucide-react';
+import { Moon, Sun, Shuffle, X, MessageCircle, Sparkles, Compass, Feather, Footprints, Radio, Zap, Wind, Hand, Info, Lightbulb } from 'lucide-react';
 
 export interface CompanionMenuProps {
   en: boolean;
@@ -15,6 +15,7 @@ export interface CompanionMenuProps {
   onGrounding: () => void;
   onTooMuch: () => void;
   onStoer: () => void;
+  onSuggest: () => void;
   onSchmuggel: () => void;
   onBreathe: () => void;
   onSleep: () => void;
@@ -38,6 +39,7 @@ export function CompanionMenu(p: CompanionMenuProps) {
       title: L('Mir helfen', 'Help me'),
       rows: [
         { id: 'tip', icon: <MessageCircle size={20} />, label: t.companion.requestTip, info: L('Ich sage dir einen kleinen Gedanken zu dem, was du gerade auf dem Bildschirm hast.', 'I tell you a small thought about what you are looking at right now.'), run: p.onTip, testId: 'companion-request-tip', accent: true },
+        { id: 'suggest', icon: <Lightbulb size={20} />, label: L('Schlag mir was vor', 'Suggest something'), info: L('Ich schlage dir zufällig eine kleine Idee aus der App vor – mit einem Link, der direkt dorthin führt.', 'I suggest a small idea from the app at random – with a link that takes you straight there.'), run: p.onSuggest, testId: 'companion-suggest' },
         { id: 'orient', icon: <Compass size={20} />, label: t.companion.helpMeOrient, info: t.companion.helpMeOrientSubtext, run: p.onGrounding, testId: 'companion-grounding' },
         { id: 'breathe', icon: <Wind size={20} />, label: L('Gemeinsam atmen', 'Breathe together'), info: L('Eine ruhige Atemübung zum Mitatmen – du wählst, welche.', 'A calm breathing exercise to breathe along with – you choose which.'), run: p.onBreathe, testId: 'companion-breathe' },
         { id: 'toomuch', icon: <Feather size={20} />, label: t.companion.tooMuchCta, info: L('Wenn alles zu viel ist: Ich zeige dir ganz wenig und ein paar Wege hinaus.', 'When everything is too much: I show you very little and a few ways out.'), run: p.onTooMuch },

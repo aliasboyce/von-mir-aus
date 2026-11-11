@@ -7,6 +7,8 @@ import { clearAllOwnMedia } from './mediaStore';
  */
 export const ALL_STORAGE_KEYS: string[] = [
   'settings',
+  'game-insider-seen',
+  'dino-game-highscore',
   'app-lock',
   'breath-prefs',
   'mindmaps',

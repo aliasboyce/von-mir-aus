@@ -10,6 +10,7 @@ import { TooMuchModal } from './TooMuchModal';
 import { QuickFeedbackSheet } from '../shared/QuickFeedbackSheet';
 import { TEST_PHASE } from '../../services/testSupport';
 import { StoersenderOverlay } from './StoersenderOverlay';
+import { SuggestOverlay } from './SuggestOverlay';
 import { SchmuggelOverlay } from './SchmuggelOverlay';
 import { getAnyLichtwesen } from './customLichtwesen';
 import { getAnimal } from './animals/animalRegistry';
@@ -144,6 +145,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
   const [groundingOpen, setGroundingOpen] = useState(false);
   const [tooMuchOpen, setTooMuchOpen] = useState(false);
   const [stoerOpen, setStoerOpen] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
   const [schmuggelOpen, setSchmuggelOpen] = useState(false);
   // "Wegschicken": the Wesen hops off to the side; "herbeirufen": it hops back in
   const [exit, setExit] = useState<null | 'away' | 'back'>(null);
@@ -420,6 +422,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     onGrounding: () => { setMenuOpen(false); setGroundingOpen(true); },
     onTooMuch: () => { setMenuOpen(false); setTooMuchOpen(true); },
     onStoer: () => { setMenuOpen(false); setStoerOpen(true); },
+    onSuggest: () => { setMenuOpen(false); setSuggestOpen(true); },
     onSchmuggel: () => { setMenuOpen(false); setSchmuggelOpen(true); },
     onBreathe: () => { setMenuOpen(false); navigate('/entdecken/ressourcen/skills/atmen'); },
     onSleep: toggleSleep,
@@ -499,6 +502,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         {tooMuchOpen && <TooMuchModal onClose={() => setTooMuchOpen(false)} />}
       {quickFbOpen && <QuickFeedbackSheet open onClose={() => setQuickFbOpen(false)} />}
         {stoerOpen && <StoersenderOverlay onClose={() => setStoerOpen(false)} />}
+        {suggestOpen && <SuggestOverlay onClose={() => setSuggestOpen(false)} />}
         {schmuggelOpen && <SchmuggelOverlay onClose={() => setSchmuggelOpen(false)} />}
       </div>
     );
@@ -560,6 +564,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
       {tooMuchOpen && <TooMuchModal onClose={() => setTooMuchOpen(false)} />}
       {quickFbOpen && <QuickFeedbackSheet open onClose={() => setQuickFbOpen(false)} />}
       {stoerOpen && <StoersenderOverlay onClose={() => setStoerOpen(false)} />}
+        {suggestOpen && <SuggestOverlay onClose={() => setSuggestOpen(false)} />}
       {schmuggelOpen && <SchmuggelOverlay onClose={() => setSchmuggelOpen(false)} />}
     </div>
   );

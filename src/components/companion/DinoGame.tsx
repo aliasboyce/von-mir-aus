@@ -9,7 +9,6 @@ import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
 import { UsageCheckInPrompt } from './UsageCheckInPrompt';
 import { LichtCompanion } from './LichtCompanion';
-import { getAnyLichtwesen } from './customLichtwesen';
 import { LICHTWESEN } from './lichtwesen';
 import { gameCategoryFor, pickGameSentence, GAME_INSIDER_NOTE, GAME_INSIDER_NOTE_EN } from './gameSentences';
 
@@ -25,6 +24,16 @@ import { gameCategoryFor, pickGameSentence, GAME_INSIDER_NOTE, GAME_INSIDER_NOTE
  * the most fitting collectible. Speed increases steadily the longer
  * a run lasts, exactly like the reference game.
  */
+/** Der Hinweis zu den Insider-Sätzen kommt nur beim allerersten Verlieren – danach nur noch die Sprüche. */
+const insiderSeenStore = createKeyValueStore<boolean>('game-insider-seen', false);
+
+/**
+ * Ein festes Spiel-Wesen, unabhängig vom gewählten Wesen: tiefes Indigo mit hellem Schein und offenen Augen.
+ * Die Landschaft im Spiel wechselt von Wiese (hellgrün) über Wald (dunkelgrün) zu Meer (blau) – das Indigo hebt sich von allen
+ * dreien ab (Kontrast ca. 2:1 bis 5:1), während Grün-, Türkis- oder Gelbtöne im Wald oder am Meer verschwinden würden.
+ */
+const GAME_RUNNER = { ...(LICHTWESEN.find((w) => w.id === 'naechtlich') ?? LICHTWESEN[0]), eyeStyle: 'round' as const };
+
 const highScoreStore = createKeyValueStore<number>('dino-game-highscore', 0);
 
 // "Lauf am Laptop groesser, am Handy ueber den ganzen Bildschirm"-Auftrag —
@@ -208,6 +217,8 @@ export function DinoGame({ onClose }: DinoGameProps) {
   const [gameOverUi, setGameOverUi] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [endSentence, setEndSentence] = useState('');
+  const [showInsider, setShowInsider] = useState(false);
+  const endedAtRef = useRef(0);
 
   function jump() {
     const s = stateRef.current;
@@ -274,6 +285,13 @@ export function DinoGame({ onClose }: DinoGameProps) {
     setFinalScore(finalScoreVal);
     // the end-of-round line depends on how long this run lasted
     setEndSentence(pickGameSentence(gameCategoryFor(s.elapsedMs / 1000)));
+    endedAtRef.current = performance.now();
+    if (!insiderSeenStore.get()) {
+      insiderSeenStore.set(true);
+      setShowInsider(true);
+    } else {
+      setShowInsider(false);
+    }
     if (finalScoreVal > highScoreStore.get()) {
       highScoreStore.set(finalScoreVal);
       setHighScore(finalScoreVal);
@@ -590,6 +608,12 @@ export function DinoGame({ onClose }: DinoGameProps) {
     function onKey(e: KeyboardEvent) {
       if (e.code === 'Space') {
         e.preventDefault();
+        const st = stateRef.current;
+        // nach dem Verlieren genügt die Leertaste zum Weiterspielen (kurze Pause, damit ein Nachklicken nicht sofort neu startet)
+        if (st.started && st.gameOver) {
+          if (!e.repeat && performance.now() - endedAtRef.current > 500) startRun();
+          return;
+        }
         jump();
       }
     }
@@ -600,8 +624,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
 
   const s = stateRef.current;
   // the game only ever runs with a light being (the animals are not made for it): the chosen one, or the first if an animal is chosen
-  const chosen = getAnyLichtwesen(settings.selectedBrainId);
-  const runner = chosen.animal ? LICHTWESEN[0] : chosen;
+  const runner = GAME_RUNNER;
   const insiderNote = settings.language === 'en' ? GAME_INSIDER_NOTE_EN : GAME_INSIDER_NOTE;
   const { S, H, k, portrait } = layout;
   const groundNow = H - GROUND_MARGIN - (portrait ? 96 / S : 0);
@@ -685,7 +708,6 @@ export function DinoGame({ onClose }: DinoGameProps) {
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="flex flex-col items-center gap-2 px-6">
               <p className="text-[14px] text-[var(--color-text-muted)] bg-[var(--color-surface)] px-3 py-1.5 rounded-full">{t.dinoGame.tapToStart}</p>
-              <p className="text-[11.5px] text-[var(--color-text-muted)] bg-[var(--color-surface)]/90 px-3 py-1.5 rounded-[14px] text-center leading-snug max-w-[300px]" data-testid="game-insider-note">{insiderNote}</p>
             </div>
           </div>
         )}
@@ -698,7 +720,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
             {endSentence && (
               <p className="text-[15px] text-[var(--color-text)] text-center leading-snug px-6 max-w-[320px] whitespace-pre-line" style={{ fontFamily: 'var(--font-companion)' }} data-testid="game-end-sentence">{endSentence}</p>
             )}
-            <p className="text-[10.5px] text-[var(--color-text-faint)] text-center leading-snug px-6 max-w-[300px]" data-testid="game-insider-note-end">{insiderNote}</p>
+            {showInsider && <p className="text-[10.5px] text-[var(--color-text-faint)] text-center leading-snug px-6 max-w-[300px]" data-testid="game-insider-note-end">{insiderNote}</p>}
             <button
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
@@ -709,6 +731,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
             >
               {t.dinoGame.restartCta}
             </button>
+            <p className="text-[10.5px] text-[var(--color-text-faint)]">{settings.language === 'en' ? 'On a keyboard: press Space to play again' : 'Am Laptop: Leertaste zum Weiterspielen'}</p>
           </div>
         )}
         {portrait && (

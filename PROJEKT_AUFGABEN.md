@@ -656,6 +656,8 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Vorsicht-Markierung: services/skillCaution.ts + components/shared/CautionMark.tsx (Badge in Karten/Tiles, Note in Detail, Skill-Lauf, Skillkette, Atem-Seite); gilt auch für eigene Skills mit „Gegenanzeigen“.
 - Beispiele durchgesehen (11.11.2026), Entscheidungen umgesetzt: Warnhinweise (Carotis, Oculocardiac, TIPP, Eiswasser, Sicherheitsplan Rot), Umformulierungen (Bereitwilligkeit, Verhaltensänderung→„Kleine Fortschritte würdigen“, Fakten-Check, PLEASE), 6 Brücken → Skills/Ressource/Aktivität, Starter-Ressourcen mit richtigem Typ, Doppelungen raus, Hinweis „bei dir kann das anders sein“ bei 5 sensiblen Impulsen, Netzwerk-Beispiele neutral. Migration: services/exampleCleanup.ts (Flag `migration-example-cleanup-v1`, ändert nur Unverändertes) + data/seed/exampleRevisions.ts.
 - Neue Welten: Märchenwald, Unterwasser, Himmel, Lagerfeuer, Cozy Corner (+5 Welt-Pakete). Herbst, Schneewelt (=Winter), Berge gab es schon.
+- Wesen „Schlag mir was vor“: components/companion/SuggestOverlay.tsx + suggestIdeas.ts (≈70 feste Ideen mit Route + Vorlagen für eigene Skills/Ressourcen/Brücken/Netzwerk/Routinen; Skills mit Vorsicht-Hinweis werden nicht vorgeschlagen). Info-Text INFO_SUGGEST in wesenFunctions.ts.
+- Wesen-Spiel: Insider-Hinweis nur beim ersten Verlieren (`game-insider-seen`), Leertaste startet neu, festes Spiel-Wesen (Indigo). 8 Witze als Kind 'witz' bei „Überrasch mich“.
 - Offen: Sprüche und Insider-Texte (Nutzerin arbeitet daran), Handy-Test, fachliche Durchsicht der Warn-/Gegenanzeigentexte.
 
 ## Grundsatzprinzipien (als Leitlinie bei jeder künftigen Entscheidung)
