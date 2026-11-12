@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ChevronDown } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { diaryRepo } from '../diary/diaryRepo';
 import { diaryCategoriesStore } from '../diary/diaryCategories';
@@ -31,6 +31,7 @@ export function AchievementSection() {
   const t = useT();
   const say = useCompanionSay();
   const [text, setText] = useState('');
+  const [open, setOpen] = useState(false);
   // Only ever TODAY's entries are shown: the list starts empty every new day.
   // Earlier days are not gone — they live on in the diary and in the Rück-
   // blick (Tages-/Wochenrückblick), which read the same entries by date.
@@ -61,16 +62,17 @@ export function AchievementSection() {
   }
 
   return (
-    // "Das habe ich geschafft, Startseite deutlicher, nicht mehr nur
-    // ausklappbar, soll angezeigt werden"-Auftrag — was a collapsed
-    // toggle link; now an always-visible card with the input and the
-    // latest entries right there.
-    <div className="mb-6 rounded-[var(--radius-lg)] p-4" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
-      <p className="flex items-center gap-1.5 text-[14px] font-medium text-[var(--color-text)] mb-3">
-        <Sparkles size={15} className="text-[var(--color-accent-clay)]" />
-        {t.home.achievementTitle}
-      </p>
-
+    // Zum Ausklappen: standardmäßig zu, damit die Startseite ruhig bleibt; aufgeklappt gibt es Eingabe und die heutigen Einträge.
+    <div className="mb-6 rounded-[var(--radius-lg)] px-4 py-3" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }} data-testid="achievement-section">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="w-full flex items-center justify-between gap-2 text-left" data-testid="achievement-toggle">
+        <span className="flex items-center gap-1.5 text-[14px] font-medium text-[var(--color-text)]">
+          <Sparkles size={15} className="text-[var(--color-accent-clay)]" />
+          {t.home.achievementTitle}
+          {!open && recent.length > 0 && <span className="text-[12px] font-normal text-[var(--color-text-faint)]">· {recent.length}</span>}
+        </span>
+        <ChevronDown size={16} className={`text-[var(--color-text-faint)] transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (<div className="mt-3">
       <div className="flex gap-2 mb-3">
         <input
           className="input flex-1"
@@ -101,6 +103,7 @@ export function AchievementSection() {
           {t.home.achievementReviewLink}
         </Link>
       </p>
+      </div>)}
     </div>
   );
 }

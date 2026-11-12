@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
@@ -7,6 +7,7 @@ import { EnergyLevelFilter } from './EnergyLevelFilter';
 import { Link } from 'react-router-dom';
 import { ACCESS_CHANNEL_META, ACCESS_CHANNEL_ORDER } from '../../features/zugangskanaele/accessChannels';
 import type { AccessChannel } from '../../data/types';
+import { channelSnapshotsRepo, newSnapshot } from '../../features/zugangskanaele/channelSnapshots';
 import {
   EFFORT_LEVELS,
   TIME_STEPS,
@@ -51,7 +52,19 @@ function Group({ title, question, children }: { title: string; question: string;
  * Everything is optional and one tap resets it. `hiddenUnmarked` is how many
  * entries are currently hidden only because they have no details yet.
  */
-export function FitFilterPanel({ hiddenUnmarked = 0, defaultOpen = false }: { hiddenUnmarked?: number; defaultOpen?: boolean }) {
+export function FitFilterPanel({
+  hiddenUnmarked = 0,
+  defaultOpen = false,
+  onSkip,
+  autoSnapshot = true,
+}: {
+  hiddenUnmarked?: number;
+  defaultOpen?: boolean;
+  /** shows "Überspringen": clears the filter (everything is suggested) and calls this */
+  onSkip?: () => void;
+  /** saves the Zustandsaufnahme by itself whenever channels are set (one entry per visit) */
+  autoSnapshot?: boolean;
+}) {
   const t = useT();
   const { settings } = useSettings();
   const lang = settings.language === 'en' ? 'en' : 'de';
@@ -65,6 +78,33 @@ export function FitFilterPanel({ hiddenUnmarked = 0, defaultOpen = false }: { hi
     2: [f.effort2, f.effort2Hint],
     3: [f.effort3, f.effort3Hint],
   };
+
+  // Zustandsaufnahme is saved automatically (one entry per visit, updated while the person adjusts)
+  const snapId = useRef<string | null>(null);
+  const firstRun = useRef(true);
+  useEffect(() => {
+    // only real changes made here count — not a filter that was already set when the page opened
+    if (firstRun.current) {
+      firstRun.current = false;
+      return;
+    }
+    if (!autoSnapshot || filter.levels === null) return;
+    const timer = window.setTimeout(() => {
+      const levels = filter.levels;
+      if (!levels) return;
+      const snap = newSnapshot(levels);
+      if (snapId.current) {
+        const prev = channelSnapshotsRepo.getById(snapId.current);
+        if (prev) {
+          channelSnapshotsRepo.save({ ...snap, id: prev.id, createdAt: prev.createdAt, note: prev.note });
+          return;
+        }
+      }
+      snapId.current = snap.id;
+      channelSnapshotsRepo.save(snap);
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [autoSnapshot, filter.levels]);
 
   function toggleChannel(c: AccessChannel) {
     setFilter({ levels: toggleMissingChannel(filter.levels, c, ACCESS_CHANNEL_ORDER) });
@@ -181,6 +221,24 @@ export function FitFilterPanel({ hiddenUnmarked = 0, defaultOpen = false }: { hi
               {f.reset}
             </button>
           )}
+        </div>
+      )}
+
+      {onSkip && (
+        <div className="px-3.5 pb-3.5">
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              onSkip();
+            }}
+            data-testid="fit-skip"
+            className="w-full rounded-full border px-3 py-2 text-[13px]"
+            style={{ borderColor: 'var(--color-border-strong)', color: 'var(--color-text)' }}
+          >
+            {f.skip}
+          </button>
+          <p className="text-[11px] text-[var(--color-text-faint)] text-center mt-1">{f.skipHint}</p>
         </div>
       )}
 

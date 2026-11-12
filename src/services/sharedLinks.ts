@@ -14,6 +14,7 @@ const IMPORT_PATHS = [
   '/sicherheit/kontakte/importieren',
   '/brief/importieren',
   '/entdecken/mindmap/importieren',
+  '/sammelalbum/importieren',
 ];
 
 /** The in-app route (path + query) found in a pasted text, or null. */

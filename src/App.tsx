@@ -48,6 +48,11 @@ import { PrivacyPage } from './features/settings/PrivacyPage';
 import { SourceLibraryPage } from './features/sources/SourceLibraryPage';
 import { NeedsCompassPage } from './features/accessWheel/NeedsCompassPage';
 import { GlossarPage } from './features/glossar/GlossarPage';
+import { ReceivedPage } from './features/home/ReceivedPage';
+import { AlbumPage } from './features/cards/AlbumPage';
+import { CardEditorPage } from './features/cards/CardEditorPage';
+import { ReflexionEditorPage } from './features/cards/ReflexionEditorPage';
+import { CardImportPage } from './features/cards/CardImportPage';
 import { ZugangskanaelePage } from './features/zugangskanaele/ZugangskanaelePage';
 import { BookmarksPage } from './features/bookmarks/BookmarksPage';
 import { FavoritesPage } from './features/favorites/FavoritesPage';
@@ -134,6 +139,11 @@ function App() {
                 <Route path="/kalender/uebersicht" element={<CalendarOverviewPage />} />
                 <Route path="/quellen" element={<SourceLibraryPage />} />
                 <Route path="/entdecken/glossar" element={<GlossarPage />} />
+                <Route path="/erhalten" element={<ReceivedPage />} />
+                <Route path="/sammelalbum" element={<AlbumPage />} />
+                <Route path="/sammelalbum/neu" element={<CardEditorPage />} />
+                <Route path="/sammelalbum/tageskarte" element={<ReflexionEditorPage />} />
+                <Route path="/sammelalbum/importieren" element={<CardImportPage />} />
                 <Route path="/entdecken/zugangskanaele" element={<ZugangskanaelePage />} />
                 <Route path="/entdecken/beduerfnis-kompass" element={<NeedsCompassPage />} />
                 <Route path="/entdecken/tageskurve" element={<PolyvagalPage />} />

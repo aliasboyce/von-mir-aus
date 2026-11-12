@@ -48,7 +48,6 @@ export function ExploreMap() {
 
   return (
     <div className="explore-map overflow-x-clip">
-      <p data-hint className="relative z-10 text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mb-12">{t.explore.mapHint}</p>
 
       {/* the neutral centre */}
       <div className="flex flex-col items-center mb-5">
@@ -68,7 +67,7 @@ export function ExploreMap() {
             </span>
           </div>
         </div>
-        <div className="flex flex-wrap justify-center gap-2 mt-12" role="group" aria-label={t.explore.mapTitle}>
+        <div className="flex flex-wrap justify-center gap-2 mt-10" role="group" aria-label={t.explore.mapTitle}>
           {jumps.map((j) => (
             <button
               key={j.id}

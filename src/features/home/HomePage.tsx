@@ -11,7 +11,6 @@ import { TodaySoFar } from './TodaySoFar';
 import { ImportantContactsStrip } from './ImportantContactsStrip';
 import { ResourceNudgeCard } from './ResourceNudgeCard';
 import { createPortal } from 'react-dom';
-import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { IntentPickerModal } from './IntentPickerModal';
@@ -330,7 +329,6 @@ export function HomePage() {
             <Search size={20} />
           </Link>
           <PostfachButton count={postfachCount} open={postfachOpen} onToggle={() => setPostfachOpen((v) => !v)} />
-          <HelpButton helpKey="home" />
           <Link
             to="/einstellungen"
             aria-label={t.settings.title}
@@ -400,31 +398,7 @@ export function HomePage() {
         </Link>
       ) : (
         <>
-      <HomeWays isEn={isEn} onOpenGrounding={() => setGroundingOpen(true)} fallback={(<>
-      <p className="text-[11px] text-[var(--color-text-faint)] text-center mb-2">{t.home.forkOrLabel}</p>
-      <div className="flex gap-2 mb-2">
-        <Link to="/zugang" className="flex-1">
-          <Card interactive padding="md" className="text-center h-full flex flex-col items-center justify-center gap-0.5">
-            <span className="text-[16px]">🔎</span>
-            <p className="text-[12px] text-[var(--color-text)]">{t.home.forkUnderstandTitle}</p>
-            <p className="text-[10.5px] text-[var(--color-text-faint)] leading-snug">({t.home.forkUnderstandTag})</p>
-          </Card>
-        </Link>
-        <Link to="/bruecken" className="flex-1">
-          <Card interactive padding="md" className="text-center h-full flex flex-col items-center justify-center gap-0.5">
-            <span className="text-[16px]">👣</span>
-            <p className="text-[12px] text-[var(--color-text)]">{t.home.forkActTitle}</p>
-            <p className="text-[10.5px] text-[var(--color-text-faint)] leading-snug">({t.home.forkActTag})</p>
-          </Card>
-        </Link>
-      </div>
-      {!lean && showMore ? (
-      <button onClick={() => setShowIntentPicker(true)} className="text-[12.5px] text-[var(--color-primary)] mt-3 mb-6 block mx-auto">
-        {t.home.intentPickerEntryCta}
-      </button>
-      ) : <div className="mb-6" />}
-
-      </>)} />
+      <HomeWays isEn={isEn} onOpenGrounding={() => setGroundingOpen(true)} onIntent={!lean ? () => setShowIntentPicker(true) : undefined} />
         </>
       )}
 
@@ -448,7 +422,7 @@ export function HomePage() {
         </button>
       )}
 
-      {showMore && scope !== 'core' && (<>
+      {scope !== 'core' && (<>
       {/* everyday helpers, together in one calm place */}
       <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{isEn ? 'Everyday' : 'Alltag'}</p>
       <div className="grid grid-cols-2 gap-2 mb-6" data-testid="home-everyday">
@@ -471,7 +445,7 @@ export function HomePage() {
       </div>
       </>)}
 
-      {showMore && !lean && <AchievementSection />}
+      {!lean && <AchievementSection />}
 
       {showMore && scope !== 'core' && (<button
         onClick={() => setShowNurJetztExplainer(true)}

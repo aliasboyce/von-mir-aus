@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Check, ChevronDown, Play } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { Card } from '../../components/ui/Card';
@@ -72,6 +72,15 @@ export function DayFlowPage({ phase }: { phase: DayPhase }) {
             <LichtCompanion size="small" joyBurst={allDone ? 'dance' : 'hop'} />
             <p className="text-[13.5px] text-[var(--color-text)] leading-snug">{allDone ? dx.allDone : dx.someDone}</p>
           </div>
+        )}
+        {!start && (
+          <Link to="/sammelalbum/tageskarte" className="flex items-center gap-3 rounded-[var(--radius-lg)] p-3 mt-3 border border-dashed border-[var(--color-border-strong)]" data-testid="day-card-offer">
+            <span className="text-[26px]" aria-hidden="true">🃏</span>
+            <span className="min-w-0">
+              <span className="block text-[14.5px] text-[var(--color-text)] leading-snug">{settings.language === 'en' ? 'Make a day card?' : 'Tageskarte machen?'}</span>
+              <span className="block text-[12.5px] text-[var(--color-text-muted)]">{settings.language === 'en' ? 'Your day as a collection card – only if you like.' : 'Dein Tag als Sammelkarte – nur wenn du magst.'}</span>
+            </span>
+          </Link>
         )}
         <div className="flex flex-col gap-3 mt-3">
           {options.map((o) => {

@@ -37,7 +37,6 @@ import {
   DIARY_DEFAULT_CATEGORY_LABEL,
 } from './diaryCategories';
 import { MiniCurve } from '../polyvagal/MiniCurve';
-import { DailyReview } from './DailyReview';
 import { LettersList } from '../briefAnMich/LettersList';
 import { DiaryExportModal, type DiaryExportChoice } from './DiaryExportModal';
 import { DiaryPrintView } from './DiaryPrintView';
@@ -235,7 +234,7 @@ export function DiaryPage() {
   // /sicherheit/tagebuch?tab=review opens straight on the Tagesrueckblick (used by "Heute bisher" on Home)
   const [view, setView] = useState<'entries' | 'review' | 'letters'>(() => {
     const tab = new URLSearchParams(window.location.search).get('tab');
-    return tab === 'review' ? 'review' : tab === 'briefe' ? 'letters' : 'entries';
+    return tab === 'briefe' ? 'letters' : 'entries';
   });
   const [fontPickerOpen, setFontPickerOpen] = useState(false);
 
@@ -409,9 +408,6 @@ export function DiaryPage() {
           <Chip selected={view === 'entries'} onClick={() => setView('entries')}>
             {t.diary.viewEntries}
           </Chip>
-          <Chip selected={view === 'review'} onClick={() => setView('review')}>
-            {t.diary.viewReview}
-          </Chip>
           <Chip selected={view === 'letters'} onClick={() => setView('letters')} icon={<Mail size={14} />}>
             {t.diary.viewLetters}
           </Chip>
@@ -445,8 +441,6 @@ export function DiaryPage() {
             </Link>
             <LettersList />
           </div>
-        ) : view === 'review' ? (
-          <DailyReview diaryEntries={visibleEntries} />
         ) : (
           <>
             <div className="chip-row no-scrollbar mb-5 -mx-5 px-5">

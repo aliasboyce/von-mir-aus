@@ -117,3 +117,22 @@ export const CONTACT_TEMPLATES: Bi[] = [
 export const ROUTINE_TEMPLATES: Bi[] = [
   { de: 'Du könntest deine Routine „{x}“ heute nur ganz klein machen – den ersten Schritt reicht.', en: 'You could do your routine “{x}” very small today – the first step is enough.' },
 ];
+
+/** Zusätzliche Bausteine für Dinge, die du selbst neu angelegt hast – die kommen öfter vor. */
+export const NEW_SKILL_TEMPLATES: Bi[] = [
+  { de: 'Du hast „{x}“ selbst angelegt. Magst du es einmal ausprobieren?', en: 'You created “{x}” yourself. Would you like to try it once?' },
+  { de: 'Dein eigener Skill „{x}“ wartet auf dich – nur kurz, nur so weit es passt.', en: 'Your own skill “{x}” is waiting for you – just briefly, just as far as it fits.' },
+];
+export const NEW_RESOURCE_TEMPLATES: Bi[] = [
+  { de: 'Du hast „{x}“ selbst eingetragen. Wie wäre es, dir das heute zu gönnen?', en: 'You added “{x}” yourself. How about treating yourself to it today?' },
+  { de: 'Dein eigenes „{x}“ – magst du es dir gerade anschauen oder nutzen?', en: 'Your own “{x}” – would you like to look at it or use it right now?' },
+];
+export const NEW_BRIDGE_TEMPLATES: Bi[] = [
+  { de: 'Deine selbst gebaute Brücke „{x}“ – magst du heute eine Stufe gehen?', en: 'Your own bridge “{x}” – would you like to take a step today?' },
+];
+export const NEW_CONTACT_TEMPLATES: Bi[] = [
+  { de: 'Du hast „{x}“ in dein Netzwerk aufgenommen. Magst du kurz an sie oder ihn denken?', en: 'You added “{x}” to your network. Would you like to think of them for a moment?' },
+];
+export const NEW_ROUTINE_TEMPLATES: Bi[] = [
+  { de: 'Deine eigene Routine „{x}“ – heute nur den ersten, kleinsten Schritt?', en: 'Your own routine “{x}” – just the first, smallest step today?' },
+];

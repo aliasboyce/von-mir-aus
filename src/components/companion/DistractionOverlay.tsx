@@ -1,3 +1,4 @@
+import { ReflectionAnswer } from './ReflectionAnswer';
 import { TestPhaseNote } from '../shared/TestPhaseNote';
 import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -559,6 +560,10 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
                 )}
               </div>
             )
+          )}
+
+          {current.kind === 'frage' && !current.answer && !current.answerEn && !(current.options && current.options.length > 0) && (
+            <ReflectionAnswer key={current.text} question={current.text} questionEn={current.textEn} isEn={isEn} />
           )}
 
           {current.kind === 'fakt' && current.source && (

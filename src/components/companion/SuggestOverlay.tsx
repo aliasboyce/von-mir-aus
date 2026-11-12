@@ -5,7 +5,7 @@ import { X, RefreshCw, ArrowRight } from 'lucide-react';
 import { InlineCompanionNote } from './InlineCompanionNote';
 import { WesenInfoButton } from './WesenInfoButton';
 import { INFO_SUGGEST } from './wesenFunctions';
-import { SUGGEST_IDEAS, SKILL_TEMPLATES, RESOURCE_TEMPLATES, BRIDGE_TEMPLATES, CONTACT_TEMPLATES, ROUTINE_TEMPLATES, type SuggestIdea } from './suggestIdeas';
+import { SUGGEST_IDEAS, SKILL_TEMPLATES, RESOURCE_TEMPLATES, BRIDGE_TEMPLATES, CONTACT_TEMPLATES, ROUTINE_TEMPLATES, NEW_SKILL_TEMPLATES, NEW_RESOURCE_TEMPLATES, NEW_BRIDGE_TEMPLATES, NEW_CONTACT_TEMPLATES, NEW_ROUTINE_TEMPLATES, type SuggestIdea } from './suggestIdeas';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
@@ -32,13 +32,23 @@ function buildPool(): SuggestIdea[] {
     // Skills: nur ohne „Vorsicht“-Hinweis, damit nichts Körperlich-Intensives beiläufig vorgeschlagen wird
     const skills = res.filter((r) => RESOURCE_CATEGORY_TO_GROUP[r.category as keyof typeof RESOURCE_CATEGORY_TO_GROUP] === 'faehigkeiten' && !cautionFor(r, 'de'));
     const others = res.filter((r) => RESOURCE_CATEGORY_TO_GROUP[r.category as keyof typeof RESOURCE_CATEGORY_TO_GROUP] !== 'faehigkeiten');
-    // eigene Einträge zuerst (Favoriten oder selbst angelegt), sonst alle
-    const preferred = <T extends { favorite?: boolean }>(a: T[]) => (a.some((x) => x.favorite) ? a.filter((x) => x.favorite) : a);
-    preferred(skills).slice(0, 40).forEach((r) => pool.push({ area: 'skill', to: `/entdecken/ressourcen/skill-start/${r.id}`, ...fill(pick(SKILL_TEMPLATES), r.title) }));
-    preferred(others).slice(0, 40).forEach((r) => pool.push({ area: 'ressource', to: `/entdecken/ressourcen?open=${r.id}`, ...fill(pick(RESOURCE_TEMPLATES), r.title) }));
-    bridgesRepo.getAll().slice(0, 20).forEach((b) => pool.push({ area: 'bruecke', to: `/bruecken/${b.id}`, ...fill(pick(BRIDGE_TEMPLATES), b.title) }));
-    networkRepo.getAll().filter((e) => !e.isExample && e.category === 'person').slice(0, 20).forEach((e) => pool.push({ area: 'netz', to: `/sicherheit/netzwerk?open=${e.id}`, ...fill(pick(CONTACT_TEMPLATES), e.name) }));
-    routinesRepo.getAll().filter((r) => !r.isExample).slice(0, 10).forEach((r) => pool.push({ area: 'routine', to: `/entdecken/routinen/${r.id}/start`, ...fill(pick(ROUTINE_TEMPLATES), r.title) }));
+    // Selbst angelegte Einträge (nicht aus den Beispielen) kommen öfter dran: je zwei Ideen pro Eintrag, die neuesten zuerst.
+    const madeByUser = (id: string) => /^[a-z]+_[0-9a-z]{7,9}_[0-9a-z]{6}$/.test(id);
+    const newestFirst = <T extends { createdAt?: string }>(a: T[]) => [...a].sort((x, y) => (y.createdAt ?? '').localeCompare(x.createdAt ?? ''));
+    const preferred = <T extends { id: string; favorite?: boolean }>(a: T[]) => (a.some((x) => x.favorite) ? a.filter((x) => x.favorite || madeByUser(x.id)) : a);
+    const add = (area: string, to: string, title: string, std: { de: string; en: string }[], mine: { de: string; en: string }[], own: boolean) => {
+      pool.push({ area, to, ...fill(pick(std), title) } as SuggestIdea);
+      if (own) {
+        pool.push({ area, to, ...fill(pick(mine), title) } as SuggestIdea);
+        pool.push({ area, to, ...fill(pick(mine), title) } as SuggestIdea);
+      }
+    };
+    const mineFirst = <T extends { id: string; createdAt?: string }>(a: T[]) => [...newestFirst(a.filter((x) => madeByUser(x.id))), ...a.filter((x) => !madeByUser(x.id))];
+    mineFirst(preferred(skills)).slice(0, 40).forEach((r) => add('skill', `/entdecken/ressourcen/skill-start/${r.id}`, r.title, SKILL_TEMPLATES, NEW_SKILL_TEMPLATES, madeByUser(r.id)));
+    mineFirst(preferred(others)).slice(0, 40).forEach((r) => add('ressource', `/entdecken/ressourcen?open=${r.id}`, r.title, RESOURCE_TEMPLATES, NEW_RESOURCE_TEMPLATES, madeByUser(r.id)));
+    bridgesRepo.getAll().slice(0, 30).forEach((b) => add('bruecke', `/bruecken/${b.id}`, b.title, BRIDGE_TEMPLATES, NEW_BRIDGE_TEMPLATES, !!b.isCustom));
+    networkRepo.getAll().filter((e) => !e.isExample && e.category === 'person').slice(0, 20).forEach((e) => add('netz', `/sicherheit/netzwerk?open=${e.id}`, e.name, CONTACT_TEMPLATES, NEW_CONTACT_TEMPLATES, true));
+    routinesRepo.getAll().filter((r) => !r.isExample).slice(0, 10).forEach((r) => add('routine', `/entdecken/routinen/${r.id}/start`, r.title, ROUTINE_TEMPLATES, NEW_ROUTINE_TEMPLATES, true));
   } catch {
     // eigene Einträge nicht lesbar – dann bleiben die festen Ideen
   }

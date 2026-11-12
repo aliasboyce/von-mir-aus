@@ -16,6 +16,40 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-sammelalbum-1',
+    date: '2026',
+    items: [
+      'Neu: „Mein Sammelalbum“ (unter Entdecken). Deine Ressourcen, Fähigkeiten, Orte, Aktionen und mehr werden zu Sammelkarten, die du im Album durchblättern kannst.',
+      'Eigene Karten mit Foto, Schrift, Farben, Polaroid-Rahmen und Stickern – und Limitierte Karten mit Glitzer. Alles freiwillig.',
+      'Am Ende des Tages kannst du eine Tageskarte machen. Als PDF lassen sich Karten in Druckgröße ausgeben, einzelne Karten kannst du per Link teilen.',
+    ],
+    itemsEn: [
+      'New: “My collection album” (under Explore). Your resources, skills, places, actions and more become collectible cards you can leaf through.',
+      'Own cards with photo, font, colours, polaroid frames and stickers – plus limited glitter cards. All optional.',
+      'At the end of the day you can make a day card. Cards can be exported as a print-size PDF, and single cards shared by link.',
+    ],
+  },
+  {
+    id: '2026-aufraeumen-1',
+    date: '2026',
+    items: [
+      'Startseite: Die drei Wege haben „Zustand & Zugang“ als vierten. „Alles zeigen“ führt direkt zu Entdecken. „Das habe ich geschafft“ lässt sich ausklappen, der Alltag bleibt sichtbar.',
+      '„Was geht gerade?“ im Zugang: „Überspringen“ – dann wird alles vorgeschlagen. Die Zustandsaufnahme wird von selbst gespeichert; das Netz kannst du dir extra ansehen.',
+      'Entdecken: nur noch die Karte, oben aufgeräumt. „Etwas erhalten“ und das Wörterbuch haben jeweils eine eigene Seite.',
+      'Der Tagesrückblick ist jetzt bei Woche und Monat (Reiter „Tag“).',
+      '„Fragen zum Nachdenken“: Du kannst deine Gedanken aufschreiben und im Rückblick speichern – ganz freiwillig.',
+      '„Schlag mir was vor“ greift deine selbst angelegten Einträge öfter auf. Das Wesen-Spiel ist am Handy größer und mittiger.',
+    ],
+    itemsEn: [
+      'Home: the three ways now have “State & access” as a fourth. “Show everything” goes straight to Explore. “What I managed” can be expanded, everyday stays visible.',
+      '“What works right now?” in Access: “Skip” – then everything is suggested. The state snapshot is saved by itself; you can look at the net separately.',
+      'Explore: only the map now, tidier at the top. “Received something” and the dictionary each have their own page.',
+      'The daily review now lives with the weekly and monthly review (tab “Day”).',
+      '“Questions to think about”: you can write down your thoughts and save them in the review – completely optional.',
+      '“Suggest something” picks up your own entries more often. The Wesen game is bigger and more central on phones.',
+    ],
+  },
+  {
     id: '2026-wesen-vorschlaege',
     date: '2026',
     items: [

@@ -1040,3 +1040,12 @@ button {
   12% { opacity: 1; }
   100% { transform: translateY(112vh) rotate(260deg); opacity: 0.9; }
 }
+
+/* Sammelalbum: ruhiger Glanz auf limitierten Karten */
+@keyframes card-shimmer {
+  0%, 100% { opacity: 0.15; transform: translateX(-4%); }
+  50% { opacity: 0.55; transform: translateX(4%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-testid='card-flip'] * { animation: none !important; transition-duration: 0.01ms !important; }
+}

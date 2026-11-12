@@ -42,6 +42,8 @@ const highScoreStore = createKeyValueStore<number>('dino-game-highscore', 0);
 // screen. GROUND_Y is therefore set from the current layout before every
 // frame instead of being a fixed 118.
 const WORLD_W = 320;
+// Am Handy (Hochformat) zeigt die Welt nur einen schmaleren Ausschnitt – dadurch ist alles deutlich größer.
+const WORLD_W_PORTRAIT = 220;
 const WORLD_MIN_H = 150;
 const GROUND_MARGIN = 32;
 let GROUND_Y = WORLD_MIN_H - GROUND_MARGIN;
@@ -53,6 +55,8 @@ interface GameLayout {
   S: number;
   /** logical world height */
   H: number;
+  /** logical world width (narrower on phones = zoomed in) */
+  W: number;
   /** backing-store multiplier for a crisp canvas */
   k: number;
   portrait: boolean;
@@ -67,7 +71,7 @@ function computeLayout(): GameLayout {
   let H: number;
   if (portrait) {
     // phone: edge to edge, the world grows taller to fill the screen
-    S = vw / WORLD_W;
+    S = vw / WORLD_W_PORTRAIT;
     H = Math.max(WORLD_MIN_H, vh / S);
   } else {
     // laptop / landscape: as large as the window allows (title + scores
@@ -76,7 +80,12 @@ function computeLayout(): GameLayout {
     H = WORLD_MIN_H;
   }
   const k = Math.min(4, Math.max(1, Math.ceil(S * dpr)));
-  return { S, H, k, portrait };
+  return { S, H, W: portrait ? WORLD_W_PORTRAIT : WORLD_W, k, portrait };
+}
+
+/** Boden: am Handy etwas über der Mitte, damit man das Wesen gut sieht und nicht ganz unten suchen muss. */
+function groundFor(l: GameLayout): number {
+  return l.portrait ? Math.round(l.H * 0.6) : l.H - GROUND_MARGIN;
 }
 const COMPANION_X = 46;
 const COMPANION_SIZE = 34;
@@ -304,7 +313,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const width = WORLD_W;
+    let width = layoutRef.current.W;
     function drawObstacle(o: Obstacle) {
       if (!ctx) return;
       const baseY = GROUND_Y - o.height;
@@ -470,7 +479,8 @@ export function DinoGame({ onClose }: DinoGameProps) {
       s.lastTs = ts;
 
       const { H: height, k } = layoutRef.current;
-      GROUND_Y = height - GROUND_MARGIN - (layoutRef.current.portrait ? 96 / layoutRef.current.S : 0);
+      width = layoutRef.current.W;
+      GROUND_Y = groundFor(layoutRef.current);
       ctx.setTransform(k, 0, 0, k, 0, 0);
       ctx.clearRect(0, 0, width, height);
       const landscapePos = landscapePosition(s.speed);
@@ -626,8 +636,8 @@ export function DinoGame({ onClose }: DinoGameProps) {
   // the game only ever runs with a light being (the animals are not made for it): the chosen one, or the first if an animal is chosen
   const runner = GAME_RUNNER;
   const insiderNote = settings.language === 'en' ? GAME_INSIDER_NOTE_EN : GAME_INSIDER_NOTE;
-  const { S, H, k, portrait } = layout;
-  const groundNow = H - GROUND_MARGIN - (portrait ? 96 / S : 0);
+  const { S, H, W, k, portrait } = layout;
+  const groundNow = groundFor(layout);
   const companionBaseY = groundNow - COMPANION_SIZE;
 
   const footer = (
@@ -668,7 +678,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
       <div
         className="relative overflow-hidden"
         style={{
-          width: WORLD_W * S,
+          width: W * S,
           height: H * S,
           background: 'var(--color-surface-muted)',
           borderRadius: portrait ? 0 : 'var(--radius-lg)',
@@ -676,13 +686,13 @@ export function DinoGame({ onClose }: DinoGameProps) {
       >
         <div
           className="absolute top-0 left-0"
-          style={{ width: WORLD_W, height: H, transform: `scale(${S})`, transformOrigin: 'top left' }}
+          style={{ width: W, height: H, transform: `scale(${S})`, transformOrigin: 'top left' }}
         >
           <canvas
             ref={canvasRef}
-            width={WORLD_W * k}
+            width={W * k}
             height={Math.round(H * k)}
-            style={{ width: WORLD_W, height: H, display: 'block' }}
+            style={{ width: W, height: H, display: 'block' }}
           />
           <div
             ref={companionElRef}

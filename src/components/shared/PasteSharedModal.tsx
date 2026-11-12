@@ -61,6 +61,17 @@ export function PasteSharedButton({ className = '' }: { className?: string }) {
 export function PasteSharedModal({ onClose }: { onClose: () => void }) {
   const { settings } = useSettings();
   const T = TXT[settings.language === 'en' ? 'en' : 'de'];
+  return (
+    <Modal open onClose={onClose} title={T.title}>
+      <PasteSharedForm onClose={onClose} />
+    </Modal>
+  );
+}
+
+/** Das Einfügen-Formular – im Dialog und auf der eigenen Seite „Etwas erhalten“. */
+export function PasteSharedForm({ onClose }: { onClose?: () => void }) {
+  const { settings } = useSettings();
+  const T = TXT[settings.language === 'en' ? 'en' : 'de'];
   const navigate = useNavigate();
   const [value, setValue] = useState('');
   const [bad, setBad] = useState(false);
@@ -71,7 +82,7 @@ export function PasteSharedModal({ onClose }: { onClose: () => void }) {
       setBad(true);
       return;
     }
-    onClose();
+    onClose?.();
     navigate(route);
   }
 
@@ -86,7 +97,6 @@ export function PasteSharedModal({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <Modal open onClose={onClose} title={T.title}>
       <div className="flex flex-col gap-3 pb-2" data-testid="paste-shared-modal">
         <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed">{T.intro}</p>
         <ol className="flex flex-col gap-1.5 pl-5 list-decimal">
@@ -115,11 +125,15 @@ export function PasteSharedModal({ onClose }: { onClose: () => void }) {
           <Button variant="secondary" icon={<ClipboardPaste size={15} />} onClick={pasteFromClipboard}>
             {T.paste}
           </Button>
-          <Button variant="ghost" onClick={onClose}>
-            {T.close}
-          </Button>
+          {onClose && (
+            <Button variant="ghost" onClick={onClose}>
+              {T.close}
+            </Button>
+          )}
         </div>
       </div>
-    </Modal>
   );
 }
+
+/** Text für die eigene Seite */
+export const pasteSharedTitle = (lang: 'de' | 'en') => TXT[lang].title;

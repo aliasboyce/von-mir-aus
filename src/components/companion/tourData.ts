@@ -175,7 +175,7 @@ const ALL_STOPS: TourStop[] = [
     ['Tagebuch', 'Aufschreiben sortiert, was im Kopf kreist. Es ist ein privater Ort – mit eigenen Kategorien, optional mit Foto.', 'Tippe auf „Neuer Eintrag“ und schreib kurz: wie war der Tag bis jetzt?'],
     ['Diary', 'Writing sorts what circles in the head. It is a private place – with your own categories, optionally with a photo.', 'Tap "New entry" and write briefly: how has the day been so far?'],
     { allow: ['/sicherheit/tagebuch'], check: cnt('diary-entries') }),
-  S('rueckblick', '/sicherheit/tagebuch?tab=review',
+  S('rueckblick', '/wochenrueckblick?tab=tag',
     ['Tagesrückblick', 'Der Rückblick sammelt automatisch, was an einem Tag war: Check-ins, Skills, Brücken, Orientierung. So siehst du schwarz auf weiß, was du getan hast – auch an Tagen, die sich leer anfühlen.', 'Sieh dir den heutigen Tag an: Was von dieser Tour steht schon drin?'],
     ['Daily review', 'The review collects automatically what happened on a day: check-ins, skills, bridges, orientation. So you see in black and white what you did – even on days that feel empty.', 'Look at today: what from this tour is already in it?'],
     { allow: ['/sicherheit/tagebuch'] }),

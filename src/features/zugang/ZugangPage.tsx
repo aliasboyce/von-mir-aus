@@ -1155,7 +1155,7 @@ export function ZugangPage() {
             {/* The person says what is open right now (or skips it —
              * nothing is ever hidden, only fitted). The next page uses it. */}
             <p data-hint className="text-[12px] text-[var(--color-text-faint)] mb-3">{t.zugang.openChannelsHint}</p>
-            <FitFilterPanel defaultOpen />
+            <FitFilterPanel defaultOpen onSkip={goNext} />
           </div>
         )}
 

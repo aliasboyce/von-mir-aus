@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { DailyReview } from './DailyReview';
+import { ReflectionNotesBlock } from '../reviews/ReflectionNotesBlock';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
 import { buildReviewPdf } from '../reviews/reviewPdf';
@@ -54,6 +56,13 @@ export function WeeklyReviewPage() {
   const { settings } = useSettings();
   const isEn = settings.language === 'en';
   const [period, setPeriod] = useState<'week' | 'month'>('week');
+  // „Tag“ ist der frühere Tagesrückblick aus dem Tagebuch – jetzt neben Woche und Monat
+  const [dayMode, setDayMode] = useState<boolean>(() => new URLSearchParams(window.location.search).get('tab') === 'tag');
+  const dayEntries = useMemo(
+    () => diaryRepo.getAll().filter((d) => !isBookLocked(d.categoryId)).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [dayMode],
+  );
+  const en0 = useSettings().settings.language === 'en';
   const DAYS = PERIOD_DAYS[period];
 
   const stats = useMemo(() => {
@@ -187,7 +196,7 @@ export function WeeklyReviewPage() {
         action={
           <div className="flex items-center gap-1">
             <HelpButton helpKey="wochenrueckblick" />
-            {stats.totalActivity > 0 && (
+            {!dayMode && stats.totalActivity > 0 && (
               <button
                 onClick={exportPdf}
                 aria-label={t.weeklyReview.exportPdf}
@@ -200,34 +209,53 @@ export function WeeklyReviewPage() {
         }
       />
       <div className="px-5 pb-6">
-        <h1 className="text-[24px] mb-1">{period === 'month' ? t.weeklyReview.titleMonthly : t.weeklyReview.title}</h1>
-        <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{period === 'month' ? t.weeklyReview.subtitleMonthly : t.weeklyReview.subtitle}</p>
+        <h1 className="text-[24px] mb-1">{dayMode ? (en0 ? 'Daily review' : 'Tagesrückblick') : period === 'month' ? t.weeklyReview.titleMonthly : t.weeklyReview.title}</h1>
+        <p className="text-[14px] text-[var(--color-text-muted)] mb-4">{dayMode ? (en0 ? 'Day by day: what was there, what helped.' : 'Tag für Tag: was da war, was geholfen hat.') : period === 'month' ? t.weeklyReview.subtitleMonthly : t.weeklyReview.subtitle}</p>
 
         <div className="flex gap-2 mb-6 no-print">
           <button
-            onClick={() => setPeriod('week')}
+            onClick={() => setDayMode(true)}
+            data-testid="review-tab-day"
             className="px-4 py-2 rounded-full text-[13px]"
             style={{
-              background: period === 'week' ? 'var(--color-primary)' : 'var(--color-surface-muted)',
-              color: period === 'week' ? 'var(--color-surface)' : 'var(--color-text-muted)',
+              background: dayMode ? 'var(--color-primary)' : 'var(--color-surface-muted)',
+              color: dayMode ? 'var(--color-surface)' : 'var(--color-text-muted)',
+            }}
+          >
+            {en0 ? 'Day' : 'Tag'}
+          </button>
+          <button
+            onClick={() => { setDayMode(false); setPeriod('week'); }}
+            className="px-4 py-2 rounded-full text-[13px]"
+            style={{
+              background: !dayMode && period === 'week' ? 'var(--color-primary)' : 'var(--color-surface-muted)',
+              color: !dayMode && period === 'week' ? 'var(--color-surface)' : 'var(--color-text-muted)',
             }}
           >
             {t.weeklyReview.periodToggleWeek}
           </button>
           <button
-            onClick={() => setPeriod('month')}
+            onClick={() => { setDayMode(false); setPeriod('month'); }}
             className="px-4 py-2 rounded-full text-[13px]"
             style={{
-              background: period === 'month' ? 'var(--color-primary)' : 'var(--color-surface-muted)',
-              color: period === 'month' ? 'var(--color-surface)' : 'var(--color-text-muted)',
+              background: !dayMode && period === 'month' ? 'var(--color-primary)' : 'var(--color-surface-muted)',
+              color: !dayMode && period === 'month' ? 'var(--color-surface)' : 'var(--color-text-muted)',
             }}
           >
             {t.weeklyReview.periodToggleMonth}
           </button>
         </div>
 
-        {stats.totalActivity === 0 ? (
-          <EmptyState title={t.weeklyReview.empty} />
+        {dayMode ? (
+          <div className="flex flex-col gap-5">
+            <ReflectionNotesBlock days={14} />
+            <DailyReview diaryEntries={dayEntries} />
+          </div>
+        ) : stats.totalActivity === 0 ? (
+          <div className="flex flex-col gap-5">
+            <EmptyState title={t.weeklyReview.empty} />
+            <ReflectionNotesBlock key={`refl0-${period}`} days={DAYS} />
+          </div>
         ) : (
           <div className="flex flex-col gap-5">
             {/* 1 — Wesen-geführte Erzählung statt Zahlen zuerst */}
@@ -248,6 +276,7 @@ export function WeeklyReviewPage() {
 
             {/* Verlauf & Auffälligkeiten (7/30/90 Tage), automatisch berechnet */}
             <ReviewInsightsBlock key={period} initialDays={period === 'month' ? 30 : 7} />
+            <ReflectionNotesBlock key={`refl-${period}`} days={DAYS} />
 
             {/* 4 — Moment der Woche, statt einer flachen Liste */}
             {stats.momentOfWeek && (
