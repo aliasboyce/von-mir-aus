@@ -35,6 +35,9 @@ export function CompanionMenu(p: CompanionMenuProps) {
   const [info, setInfo] = useState<string | null>(null);
   const L = (de: string, e: string) => (en ? e : de);
   const groups: { title: string; rows: Row[] }[] = [
+    { title: '', rows: [
+        { id: 'away', icon: <Hand size={20} />, label: L('Wegschicken', 'Send away'), info: L('Ich gehe und bleibe weg, bis du mich auf der Startseite zurückholst.', 'I go and stay away until you call me back on the start page.'), run: p.onAway, testId: 'companion-send-away', accent: true },
+    ] },
     {
       title: L('Mir helfen', 'Help me'),
       rows: [
@@ -58,7 +61,6 @@ export function CompanionMenu(p: CompanionMenuProps) {
       title: L('Das Wesen', 'The Wesen'),
       rows: [
         { id: 'sleep', icon: p.isSleeping ? <Sun size={20} /> : <Moon size={20} />, label: p.isSleeping ? t.companion.wake : t.companion.sleep, info: L('Schlafend bin ich still, bis du mich weckst.', 'While asleep I am quiet until you wake me.'), run: p.onSleep },
-        { id: 'away', icon: <Hand size={20} />, label: L('Wegschicken', 'Send away'), info: L('Ich gehe und bleibe weg, bis du mich auf der Startseite zurückholst.', 'I go and stay away until you call me back on the start page.'), run: p.onAway, testId: 'companion-send-away', accent: true },
         { id: 'change', icon: <Shuffle size={20} />, label: t.companion.changeCompanion, info: L('Ein anderes Wesen oder Aussehen wählen (Einstellungen).', 'Choose another companion or look (settings).'), run: p.onChange },
         ...(p.showFeedback ? [{ id: 'fb', icon: <MessageCircle size={20} />, label: L('Kurz was an Boycie melden', 'Quick note to Boycie'), info: L('Eine kurze Rückmeldung zur App schicken.', 'Send a short note about the app.'), run: p.onFeedback, testId: 'companion-quick-feedback' }] : []),
       ],
@@ -74,8 +76,8 @@ export function CompanionMenu(p: CompanionMenuProps) {
       {info === 'move' && <p className="companion-menu__info" data-testid="companion-menu-info">{t.companion.moveHint}</p>}
       <div className="companion-menu__scroll">
         {groups.map((g) => (
-          <div key={g.title} className="companion-menu__group">
-            <p className="companion-menu__group-title">{g.title}</p>
+          <div key={g.title || 'top'} className="companion-menu__group">
+            {g.title && <p className="companion-menu__group-title">{g.title}</p>}
             {g.rows.map((r) => (
               <div key={r.id} className="companion-menu__row" style={r.accent ? { color: '#d4568b' } : undefined}>
                 <div className="flex items-stretch">

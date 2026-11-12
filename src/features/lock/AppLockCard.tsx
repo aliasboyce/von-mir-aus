@@ -5,6 +5,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { useSettings } from '../../state/SettingsContext';
 import { changePin, checkPin, getLockConfig, lockNow, readPinHistory, removeLock, removeRecovery, setLockAfter, setPin, setRecovery, validPin } from '../../services/appLock';
+import { LockEmergencyCard } from './LockEmergencyCard';
 import { SECURITY_QUESTIONS, questionText } from './securityQuestions';
 
 type Flow = null | 'set' | 'change' | 'off' | 'question' | 'history';
@@ -246,6 +247,8 @@ export function AppLockCard() {
           </span>
         </label>
       </Card>
+
+      {cfg && <LockEmergencyCard />}
 
       <Modal open={flow !== null} onClose={close} title={flow === 'off' ? L.off : flow === 'change' ? L.change : flow === 'question' ? L.secTitle : flow === 'history' ? L.histTitle : L.set}>
         <div className="flex flex-col gap-3" data-testid="lock-modal">

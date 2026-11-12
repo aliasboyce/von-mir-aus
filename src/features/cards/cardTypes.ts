@@ -64,6 +64,14 @@ export interface CardModel {
   font?: string;
   stickers?: string[];
   rating?: { kind: RatingKind; value: number };
+  /** zweite Bewertung (z. B. Herzen neben Sternen) */
+  rating2?: { kind: RatingKind; value: number };
+  /** der aktive Begleiter als Sticker auf der Karte */
+  companionSticker?: string;
+  /** Begleiter-Karte: dessen Bild ins Kunstfenster */
+  portraitOf?: string;
+  /** Alle Infos aus der Quelle (Ressource, Person …): auf der Karte, so weit es passt; in der App komplett */
+  details?: { label: string; text: string }[];
   /** Reflexionskarte: Hintergrundfarbe der Karte selbst */
   background?: string;
   createdAt: string;
@@ -89,6 +97,11 @@ export interface OwnCard {
   font?: string;
   stickers?: string[];
   rating?: { kind: RatingKind; value: number };
+  rating2?: { kind: RatingKind; value: number };
+  /** Begleiter-Sticker: id des Lichtwesens */
+  companionSticker?: string;
+  /** Datumsformat (siehe cardDate.ts) */
+  dateFormat?: string;
   rarity: Rarity;
   /** Von jemandem geschenkt: Name */
   fromName?: string;
@@ -123,6 +136,8 @@ export interface ReflexionCard {
   comfort?: number;
   background: string;
   mediaId?: string;
+  dateFormat?: string;
+  companionSticker?: string;
   rarity: Rarity;
 }
 

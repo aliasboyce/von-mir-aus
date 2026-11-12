@@ -1,16 +1,12 @@
 import { ResourceTile } from '../../components/shared/ItemTile';
 import { useMemo, useState } from 'react';
-import { shareOrCopy } from '../../services/shareOrCopy';
-import { exportPrintBlocksToPdf } from '../../services/pdf/domToPdf';
 import { HelpButton } from '../../components/navigation/HelpButton';
-import { triggerPrint } from '../../services/printSupport';
 import { useNavigate } from 'react-router-dom';
 import { Phone, Plus, X, Share2, Palette, ChevronDown, ChevronUp, MessageCircleHeart, Check } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
 import { QuickHelpModal } from './QuickHelpModal';
-import { SafetyPlanPrintView } from './SafetyPlanPrintView';
 import { TopBar } from '../../components/navigation/TopBar';
 import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
 import { pickLimitExplanation } from '../../components/companion/companionLines';
@@ -22,9 +18,7 @@ import { TierColorEditor } from './TierColorEditor';
 import { PersonalInfoCard } from './PersonalInfoCard';
 import { ClinicWishesCard } from './ClinicWishesCard';
 import { RucksackCard } from './RucksackCard';
-import { getRucksackList, rucksackStore } from './rucksackStore';
-import { SharePlanModal, type PdfParts } from './SharePlanModal';
-import { personalInfoStore, clinicWishesStore, personalHasContent, clinicHasContent, DEFAULT_PDF_PARTS } from './personalInfoStore';
+import { PlanShareSheet } from './PlanShareSheet';
 import { planTexts } from './planTexts';
 import { useT } from '../../i18n';
 import {
@@ -232,79 +226,6 @@ export function SafetyPlanPage() {
   }
 
   const hasExamples = !!plan && (plan.warningSignals.some((w) => w.example) || plan.helpItems.some((h) => h.example) || plan.sections.some((sec) => (sec.examples ?? []).length > 0));
-  const parts: PdfParts = plan?.pdfParts ?? DEFAULT_PDF_PARTS;
-  const personalData = personalInfoStore.get();
-  const clinicData = clinicWishesStore.get();
-  const rucksackList = getRucksackList();
-  const rucksackData = rucksackList ? { title: rucksackList.title, items: rucksackList.items.map((i) => i.text), lastPacked: rucksackStore.get().lastPacked } : null;
-
-  function setParts(next: PdfParts) {
-    if (!plan) return;
-    persist({ ...plan, pdfParts: next });
-  }
-
-  function planText(): string {
-    if (!plan) return '';
-    const out: string[] = [];
-    const P = personalInfoStore.get();
-    const C = clinicWishesStore.get();
-    const med = (m: { name: string; dose?: string; when?: string }) => `- ${[m.name, m.dose, m.when].filter((x) => x && x.trim()).join(' · ')}`;
-    if (parts.personal && personalHasContent(P)) {
-      out.push(T.personalTitle.replace(/ \(.*\)$/, '') + ':');
-      const row = (l: string, v?: string) => v && v.trim() && out.push(`${l}: ${v.trim()}`);
-      row(T.name, P.name); row(T.birthdate, P.birthdate); row(T.address, P.address);
-      const reg = (P.regularMeds ?? []).filter((m) => m.name.trim());
-      if (reg.length) out.push(T.regularMeds + ':', ...reg.map(med));
-      const need = (P.asNeededMeds ?? []).filter((m) => m.name.trim());
-      if (need.length) out.push(T.asNeededMeds + ':', ...need.map(med));
-      row(T.allergies, P.allergies); row(T.preconditions, P.preconditions); row(T.diagnoses, P.diagnoses);
-      const cons = (P.contacts ?? []).filter((c) => c.name.trim());
-      if (cons.length) out.push(T.contacts + ':', ...cons.map((c) => `- ${[c.name, c.address, c.phone, c.email].filter((x) => x && x.trim()).join(' · ')}`));
-      row(T.insurance, P.insurance); row(T.insuranceNumber, P.insuranceNumber); row(T.copay, P.copayExemption); row(T.gdb, P.gdb); row(T.pets, P.pets);
-      out.push('');
-    }
-    if (parts.plan) {
-      out.push(plan.name, t.safetyPlan.warningSignals + ':');
-      out.push(
-        ...WARNING_TIER_ORDER.flatMap((tier) =>
-          plan.warningSignals.filter((w) => w.tier === tier && !w.example).map((w) => `[${TIER_LABELS[tier]}] ${w.text}${w.resourceId && resourcesRepo.getById(w.resourceId) ? ` → ${resourcesRepo.getById(w.resourceId)!.title}` : ''}`),
-        ),
-        '',
-        t.safetyPlan.helpItems + ':',
-        ...WARNING_TIER_ORDER.flatMap((tier) => plan.helpItems.filter((h) => h.tier === tier && !h.example).map((h) => `[${TIER_LABELS[tier]}] ${h.text}`)),
-        ...plan.sections.filter((sec) => sec.items.length > 0).flatMap((sec) => ['', `${t.safetyPlan.sections[sec.key as keyof typeof t.safetyPlan.sections]}:`, ...sec.items.map((i) => `- ${i}`)]),
-      );
-      out.push('');
-    }
-    if (parts.clinic && clinicHasContent(C)) {
-      out.push(T.clinicTitle + ':');
-      for (const k of ['treatment', 'placement', 'placementFallback', 'never', 'excludedMeds', 'history', 'additions'] as const) {
-        if (C[k] && C[k]!.trim()) out.push(T[k], C[k]!.trim(), '');
-      }
-    }
-    if (parts.rucksack !== false && rucksackData && (rucksackData.items.length > 0 || rucksackData.lastPacked)) {
-      out.push('', `${T.rucksackTitle}:`);
-      if (rucksackData.lastPacked) {
-        out.push(...rucksackData.lastPacked.packed.map((x) => `[x] ${x}`), ...rucksackData.lastPacked.notPacked.map((x) => `[ ] ${x} (${T.rucksackNot})`));
-      } else out.push(...rucksackData.items.map((x) => `[ ] ${x}`));
-    }
-    return out.join('\n').trim();
-  }
-
-  async function sharePlan() {
-    if (!plan) return;
-    await shareOrCopy({ title: plan.name, text: planText() }, t.resources.shareCopied);
-  }
-
-  async function sharePdf(): Promise<boolean> {
-    return exportPrintBlocksToPdf(plan?.name ?? 'sicherheitsplan', 'safety-plan');
-  }
-
-  function printNow() {
-    setShareOpen(false);
-    window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation, 'safety-plan'), 250);
-  }
-
   if (!plan) return null;
 
   return (
@@ -649,33 +570,7 @@ export function SafetyPlanPage() {
         <p className="text-[12px] text-[var(--color-text-faint)] text-center mt-1.5">{T.openHint}</p>
       </div>
 
-      <SafetyPlanPrintView
-        plan={plan}
-        tierLabels={TIER_LABELS}
-        tierColors={tierColors}
-        warningSignalsLabel={t.safetyPlan.warningSignals}
-        helpItemsLabel={t.safetyPlan.helpItemsForTier}
-        sectionTitles={t.safetyPlan.sections}
-        parts={parts}
-        personal={personalData}
-        clinic={clinicData}
-        rucksack={rucksackData}
-        lang={lang}
-      />
-
-      <SharePlanModal
-        open={shareOpen}
-        onClose={() => setShareOpen(false)}
-        planName={plan.name}
-        parts={parts}
-        onPartsChange={setParts}
-        hasPersonal={personalHasContent(personalData)}
-        hasClinic={clinicHasContent(clinicData)}
-        hasRucksack={!!rucksackData && (rucksackData.items.length > 0 || !!rucksackData.lastPacked)}
-        onPdf={sharePdf}
-        onPrint={printNow}
-        onText={sharePlan}
-      />
+      <PlanShareSheet plan={plan} open={shareOpen} onClose={() => setShareOpen(false)} onPlanChange={persist} />
 
       <TierColorEditor
         open={tierColorEditorOpen}

@@ -14,7 +14,7 @@ import { notifyHint, vibrationSupported, hintFlags, hintModeFrom } from '../../s
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { resetHints } from '../../services/hintCards';
-import { ALL_DAY_OPTIONS, dayOptionsFor, type DayOptionId, type DayPhase } from '../dayFlow/dayFlowRepo';
+import { ALL_DAY_OPTIONS, DOOR_TARGETS, EXTRA_DOORS, dayOptionsFor, type DayPhase } from '../dayFlow/dayFlowRepo';
 import { Globe, Moon, Sun, Laptop, Sparkles, Plus, RotateCcw, PlayCircle, AlertTriangle, Pencil, MessageSquareText, Info, Compass, Trash2, Bell, X, CalendarPlus, ShieldCheck, ChevronRight } from 'lucide-react';
 import { getAllLichtwesen, getAnyLichtwesen } from '../../components/companion/customLichtwesen';
 import { customLichtwesenRepo } from '../../components/companion/customLichtwesen';
@@ -89,7 +89,7 @@ const SECTION_KEYS: { key: string; de: string; en: string; deHint: string; enHin
   { key: '/zugang', de: 'Zugang', en: 'Access', deHint: 'Hinschauen, Bedürfnis, Weg', enHint: 'Looking, need, path' },
   { key: '/entdecken', de: 'Entdecken', en: 'Explore', deHint: 'Ressourcen, Skills, Wertekompass, Brief an mich, Timer, Garten …', enHint: 'Resources, skills, values compass, letters, timer, garden …' },
   { key: '/bruecken', de: 'Brücken', en: 'Bridges', deHint: 'Brücken und ihre Schritte', enHint: 'Bridges and their steps' },
-  { key: '/sicherheit', de: 'Sicherheit', en: 'Safety', deHint: 'Sicheres Netz, Sicherheitsplan, Kontakte, Tagebuch', enHint: 'Safe network, safety plan, contacts, diary' },
+  { key: '/sicherheit', de: 'Sicherheit', en: 'Safety', deHint: 'Sicheres Netz, Sicherheitsplan, Kontakte', enHint: 'Safe network, safety plan, contacts' },
   { key: '/kalender', de: 'Kalender', en: 'Calendar', deHint: 'Termine und Übersicht', enHint: 'Appointments and overview' },
   { key: '/parkbox', de: 'Parkbox & Wartezimmer', en: 'Parking box & waiting room', deHint: 'Zettel und Wartezimmer', enHint: 'Notes and waiting room' },
   { key: '/inneres-wetter', de: 'Inneres Wetter', en: 'Inner weather', deHint: 'Check-in-Verlauf', enHint: 'Check-in history' },
@@ -1331,38 +1331,97 @@ function ToggleRow({
   );
 }
 
-/** Which doors "Den Tag beginnen" / "Tag abschließen" show – the person decides. */
+/** Which doors "Den Tag beginnen" / "Tag abschließen" show, in which order – with a preset the person can change completely, plus own doors. */
 function DayOptionPicker({ phase }: { phase: DayPhase }) {
   const { settings, updateSettings } = useSettings();
   const dx = useDayFlowTexts();
   const en = settings.language === 'en';
+  const [draft, setDraft] = useState<{ title: string; emoji: string; to: string } | null>(null);
   if ((phase === 'start' ? settings.dayStartEnabled : settings.dayEndEnabled) === false) return null;
   const active = dayOptionsFor(settings, phase);
-  const label: Record<DayOptionId, string> = {
-    skill: dx.skill, medi: dx.medi, diary: phase === 'start' ? dx.diaryStart : dx.diaryEnd,
-    routine: dx.routine, park: dx.park, letgo: dx.letgo,
+  const customs = settings.dayCustomDoors ?? [];
+  const label = (id: string): string => {
+    if (id.startsWith('custom:')) return customs.find((c) => `custom:${c.id}` === id)?.title ?? id;
+    if (id in EXTRA_DOORS) return en ? EXTRA_DOORS[id].en[0] : EXTRA_DOORS[id].de[0];
+    const base: Record<string, string> = { skill: dx.skill, medi: dx.medi, diary: phase === 'start' ? dx.diaryStart : dx.diaryEnd, routine: dx.routine, park: dx.park, letgo: dx.letgo };
+    return base[id] ?? id;
   };
-  function toggle(id: DayOptionId) {
-    const next = ALL_DAY_OPTIONS.filter((o) => (o === id ? !active.includes(o) : active.includes(o)));
-    updateSettings(phase === 'start' ? { dayStartOptions: next } : { dayEndOptions: next });
+  const emojiOf = (id: string): string => (id.startsWith('custom:') ? customs.find((c) => `custom:${c.id}` === id)?.emoji || '⭐' : EXTRA_DOORS[id]?.emoji ?? { skill: '✨', medi: '💊', diary: '📓', routine: '🔁', park: '📦', letgo: '🍃' }[id] ?? '•');
+  const save = (next: string[]) => updateSettings(phase === 'start' ? { dayStartOptions: next } : { dayEndOptions: next });
+  const move = (i: number, d: -1 | 1) => {
+    const next = [...active];
+    const j = i + d;
+    if (j < 0 || j >= next.length) return;
+    [next[i], next[j]] = [next[j], next[i]];
+    save(next);
+  };
+  const remove = (id: string) => save(active.filter((x) => x !== id));
+  const add = (id: string) => save([...active, id]);
+  const available = [...ALL_DAY_OPTIONS.filter((o) => !active.includes(o)), ...customs.map((c) => `custom:${c.id}`).filter((o) => !active.includes(o))].filter((o) => !(o in EXTRA_DOORS) || !EXTRA_DOORS[o].phase || EXTRA_DOORS[o].phase === phase);
+  const isDefault = !(phase === 'start' ? settings.dayStartOptions : settings.dayEndOptions);
+  function createDoor() {
+    if (!draft || !draft.title.trim()) return;
+    const id = `d${Date.now().toString(36)}`;
+    updateSettings({
+      dayCustomDoors: [...customs, { id, emoji: draft.emoji.trim() || '⭐', title: draft.title.trim(), to: draft.to || undefined }],
+      ...(phase === 'start' ? { dayStartOptions: [...active, `custom:${id}`] } : { dayEndOptions: [...active, `custom:${id}`] }),
+    });
+    setDraft(null);
   }
   return (
     <div className="mt-3 pt-3 border-t border-[var(--color-border)]" data-testid={`day-options-${phase}`}>
       <p className="text-[13px] text-[var(--color-text)] mb-0.5">{phase === 'start' ? (en ? 'What is in “Begin the day”' : 'Was bei „Tag beginnen“ dabei ist') : (en ? 'What is in “Close the day”' : 'Was bei „Tag abschließen“ dabei ist')}</p>
-      <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{en ? 'Tap to switch a door on or off.' : 'Antippen, um eine Tür ein- oder auszuschalten.'}</p>
-      <div className="flex flex-wrap gap-2">
-        {ALL_DAY_OPTIONS.map((id) => {
-          const on = active.includes(id);
-          return (
-            <button key={id} type="button" onClick={() => toggle(id)} aria-pressed={on} data-testid={`day-option-${phase}-${id}`}
-              className="rounded-full px-3.5 py-1.5 text-[13px] border"
-              style={on ? { background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', color: 'var(--color-text)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
-              {on ? '✓ ' : ''}{label[id]}
-            </button>
-          );
-        })}
-      </div>
-      {active.length === 0 && <p className="text-[12px] text-[var(--color-text-muted)] mt-2">{en ? 'No door chosen – the page will be empty.' : 'Keine Tür gewählt – die Seite bleibt leer.'}</p>}
+      <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{isDefault ? (en ? 'This is the preset – change it however you like.' : 'Das ist die Voreinstellung – ändere sie ganz nach deinem Geschmack.') : (en ? 'Your own selection. Order with the arrows.' : 'Deine eigene Auswahl. Mit den Pfeilen änderst du die Reihenfolge.')}</p>
+      <ol className="flex flex-col gap-1.5 mb-2">
+        {active.map((id, i) => (
+          <li key={id} className="flex items-center gap-2 rounded-[var(--radius-md)] px-3 py-2 bg-[var(--color-surface-muted)]" data-testid={`day-active-${phase}-${id}`}>
+            <span aria-hidden="true">{emojiOf(id)}</span>
+            <span className="flex-1 text-[13.5px] text-[var(--color-text)] leading-snug">{label(id)}</span>
+            <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={en ? 'Move up' : 'Nach oben'} className="w-8 h-8 rounded-full text-[15px] disabled:opacity-30">↑</button>
+            <button type="button" onClick={() => move(i, 1)} disabled={i === active.length - 1} aria-label={en ? 'Move down' : 'Nach unten'} className="w-8 h-8 rounded-full text-[15px] disabled:opacity-30">↓</button>
+            <button type="button" onClick={() => remove(id)} aria-label={en ? 'Remove' : 'Entfernen'} data-testid={`day-option-${phase}-${id}`} className="w-8 h-8 rounded-full text-[16px] text-[var(--color-text-muted)]">✕</button>
+          </li>
+        ))}
+      </ol>
+      {active.length === 0 && <p className="text-[12px] text-[var(--color-text-muted)] mb-2">{en ? 'No door chosen – the page will be empty.' : 'Keine Tür gewählt – die Seite bleibt leer.'}</p>}
+      {available.length > 0 && (
+        <>
+          <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{en ? 'Add a door:' : 'Tür hinzufügen:'}</p>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {available.map((id) => (
+              <button key={id} type="button" onClick={() => add(id)} data-testid={`day-add-${phase}-${id}`} className="rounded-full px-3.5 py-1.5 text-[13px] border" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)' }}>
+                + {emojiOf(id)} {label(id)}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      {draft ? (
+        <div className="rounded-[var(--radius-md)] p-3 bg-[var(--color-surface-muted)] flex flex-col gap-2 animate-in" data-testid={`day-custom-form-${phase}`}>
+          <div className="flex gap-2">
+            <input className="input w-16 text-center" value={draft.emoji} onChange={(e) => setDraft({ ...draft, emoji: e.target.value })} maxLength={4} aria-label="Emoji" />
+            <input className="input flex-1" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder={en ? 'e.g. Water the plants' : 'z. B. Pflanzen gießen'} maxLength={60} data-testid={`day-custom-title-${phase}`} />
+          </div>
+          <select className="input" value={draft.to} onChange={(e) => setDraft({ ...draft, to: e.target.value })} aria-label={en ? 'Opens' : 'Öffnet'}>
+            {DOOR_TARGETS.map((t) => (
+              <option key={t.to} value={t.to}>{en ? t.en : t.de}</option>
+            ))}
+          </select>
+          <div className="flex gap-2">
+            <button type="button" onClick={createDoor} disabled={!draft.title.trim()} className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40" data-testid={`day-custom-save-${phase}`}>{en ? 'Add' : 'Hinzufügen'}</button>
+            <button type="button" onClick={() => setDraft(null)} className="px-3 py-2 text-[13px] text-[var(--color-text-muted)]">{en ? 'Cancel' : 'Abbrechen'}</button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setDraft({ title: '', emoji: '⭐', to: '' })} className="rounded-full px-3.5 py-1.5 text-[13px] border border-dashed text-[var(--color-primary)]" style={{ borderColor: 'var(--color-border-strong)' }} data-testid={`day-custom-new-${phase}`}>
+          + {en ? 'Own door' : 'Eigene Tür'}
+        </button>
+      )}
+      {!isDefault && (
+        <button type="button" onClick={() => updateSettings(phase === 'start' ? { dayStartOptions: undefined } : { dayEndOptions: undefined })} className="block mt-3 text-[12.5px] text-[var(--color-text-muted)] underline underline-offset-2" data-testid={`day-reset-${phase}`}>
+          {en ? 'Back to the preset' : 'Zurück zur Voreinstellung'}
+        </button>
+      )}
     </div>
   );
 }

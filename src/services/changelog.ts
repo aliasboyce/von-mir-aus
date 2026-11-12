@@ -16,17 +16,37 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-album-feinschliff-notfall',
+    date: '2026',
+    items: [
+      'Sammelalbum: Blättern läuft flüssiger, das Cover sieht aus wie ein altes Buch. Karten zeigen jetzt alle Infos der Quelle, haben zwei Bewertungen, den aktiven Begleiter als Sticker und mehr Datumsformate. Begleiter-Karten zeigen den Begleiter. Bei langen Texten gibt es einen Hinweis fürs Drucken.',
+      'Begleiter: Beim Herbeirufen ruckelt es weniger, „Wegschicken“ steht ganz oben, und auf der Startseite machen sie ab und zu etwas Lustiges (hinsetzen, tanzen, schlafen). Das „Hallo, ich bin da“ ist weg. Im Lauf-Spiel schläft das Wesen nicht mehr und passt zur Landschaft.',
+      '„Tag beginnen“ und „Tag abschließen“ kannst du selbst zusammenstellen. Die Startseite zeigt den Alltag nur noch einmal; bei Entdecken gibt es „Alltag“ als eigenen Bereich.',
+      'Krisenmodus: Den Sicherheitsplan kannst du direkt verschicken (PDF, Mail, WhatsApp, AirDrop …). Der Kontakte-Bereich zeigt jetzt wirklich deine Menschen aus dem Sicheren Netz.',
+      'Gesperrte App: Der Sperrbildschirm sieht aus wie die Startseite und hat einen Knopf „Notfall-Hilfe“. Dort stehen die Anlaufstellen – und persönliche Angaben nur, wenn du sie in den Einstellungen freigibst.',
+    ],
+    itemsEn: [
+      'Collection album: paging is smoother and the cover looks like an old book. Cards now show all info from their source, have two ratings, the active companion as a sticker and more date formats. Companion cards show the companion. Long texts get a print hint.',
+      'Companions: calling them back stutters less, “Send away” is at the very top, and on the home screen they sometimes do something funny (sit, dance, sleep). The “Hello, I am here” is gone. In the run game the creature no longer sleeps and matches the landscape.',
+      '“Start the day” and “Close the day” can be put together by you. The home screen shows everyday only once; Explore has “Everyday” as its own area.',
+      'Crisis mode: you can send the safety plan right away (PDF, e-mail, WhatsApp, AirDrop …). The contacts area now really shows the people from your safe network.',
+      'Locked app: the lock screen looks like the home screen and has an “Emergency help” button. It shows places to turn to – and personal details only if you allow them in the settings.',
+    ],
+  },
+  {
     id: '2026-sammelalbum-1',
     date: '2026',
     items: [
       'Neu: „Mein Sammelalbum“ (unter Entdecken). Deine Ressourcen, Fähigkeiten, Orte, Aktionen und mehr werden zu Sammelkarten, die du im Album durchblättern kannst.',
       'Eigene Karten mit Foto, Schrift, Farben, Polaroid-Rahmen und Stickern – und Limitierte Karten mit Glitzer. Alles freiwillig.',
       'Am Ende des Tages kannst du eine Tageskarte machen. Als PDF lassen sich Karten in Druckgröße ausgeben, einzelne Karten kannst du per Link teilen.',
+      'Das Tagebuch liegt jetzt bei „Entdecken“ (Schreiben) statt bei „Sicherheit“. Deine Einträge bleiben unverändert.',
     ],
     itemsEn: [
       'New: “My collection album” (under Explore). Your resources, skills, places, actions and more become collectible cards you can leaf through.',
       'Own cards with photo, font, colours, polaroid frames and stickers – plus limited glitter cards. All optional.',
       'At the end of the day you can make a day card. Cards can be exported as a print-size PDF, and single cards shared by link.',
+      'The diary now lives under “Explore” (writing) instead of “Safety”. Your entries are unchanged.',
     ],
   },
   {

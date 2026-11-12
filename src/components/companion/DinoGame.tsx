@@ -34,6 +34,21 @@ const insiderSeenStore = createKeyValueStore<boolean>('game-insider-seen', false
  */
 const GAME_RUNNER = { ...(LICHTWESEN.find((w) => w.id === 'naechtlich') ?? LICHTWESEN[0]), eyeStyle: 'round' as const };
 
+// Grundton des Spiel-Wesens und Zielfarben je Landschaft (Wiese, Wald, Meer), als Farbton in Grad
+function hueOf(hex: string): number {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  if (!m) return 240;
+  const [r, g, b] = [m[1], m[2], m[3]].map((x) => parseInt(x, 16) / 255);
+  const mx = Math.max(r, g, b);
+  const mn = Math.min(r, g, b);
+  const d = mx - mn;
+  if (d === 0) return 240;
+  const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return (h * 60 + 360) % 360;
+}
+const RUNNER_BASE_HUE = hueOf(GAME_RUNNER.color);
+const RUNNER_HUES: [number, number, number] = [118, 160, 208];
+
 const highScoreStore = createKeyValueStore<number>('dino-game-highscore', 0);
 
 // "Lauf am Laptop groesser, am Handy ueber den ganzen Bildschirm"-Auftrag —
@@ -602,6 +617,10 @@ export function DinoGame({ onClose }: DinoGameProps) {
         // else in the app, at every point of the jump arc.
         companionElRef.current.style.transform =
           `translate(${COMPANION_X}px, ${baseY + s.companionY}px) scale(${COMPANION_DISPLAY_SCALE})`;
+        // die Farbe des Wesens wandert mit der Landschaft mit (Wiese → Wald → Meer), bleibt aber gut erkennbar
+        const lp = landscapePosition(s.speed);
+        const hue = lp <= 1 ? lerp(RUNNER_HUES[0], RUNNER_HUES[1], lp) : lerp(RUNNER_HUES[1], RUNNER_HUES[2], lp - 1);
+        companionElRef.current.style.filter = `hue-rotate(${Math.round(hue - RUNNER_BASE_HUE)}deg) saturate(1.15) drop-shadow(0 1px 2px rgba(0,0,0,0.35))`;
       }
 
       rafRef.current = requestAnimationFrame(tick);
@@ -699,7 +718,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
             className="absolute top-0 left-0 pointer-events-none"
             style={{ width: 76, height: 76, transformOrigin: 'top left', transform: `translate(${COMPANION_X}px, ${companionBaseY}px) scale(${COMPANION_DISPLAY_SCALE})` }}
           >
-            <LichtCompanion size="small" beingOverride={runner} sleepStateOverride={s.onGround ? 'awake' : undefined} />
+            <LichtCompanion size="small" beingOverride={runner} sleepStateOverride="awake" />
           </div>
         </div>
         {s.started && !gameOverUi && (

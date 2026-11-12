@@ -1011,6 +1011,8 @@ export interface UserSettings {
   /** which doors "Den Tag beginnen" / "Tag abschließen" show (ids: skill, medi, diary, routine, park, letgo); undefined = the default set */
   dayStartOptions?: string[];
   dayEndOptions?: string[];
+  /** own doors for "Tag beginnen" / "Tag abschließen" (id used as `custom:<id>`), optionally linking to a page of the app */
+  dayCustomDoors?: { id: string; emoji: string; title: string; to?: string }[];
   /** "Haptisches Feedback"-Auftrag — Web Vibration API is the only
    * reliable haptics mechanism available in a PWA (no native haptics
    * without a wrapper like Capacitor). Default true, but must be

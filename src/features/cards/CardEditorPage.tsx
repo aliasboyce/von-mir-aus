@@ -8,10 +8,11 @@ import { useL } from '../projects/useL';
 import { CardFace } from './CardFace';
 import { FONT_OPTIONS } from './cardRender';
 import { cardCategoriesRepo, colorForKind, newOwnCardId, numberFor, ownCardsRepo, peekNextNumber, savePhotoForCard, setRarity } from './cardStore';
-import { spelledDate } from './autoCards';
+import { formatCardDate } from './cardDate';
+import { CompanionStickerToggle, DateEditor, FitHint, RatingsEditor, type Rating } from './cardEditorParts';
 import { deleteOwnMedia } from '../../services/mediaStore';
 import { createId } from '../../services/storage/repository';
-import { KIND_META, type CardKind, type FrameStyle, type OwnCard, type RatingKind, type Rarity } from './cardTypes';
+import { KIND_META, type CardKind, type FrameStyle, type OwnCard, type Rarity } from './cardTypes';
 
 const FRAMES: { id: FrameStyle; de: string; en: string; emoji: string }[] = [
   { id: 'standard', de: 'Klassisch', en: 'Classic', emoji: '🃏' },
@@ -50,8 +51,10 @@ export function CardEditorPage() {
   const [frame, setFrame] = useState<FrameStyle>(existing?.frame ?? 'standard');
   const [font, setFont] = useState<string | undefined>(existing?.font);
   const [stickers, setStickers] = useState<string[]>(existing?.stickers ?? []);
-  const [ratingKind, setRatingKind] = useState<RatingKind | null>(existing?.rating?.kind ?? null);
-  const [ratingValue, setRatingValue] = useState(existing?.rating?.value ?? 0);
+  const [rating1, setRating1] = useState<Rating>(existing?.rating);
+  const [rating2, setRating2] = useState<Rating>(existing?.rating2);
+  const [companionSticker, setCompanionSticker] = useState<string | undefined>(existing?.companionSticker);
+  const [dateFormat, setDateFormat] = useState<string>(existing?.dateFormat ?? 'long');
   const [rarity, setRar] = useState<Rarity>(existing?.rarity ?? 'normal');
   const [newCat, setNewCat] = useState<{ label: string; emoji: string; color: string } | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -68,7 +71,7 @@ export function CardEditorPage() {
       categoryLabel: kind === 'eigen' ? cat?.label : undefined,
       title: title.trim() || L('Mein Titel', 'My title'),
       text: text.trim() || undefined,
-      dateText: date ? spelledDate(date, lang) : undefined,
+      dateText: date ? formatCardDate(date, lang, dateFormat) : undefined,
       mediaId,
       emoji: emoji || cat?.emoji || KIND_META[kind].emoji,
       color: effectiveColor,
@@ -77,11 +80,13 @@ export function CardEditorPage() {
       frame,
       font,
       stickers,
-      rating: ratingKind && ratingValue > 0 ? { kind: ratingKind, value: ratingValue } : undefined,
+      rating: rating1 && rating1.value > 0 ? rating1 : undefined,
+      rating2: rating1 && rating1.value > 0 && rating2 && rating2.value > 0 ? rating2 : undefined,
+      companionSticker,
       createdAt: existing?.createdAt ?? new Date().toISOString(),
       own: true,
     }),
-    [key, kind, categoryId, cat, title, text, date, mediaId, emoji, effectiveColor, rarity, frame, font, stickers, ratingKind, ratingValue, existing, lang], // eslint-disable-line react-hooks/exhaustive-deps
+    [key, kind, categoryId, cat, title, text, date, dateFormat, mediaId, emoji, effectiveColor, rarity, frame, font, stickers, rating1, rating2, companionSticker, existing, lang], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   useEffect(() => {
@@ -115,7 +120,10 @@ export function CardEditorPage() {
       frame,
       font,
       stickers: stickers.length ? stickers : undefined,
-      rating: ratingKind && ratingValue > 0 ? { kind: ratingKind, value: ratingValue } : undefined,
+      rating: rating1 && rating1.value > 0 ? rating1 : undefined,
+      rating2: rating1 && rating1.value > 0 && rating2 && rating2.value > 0 ? rating2 : undefined,
+      companionSticker,
+      dateFormat: date ? dateFormat : undefined,
       rarity,
       fromName: existing?.fromName,
       externalId: existing?.externalId,
@@ -202,12 +210,9 @@ export function CardEditorPage() {
 
         <Section title={L('Titel & Text', 'Title & text')}>
           <input className="input mb-2" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={L('Titel', 'Title')} maxLength={60} data-testid="card-title" />
-          <textarea className="input" rows={3} value={text} onChange={(e) => setText(e.target.value)} placeholder={L('Ein paar Worte zur Karte (freiwillig)', 'A few words about the card (optional)')} maxLength={260} />
-          <label className="block text-[12.5px] text-[var(--color-text-muted)] mt-3 mb-1">{L('Datum (freiwillig – wird ausgeschrieben)', 'Date (optional – spelled out)')}</label>
-          <div className="flex gap-2 items-center">
-            <input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} />
-            {date && <button type="button" className="text-[12.5px] text-[var(--color-primary)]" onClick={() => setDate('')}>{L('weg', 'clear')}</button>}
-          </div>
+          <textarea className="input" rows={3} value={text} onChange={(e) => setText(e.target.value)} placeholder={L('Ein paar Worte zur Karte (freiwillig)', 'A few words about the card (optional)')} maxLength={600} data-testid="card-text" />
+          <FitHint card={preview} />
+          <DateEditor date={date} format={dateFormat} onDate={setDate} onFormat={setDateFormat} />
         </Section>
 
         <Section title={L('Bild', 'Picture')}>
@@ -271,23 +276,8 @@ export function CardEditorPage() {
               </button>
             ))}
           </div>
-          <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Bewertung (freiwillig)', 'Rating (optional)')}</p>
-          <div className="flex flex-wrap gap-1.5 mb-2">
-            {([null, 'star', 'bolt', 'heart'] as (RatingKind | null)[]).map((r) => (
-              <button key={String(r)} type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={chip(ratingKind === r)} onClick={() => { setRatingKind(r); if (!r) setRatingValue(0); else if (!ratingValue) setRatingValue(3); }}>
-                {r === null ? L('keine', 'none') : r === 'star' ? '★ Sterne' : r === 'bolt' ? '⚡ Energie' : '♥ Herzen'}
-              </button>
-            ))}
-          </div>
-          {ratingKind && (
-            <div className="flex gap-1.5">
-              {Array.from({ length: ratingKind === 'bolt' ? 4 : 5 }).map((_, i) => (
-                <button key={i} type="button" onClick={() => setRatingValue(i + 1 === ratingValue ? 0 : i + 1)} className="w-10 h-10 rounded-full text-[18px]" style={{ background: i < ratingValue ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)' }} aria-label={`${i + 1}`}>
-                  {ratingKind === 'star' ? '★' : ratingKind === 'bolt' ? '⚡' : '♥'}
-                </button>
-              ))}
-            </div>
-          )}
+          <CompanionStickerToggle value={companionSticker} onChange={setCompanionSticker} />
+          <RatingsEditor first={rating1} second={rating2} onFirst={setRating1} onSecond={setRating2} />
         </Section>
 
         <Section title={L('Limitiert?', 'Limited?')}>

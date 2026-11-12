@@ -5,8 +5,12 @@ import { bookmarksRepo } from '../bookmarks/bookmarksRepo';
 import { appointmentsRepo } from '../calendar/calendarRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { safetyPlansRepo } from '../safetyPlan/safetyPlansRepo';
-import { getLichtwesen } from '../../components/companion/lichtwesen';
+import { getAnyLichtwesen } from '../../components/companion/customLichtwesen';
 import { RESOURCE_CATEGORY_TO_GROUP, resourceCategoryLabel } from '../resources/resourceMeta';
+import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
+import { umstandLabel } from '../bridges/conditions';
+import { helpsWithLabel } from '../safetyNet/networkMeta';
+import { formatCardDate } from './cardDate';
 import { richToPlain } from '../../services/richText';
 import { isSymbolImage } from '../../components/shared/symbolImage';
 import type { TranslationDictionary } from '../../i18n/de';
@@ -36,12 +40,18 @@ const clip = (s: string | undefined, n = 150) => {
   return x.length > n ? `${x.slice(0, n - 1).trimEnd()}…` : x;
 };
 
-/** „12. November 2026“ – das Datum ausgeschrieben. */
-export function spelledDate(day: string, lang: 'de' | 'en'): string {
-  const d = new Date(`${day.slice(0, 10)}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return day;
-  return d.toLocaleDateString(lang === 'en' ? 'en-GB' : 'de-DE', { day: 'numeric', month: 'long', year: 'numeric' });
+/** „12. November 2026“ – das Datum ausgeschrieben (oder im gewählten Format). */
+export function spelledDate(day: string, lang: 'de' | 'en', format?: string): string {
+  return formatCardDate(day, lang, format);
 }
+
+/** Der volle Text (ohne Kürzen) – für „Alle Infos“. */
+const full = (s: string | undefined) => richToPlain(s ?? '').replace(/[ \t]+/g, ' ').trim();
+type Detail = { label: string; text: string };
+const dt = (label: string, text: string | undefined | null): Detail[] => {
+  const x = full(text ?? '');
+  return x ? [{ label, text: x }] : [];
+};
 
 type Draft = Omit<CardModel, 'number' | 'rarity' | 'color'> & { color?: string };
 
@@ -66,6 +76,14 @@ export function buildAutoDrafts(ctx: BuildCtx): Draft[] {
       title: e.name,
       subtitle: e.role,
       text: clip(e.whatHelps ? `${L('Hilft mir:', 'Helps me:')} ${e.whatHelps}` : e.description),
+      details: [
+        ...dt('', e.description),
+        ...dt(L('Hilft mir', 'Helps me'), e.whatHelps),
+        ...dt(L('Hilft bei', 'Helps with'), (e.helpsWith ?? []).map((h) => helpsWithLabel(t, h)).join(', ')),
+        ...dt(L('Notiz', 'Note'), e.note),
+        ...dt(L('Telefon', 'Phone'), e.phone),
+        ...dt(L('E-Mail', 'E-mail'), e.email),
+      ],
       image: e.photoDataUrl,
       emoji: '🦸',
       createdAt: (e as { createdAt?: string }).createdAt ?? '',
@@ -78,12 +96,47 @@ export function buildAutoDrafts(ctx: BuildCtx): Draft[] {
     const group = RESOURCE_CATEGORY_TO_GROUP[r.category as keyof typeof RESOURCE_CATEGORY_TO_GROUP];
     const kind: CardKind = group === 'faehigkeiten' ? 'faehigkeit' : group === 'orte_gruppe' ? 'ort' : group === 'aktivitaeten' ? 'aktion' : r.category === 'menschen' ? 'person' : 'ausruestung';
     const stats = r.energyLevel ? [{ label: L('Energie', 'Energy'), value: '⚡'.repeat(r.energyLevel) }] : undefined;
+    const sk = r.skillDetails;
+    const hm = r.hilfsmittelDetails;
+    const details: Detail[] = [
+      ...dt('', r.description),
+      ...(sk ? [
+        ...dt(L('Wirkung', 'Effect'), sk.wirkung),
+        ...dt(L('Anspannungsbereich', 'Tension range'), sk.anspannungsbereich),
+        ...dt(L('Auslöser', 'Trigger'), sk.ausloeser),
+        ...dt(L('Frühwarnzeichen', 'Early signs'), sk.fruehwarnzeichen),
+        ...dt(L('Wirkungsdauer', 'Duration of effect'), sk.wirkungsdauer),
+        ...dt(L('Schritte', 'Steps'), (sk.schritte ?? []).filter((x) => x?.trim()).map((x, i) => `${i + 1}. ${full(x)}`).join('\n')),
+        ...dt(L('Vorsicht', 'Caution'), sk.gegenanzeigen),
+        ...dt(L('Unterwegs', 'On the go'), sk.unterwegsAlternative),
+      ] : []),
+      ...(hm ? [
+        ...dt(L('Beruhigung & Trost', 'Calming & comfort'), hm.beruhigungTrost),
+        ...dt(L('Fokus & Ablenkung', 'Focus & distraction'), hm.fokusAblenkung),
+        ...dt(L('Ventil bei Anspannung', 'Outlet for tension'), hm.ventilAnspannung),
+        ...dt(L('Anspannungsbereich', 'Tension range'), hm.anspannungsbereich),
+        ...dt(L('Alarm-Situation', 'Alarm situation'), hm.alarmSituation),
+        ...dt(L('Dauer', 'Duration'), hm.dauer),
+        ...dt(L('Methode', 'Method'), hm.methode),
+        ...dt(L('Nicht geeignet, wenn', 'Not suitable if'), hm.ausschlusskriterium),
+        ...dt(L('Platz zuhause', 'Place at home'), hm.platzZuhause),
+        ...dt(L('Platz unterwegs', 'Place on the go'), hm.platzUnterwegs),
+        ...dt(L('Bereitschaft', 'Readiness'), hm.bereitschaft),
+      ] : []),
+      ...dt(L('Umstände', 'Circumstances'), (r.umstaende ?? []).map((u) => umstandLabel(u)?.label).filter(Boolean).join(', ')),
+      ...dt(L('Zugangskanäle', 'Access channels'), (r.accessChannels ?? []).map((c) => ACCESS_CHANNEL_META[c]?.label(t)).filter(Boolean).join(', ')),
+      ...dt(L('Zeit & Aufwand', 'Time & effort'), [r.fit?.minutes ? `${r.fit.minutes} min` : '', r.fit?.effort ? L(['', 'leicht', 'mittel', 'anstrengend'][r.fit.effort], ['', 'light', 'medium', 'demanding'][r.fit.effort]) : ''].filter(Boolean).join(' · ')),
+      ...dt(L('Notiz', 'Note'), r.note),
+      ...dt(L('Link', 'Link'), r.link),
+      ...dt(L('Stichworte', 'Tags'), (r.tags ?? []).join(', ')),
+    ];
     out.push({
       key: `${kind}:${r.id}`,
       kind,
       title: r.title,
       subtitle: resourceCategoryLabel(t, r.category),
       text: clip(r.description),
+      details,
       stats,
       image: r.image && !isSymbolImage(r.image) ? r.image : undefined,
       emoji: emojiFromSymbolImage(r.image) ?? KIND_META[kind].emoji,
@@ -99,7 +152,8 @@ export function buildAutoDrafts(ctx: BuildCtx): Draft[] {
       kind: 'training',
       title: r.title,
       subtitle: L('Routine', 'Routine'),
-      lines: r.cards.map((c) => c.text).filter(Boolean).slice(0, 4),
+      lines: r.cards.map((c) => c.text).filter(Boolean),
+      details: r.cards.length ? [{ label: L('Schritte', 'Steps'), text: r.cards.map((c, i) => `${i + 1}. ${full(c.text)}`).filter((x) => x.length > 3).join('\n') }] : undefined,
       emoji: r.emoji || '🌱',
       color: r.color,
       createdAt: r.createdAt,
@@ -132,6 +186,7 @@ export function buildAutoDrafts(ctx: BuildCtx): Draft[] {
       title: b.title,
       subtitle: host,
       text: clip(b.note),
+      details: [...dt('', b.note), ...dt(L('Adresse', 'Address'), b.url)],
       emoji: '📖',
       createdAt: b.createdAt,
       route: '/entdecken/lesezeichen',
@@ -147,6 +202,7 @@ export function buildAutoDrafts(ctx: BuildCtx): Draft[] {
       subtitle: a.time ? `${a.time} ${L('Uhr', '')}`.trim() : undefined,
       text: clip(a.note),
       dateText: spelledDate(a.date, lang),
+      details: [...dt('', a.note), ...dt(L('Uhrzeit', 'Time'), [a.time, a.endTime].filter(Boolean).join(' – ')), ...dt(L('Wie war es?', 'How was it?'), a.reflection)],
       emoji: '📅',
       createdAt: a.date,
       route: '/kalender',
@@ -155,7 +211,7 @@ export function buildAutoDrafts(ctx: BuildCtx): Draft[] {
 
   // Begleiter: das gewählte Wesen
   if (settings.companionChosen) {
-    const w = safe(() => getLichtwesen(settings.selectedBrainId), null);
+    const w = safe(() => getAnyLichtwesen(settings.selectedBrainId), null);
     if (w) {
       out.push({
         key: `begleiter:${w.id}`,
@@ -163,6 +219,8 @@ export function buildAutoDrafts(ctx: BuildCtx): Draft[] {
         title: w.name,
         subtitle: L('Mein Wesen', 'My companion'),
         text: w.trait,
+        details: [...dt('', w.trait), ...dt(L('Dabei seit', 'With me since'), (w as { adoptedAt?: string }).adoptedAt ? spelledDate((w as { adoptedAt?: string }).adoptedAt as string, lang) : '')],
+        portraitOf: w.id,
         emoji: '🌟',
         color: w.color,
         createdAt: '0000',
@@ -206,7 +264,7 @@ export function buildAllCards(ctx: BuildCtx): CardModel[] {
       categoryLabel: cat?.label,
       title: c.title,
       text: c.text,
-      dateText: c.date ? spelledDate(c.date, ctx.lang) : undefined,
+      dateText: c.date ? spelledDate(c.date, ctx.lang, c.dateFormat) : undefined,
       mediaId: c.mediaId,
       emoji: c.emoji || cat?.emoji || KIND_META[c.kind].emoji,
       color: c.color ?? cat?.color,
@@ -214,6 +272,8 @@ export function buildAllCards(ctx: BuildCtx): CardModel[] {
       font: c.font,
       stickers: c.stickers,
       rating: c.rating,
+      rating2: c.rating2,
+      companionSticker: c.companionSticker,
       createdAt: c.createdAt,
       own: true,
       subtitle: c.fromName ? `${ctx.lang === 'en' ? 'from' : 'von'} ${c.fromName}` : undefined,
@@ -228,8 +288,9 @@ export function buildAllCards(ctx: BuildCtx): CardModel[] {
     key: `reflexion:${r.id}`,
     kind: 'reflexion',
     title: r.title,
-    dateText: spelledDate(r.date, ctx.lang),
+    dateText: spelledDate(r.date, ctx.lang, r.dateFormat),
     mediaId: r.mediaId,
+    companionSticker: r.companionSticker,
     emoji: '🌙',
     background: r.background,
     createdAt: r.createdAt,

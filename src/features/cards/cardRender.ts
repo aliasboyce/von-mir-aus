@@ -1,5 +1,6 @@
 import { ownMediaUrl } from '../../services/mediaStore';
-import { KIND_META, type CardModel, type FrameStyle } from './cardTypes';
+import { companionPortrait, portraitNow } from './companionPortrait';
+import { KIND_META, type CardModel, type FrameStyle, type RatingKind } from './cardTypes';
 
 /**
  * Zeichnet eine Sammelkarte auf ein Canvas. Eine einzige Zeichenroutine für Bildschirm UND Druck –
@@ -126,8 +127,18 @@ export function loadImage(src: string): Promise<HTMLImageElement | null> {
     }, 6000);
   });
 }
-/** Das Foto der Karte als geladenes Bild (eigenes Foto aus dem Gerätespeicher, sonst die Bildadresse) – oder null → Symbol. */
+/** Muss etwas nachgeladen werden (Foto, Begleiter-Bild, Sticker)? */
+export function cardNeedsAsync(card: CardModel): boolean {
+  return !!(card.image || card.mediaId || card.portraitOf || card.companionSticker);
+}
+
+/** Das Bild der Karte als geladenes Bild (eigenes Foto, Bildadresse oder Begleiter-Porträt) – oder null → Symbol. */
 export async function prepareCardImage(card: CardModel): Promise<HTMLImageElement | null> {
+  if (card.companionSticker) await companionPortrait(card.companionSticker);
+  if (card.portraitOf && !card.mediaId && !card.image) {
+    const p = await companionPortrait(card.portraitOf);
+    return p ? composePortrait(p, card.color) : null;
+  }
   let src = card.image;
   if (card.mediaId) {
     try {
@@ -137,6 +148,43 @@ export async function prepareCardImage(card: CardModel): Promise<HTMLImageElemen
     }
   }
   return src ? loadImage(src) : null;
+}
+
+const composed = new Map<string, HTMLImageElement>();
+/** Begleiter groß vor einem weichen Farbhintergrund (für das Kunstfenster). */
+async function composePortrait(p: HTMLImageElement, color: string): Promise<HTMLImageElement | null> {
+  const key = `${p.src.length}-${color}-${p.src.slice(-40)}`;
+  const hit = composed.get(key);
+  if (hit) return hit;
+  const c = document.createElement('canvas');
+  c.width = 1000;
+  c.height = 700;
+  const ctx = c.getContext('2d');
+  if (!ctx) return null;
+  const g = ctx.createRadialGradient(500, 320, 40, 500, 350, 620);
+  g.addColorStop(0, lighten(color, 0.8));
+  g.addColorStop(1, lighten(color, 0.35));
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 1000, 700);
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  const rnd = rng(hash(color));
+  for (let i = 0; i < 14; i++) {
+    ctx.beginPath();
+    ctx.arc(rnd() * 1000, rnd() * 700, 12 + rnd() * 40, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  const h = 640;
+  const w = (p.width / p.height) * h;
+  ctx.drawImage(p, 500 - w / 2, 30, w, h);
+  const out = new Image();
+  const ok = new Promise<boolean>((res) => {
+    out.onload = () => res(true);
+    out.onerror = () => res(false);
+  });
+  out.src = c.toDataURL('image/png');
+  if (!(await ok)) return null;
+  composed.set(key, out);
+  return out;
 }
 
 function drawCover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
@@ -267,51 +315,82 @@ function drawArt(ctx: CanvasRenderingContext2D, card: CardModel, img: HTMLImageE
   ctx.stroke();
 }
 
-function drawRating(ctx: CanvasRenderingContext2D, card: CardModel, cx: number, y: number) {
-  if (!card.rating || card.rating.value <= 0) return;
-  const glyph = card.rating.kind === 'star' ? '★' : card.rating.kind === 'bolt' ? '⚡' : '♥';
-  const max = card.rating.kind === 'bolt' ? 4 : 5;
-  const size = 44;
-  const gap = 8;
+export function ratingsOf(card: CardModel): { kind: RatingKind; value: number }[] {
+  return [card.rating, card.rating2].filter((r): r is { kind: RatingKind; value: number } => !!r && r.value > 0);
+}
+
+function drawOneRating(ctx: CanvasRenderingContext2D, r: { kind: RatingKind; value: number }, cx: number, y: number, size: number, gap: number) {
+  const glyph = r.kind === 'star' ? '★' : r.kind === 'bolt' ? '⚡' : '♥';
+  const max = r.kind === 'bolt' ? 4 : 5;
   const total = max * size + (max - 1) * gap;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.font = `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
   for (let i = 0; i < max; i++) {
-    const on = i < card.rating.value;
-    ctx.globalAlpha = on ? 1 : 0.22;
-    ctx.fillStyle = card.rating.kind === 'star' ? '#e0a526' : card.rating.kind === 'heart' ? '#d9576f' : '#e0a526';
+    ctx.globalAlpha = i < r.value ? 1 : 0.22;
+    ctx.fillStyle = r.kind === 'heart' ? '#d9576f' : '#e0a526';
     ctx.fillText(glyph, cx - total / 2 + size / 2 + i * (size + gap), y);
   }
   ctx.globalAlpha = 1;
 }
 
+function drawRating(ctx: CanvasRenderingContext2D, card: CardModel, cx: number, y: number) {
+  const rs = ratingsOf(card);
+  if (rs.length === 1) drawOneRating(ctx, rs[0], cx, y, 44, 8);
+  else if (rs.length === 2) {
+    drawOneRating(ctx, rs[0], cx - 132, y, 34, 5);
+    drawOneRating(ctx, rs[1], cx + 132, y, 34, 5);
+  }
+}
+
 function drawStickers(ctx: CanvasRenderingContext2D, card: CardModel, x: number, y: number, w: number, h: number) {
-  if (!card.stickers?.length) return;
-  const pos = [
-    [x + 6, y + 6, -0.25],
-    [x + w - 6, y + 10, 0.22],
-    [x + w - 18, y + h - 10, -0.12],
-  ];
-  card.stickers.slice(0, 3).forEach((s, i) => {
-    const [px, py, rot] = pos[i];
+  if (card.stickers?.length) {
+    const pos = [
+      [x + 6, y + 6, -0.25],
+      [x + w - 6, y + 10, 0.22],
+      [x + w - 18, y + h - 10, -0.12],
+    ];
+    card.stickers.slice(0, 3).forEach((s, i) => {
+      const [px, py, rot] = pos[i];
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(rot);
+      ctx.shadowColor = 'rgba(0,0,0,0.25)';
+      ctx.shadowBlur = 8;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, 44, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '58px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+      ctx.fillStyle = '#000';
+      ctx.fillText(s, 0, 4);
+      ctx.restore();
+    });
+  }
+  // der aktive Begleiter als Sticker (unten links im Kunstfenster)
+  const pic = portraitNow(card.companionSticker);
+  if (pic) {
     ctx.save();
-    ctx.translate(px, py);
-    ctx.rotate(rot);
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 8;
+    ctx.translate(x + 62, y + h - 40);
+    ctx.rotate(-0.1);
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 10;
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(0, 0, 44, 0, Math.PI * 2);
+    ctx.arc(0, 0, 66, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = '58px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-    ctx.fillStyle = '#000';
-    ctx.fillText(s, 0, 4);
+    const ph = 104;
+    const pw = (pic.width / pic.height) * ph;
+    ctx.beginPath();
+    ctx.arc(0, 0, 62, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(pic, -pw / 2, -ph / 2 + 2, pw, ph);
     ctx.restore();
-  });
+  }
 }
 
 function washi(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, rot: number, color: string) {
@@ -347,6 +426,94 @@ function drawFooter(ctx: CanvasRenderingContext2D, ink: string, y: number, lang:
   ctx.globalAlpha = 1;
 }
 
+/** Höhe des Bildfensters: bei viel Text wird das Bild kleiner, damit mehr Text auf die Karte passt. */
+function artHeightFor(card: CardModel): number {
+  if (card.kind === 'reflexion') return 190;
+  const hasDate = !!card.dateText;
+  const base = hasDate ? 330 : 360;
+  const src = card.sections?.length ? card.sections : card.details?.length ? card.details : null;
+  const len = src ? src.reduce((n, d) => n + d.text.length + d.label.length, 0) : card.lines?.length ? card.lines.join(' ').length : (card.text?.length ?? 0);
+  if (len > 320) return hasDate ? 190 : 200;
+  if (len > 150) return hasDate ? 250 : 270;
+  return base;
+}
+
+/** Kleinste Schriftgröße auf der Karte (≈ 6 pt im Druck) – darunter wird gekürzt. */
+const MIN_BODY = 21;
+
+type BodyRow = { kind: 'label' | 'line'; text: string; bullet?: boolean; h: number };
+
+/** Ordnet den Kartentext an: größte passende Schrift, bei Platzmangel gekürzt („…“). */
+function layoutBody(ctx: CanvasRenderingContext2D, card: CardModel, innerW: number, availH: number, family: string) {
+  const blocks = (s: number): { rows: BodyRow[]; total: number } => {
+    const rows: BodyRow[] = [];
+    let total = 0;
+    ctx.font = `500 ${s}px ${family}`;
+    const sections = card.sections?.length ? card.sections : card.details?.length ? card.details : null;
+    if (sections) {
+      sections.forEach((sec) => {
+        if (sec.label) {
+          rows.push({ kind: 'label', text: sec.label, h: s * 0.78 + 4 });
+          total += s * 0.78 + 4;
+        }
+        ctx.font = `500 ${s}px ${family}`;
+        wrap(ctx, sec.text, innerW).forEach((l) => {
+          rows.push({ kind: 'line', text: l, h: s * 1.22 });
+          total += s * 1.22;
+        });
+        total += 8;
+        rows[rows.length - 1].h += 8;
+      });
+    } else if (card.lines?.length) {
+      card.lines.forEach((l) => {
+        wrap(ctx, l, innerW - 30).forEach((x, i) => {
+          rows.push({ kind: 'line', text: x, bullet: i === 0, h: s * 1.22 });
+          total += s * 1.22;
+        });
+        rows[rows.length - 1].h += 6;
+        total += 6;
+      });
+    } else if (card.text) {
+      wrap(ctx, card.text, innerW).forEach((l) => {
+        rows.push({ kind: 'line', text: l, h: s * 1.28 });
+        total += s * 1.28;
+      });
+    }
+    return { rows, total };
+  };
+  let size = 30;
+  let res = blocks(size);
+  while (size > MIN_BODY && res.total > availH) {
+    size -= 1;
+    res = blocks(size);
+  }
+  let truncated = false;
+  let shown: BodyRow[] = res.rows;
+  if (res.total > availH) {
+    truncated = true;
+    shown = [];
+    let used = 0;
+    for (const r of res.rows) {
+      if (used + r.h > availH + 2) break;
+      shown.push(r);
+      used += r.h;
+    }
+    // Beschriftung ohne Text darunter weglassen, letzte Zeile mit „…“ beenden
+    while (shown.length && shown[shown.length - 1].kind === 'label') shown.pop();
+    const last = shown[shown.length - 1];
+    if (last) {
+      ctx.font = `500 ${size}px ${family}`;
+      const w = innerW - (last.bullet ? 30 : 0);
+      let t = last.text.replace(/[\s.,;:–-]+$/, '');
+      while (t.length > 1 && ctx.measureText(`${t}…`).width > w) t = t.slice(0, -1);
+      shown[shown.length - 1] = { ...last, text: `${t}…` };
+    }
+  }
+  const shownChars = shown.filter((r) => r.kind === 'line').reduce((n, r) => n + r.text.length + 1, 0);
+  const totalChars = res.rows.filter((r) => r.kind === 'line').reduce((n, r) => n + r.text.length + 1, 0);
+  return { size, rows: shown, truncated, shownChars, totalChars };
+}
+
 /** Texte unten: Fließtext, Aufzählung oder Abschnitte – mit automatisch passender Schriftgröße. */
 function drawBody(ctx: CanvasRenderingContext2D, card: CardModel, x: number, y: number, w: number, h: number, color: string, ink: string, family: string) {
   const body = ctx.createLinearGradient(x, y, x, y + h);
@@ -363,60 +530,27 @@ function drawBody(ctx: CanvasRenderingContext2D, card: CardModel, x: number, y: 
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillStyle = ink;
-
-  type Block = { label?: string; lines: string[]; bullet?: boolean };
-  let size = 30;
-  let blocks: Block[] = [];
-  const build = (s: number): number => {
-    ctx.font = `500 ${s}px ${family}`;
-    blocks = [];
-    let total = 0;
-    if (card.sections?.length) {
-      card.sections.forEach((sec) => {
-        ctx.font = `500 ${s}px ${family}`;
-        const lines = wrap(ctx, sec.text, innerW);
-        blocks.push({ label: sec.label, lines });
-        total += s * 0.78 + 4 + lines.length * s * 1.22 + 8;
-      });
-    } else if (card.lines?.length) {
-      card.lines.forEach((l) => {
-        const lines = wrap(ctx, l, innerW - 30);
-        blocks.push({ lines, bullet: true });
-        total += lines.length * s * 1.22 + 6;
-      });
-    } else if (card.text) {
-      const lines = wrap(ctx, card.text, innerW);
-      blocks.push({ lines });
-      total += lines.length * s * 1.28;
-    }
-    return total;
-  };
-  while (size > 17 && build(size) > availH) size -= 1;
-  build(size);
+  const lay = layoutBody(ctx, card, innerW, availH, family);
+  const size = lay.size;
   let cy = y + pad;
-  const limit = y + pad + availH;
-  for (const b of blocks) {
-    if (b.label) {
+  for (const r of lay.rows) {
+    if (r.kind === 'label') {
       ctx.font = `800 ${Math.round(size * 0.78)}px ${family}`;
       ctx.fillStyle = darken(color, 0.3);
-      ctx.fillText(b.label.toUpperCase(), x + pad, cy);
-      cy += size * 0.78 + 4;
-    }
-    ctx.font = `500 ${size}px ${family}`;
-    ctx.fillStyle = ink;
-    for (const l of b.lines) {
-      if (cy + size > limit + 4) break;
-      if (b.bullet) {
+      ctx.fillText(r.text.toUpperCase(), x + pad, cy);
+    } else {
+      ctx.font = `500 ${size}px ${family}`;
+      ctx.fillStyle = ink;
+      if (r.bullet) {
         ctx.fillStyle = darken(color, 0.15);
         ctx.beginPath();
         ctx.arc(x + pad + 8, cy + size * 0.55, 5, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = ink;
-        ctx.fillText(l, x + pad + 30, cy);
-      } else ctx.fillText(l, x + pad, cy);
-      cy += size * (b.bullet ? 1.22 : 1.24);
+        ctx.fillText(r.text, x + pad + 30, cy);
+      } else ctx.fillText(r.text, x + pad + (card.lines?.length && !card.sections?.length && !card.details?.length ? 30 : 0), cy);
     }
-    cy += b.bullet ? 6 : 8;
+    cy += r.h;
   }
   if (stats.length) {
     ctx.textBaseline = 'middle';
@@ -433,6 +567,26 @@ function drawBody(ctx: CanvasRenderingContext2D, card: CardModel, x: number, y: 
       ctx.font = `700 24px ${family}`;
     });
   }
+}
+
+/**
+ * Wie viel vom Text passt auf die Karte? (gleiches Layout wie beim Zeichnen)
+ * Auf der Karte – auch im Druck – ist nur dieser Teil sichtbar; in der App lässt sich alles ausklappen.
+ */
+export function bodyFit(card: CardModel): { truncated: boolean; shownChars: number; totalChars: number } {
+  const c = document.createElement('canvas').getContext('2d');
+  if (!c) return { truncated: false, shownChars: 0, totalChars: 0 };
+  const hasDate = !!card.dateText;
+  const isRefl = card.kind === 'reflexion';
+  const artH = artHeightFor(card);
+  let y = 156 + artH + ((card.frame ?? 'standard') === 'polaroid' ? 40 : 22) + 56;
+  if (hasDate) y += isRefl ? 50 : 54;
+  const ratingH = ratingsOf(card).length ? 58 : 0;
+  const h = 786 - y - ratingH;
+  const innerW = CARD_W - 112 - 44;
+  const stats = card.stats?.length ? 50 : 0;
+  const r = layoutBody(c, card, innerW, h - 44 - stats, familyOf(card.font));
+  return { truncated: r.truncated, shownChars: r.shownChars, totalChars: r.totalChars };
 }
 
 function drawFront(ctx: CanvasRenderingContext2D, card: CardModel, img: HTMLImageElement | null, opts: DrawOpts) {
@@ -522,7 +676,7 @@ function drawFront(ctx: CanvasRenderingContext2D, card: CardModel, img: HTMLImag
 
   // Kunstfenster
   const artY = 156;
-  const artH = isRefl ? 190 : hasDate ? 330 : 360;
+  const artH = artHeightFor(card);
   const artX = 60;
   const artW = CARD_W - 120;
   if (frame === 'polaroid') {
@@ -588,8 +742,8 @@ function drawFront(ctx: CanvasRenderingContext2D, card: CardModel, img: HTMLImag
   }
 
   const bodyBottom = 786;
-  const ratingH = card.rating && card.rating.value > 0 ? 58 : 0;
-  if (card.text || card.lines?.length || card.sections?.length || card.stats?.length) {
+  const ratingH = ratingsOf(card).length ? 58 : 0;
+  if (card.text || card.lines?.length || card.sections?.length || card.details?.length || card.stats?.length) {
     drawBody(ctx, card, 56, y, CARD_W - 112, bodyBottom - y - ratingH, color, ink, family);
   }
   drawRating(ctx, card, CARD_W / 2, bodyBottom - ratingH / 2 + 8);

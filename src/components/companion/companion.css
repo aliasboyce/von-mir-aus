@@ -689,3 +689,9 @@
 .companion-menu__i[aria-expanded='true'] { color: var(--color-primary); }
 .companion-menu__info { margin: 0 16px 8px; padding: 8px 12px; border-radius: 12px; background: var(--color-surface-muted); font-size: 13.5px; line-height: 1.45; color: var(--color-text-muted); }
 .companion-menu--big .companion-menu__more { padding: 14px; font-size: 13.5px; }
+
+/* Startseite: das Wesen setzt sich von allein hin (weicher Übergang, wieder hoch beim Antippen) */
+.companion-antic-sit { transform-origin: 50% 92%; animation: companion-sit 7s ease-in-out both; }
+@keyframes companion-sit { 0% { transform: none; } 12%, 88% { transform: translateY(3%) scale(1.05, 0.88); } 100% { transform: none; } }
+[data-reduce-motion='true'] .companion-antic-sit { animation: none; }
+@media (prefers-reduced-motion: reduce) { .companion-antic-sit { animation: none; } }

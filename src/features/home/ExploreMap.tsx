@@ -17,7 +17,10 @@ import { MAIN_AREAS, ADDON_GROUPS } from './exploreMapData';
  * by itself with the reduce-motion setting.
  */
 const ADDON_COLOR = '#9a948a';
-const THREAD_STOPS = [...MAIN_AREAS.map((a) => a.color), ADDON_COLOR];
+const EVERYDAY_COLOR = '#d9955a';
+/** Was zum Alltag gehört (Kalender, Medikamente, Parkbox …) steht als eigener, klarer Bereich vor den Zusätzen. */
+const EVERYDAY_KEYS = ['struktur', 'alltag', 'ordnen'];
+const THREAD_STOPS = [...MAIN_AREAS.map((a) => a.color), EVERYDAY_COLOR, ADDON_COLOR];
 
 function nodeStyle(color: string, i: number): React.CSSProperties {
   return {
@@ -36,6 +39,7 @@ export function ExploreMap() {
   const sm = t.systemMap;
   const navigate = useNavigate();
   const { settings } = useSettings();
+  const en = settings.language === 'en';
 
   function scrollTo(id: string) {
     document.getElementById(`explore-branch-${id}`)?.scrollIntoView({ behavior: settings.reduceMotion ? 'auto' : 'smooth', block: 'start' });
@@ -43,8 +47,30 @@ export function ExploreMap() {
 
   const jumps = [
     ...MAIN_AREAS.map((a) => ({ id: a.id as string, color: a.color, label: sm.areas[a.id].title })),
+    { id: 'everyday', color: EVERYDAY_COLOR, label: en ? 'Everyday' : 'Alltag' },
     { id: 'addons', color: ADDON_COLOR, label: t.explore.mapAddons },
   ];
+  const everydayGroups = ADDON_GROUPS.filter((g) => EVERYDAY_KEYS.includes(g.labelKey));
+  const addonGroups = ADDON_GROUPS.filter((g) => !EVERYDAY_KEYS.includes(g.labelKey));
+  const renderGroups = (groups: typeof ADDON_GROUPS, color: string) =>
+    groups.map((g) => (
+      <div key={g.labelKey} className="mb-5">
+        <p className="text-[14px] font-medium text-[var(--color-text)] mb-2 pl-1">{sm.extraGroupsNew[g.labelKey as keyof typeof sm.extraGroupsNew]}</p>
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
+          {g.items.map((item, k) => (
+            <button key={item.titleKey} type="button" onClick={() => navigate(item.to)} className="map-float text-left rounded-[24px] px-3.5 py-3 min-h-[58px] min-w-0 flex items-center gap-2.5" style={{ ...nodeStyle(color, k), marginTop: 0 }}>
+              <span className="text-[21px] flex-shrink-0" aria-hidden="true">
+                {item.emoji}
+              </span>
+              <span className="block min-w-0 [overflow-wrap:anywhere]">
+                <span className="block text-[14.5px] leading-snug text-[var(--color-text)]">{sm.extraItems[item.titleKey as keyof typeof sm.extraItems]}</span>
+                <span className="block text-[12px] leading-snug text-[var(--color-text-faint)] mt-0.5">{sm.extraItemHints[item.titleKey as keyof typeof sm.extraItemHints]}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    ));
 
   return (
     <div className="explore-map overflow-x-clip">
@@ -135,6 +161,26 @@ export function ExploreMap() {
           );
         })}
 
+        <section id="explore-branch-everyday" className="relative" style={{ scrollMarginTop: 12, marginTop: -6, paddingTop: 22, paddingBottom: 22 }} data-testid="explore-everyday">
+          <div
+            aria-hidden="true"
+            className="map-drift absolute pointer-events-none"
+            style={{ inset: '-14px -22px', background: `radial-gradient(ellipse 80% 62% at 50% 46%, ${EVERYDAY_COLOR}40 0%, ${EVERYDAY_COLOR}1a 50%, transparent 78%)`, filter: 'blur(10px)', animationDelay: '-6s' }}
+          />
+          <div className="relative">
+            <div className="flex items-start gap-3 mb-4">
+              <span className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-[22px]" style={{ background: `${EVERYDAY_COLOR}33` }}>
+                🗓️
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-[19px] leading-tight text-[var(--color-text)]">{en ? 'Everyday' : 'Alltag'}</h2>
+                <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-0.5">{en ? 'The practical things in your day: appointments, medication, parking box, lists.' : 'Das Praktische im Tag: Termine, Medikamente, Parkbox, Listen.'}</p>
+              </div>
+            </div>
+            {renderGroups(everydayGroups, EVERYDAY_COLOR)}
+          </div>
+        </section>
+
         <section id="explore-branch-addons" className="relative" style={{ scrollMarginTop: 12, marginTop: -6, paddingTop: 22 }}>
           <div
             aria-hidden="true"
@@ -151,24 +197,7 @@ export function ExploreMap() {
                 <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-0.5">{t.explore.mapAddonsMeaning}</p>
               </div>
             </div>
-            {ADDON_GROUPS.map((g) => (
-              <div key={g.labelKey} className="mb-5">
-                <p className="text-[14px] font-medium text-[var(--color-text)] mb-2 pl-1">{sm.extraGroupsNew[g.labelKey as keyof typeof sm.extraGroupsNew]}</p>
-                <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
-                  {g.items.map((item, k) => (
-                    <button key={item.titleKey} type="button" onClick={() => navigate(item.to)} className="map-float text-left rounded-[24px] px-3.5 py-3 min-h-[58px] min-w-0 flex items-center gap-2.5" style={{ ...nodeStyle(ADDON_COLOR, k), marginTop: 0 }}>
-                      <span className="text-[21px] flex-shrink-0" aria-hidden="true">
-                        {item.emoji}
-                      </span>
-                      <span className="block min-w-0 [overflow-wrap:anywhere]">
-                        <span className="block text-[14.5px] leading-snug text-[var(--color-text)]">{sm.extraItems[item.titleKey as keyof typeof sm.extraItems]}</span>
-                        <span className="block text-[12px] leading-snug text-[var(--color-text-faint)] mt-0.5">{sm.extraItemHints[item.titleKey as keyof typeof sm.extraItemHints]}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {renderGroups(addonGroups, ADDON_COLOR)}
           </div>
         </section>
       </div>

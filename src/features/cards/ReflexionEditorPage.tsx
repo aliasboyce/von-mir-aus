@@ -12,6 +12,7 @@ import { useL } from '../projects/useL';
 import { CardFace } from './CardFace';
 import { gatherDay } from './dayGather';
 import { reflexionSections, spelledDate } from './autoCards';
+import { CompanionStickerToggle, DateEditor, FitHint } from './cardEditorParts';
 import { colorForKind, numberFor, peekNextNumber, reflexionCardsRepo, savePhotoForCard, setRarity } from './cardStore';
 import type { CardModel, Rarity, ReflexionCard } from './cardTypes';
 
@@ -82,6 +83,8 @@ export function ReflexionEditorPage() {
   const [background, setBackground] = useState(existing?.background ?? BACKGROUNDS[0]);
   const [mediaId, setMediaId] = useState<string | undefined>(existing?.mediaId);
   const [rarity, setRar] = useState<Rarity>(existing?.rarity ?? 'normal');
+  const [dateFormat, setDateFormat] = useState<string>(existing?.dateFormat ?? 'long');
+  const [companionSticker, setCompanionSticker] = useState<string | undefined>(existing?.companionSticker);
   const [busy, setBusy] = useState(false);
 
   const feelingOptions = FEELING_GROUPS.flatMap((g) => g.sub.slice(0, 3).map((w, i) => (lang === 'en' ? g.subEn[i] ?? w : w)));
@@ -107,6 +110,8 @@ export function ReflexionEditorPage() {
     comfort: comfort || undefined,
     background,
     mediaId,
+    dateFormat,
+    companionSticker,
     rarity,
   };
 
@@ -114,8 +119,9 @@ export function ReflexionEditorPage() {
     key,
     kind: 'reflexion',
     title: draft.title,
-    dateText: spelledDate(date, lang),
+    dateText: spelledDate(date, lang, dateFormat),
     mediaId,
+    companionSticker,
     emoji: '🌙',
     color: colorForKind('reflexion'),
     background,
@@ -179,7 +185,9 @@ export function ReflexionEditorPage() {
         <label className="block text-[13px] font-medium mb-1">{L('Titel', 'Title')}</label>
         <input className="input mb-3" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={50} data-testid="reflexion-title" />
         <label className="block text-[13px] font-medium mb-1">{L('Tag', 'Day')}</label>
-        <input type="date" className="input mb-4" value={date} onChange={(e) => setDate(e.target.value)} />
+        <input type="date" className="input mb-2" value={date} onChange={(e) => setDate(e.target.value)} />
+        <DateEditor formatOnly date={date} format={dateFormat} onDate={() => undefined} onFormat={setDateFormat} />
+        <div className="mb-4" />
 
         <div className="mb-4">
           <p className="text-[13px] font-medium mb-1">{L('Das habe ich genutzt', 'What I used')}</p>
@@ -244,6 +252,8 @@ export function ReflexionEditorPage() {
           </label>
           {mediaId && <button type="button" className="text-[13px] text-[var(--color-primary)]" onClick={() => { if (mediaId !== existing?.mediaId) void deleteOwnMedia(mediaId); setMediaId(undefined); }}>{L('Foto entfernen', 'Remove photo')}</button>}
         </div>
+        <FitHint card={preview} />
+        <div className="mt-3"><CompanionStickerToggle value={companionSticker} onChange={setCompanionSticker} /></div>
         <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Limitiert (Folie / Holo / Glitzer) – wandert zu den Specialcards', 'Limited (foil / holo / glitter) – goes to the special cards')}</p>
         <div className="flex flex-wrap gap-1.5 mb-6">
           {RARITIES.map((r) => (

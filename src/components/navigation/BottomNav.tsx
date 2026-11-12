@@ -34,7 +34,7 @@ export function BottomNav() {
   const fullItems: NavItem[] = [
     { to: '/', label: t.nav.home, icon: Home, end: true, also: ['/zugang', '/bruecken', '/inneres-wetter'] },
     { to: '/sicherheit', label: t.nav.safety, icon: Shield, end: false },
-    { to: '/entdecken', label: t.nav.explore, icon: Compass, end: false },
+    { to: '/entdecken', label: t.nav.explore, icon: Compass, end: false, also: ['/sicherheit/tagebuch'] },
   ];
 
   const nurJetztItems = [
@@ -70,6 +70,9 @@ export function BottomNav() {
       >
         {items.map(({ to, label, icon: Icon, end, also }) => {
           const alsoActive = !!also && also.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+          // the diary lives in Explore (writing & review), not under Safety, although its address is older
+          const diaryHere = pathname === '/sicherheit/tagebuch' || pathname.startsWith('/sicherheit/tagebuch/');
+          const forceOff = diaryHere && to === '/sicherheit';
           return (
           <NavLink
             key={to}
@@ -78,12 +81,12 @@ export function BottomNav() {
             className={({ isActive }) =>
               [
                 'flex flex-1 flex-col items-center justify-center gap-0.5 md:gap-1 text-[11px] md:text-[12px] font-medium transition-colors px-0.5',
-                isActive || alsoActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-faint)]',
+                (isActive || alsoActive) && !forceOff ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-faint)]',
               ].join(' ')
             }
           >
             {({ isActive: active }) => {
-              const isActive = active || alsoActive;
+              const isActive = (active || alsoActive) && !forceOff;
               return (
                 <>
                   <Icon size={20} className="md:hidden" strokeWidth={isActive ? 2.3 : 1.8} />

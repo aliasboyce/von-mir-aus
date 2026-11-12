@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { X, Star, Sparkles, Pencil, Share2, ArrowUpRight, FileDown, EyeOff } from 'lucide-react';
+import { X, Star, Sparkles, Pencil, Share2, ArrowUpRight, FileDown, EyeOff, ListTree } from 'lucide-react';
 import { CardFlip } from './CardFlip';
-import { CARD_H, CARD_W } from './cardRender';
+import { CARD_H, CARD_W, bodyFit } from './cardRender';
 import { patchPrefs, getPrefs, setRarity, toggleFavorite } from './cardStore';
 import { playPageTurn, playSparkle } from './cardSounds';
 import { useL } from '../projects/useL';
@@ -30,11 +30,13 @@ export function CardViewer({ cards, index, onIndex, onClose, onChanged, onShare,
   const [dx, setDx] = useState(0);
   const [slide, setSlide] = useState<'none' | 'out-left' | 'out-right'>('none');
   const [rarityOpen, setRarityOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const start = useRef<{ x: number; moved: boolean } | null>(null);
 
   useEffect(() => {
     setFlipped(false);
     setRarityOpen(false);
+    setInfoOpen(false);
   }, [index]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -74,6 +76,9 @@ export function CardViewer({ cards, index, onIndex, onClose, onChanged, onShare,
   if (!card) return null;
   const fav = getPrefs().favorites.includes(card.key);
   const isOwn = !!card.own;
+  const fit = bodyFit(card);
+  const detailList = card.details?.length ? card.details : card.sections?.length ? card.sections : card.lines?.length ? [{ label: '', text: card.lines.join('\n') }] : card.text ? [{ label: '', text: card.text }] : [];
+  const hasMore = fit.truncated || detailList.length > 1;
 
   return createPortal(
     <div
@@ -123,6 +128,11 @@ export function CardViewer({ cards, index, onIndex, onClose, onChanged, onShare,
         <ActionBtn label={fav ? L('Favorit', 'Favourite') : L('Favorit', 'Favourite')} active={fav} onClick={() => { toggleFavorite(card.key); onChanged(); }}>
           <Star size={16} fill={fav ? 'currentColor' : 'none'} />
         </ActionBtn>
+        {detailList.length > 0 && (
+          <ActionBtn label={L('Alle Infos', 'All info')} active={infoOpen} onClick={() => { setInfoOpen((o) => !o); setRarityOpen(false); }} testid="card-info-open">
+            <ListTree size={16} />
+          </ActionBtn>
+        )}
         <ActionBtn label={L('Limitiert', 'Limited')} active={card.rarity !== 'normal'} onClick={() => setRarityOpen((o) => !o)} testid="card-rarity-open">
           <Sparkles size={16} />
         </ActionBtn>
@@ -148,6 +158,29 @@ export function CardViewer({ cards, index, onIndex, onClose, onChanged, onShare,
           </ActionBtn>
         )}
       </div>
+
+      {infoOpen && (
+        <div className="fixed inset-x-0 bottom-0 z-[310] px-4 pb-4 pt-3 rounded-t-[22px] animate-in overflow-y-auto" style={{ background: 'var(--color-surface)', color: 'var(--color-text)', maxHeight: '58vh', paddingBottom: 'max(16px, env(safe-area-inset-bottom))', boxShadow: '0 -10px 30px rgba(0,0,0,0.4)' }} data-testid="card-info-panel">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-[16px] font-medium">{card.title}</h2>
+            <button type="button" onClick={() => setInfoOpen(false)} className="text-[13px] text-[var(--color-primary)] px-2 py-1">{L('Schließen', 'Close')}</button>
+          </div>
+          {hasMore && fit.truncated && (
+            <p className="text-[12.5px] leading-snug mb-3 p-2.5 rounded-[var(--radius-md)]" style={{ background: 'var(--color-primary-soft)' }} data-testid="card-print-hint">
+              {L(
+                `Auf der Karte ist nicht für alles Platz: Im Kartenbild und im Druck stehen etwa die ersten ${fit.shownChars} von ${fit.totalChars} Zeichen. Hier in der App ist alles lesbar.`,
+                `The card has no room for everything: the card picture and print show about the first ${fit.shownChars} of ${fit.totalChars} characters. Here in the app you can read it all.`,
+              )}
+            </p>
+          )}
+          {detailList.map((d, i) => (
+            <div key={i} className="mb-3">
+              {d.label && <p className="text-[11.5px] uppercase tracking-wide text-[var(--color-text-muted)] mb-0.5">{d.label}</p>}
+              <p className="text-[14.5px] leading-snug whitespace-pre-wrap break-words">{d.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {rarityOpen && (
         <div className="flex gap-2 mt-3 animate-in" data-testid="card-rarity-menu">

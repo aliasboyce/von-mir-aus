@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Settings2, Printer, Moon, Star, Sparkles } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -177,12 +177,49 @@ export function AlbumPage() {
 // ---------------------------------------------------------------------------------------------
 // Das Buch: Titelseite + Seiten mit Taschen für Karten, Umblättern per Wischen
 
+const PageView = memo(function PageView({ slice, start, perPage, cols, cardW, cardH, gap, padX, pageH, onOpen, blocked }: { slice: CardModel[]; start: number; perPage: number; cols: number; cardW: number; cardH: number; gap: number; padX: number; pageH: number; onOpen: (cardIndex: number) => void; blocked: () => boolean }) {
+  return (
+    <div className="grid" style={{ gridTemplateColumns: `repeat(${cols}, ${cardW}px)`, gap, padding: padX, justifyContent: 'center', height: pageH, alignContent: 'start' }}>
+      {Array.from({ length: perPage }).map((_, i) => {
+        const c = slice[i];
+        return c ? (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => {
+              if (blocked()) return;
+              onOpen(start + i);
+            }}
+            className="relative p-0 border-0 bg-transparent"
+            style={{ width: cardW, height: cardH, filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.25))' }}
+            data-testid="album-card"
+            aria-label={c.title}
+          >
+            <CardFace card={c} width={cardW} />
+            {c.rarity !== 'normal' && <span className="absolute -top-1 -right-1 text-[15px]" aria-hidden="true">✨</span>}
+          </button>
+        ) : (
+          <div key={`e${i}`} style={{ width: cardW, height: cardH, border: '2px dashed rgba(120,90,60,0.28)', borderRadius: cardW * 0.07, background: 'rgba(120,90,60,0.06)' }} aria-hidden="true" />
+        );
+      })}
+    </div>
+  );
+});
+
 function Book({ cards, page, pageCount, perPage, wide, chapter, totalCards, onPage, onOpen, lang }: { cards: CardModel[]; page: number; pageCount: number; perPage: number; wide: boolean; chapter: Chapter; totalCards: number; onPage: (p: number) => void; onOpen: (cardIndex: number) => void; lang: 'de' | 'en' }) {
   const holder = useRef<HTMLDivElement>(null);
+  const flipRef = useRef<HTMLDivElement>(null);
+  const shadeRef = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(340);
-  const [drag, setDrag] = useState<{ dir: 'next' | 'prev'; p: number } | null>(null);
+  // Nur Start/Ende des Umblätterns sind State – der Fortschritt läuft direkt am Element (flüssig, ohne Neuzeichnen der Karten)
+  const [drag, setDrag] = useState<{ dir: 'next' | 'prev'; p0: number } | null>(null);
+  const prog = useRef(0);
+  const dirRef = useRef<'next' | 'prev'>('next');
   const anim = useRef<number | null>(null);
-  const down = useRef<{ x: number; moved: boolean } | null>(null);
+  const down = useRef<{ x: number; y: number; id: number; moved: boolean; t: number } | null>(null);
+  const dragging = useRef(false);
+  const pageRef = useRef(page);
+  pageRef.current = page;
 
   useEffect(() => {
     const el = holder.current;
@@ -192,6 +229,7 @@ function Book({ cards, page, pageCount, perPage, wide, chapter, totalCards, onPa
     setW(Math.min(720, el.clientWidth));
     return () => ro.disconnect();
   }, []);
+  useEffect(() => () => { if (anim.current) cancelAnimationFrame(anim.current); }, []);
 
   const cols = wide ? 3 : 2;
   const gap = 12;
@@ -201,14 +239,26 @@ function Book({ cards, page, pageCount, perPage, wide, chapter, totalCards, onPa
   const rows = perPage / cols;
   const pageH = padX + rows * cardH + (rows - 1) * gap + 40;
 
+  function apply(p: number, dir: 'next' | 'prev') {
+    prog.current = p;
+    const angle = dir === 'next' ? -180 * p : -180 * (1 - p);
+    if (flipRef.current) flipRef.current.style.transform = `rotateY(${angle}deg) translateZ(0)`;
+    if (shadeRef.current) shadeRef.current.style.background = `linear-gradient(90deg, rgba(0,0,0,${0.18 * Math.min(1, Math.abs(angle) / 90)}), rgba(0,0,0,0) 40%)`;
+  }
+  // erster Stand, sobald das Blatt da ist
+  useLayoutEffect(() => {
+    if (drag) apply(drag.p0, drag.dir);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drag]);
+
   function runTo(target: 0 | 1, dir: 'next' | 'prev', from: number, done: () => void) {
     if (anim.current) cancelAnimationFrame(anim.current);
     const t0 = performance.now();
-    const dur = 340 * Math.abs(target - from) + 80;
+    const dur = 320 * Math.abs(target - from) + 70;
     const step = (now: number) => {
       const k = Math.min(1, (now - t0) / dur);
       const e = 1 - (1 - k) ** 3;
-      setDrag({ dir, p: from + (target - from) * e });
+      apply(from + (target - from) * e, dir);
       if (k < 1) anim.current = requestAnimationFrame(step);
       else {
         anim.current = null;
@@ -218,84 +268,90 @@ function Book({ cards, page, pageCount, perPage, wide, chapter, totalCards, onPa
     anim.current = requestAnimationFrame(step);
   }
 
-  function turn(dir: 'next' | 'prev', from = 0) {
+  function finish(nextPage: number | null) {
+    dragging.current = false;
+    setDrag(null);
+    if (nextPage !== null) {
+      onPage(nextPage);
+      const start = (nextPage - 1) * perPage;
+      if (start >= 0 && cards.slice(start, start + perPage).some((c) => c.rarity !== 'normal')) window.setTimeout(playSparkle, 120);
+    }
+  }
+
+  function turn(dir: 'next' | 'prev') {
+    if (dragging.current) return;
     const nextPage = dir === 'next' ? page + 1 : page - 1;
     if (nextPage < 0 || nextPage >= pageCount) return;
     playPageTurn();
-    runTo(1, dir, from, () => {
-      setDrag(null);
-      onPage(nextPage);
-      // limitierte Karten funkeln kurz, wenn ihre Seite aufgeht
-      const start = (nextPage - 1) * perPage;
-      if (cards.slice(start, start + perPage).some((c) => c.rarity !== 'normal')) window.setTimeout(playSparkle, 120);
-    });
+    dragging.current = true;
+    dirRef.current = dir;
+    setDrag({ dir, p0: 0 });
+    // zwei Frames warten, damit das Blatt gemalt ist, dann animieren
+    requestAnimationFrame(() => runTo(1, dir, 0, () => finish(nextPage)));
   }
 
   function onDown(e: React.PointerEvent) {
-    if (anim.current) return;
-    down.current = { x: e.clientX, moved: false };
+    if (dragging.current && anim.current) return;
+    down.current = { x: e.clientX, y: e.clientY, id: e.pointerId, moved: false, t: performance.now() };
   }
   function onMove(e: React.PointerEvent) {
     const d = down.current;
     if (!d || anim.current) return;
     const dx = e.clientX - d.x;
-    if (Math.abs(dx) > 8) d.moved = true;
-    if (!d.moved) return;
-    if (dx < 0 && page < pageCount - 1) setDrag({ dir: 'next', p: Math.min(1, -dx / (w * 0.8)) });
-    else if (dx > 0 && page > 0) setDrag({ dir: 'prev', p: Math.min(1, dx / (w * 0.8)) });
+    const dy = e.clientY - d.y;
+    if (!d.moved) {
+      if (Math.abs(dx) < 6) return;
+      if (Math.abs(dy) > Math.abs(dx) * 1.4) return; // eher senkrechtes Scrollen
+      d.moved = true;
+      try { (e.currentTarget as HTMLElement).setPointerCapture(d.id); } catch { /* ok */ }
+    }
+    const pg = pageRef.current;
+    const dir: 'next' | 'prev' | null = dx < 0 && pg < pageCount - 1 ? 'next' : dx > 0 && pg > 0 ? 'prev' : null;
+    if (!dir) return;
+    const p = Math.min(1, Math.abs(dx) / (w * 0.75));
+    if (!dragging.current || dirRef.current !== dir) {
+      dragging.current = true;
+      dirRef.current = dir;
+      setDrag({ dir, p0: p });
+    } else apply(p, dir);
   }
   function onUp() {
     const d = down.current;
     down.current = null;
-    if (!d?.moved || !drag) {
+    if (!d?.moved || !dragging.current) {
+      if (d?.moved) dragging.current = false;
       return;
     }
-    if (drag.p > 0.28) {
+    const dir = dirRef.current;
+    const p = prog.current;
+    const fast = performance.now() - d.t < 260 && p > 0.08; // kurzer, schneller Wisch genügt
+    if (p > 0.28 || fast) {
       playPageTurn();
-      const dir = drag.dir;
-      const target = dir === 'next' ? page + 1 : page - 1;
-      runTo(1, dir, drag.p, () => {
-        setDrag(null);
-        onPage(target);
-      });
-    } else runTo(0, drag.dir, drag.p, () => setDrag(null));
+      const target = dir === 'next' ? pageRef.current + 1 : pageRef.current - 1;
+      runTo(1, dir, p, () => finish(target));
+    } else runTo(0, dir, p, () => finish(null));
   }
+
+  const blocked = useCallback(() => !!down.current?.moved || dragging.current, []);
+  const onOpenRef = useRef(onOpen);
+  onOpenRef.current = onOpen;
+  const stableOpen = useCallback((i: number) => onOpenRef.current(i), []);
+  // gleiche Seite → gleiches Array, damit die Karten beim Wischen nicht neu gezeichnet werden
+  const slices = useMemo(() => new Map<number, CardModel[]>(), [cards, perPage]);
+  const sliceOf = (start: number) => {
+    let v = slices.get(start);
+    if (!v) { v = cards.slice(start, start + perPage); slices.set(start, v); }
+    return v;
+  };
 
   const content = (p: number): React.ReactNode => {
     if (p === 0) return <Cover chapter={chapter} count={cards.length} total={totalCards} lang={lang} height={pageH} />;
     const start = (p - 1) * perPage;
-    const slice = cards.slice(start, start + perPage);
-    return (
-      <div className="grid" style={{ gridTemplateColumns: `repeat(${cols}, ${cardW}px)`, gap, padding: padX, justifyContent: 'center', height: pageH, alignContent: 'start' }}>
-        {Array.from({ length: perPage }).map((_, i) => {
-          const c = slice[i];
-          return c ? (
-            <button
-              key={c.key}
-              type="button"
-              onClick={() => {
-                if (down.current?.moved || drag) return;
-                onOpen(start + i);
-              }}
-              className="relative p-0 border-0 bg-transparent"
-              style={{ width: cardW, height: cardH, filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.25))' }}
-              data-testid="album-card"
-              aria-label={c.title}
-            >
-              <CardFace card={c} width={cardW} />
-              {c.rarity !== 'normal' && <span className="absolute -top-1 -right-1 text-[15px]" aria-hidden="true">✨</span>}
-            </button>
-          ) : (
-            <div key={`e${i}`} style={{ width: cardW, height: cardH, border: '2px dashed rgba(120,90,60,0.28)', borderRadius: cardW * 0.07, background: 'rgba(120,90,60,0.06)' }} aria-hidden="true" />
-          );
-        })}
-      </div>
-    );
+    return <PageView slice={sliceOf(start)} start={start} perPage={perPage} cols={cols} cardW={cardW} cardH={cardH} gap={gap} padX={padX} pageH={pageH} onOpen={stableOpen} blocked={blocked} />;
   };
 
   const flipperPage = drag ? (drag.dir === 'next' ? page : page - 1) : page;
   const underPage = drag ? (drag.dir === 'next' ? page + 1 : page) : page;
-  const angle = drag ? (drag.dir === 'next' ? -180 * drag.p : -180 * (1 - drag.p)) : 0;
 
   return (
     <div ref={holder} data-testid="album-book">
@@ -319,10 +375,10 @@ function Book({ cards, page, pageCount, perPage, wide, chapter, totalCards, onPa
           {content(underPage)}
         </div>
         {drag && (
-          <div className="absolute inset-0" style={{ transformOrigin: 'left center', transformStyle: 'preserve-3d', transform: `rotateY(${angle}deg)`, pointerEvents: 'none' }} data-testid="album-flipper">
+          <div ref={flipRef} className="absolute inset-0" style={{ transformOrigin: 'left center', transformStyle: 'preserve-3d', willChange: 'transform', pointerEvents: 'none' }} data-testid="album-flipper">
             <div className="absolute inset-0 rounded-[14px] overflow-hidden" style={{ background: '#f4ead6', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', border: '1px solid rgba(90,60,40,0.3)' }}>
               {content(flipperPage)}
-              <div className="absolute inset-0" style={{ background: `linear-gradient(90deg, rgba(0,0,0,${0.18 * Math.min(1, Math.abs(angle) / 90)}), rgba(0,0,0,0) 40%)` }} />
+              <div ref={shadeRef} className="absolute inset-0" />
             </div>
             <div className="absolute inset-0 rounded-[14px]" style={{ background: 'repeating-linear-gradient(0deg,#efe3c8,#efe3c8 22px,#e8dabb 23px)', transform: 'rotateY(180deg)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', border: '1px solid rgba(90,60,40,0.3)' }} />
           </div>
@@ -344,21 +400,56 @@ function Book({ cards, page, pageCount, perPage, wide, chapter, totalCards, onPa
   );
 }
 
-function Cover({ chapter, count, total, lang, height }: { chapter: Chapter; count: number; total: number; lang: 'de' | 'en'; height: number }) {
-  const gold = 'linear-gradient(180deg,#f6e3a1,#c9a04a 55%,#f3dc8e)';
+// feines Leder-Korn (SVG-Rauschen) für den Einband
+const LEATHER_GRAIN = `url("data:image/svg+xml;utf8,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(#n)'/></svg>")}")`;
+const WORN = `url("data:image/svg+xml;utf8,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='w' x='0' y='0' width='100%' height='100%'><feTurbulence type='turbulence' baseFrequency='0.012 0.02' numOctaves='4' seed='3'/><feColorMatrix values='0 0 0 0 0.85  0 0 0 0 0.7  0 0 0 0 0.5  0 0 0 1.4 -0.55'/></filter><rect width='100%' height='100%' filter='url(#w)'/></svg>")}")`;
+
+function Corner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
+  const rot = { tl: 0, tr: 90, br: 180, bl: 270 }[pos];
+  const place: React.CSSProperties = { tl: { top: 14, left: 14 }, tr: { top: 14, right: 14 }, bl: { bottom: 14, left: 14 }, br: { bottom: 14, right: 14 } }[pos];
   return (
-    <div className="relative flex flex-col items-center justify-center text-center" style={{ height, background: `radial-gradient(ellipse at 50% 30%, ${chapter.color}55, transparent 70%), linear-gradient(160deg,#fff7e6,#efe0bd)` }}>
-      <div aria-hidden="true" className="absolute inset-3 rounded-[10px]" style={{ border: '2px solid rgba(180,140,60,0.55)' }} />
-      <p className="text-[46px] mb-1" aria-hidden="true">{chapter.emoji}</p>
-      <p className="text-[24px] font-bold" style={{ background: gold, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', fontFamily: 'var(--font-display, inherit)' }}>
-        {chapter.id === 'all' ? (lang === 'en' ? 'My collection' : 'Meine Sammlung') : chapter.label}
-      </p>
-      <p className="text-[13px] text-[#6b5a3a] mt-1">
-        {count} {lang === 'en' ? 'cards' : 'Karten'}
-        {chapter.id !== 'all' ? ` ${lang === 'en' ? 'of' : 'von'} ${total}` : ''}
-      </p>
-      <p className="text-[12px] text-[#8a7a58] mt-6 italic">von mir aus</p>
-      <p className="text-[11.5px] text-[#8a7a58] mt-4">{lang === 'en' ? 'Swipe to turn the page →' : 'Zum Blättern wischen →'}</p>
+    <svg aria-hidden="true" width="46" height="46" viewBox="0 0 46 46" style={{ position: 'absolute', transform: `rotate(${rot}deg)`, ...place, filter: 'drop-shadow(0 1px 0 rgba(0,0,0,0.5))' }}>
+      <defs>
+        <linearGradient id={`g${pos}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#f6e3a1" /><stop offset="0.5" stopColor="#b98c35" /><stop offset="1" stopColor="#f0d584" /></linearGradient>
+      </defs>
+      <path d="M2 2 H30 M2 2 V30 M8 8 H22 Q8 10 8 22 Z M2 40 Q16 36 20 22 Q24 12 40 2" fill="none" stroke={`url(#g${pos})`} strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="9" cy="9" r="2.4" fill={`url(#g${pos})`} />
+    </svg>
+  );
+}
+
+function Cover({ chapter, count, total, lang, height }: { chapter: Chapter; count: number; total: number; lang: 'de' | 'en'; height: number }) {
+  const gold = 'linear-gradient(180deg,#f8e8ad,#c49a3f 50%,#f1d98a 80%,#b88a30)';
+  const goldText: React.CSSProperties = { background: gold, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: 'drop-shadow(0 1px 0 rgba(0,0,0,0.55))' };
+  return (
+    <div className="relative flex flex-col items-center justify-center text-center overflow-hidden" style={{ height, background: `${LEATHER_GRAIN}, radial-gradient(ellipse at 38% 28%, #8a4a3f 0%, #5e2f2c 48%, #3a1a1b 100%)`, backgroundBlendMode: 'multiply, normal' }}>
+      {/* abgegriffene, hellere Stellen */}
+      <div aria-hidden="true" className="absolute inset-0" style={{ backgroundImage: WORN, opacity: 0.35, mixBlendMode: 'screen' }} />
+      {/* Kanten dunkler (Patina) */}
+      <div aria-hidden="true" className="absolute inset-0" style={{ boxShadow: 'inset 0 0 48px 8px rgba(20,8,8,0.65), inset 0 0 6px 1px rgba(255,220,160,0.18)' }} />
+      {/* Rücken mit Nähten */}
+      <div aria-hidden="true" className="absolute inset-y-0 left-0 w-[26px]" style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.5), rgba(255,200,150,0.10) 55%, rgba(0,0,0,0.25))', borderRight: '1px solid rgba(0,0,0,0.45)' }}>
+        <div className="absolute inset-y-4 right-[7px] border-r-2 border-dashed" style={{ borderColor: 'rgba(235,205,140,0.45)' }} />
+      </div>
+      {/* Goldprägung: doppelter Rahmen */}
+      <div aria-hidden="true" className="absolute rounded-[6px]" style={{ inset: '12px 12px 12px 38px', border: '2px solid #c9a04a', boxShadow: '0 0 0 3px rgba(0,0,0,0.0), inset 0 0 0 4px rgba(0,0,0,0.0), 0 1px 0 rgba(0,0,0,0.5)', opacity: 0.9 }} />
+      <div aria-hidden="true" className="absolute rounded-[4px]" style={{ inset: '19px 19px 19px 45px', border: '1px solid rgba(214,178,92,0.75)' }} />
+      <Corner pos="tl" /><Corner pos="tr" /><Corner pos="bl" /><Corner pos="br" />
+      <div className="relative" style={{ paddingLeft: 22 }}>
+        <p className="text-[44px] mb-2" aria-hidden="true" style={{ filter: 'sepia(0.5) drop-shadow(0 2px 2px rgba(0,0,0,0.6))' }}>{chapter.emoji}</p>
+        {/* Titelschild */}
+        <div className="mx-auto px-5 py-3 rounded-[4px]" style={{ background: 'linear-gradient(180deg,#e9d7aa,#cdb27a)', border: '1px solid #8a6b30', boxShadow: '0 2px 5px rgba(0,0,0,0.55), inset 0 0 0 3px rgba(255,255,255,0.25)', maxWidth: 230 }}>
+          <p className="text-[22px] font-bold leading-tight" style={{ color: '#4a2c14', fontFamily: 'var(--font-display, Georgia, serif)', textShadow: '0 1px 0 rgba(255,255,255,0.4)' }}>
+            {chapter.id === 'all' ? (lang === 'en' ? 'My collection' : 'Meine Sammlung') : chapter.label}
+          </p>
+          <p className="text-[12px] mt-0.5" style={{ color: '#6b4a24' }}>
+            {count} {lang === 'en' ? 'cards' : 'Karten'}
+            {chapter.id !== 'all' ? ` ${lang === 'en' ? 'of' : 'von'} ${total}` : ''}
+          </p>
+        </div>
+        <p className="text-[15px] mt-5 italic" style={{ ...goldText, fontFamily: 'var(--font-display, Georgia, serif)', letterSpacing: 1 }}>von mir aus</p>
+        <p className="text-[11.5px] mt-5" style={{ color: 'rgba(240,215,160,0.75)' }}>{lang === 'en' ? 'Swipe to turn the page →' : 'Zum Blättern wischen →'}</p>
+      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { Card } from '../../components/ui/Card';
 import { LichtCompanion } from '../../components/companion/LichtCompanion';
 import { routinesRepo } from '../routines/routinesRepo';
 import { useSettings } from '../../state/SettingsContext';
-import { dayOptionsFor, doneOptions, markOpened, markWent, toggleManual, wentOptions, type DayOptionId, type DayPhase } from './dayFlowRepo';
+import { dayOptionsFor, doneOptions, EXTRA_DOORS, markOpened, markWent, toggleManual, wentOptions, type DayOptionId, type DayPhase } from './dayFlowRepo';
 import { useDayFlowTexts } from './dayFlowTexts';
 
 interface Option {
@@ -36,7 +36,16 @@ export function DayFlowPage({ phase }: { phase: DayPhase }) {
   const start = phase === 'start';
 
   const { settings } = useSettings();
-  const defs: Record<DayOptionId, Option> = {
+  const en = settings.language === 'en';
+  const extra: Record<string, Option> = {};
+  Object.entries(EXTRA_DOORS).forEach(([id, d]) => {
+    extra[id] = { id, emoji: d.emoji, title: en ? d.en[0] : d.de[0], sub: en ? d.en[1] : d.de[1], to: d.to };
+  });
+  (settings.dayCustomDoors ?? []).forEach((d) => {
+    extra[`custom:${d.id}`] = { id: `custom:${d.id}`, emoji: d.emoji || '⭐', title: d.title, sub: d.to ? (en ? 'Opens a page' : 'Öffnet eine Seite') : (en ? 'Your own door' : 'Deine eigene Tür'), to: d.to || undefined };
+  });
+  const defs: Record<string, Option> = {
+    ...extra,
     skill: { id: 'skill', emoji: '✨', title: dx.skill, sub: dx.skillSub, to: '/entdecken/ressourcen/skills' },
     medi: { id: 'medi', emoji: '💊', title: dx.medi, sub: dx.mediSub, to: '/entdecken/medi-log' },
     diary: start
@@ -47,7 +56,7 @@ export function DayFlowPage({ phase }: { phase: DayPhase }) {
     letgo: { id: 'letgo', emoji: '🍃', title: dx.letgo, sub: dx.letgoSub, to: '/entdecken/loslassen' },
   };
   // the person decides in the settings which doors appear here
-  const options: Option[] = dayOptionsFor(settings, phase).map((id) => defs[id]);
+  const options: Option[] = dayOptionsFor(settings, phase).map((id) => defs[id]).filter(Boolean);
   const doneCount = options.filter((o) => done.has(o.id)).length;
   const allDone = options.length > 0 && doneCount === options.length;
 
@@ -73,7 +82,7 @@ export function DayFlowPage({ phase }: { phase: DayPhase }) {
             <p className="text-[13.5px] text-[var(--color-text)] leading-snug">{allDone ? dx.allDone : dx.someDone}</p>
           </div>
         )}
-        {!start && (
+        {!start && !options.some((o) => o.id === 'tageskarte') && (
           <Link to="/sammelalbum/tageskarte" className="flex items-center gap-3 rounded-[var(--radius-lg)] p-3 mt-3 border border-dashed border-[var(--color-border-strong)]" data-testid="day-card-offer">
             <span className="text-[26px]" aria-hidden="true">🃏</span>
             <span className="min-w-0">

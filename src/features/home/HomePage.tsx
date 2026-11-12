@@ -361,7 +361,6 @@ export function HomePage() {
 
       <div className="flex flex-col items-center mb-5">
         <CompanionDock variant="hero" />
-        <p className="text-[14px] text-[var(--color-text-muted)] mt-3">{t.companion.greetingHello}</p>
       </div>
 
       {/* Check-In: the single clear "start here" */}
@@ -418,7 +417,7 @@ export function HomePage() {
           className="block mx-auto my-4 px-4 py-2 rounded-full text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]"
           data-testid="home-more-toggle"
         >
-          {moreOpen ? (isEn ? 'Show less' : 'Weniger zeigen') : (isEn ? 'More: everyday, garden, today …' : 'Mehr: Alltag, Garten, Heute …')}
+          {moreOpen ? (isEn ? 'Show less' : 'Weniger zeigen') : (isEn ? 'More: garden, today …' : 'Mehr: Garten, Heute …')}
         </button>
       )}
 

@@ -8,7 +8,9 @@ import { worriesRepo } from '../letGo/worriesRepo';
 import type { UserSettings } from '../../data/types';
 
 export type DayPhase = 'start' | 'end';
-export type DayOptionId = 'skill' | 'medi' | 'diary' | 'routine' | 'park' | 'letgo';
+export type BuiltInDoor = 'skill' | 'medi' | 'diary' | 'routine' | 'park' | 'letgo' | 'wetter' | 'atmen' | 'zugang' | 'garten' | 'kalender' | 'brief' | 'tageskarte';
+/** built-in door, or an own one (`custom:<id>`) */
+export type DayOptionId = BuiltInDoor | (string & {});
 
 interface PhaseState {
   /** the full-screen invitation was shown once today (dismissed or opened) – it never comes back the same day */
@@ -97,14 +99,48 @@ export function doneOptions(phase: DayPhase): Set<DayOptionId> {
   return done;
 }
 
-export const ALL_DAY_OPTIONS: DayOptionId[] = ['skill', 'medi', 'diary', 'routine', 'park', 'letgo'];
+export const ALL_DAY_OPTIONS: BuiltInDoor[] = ['skill', 'medi', 'diary', 'routine', 'park', 'letgo', 'wetter', 'atmen', 'zugang', 'garten', 'kalender', 'brief', 'tageskarte'];
+
+/** The doors beyond the first six (those have their texts in dayFlowTexts). */
+export const EXTRA_DOORS: Record<string, { emoji: string; de: [string, string]; en: [string, string]; to: string; phase?: DayPhase }> = {
+  wetter: { emoji: '⛅', de: ['Check-in: Wie geht’s gerade?', 'Kurz hinschauen, was da ist'], en: ['Check-in: how are you right now?', 'A quick look at what is there'], to: '/inneres-wetter' },
+  atmen: { emoji: '🌬️', de: ['Gemeinsam atmen', 'Eine ruhige Atemübung'], en: ['Breathe together', 'A calm breathing exercise'], to: '/entdecken/ressourcen/skills/atmen' },
+  zugang: { emoji: '🔑', de: ['Zugang: Was geht gerade?', 'Passende Vorschläge für jetzt'], en: ['Access: what works right now?', 'Fitting suggestions for now'], to: '/zugang' },
+  garten: { emoji: '🌱', de: ['Garten & Routinen', 'Nach dem Garten schauen'], en: ['Garden & routines', 'Look after the garden'], to: '/entdecken/garten' },
+  kalender: { emoji: '📅', de: ['Kalender ansehen', 'Was steht heute an?'], en: ['Look at the calendar', 'What is on today?'], to: '/kalender' },
+  brief: { emoji: '💌', de: ['Brief an mich', 'Ein paar Zeilen an dich selbst'], en: ['Letter to myself', 'A few lines to yourself'], to: '/entdecken/brief-an-mich' },
+  tageskarte: { emoji: '🃏', de: ['Tageskarte machen', 'Dein Tag als Sammelkarte'], en: ['Make a day card', 'Your day as a collection card'], to: '/sammelalbum/tageskarte', phase: 'end' },
+};
+
+/** Pages an own door can lead to. */
+export const DOOR_TARGETS: { to: string; de: string; en: string }[] = [
+  { to: '', de: 'Nirgends hin (nur abhaken)', en: 'Nowhere (just tick off)' },
+  { to: '/entdecken/ressourcen', de: 'Ressourcen', en: 'Resources' },
+  { to: '/bruecken', de: 'Brücken', en: 'Bridges' },
+  { to: '/sicherheit/tagebuch', de: 'Tagebuch', en: 'Diary' },
+  { to: '/kalender', de: 'Kalender', en: 'Calendar' },
+  { to: '/listen', de: 'Listen', en: 'Lists' },
+  { to: '/entdecken/timer', de: 'Timer', en: 'Timer' },
+  { to: '/parkbox', de: 'Parkbox', en: 'Parking box' },
+  { to: '/entdecken/mindmap', de: 'Mindmap', en: 'Mind map' },
+  { to: '/entdecken/wertekompass', de: 'Wertekompass', en: 'Values compass' },
+  { to: '/entdecken/beduerfnis-kompass', de: 'Bedürfniskompass', en: 'Needs compass' },
+  { to: '/sammelalbum', de: 'Sammelalbum', en: 'Collection album' },
+];
 /** what each phase offers unless the person changed it in the settings */
 export const DEFAULT_DAY_OPTIONS: Record<DayPhase, DayOptionId[]> = {
   start: ['skill', 'medi', 'diary', 'routine'],
   end: ['skill', 'diary', 'park', 'letgo', 'routine'],
 };
-export function dayOptionsFor(settings: Pick<UserSettings, 'dayStartOptions' | 'dayEndOptions'>, phase: DayPhase): DayOptionId[] {
+/** The doors of a phase in the order the person chose (built-in ones and their own). */
+export function dayOptionsFor(settings: Pick<UserSettings, 'dayStartOptions' | 'dayEndOptions' | 'dayCustomDoors'>, phase: DayPhase): DayOptionId[] {
   const chosen = phase === 'start' ? settings.dayStartOptions : settings.dayEndOptions;
   if (!chosen) return DEFAULT_DAY_OPTIONS[phase];
-  return ALL_DAY_OPTIONS.filter((o) => chosen.includes(o));
+  const customIds = new Set((settings.dayCustomDoors ?? []).map((d) => `custom:${d.id}`));
+  const seen = new Set<string>();
+  return chosen.filter((o) => {
+    if (seen.has(o)) return false;
+    seen.add(o);
+    return (ALL_DAY_OPTIONS as string[]).includes(o) || customIds.has(o);
+  });
 }

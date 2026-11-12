@@ -16,6 +16,7 @@ export const ALL_STORAGE_KEYS: string[] = [
   'card-prefs',
   'card-numbers',
   'app-lock',
+  'lock-emergency',
   'breath-prefs',
   'mindmaps',
   'mindmap3d-versions',

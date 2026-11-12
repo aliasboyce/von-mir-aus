@@ -46,7 +46,7 @@ export const OVERVIEW_GROUPS: OverviewGroup[] = [
       E('rucksack', '🎒', ['Notfallrucksack', 'Freiwillig, beim Sicherheitsplan: eine Liste dessen, was du im Notfall einpackst. „Durchgehen“ mit Play-Knopf, „Fertig gepackt“ kommt ins PDF, die Liste setzt sich zurück.'], ['Emergency backpack', 'Optional, in the safety plan: a list of what you pack in an emergency. “Go through” with a play button, “Finished packing” goes into the PDF and the list resets.'], '/sicherheit/plan'),
       E('kontakte', '📞', ['Kontakte', 'Menschen und Stellen, die du erreichen kannst – mit Telefonnummern zum direkten Anrufen. Wichtige Kontakte erscheinen auch auf der Startseite.'], ['Contacts', 'People and services you can reach — with phone numbers to call directly. Important contacts also appear on the home page.'], '/sicherheit/kontakte'),
       E('netz', '🤝', ['Netzwerk', 'Wer trägt dich – Menschen, Orte, Tiere, Gruppen – und was du mit ihnen verbindest. Nach Kategorien sortiert.'], ['Network', 'Who supports you — people, places, animals, groups — and what you connect with them. Sorted by category.'], '/sicherheit/netzwerk'),
-      E('hub', '🧱', ['Sicherheit im Überblick', 'Alles zum Thema Sichern an einem Ort: Plan, Kontakte, Netzwerk, Tagebuch.'], ['Safety overview', 'Everything about safety in one place: plan, contacts, network, diary.'], '/sicherheit'),
+      E('hub', '🧱', ['Sicherheit im Überblick', 'Alles zum Thema Sichern an einem Ort: Plan, Kontakte, Netzwerk.'], ['Safety overview', 'Everything about safety in one place: plan, contacts, network.'], '/sicherheit'),
     ],
   },
   {

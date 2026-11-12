@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Delete } from 'lucide-react';
+import { Delete, LifeBuoy } from 'lucide-react';
+import { LockEmergency } from './LockEmergency';
+import { getLockEmergency } from '../../services/lockEmergency';
 import { answerIsRight, checkPin, getLockConfig, lockNow, resetPinWithAnswer, unlockNow, uncover, useCovered, useLocked, validPin } from '../../services/appLock';
 import { questionText } from './securityQuestions';
 import { resetAllAppData } from '../../services/resetAppData';
@@ -64,6 +66,8 @@ function LockScreen() {
   const [np2, setNp2] = useState('');
   const [npErr, setNpErr] = useState('');
   const [showReset, setShowReset] = useState(false);
+  const [emergency, setEmergency] = useState(false);
+  const emergencyCfg = getLockEmergency();
   const busy = useRef(false);
 
   const waiting = waitUntil > now;
@@ -134,7 +138,7 @@ function LockScreen() {
   }
 
   function press(d: string) {
-    if (waiting || forgot) return;
+    if (waiting || forgot || emergency) return;
     if (d === 'del') {
       setPin((p) => p.slice(0, -1));
       return;
@@ -155,11 +159,14 @@ function LockScreen() {
   });
 
   const L = en
-    ? { title: 'Enter PIN', wrong: 'That was not the PIN.', wait: 'Please wait a moment.', forgot: 'Forgot the PIN?', del: 'Delete', fTitle: 'Forgot the PIN?', fText: 'Your entries are only on this device and the PIN protects them – so there is no way around it. The only way out is to reset the app: all entries are deleted and you start fresh. If you have a backup file, you can restore it afterwards.', fDo: 'Delete everything and start fresh', fBack: 'Back to the PIN', qTitle: 'Your security question', qHint: 'Answer in your own words – the key word is what counts, it does not have to match letter for letter.', qCheck: 'Check', qWrong: 'That did not fit. Try another spelling or word.', qWait: 'Please wait a moment.', newTitle: 'Choose a new PIN', newPin: 'New PIN (4 to 6 digits)', again: 'Repeat the PIN', save: 'Save new PIN', mismatch: 'The two PINs are different.', short: 'The PIN needs 4 to 6 digits.', orReset: 'Or: start fresh instead', answer: 'Your answer' }
-    : { title: 'PIN eingeben', wrong: 'Das war nicht die PIN.', wait: 'Bitte einen Moment warten.', forgot: 'PIN vergessen?', del: 'Löschen', fTitle: 'PIN vergessen?', fText: 'Deine Einträge liegen nur auf diesem Gerät, und die PIN schützt sie – deshalb gibt es keinen Umweg. Der einzige Ausweg ist, die App zurückzusetzen: Alle Einträge werden gelöscht und du fängst neu an. Wenn du eine Sicherung als Datei hast, kannst du sie danach wieder einspielen.', fDo: 'Alles löschen und neu anfangen', fBack: 'Zurück zur PIN', qTitle: 'Deine Sicherheitsfrage', qHint: 'Antworte mit deinen Worten – es zählt das wichtige Wort, es muss nicht Buchstabe für Buchstabe gleich sein.', qCheck: 'Prüfen', qWrong: 'Das hat nicht gepasst. Versuch eine andere Schreibweise oder ein anderes Wort.', qWait: 'Bitte einen Moment warten.', newTitle: 'Neue PIN festlegen', newPin: 'Neue PIN (4 bis 6 Ziffern)', again: 'PIN wiederholen', save: 'Neue PIN speichern', mismatch: 'Die beiden PINs sind verschieden.', short: 'Die PIN braucht 4 bis 6 Ziffern.', orReset: 'Oder: lieber ganz neu anfangen', answer: 'Deine Antwort' };
+    ? { title: 'Enter PIN', wrong: 'That was not the PIN.', wait: 'Please wait a moment.', forgot: 'Forgot the PIN?', del: 'Delete', fTitle: 'Forgot the PIN?', fText: 'Your entries are only on this device and the PIN protects them – so there is no way around it. The only way out is to reset the app: all entries are deleted and you start fresh. If you have a backup file, you can restore it afterwards.', fDo: 'Delete everything and start fresh', fBack: 'Back to the PIN', qTitle: 'Your security question', qHint: 'Answer in your own words – the key word is what counts, it does not have to match letter for letter.', qCheck: 'Check', qWrong: 'That did not fit. Try another spelling or word.', qWait: 'Please wait a moment.', newTitle: 'Choose a new PIN', newPin: 'New PIN (4 to 6 digits)', again: 'Repeat the PIN', save: 'Save new PIN', mismatch: 'The two PINs are different.', short: 'The PIN needs 4 to 6 digits.', orReset: 'Or: start fresh instead', answer: 'Your answer', emergency: 'Emergency help' }
+    : { title: 'PIN eingeben', wrong: 'Das war nicht die PIN.', wait: 'Bitte einen Moment warten.', forgot: 'PIN vergessen?', del: 'Löschen', fTitle: 'PIN vergessen?', fText: 'Deine Einträge liegen nur auf diesem Gerät, und die PIN schützt sie – deshalb gibt es keinen Umweg. Der einzige Ausweg ist, die App zurückzusetzen: Alle Einträge werden gelöscht und du fängst neu an. Wenn du eine Sicherung als Datei hast, kannst du sie danach wieder einspielen.', fDo: 'Alles löschen und neu anfangen', fBack: 'Zurück zur PIN', qTitle: 'Deine Sicherheitsfrage', qHint: 'Antworte mit deinen Worten – es zählt das wichtige Wort, es muss nicht Buchstabe für Buchstabe gleich sein.', qCheck: 'Prüfen', qWrong: 'Das hat nicht gepasst. Versuch eine andere Schreibweise oder ein anderes Wort.', qWait: 'Bitte einen Moment warten.', newTitle: 'Neue PIN festlegen', newPin: 'Neue PIN (4 bis 6 Ziffern)', again: 'PIN wiederholen', save: 'Neue PIN speichern', mismatch: 'Die beiden PINs sind verschieden.', short: 'Die PIN braucht 4 bis 6 Ziffern.', orReset: 'Oder: lieber ganz neu anfangen', answer: 'Deine Antwort', emergency: 'Notfall-Hilfe' };
 
   return (
-    <div className="fixed inset-0 z-[10000] flex flex-col items-center justify-center px-6" style={{ background: '#f3f3f1', color: '#1f1f1f' }} data-testid="lock-screen" role="dialog" aria-modal="true" aria-label={L.title}>
+    <div className="fixed inset-0 z-[10000] flex flex-col items-center justify-center px-6 overflow-hidden" style={{ background: '#f5f2ea', color: '#1f1f1f' }} data-testid="lock-screen" role="dialog" aria-modal="true" aria-label={L.title}>
+      <LockCorners />
+      <p className="absolute top-0 left-0 right-0 text-center text-[22px] pointer-events-none" style={{ fontFamily: 'var(--font-display)', color: '#2a2a2a', paddingTop: 'max(28px, env(safe-area-inset-top))' }} data-testid="lock-wordmark">von mir aus</p>
+      {emergency && <LockEmergency en={en} onBack={() => setEmergency(false)} />}
       {forgot ? (
         <div className="max-w-[340px] w-full text-center" data-testid="lock-forgot">
           {cfg?.rec && !showReset ? (
@@ -222,6 +229,11 @@ function LockScreen() {
             )}
           </div>
           <button type="button" onClick={() => setForgot(true)} className="mt-8 text-[13px] underline underline-offset-2" style={{ color: '#6a6a6a' }} data-testid="lock-forgot-link">{L.forgot}</button>
+          {emergencyCfg.enabled && (
+            <button type="button" onClick={() => setEmergency(true)} className="mt-5 flex items-center gap-2 px-5 py-3 rounded-full text-[15px] border-2" style={{ borderColor: '#1f1f1f', background: 'rgba(255,255,255,0.7)' }} data-testid="lock-emergency-open">
+              <LifeBuoy size={18} /> {L.emergency}
+            </button>
+          )}
         </>
       )}
     </div>
@@ -259,6 +271,18 @@ function CoverScreen() {
     <div className="fixed inset-0 z-[10001] flex flex-col items-center justify-center select-none" style={{ background: '#f3f3f1', color: '#2a2a2a', touchAction: 'manipulation' }} onPointerDown={onTap} data-testid="cover-screen" role="presentation">
       <p className="text-[64px] font-light tabular-nums">{now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
       <p className="text-[16px]" style={{ color: '#6a6a6a' }}>{now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+    </div>
+  );
+}
+
+/** Die Ecken der Startseite: weicher Himmelsverlauf oben, ein Hauch Salbeigrün unten – ohne etwas Lesbares aus der App. */
+function LockCorners() {
+  return (
+    <div className="absolute inset-0 pointer-events-none" aria-hidden="true" data-testid="lock-corners">
+      <div className="absolute" style={{ top: -90, left: -90, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle, #d8e6f0 0%, rgba(216,230,240,0) 70%)' }} />
+      <div className="absolute" style={{ top: -110, right: -80, width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle, #ffe4a8 0%, rgba(255,228,168,0.0) 70%)' }} />
+      <div className="absolute" style={{ bottom: -100, left: -90, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(143,175,138,0.45) 0%, rgba(143,175,138,0) 70%)' }} />
+      <div className="absolute" style={{ bottom: -90, right: -90, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(232,194,126,0.4) 0%, rgba(232,194,126,0) 70%)' }} />
     </div>
   );
 }

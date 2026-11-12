@@ -666,6 +666,14 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Offen im Sammelalbum: Netzwerk-Kategorie „Ressource“ in Unterkategorien aufteilen und Farben daran koppeln (Album-Farben sind vorerst eigenständig, Standard aus Netzwerkfarben); Nummern bei Start-Beispielen sind willkürlich; Link-Teilen überträgt Foto nur als kleine Vorschau; Handy-Test des Albums; Notfallkarte/Import-Seite nur eingeschränkt getestet.
 - Für später: **Freundebuch** – automatisch gekoppelt mit Netzwerk-Rolle Person → Freund/Freundin.
 
+## Stand 12.11.2026 abends (erledigt) – Album-Feinschliff, Begleiter, Alltag, Notfall
+- Sammelalbum: Blättern (`AlbumPage.tsx` Book: imperative Transform, PageView memo), Cover wie altes Buch (Leder, Naht, Goldrahmen), Karten mit allen Quell-Infos (`details`, „Alle Infos“ im Viewer), zwei Bewertungen (`rating2`), aktiver Begleiter als Sticker (`companionSticker`), Begleiter-Karte mit Bild (`companionPortrait.tsx`), Datumsformate (`cardDate.ts`), Druck-Hinweis bei langen Texten.
+- Begleiter: Herbeirufen flüssiger, „Wegschicken“ oben im Menü, Hallo-Sprechblase weg, Startseiten-Späße (`antic` in CompanionDock, nur wach/nicht still/ohne reduzierte Bewegung), Lauf-Spiel: Wesen schläft nicht, Farbe passt zur Landschaft.
+- Startseite: Alltag nur einmal; Entdecken: „Alltag“ vor „Zusätze“; „Tag beginnen/abschließen“ frei einstellbar (`dayCustomDoors`, Einstellungen).
+- Krisenmodus: `PlanShareSheet` (src/features/safetyPlan) = Verschicken (PDF/Text/Drucken) im Plan UND im Krisenmodus. Fehler behoben: Kontaktliste im Krisenmodus filterte auf `'menschen'` statt `'person'`.
+- Gesperrte App: Sperrbildschirm im Startseiten-Look (Ecken, Schriftzug), Knopf „Notfall-Hilfe“ → `LockEmergency.tsx` (112 immer, Anlaufstellen ausklappbar; Plan/Menschen/Angaben nur nach Freigabe in Einstellungen → Sprache&Schutz → „Notfall-Zugang im gesperrten Modus“, Speicher `lock-emergency` in `services/lockEmergency.ts`).
+- Offen: Handy-Test (Teilen-Menü/AirDrop, Wischen, Sperrbildschirm), Notfall-Zugang nicht in der „PIN vergessen“-Ansicht.
+
 ## Grundsatzprinzipien (als Leitlinie bei jeder künftigen Entscheidung)
 - Resonanz statt Optimierung, Wahl statt Zwang, Zugang statt Leistung
 - "Das hilft gerade nicht" muss bei Übungen immer möglich sein

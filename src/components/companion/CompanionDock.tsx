@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { LichtCompanion } from './LichtCompanion';
@@ -149,6 +149,11 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
   const [schmuggelOpen, setSchmuggelOpen] = useState(false);
   // "Wegschicken": the Wesen hops off to the side; "herbeirufen": it hops back in
   const [exit, setExit] = useState<null | 'away' | 'back'>(null);
+  // beim Herbeirufen: das Wesen erscheint sofort lokal (leicht), die App-weite Einstellung folgt danach – so ruckelt nichts
+  const [forceShow, setForceShow] = useState(false);
+  // kleine Spielereien auf der Startseite, wenn man länger bleibt: hinsetzen, tanzen, von allein einschlafen …
+  const [antic, setAntic] = useState<null | 'sit' | 'settling' | 'sleeping' | 'waking'>(null);
+  const calledHere = useRef(false);
   const prevAway = useRef(!!settings.companionAway);
   const dragStart = useRef<{ x: number; y: number; offsetX: number; offsetY: number; moved: boolean } | null>(null);
 
@@ -359,11 +364,16 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
   // came back (called from here, the start page or the settings): hop in with a greeting
   useEffect(() => {
     if (prevAway.current && !settings.companionAway) {
-      setExit('back');
+      const already = calledHere.current;
+      calledHere.current = false;
+      setForceShow(false);
+      if (!already) {
+        setExit('back');
+        playCompanionSound('wake', settings, being.animal?.species);
+      }
       setTip(settings.language === 'en' ? 'Here I am again!' : 'Da bin ich wieder!');
       setTipKind('triggered');
       setTipLeaving(false);
-      playCompanionSound('wake', settings, being.animal?.species);
       const a = setTimeout(() => setExit(null), settings.reduceMotion ? 500 : 1500);
       const b = setTimeout(hideTip, 4500);
       prevAway.current = false;
@@ -392,8 +402,53 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     }, settings.reduceMotion ? 700 : 1900);
   }
   function callBack() {
-    updateSettings({ companionAway: false });
+    calledHere.current = true;
+    setForceShow(true);
+    setExit('back');
+    playCompanionSound('wake', settings, being.animal?.species);
+    // erst zwei Bilder später die große Einstellungs-Änderung – als „nicht dringend“, damit die Animation flüssig bleibt
+    requestAnimationFrame(() => requestAnimationFrame(() => startTransition(() => updateSettings({ companionAway: false }))));
   }
+
+  useEffect(() => {
+    if (variant !== 'hero') return;
+    if (!settings.brainEnabled || settings.brainState !== 'awake' || settings.companionAway || settings.companionQuiet || settings.nurJetztMode || settings.reduceMotion || menuOpen || tip) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const later = (fn: () => void, ms: number) => timers.push(setTimeout(fn, ms));
+    const isAnimal = !!being.animal;
+    const run = () => {
+      if (document.hidden) {
+        later(run, 20000);
+        return;
+      }
+      const options = isAnimal ? ['sit', 'nap', 'dance', 'hop'] : ['dance', 'spin', 'wobble', 'nap', 'hop', 'sit'];
+      const kind = options[Math.floor(Math.random() * options.length)];
+      if (kind === 'sit') {
+        setAntic('sit');
+        later(() => setAntic(null), 7000);
+      } else if (kind === 'nap') {
+        setAntic('settling');
+        later(() => setAntic('sleeping'), 900);
+        later(() => setAntic('waking'), 900 + 9000);
+        later(() => setAntic(null), 900 + 9000 + 1200);
+      } else if (kind === 'dance') {
+        [0, 900, 1800].forEach((d) => {
+          later(() => setJoyBurst('dance'), d);
+          later(() => setJoyBurst(null), d + 800);
+        });
+      } else {
+        setJoyBurst(kind as 'hop' | 'spin' | 'wobble');
+        later(() => setJoyBurst(null), 800);
+      }
+      later(run, 40000 + Math.random() * 45000);
+    };
+    later(run, 28000 + Math.random() * 30000);
+    return () => {
+      timers.forEach(clearTimeout);
+      setAntic(null);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [variant, settings.brainEnabled, settings.brainState, settings.companionAway, settings.companionQuiet, settings.nurJetztMode, settings.reduceMotion, menuOpen, tip, being.id]);
 
   function toggleSleep() {
     setMenuOpen(false);
@@ -434,7 +489,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
   if (!settings.brainEnabled) return null;
 
   // sent away: on the start page only the call-back button is left where the Wesen was; elsewhere nothing
-  if (settings.companionAway && exit !== 'away') {
+  if (settings.companionAway && exit !== 'away' && !forceShow) {
     if (variant !== 'hero') return null;
     return (
       <div className="flex flex-col items-center gap-2 py-6 companion-hero-anchor" data-hero-companion-anchor style={{ position: 'relative', zIndex: 355 }}>
@@ -466,7 +521,9 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
         style={{ position: 'relative', zIndex: 355 }}
       >
         <div className={`flex flex-col items-center gap-3${exitClass}`}>
-          <LichtCompanion size="large" onTap={() => setMenuOpen((v) => !v)} presence={!!showTip} joyBurst={joyBurst} />
+          <div className={antic === 'sit' ? 'companion-antic-sit' : undefined} onPointerDown={() => setAntic(null)}>
+            <LichtCompanion size="large" onTap={() => setMenuOpen((v) => !v)} presence={!!showTip} joyBurst={joyBurst} sleepStateOverride={antic && antic !== 'sit' ? antic : undefined} />
+          </div>
           <p className="text-[15px] text-[var(--color-text)] -mt-1" style={{ fontFamily: 'var(--font-companion)', fontWeight: 600 }}>{being.name}</p>
         </div>
         {showTip && (
