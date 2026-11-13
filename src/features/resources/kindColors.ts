@@ -12,7 +12,7 @@ export type ResourceKind = 'person' | 'faehigkeiten' | 'hilfsmittel' | 'orte' | 
 export const KIND_ORDER_FIXED: ResourceKind[] = ['person', 'faehigkeiten', 'hilfsmittel', 'orte', 'aktivitaeten'];
 
 export const KIND_COLOR: Record<ResourceKind, string> = {
-  person: '#8FAF8A', // grün
+  person: '#5E8A5A', // dunkleres Grün (unterscheidbar von den anderen Grüntönen der App)
   faehigkeiten: '#D9926E', // terrakotta / orange
   hilfsmittel: '#E8C27E', // gelb
   orte: '#8FB6CE', // blau

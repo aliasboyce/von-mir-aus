@@ -9,7 +9,7 @@ export const BUILT_IN_CATEGORY_IDS = ['person', 'ressource', 'hilfsmittel', 'ort
  * these just carry stable ids/icons/isCustom + starting colors. */
 export const DEFAULT_CATEGORIES: NetworkCategoryConfig[] = [
   { id: 'person', label: 'Person', color: KIND_COLOR.person, iconKey: 'user', isCustom: false },
-  { id: 'ressource', label: 'Fähigkeit', color: KIND_COLOR.faehigkeiten, iconKey: 'bookHeart', isCustom: false },
+  { id: 'ressource', label: 'Fähigkeit (Skill)', color: KIND_COLOR.faehigkeiten, iconKey: 'bookHeart', isCustom: false },
   { id: 'hilfsmittel', label: 'Hilfsmittel', color: KIND_COLOR.hilfsmittel, iconKey: 'sparkles', isCustom: false },
   { id: 'ort', label: 'Ort', color: KIND_COLOR.orte, iconKey: 'mapPin', isCustom: false },
   { id: 'aktivitaet', label: 'Aktivität', color: KIND_COLOR.aktivitaeten, iconKey: 'bike', isCustom: false },
@@ -22,7 +22,7 @@ export const PASTEL_PALETTE: ColorPalette = {
   name: 'Pastell (Vorschlag)',
   isCustom: false,
   colors: {
-    person: '#8FAF8A',
+    person: KIND_COLOR.person,
     ort: '#8FB6CE',
     ressource: '#D6A788',
     hilfsmittel: '#E8C27E',
@@ -95,7 +95,10 @@ export const networkCategoriesStore = {
     // the colours of the built-in kinds are fixed (recognition) – whatever was stored or chosen before
     return list.map((c) => {
       const fixed = c.isCustom ? undefined : fixedColorForNetworkId(c.id);
-      return fixed ? { ...c, color: fixed } : c;
+      let out = fixed ? { ...c, color: fixed } : c;
+      // älterer Name „Fähigkeit“ / „Ressource“ → klar als Skills benannt (eigene Umbenennungen bleiben)
+      if (!c.isCustom && c.id === 'ressource' && (c.label === 'Fähigkeit' || c.label === 'Ressource')) out = { ...out, label: 'Fähigkeit (Skill)' };
+      return out;
     });
   },
   set(categories: NetworkCategoryConfig[]): void {

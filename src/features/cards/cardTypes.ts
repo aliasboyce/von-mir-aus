@@ -24,8 +24,8 @@ export type RatingKind = 'star' | 'bolt' | 'heart';
 export const KIND_ORDER: CardKind[] = ['person', 'faehigkeit', 'aktion', 'ausruestung', 'ort', 'training', 'wissen', 'ereignis', 'begleiter', 'notfall', 'reflexion', 'eigen'];
 
 export const KIND_META: Record<CardKind, { de: string; en: string; emoji: string; defaultColor: string }> = {
-  person: { de: 'Held:in', en: 'Hero', emoji: '🦸', defaultColor: '#8FAF8A' },
-  faehigkeit: { de: 'Fähigkeit', en: 'Ability', emoji: '✨', defaultColor: '#D9926E' },
+  person: { de: 'Held:in', en: 'Hero', emoji: '🦸', defaultColor: '#5E8A5A' },
+  faehigkeit: { de: 'Fähigkeit (Skill)', en: 'Skill (ability)', emoji: '✨', defaultColor: '#D9926E' },
   aktion: { de: 'Aktion', en: 'Action', emoji: '🎯', defaultColor: '#C77D9B' },
   ausruestung: { de: 'Ausrüstung', en: 'Gear', emoji: '🧰', defaultColor: '#E8C27E' },
   ort: { de: 'Ort', en: 'Place', emoji: '🗺️', defaultColor: '#8FB6CE' },

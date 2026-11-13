@@ -1,7 +1,6 @@
 import { HintCard } from '../../components/hints/HintCard';
 import { HomeWays } from './HomeWays';
 import { nextTip } from '../../services/hintCards';
-import { ContinueCard } from './ContinueCard';
 import { NurJetztHome } from '../nurJetzt/NurJetztHome';
 import { scopeOf } from '../../services/scope';
 import { ScopePicker } from '../scope/ScopePicker';
@@ -14,7 +13,7 @@ import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
 import { IntentPickerModal } from './IntentPickerModal';
-import { Search, Settings2, X, Info, LifeBuoy, HeartHandshake, Mail, Compass, Pill, CalendarDays, Package } from 'lucide-react';
+import { Search, Settings2, X, Info, LifeBuoy, Mail, Compass } from 'lucide-react';
 import { dueUnopenedLetters, markLetterOpened, pendingLetterStore } from '../briefAnMich/lettersRepo';
 import type { LetterToSelf } from '../briefAnMich/lettersRepo';
 import { LetterEnvelope } from '../briefAnMich/LetterEnvelope';
@@ -411,31 +410,11 @@ export function HomePage() {
 
       {showMore && !lean && <TodaySoFar />}
 
-      {scope !== 'core' && (<>
-      {/* everyday helpers, together in one calm place */}
-      <div className="flex items-baseline justify-between mb-2">
-        <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)]">{isEn ? 'Everyday' : 'Alltag'}</p>
-        {scope === 'all' && <Link to="/alltag" className="text-[12px] text-[var(--color-primary)] underline underline-offset-2" data-testid="home-everyday-more">{isEn ? 'More in Everyday' : 'Mehr im Alltag'}</Link>}
-      </div>
-      <div className="grid grid-cols-2 gap-2 mb-6" data-testid="home-everyday">
-        {scope === 'all' && (<Link to="/kalender" className={chip}>
-          <CalendarDays size={15} />
-          {t.calendar.title}
-        </Link>)}
-        {scope === 'all' && (<Link to="/parkbox" className={chip} data-testid="home-parkbox">
-          <Package size={15} />
-          {isEn ? 'Parking box' : 'Parkbox'}
-        </Link>)}
-        <Link to="/entdecken/medi-log" className={chip}>
-          <Pill size={15} />
+      {scope === 'core' && (
+        <Link to="/entdecken/medi-log" className={`${chip} mb-6`} data-testid="home-core-medi">
           {t.home.mediLogCta}
         </Link>
-        {scope === 'all' && (<Link to="/helfermodus" className={chip}>
-          <HeartHandshake size={15} />
-          {t.helperMode.homeCta}
-        </Link>)}
-      </div>
-      </>)}
+      )}
 
       {!lean && <AchievementSection />}
 
@@ -447,8 +426,6 @@ export function HomePage() {
         <Compass size={13} className="flex-shrink-0" />
         {t.home.nurJetztEntryCta}
       </button>)}
-
-      {showMore && !lean && scope === 'all' && <ContinueCard lang={isEn ? 'en' : 'de'} />}
 
       {scope !== 'all' && (
         <button type="button" onClick={() => setShowScopeModal(true)} className="block mx-auto mt-5 text-[13px] text-[var(--color-primary)] underline underline-offset-2" data-testid="home-show-more">

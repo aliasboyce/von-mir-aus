@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Pin } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
@@ -36,7 +37,7 @@ function nodeStyle(color: string, i: number): React.CSSProperties {
 }
 
 /** The groups of extra pages (used by the Explore map and the Everyday page) */
-export function ExtraGroups({ groups, color }: { groups: typeof ADDON_GROUPS; color: string }) {
+export function ExtraGroups({ groups, color, pins, onTogglePin, titles }: { groups: typeof ADDON_GROUPS; color: string; pins?: string[]; onTogglePin?: (key: string) => void; titles?: Record<string, string> }) {
   const t = useT();
   const sm = t.systemMap;
   const navigate = useNavigate();
@@ -44,10 +45,11 @@ export function ExtraGroups({ groups, color }: { groups: typeof ADDON_GROUPS; co
     <>
     {groups.map((g) => (
       <div key={g.labelKey} className="mb-5">
-        <p className="text-[14px] font-medium text-[var(--color-text)] mb-2 pl-1">{sm.extraGroupsNew[g.labelKey as keyof typeof sm.extraGroupsNew]}</p>
+        <p className="text-[14px] font-medium text-[var(--color-text)] mb-2 pl-1">{titles?.[g.labelKey] ?? sm.extraGroupsNew[g.labelKey as keyof typeof sm.extraGroupsNew]}</p>
         <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
           {g.items.map((item, k) => (
-            <button key={item.titleKey} type="button" onClick={() => navigate(item.to)} className="map-float text-left rounded-[24px] px-3.5 py-3 min-h-[58px] min-w-0 flex items-center gap-2.5" style={{ ...nodeStyle(color, k), marginTop: 0 }}>
+            <div key={item.titleKey} className="relative min-w-0" data-testid={`alltag-item-${item.titleKey}`}>
+            <button type="button" onClick={() => navigate(item.to)} className="map-float w-full h-full text-left rounded-[24px] px-3.5 py-3 min-h-[58px] min-w-0 flex items-center gap-2.5" style={{ ...nodeStyle(color, k), marginTop: 0 }}>
               <span className="text-[21px] flex-shrink-0" aria-hidden="true">
                 {item.emoji}
               </span>
@@ -56,6 +58,20 @@ export function ExtraGroups({ groups, color }: { groups: typeof ADDON_GROUPS; co
                 <span className="block text-[12px] leading-snug text-[var(--color-text-faint)] mt-0.5">{sm.extraItemHints[item.titleKey as keyof typeof sm.extraItemHints]}</span>
               </span>
             </button>
+              {onTogglePin && (
+                <button
+                  type="button"
+                  onClick={() => onTogglePin(item.titleKey)}
+                  aria-pressed={pins?.includes(item.titleKey) ?? false}
+                  aria-label={pins?.includes(item.titleKey) ? 'Nicht mehr oben anpinnen' : 'Oben anpinnen'}
+                  data-testid={`alltag-pin-${item.titleKey}`}
+                  className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ color: pins?.includes(item.titleKey) ? 'var(--color-primary)' : 'var(--color-text-faint)', background: pins?.includes(item.titleKey) ? 'var(--color-primary-soft)' : 'transparent' }}
+                >
+                  <Pin size={15} fill={pins?.includes(item.titleKey) ? 'currentColor' : 'none'} />
+                </button>
+              )}
+            </div>
           ))}
         </div>
       </div>

@@ -1618,7 +1618,7 @@ const en: TranslationDictionary = {
       person: 'Person',
       ort: 'Place',
       aktivitaet: 'Activity',
-      ressource: 'Skill',
+      ressource: 'Skill (ability)',
       hilfsmittel: 'Tool',
     },
     helpsWith: {

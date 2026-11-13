@@ -16,6 +16,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-startseite-sicherheit-pins',
+    date: '2026',
+    items: [
+      'Die Startseite ist aufgeräumter: Alltag, Helfermodus und „Weiterbearbeiten“ sind von dort weg. Du findest sie unter „Alltag“ bzw. „Sicherheit“.',
+      'Auf „Sicherheit“ stehen jetzt auch Krisenmodus und Helfermodus.',
+      'Im „Alltag“ kannst du Seiten mit der Stecknadel oben anpinnen.',
+      '„Fähigkeit (Skill)“ ist klarer benannt, und das Grün der Personen ist dunkler, damit man es von den anderen Grüntönen unterscheidet.',
+    ],
+    itemsEn: [
+      'The home page is tidier: Everyday, helper mode and “Continue” are gone from there. You find them under “Everyday” and “Safety”.',
+      '“Safety” now also holds crisis mode and helper mode.',
+      'In “Everyday” you can pin pages to the top with the pin.',
+      '“Skill (ability)” is named more clearly, and the green for people is darker so it stands apart from the other greens.',
+    ],
+  },
+  {
     id: '2026-alltag-erste-hilfe-farben',
     date: '2026',
     items: [

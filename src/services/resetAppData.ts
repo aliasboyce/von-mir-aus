@@ -16,6 +16,7 @@ export const ALL_STORAGE_KEYS: string[] = [
   'card-prefs',
   'card-numbers',
   'companions-used',
+  'alltag-pins',
   'album-cover',
   'app-lock',
   'lock-emergency',

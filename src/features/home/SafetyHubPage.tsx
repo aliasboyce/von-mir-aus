@@ -1,15 +1,22 @@
-import { Users, ShieldCheck, Library } from 'lucide-react';
+import { Users, ShieldCheck, Library, LifeBuoy, HeartHandshake } from 'lucide-react';
+import { useSettings } from '../../state/SettingsContext';
+import { scopeOf } from '../../services/scope';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { ReorderableTiles } from '../../components/navigation/ReorderableTiles';
 import { useT } from '../../i18n';
 
 export function SafetyHubPage() {
   const t = useT();
+  const { settings } = useSettings();
+  const en = settings.language === 'en';
+  const scope = scopeOf(settings);
 
   const tiles = [
     { key: 'ressourcen', to: '/entdecken/ressourcen', icon: Library, title: t.resources.title, subtitle: t.resources.subtitle },
     { key: 'netzwerk', to: '/sicherheit/netzwerk', icon: Users, title: t.network.title, subtitle: t.network.subtitle },
     { key: 'sicherheitsplan', to: '/sicherheit/plan', icon: ShieldCheck, title: t.safetyPlan.title, subtitle: t.safetyPlan.subtitle },
+    { key: 'krisenmodus', to: '/krisenmodus', icon: LifeBuoy, title: t.crisisMode.homeCta, subtitle: en ? 'When it is too much right now – small steps, close at hand.' : 'Wenn es gerade zu viel ist – kleine Schritte, gleich greifbar.' },
+    ...(scope === 'all' ? [{ key: 'helfermodus', to: '/helfermodus', icon: HeartHandshake, title: t.helperMode.homeCta, subtitle: en ? 'Supporting someone else – incl. first aid steps.' : 'Jemandem zur Seite stehen – auch mit Erste-Hilfe-Schritten.' }] : []),
   ];
 
   return (

@@ -683,6 +683,12 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Sammelalbum: Begleiter-Karten für alle erstellten/benutzten Wesen (`services/usedCompanions.ts`); Cover anpassbar (`albumCover.ts`: Farbe, Stil klassisch/schlicht/minimal, Titel, Symbol).
 - Tester-Info beim Start (Willkommen → Info → Anleitung) und in den Einstellungen.
 
+## Stand 13.11.2026 nachmittags (erledigt)
+- Startseite entschlackt: Alltag-Block, Helfermodus und „Weiterbearbeiten“ (ContinueCard) entfernt; Krisenmodus-Chip bleibt auf Jetzt (Sicherheit). Im Kernmodus bleibt ein Medi-Log-Link.
+- Sicherheit-Seite: Kacheln Krisenmodus + Helfermodus (Helfermodus nur bei vollem Umfang).
+- Alltag: Seiten anpinnen (`alltag-pins`), Angepinntes oben.
+- „Fähigkeit (Skill)“ klarer benannt; Personen-Grün `#5E8A5A`.
+
 ## Idee für später
 - Erste Hilfe als Set zu den Vokabeln/Lernkarten hinzufügen.
 

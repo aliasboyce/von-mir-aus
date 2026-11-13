@@ -1580,7 +1580,7 @@ const de = {
       sonstiges: 'Sonstiges',
     },
     categoryGroups: {
-      faehigkeiten: 'Fähigkeiten — was ich kann',
+      faehigkeiten: 'Fähigkeiten (Skills) — was ich kann',
       hilfsmittel: 'Hilfsmittel & Anker — was mir hilft',
       orte_gruppe: 'Orte — wo es mir hilft',
       aktivitaeten: 'Aktivitäten — was ich tun kann',
@@ -1621,7 +1621,7 @@ const de = {
       person: 'Person',
       ort: 'Ort',
       aktivitaet: 'Aktivität',
-      ressource: 'Fähigkeit',
+      ressource: 'Fähigkeit (Skill)',
       hilfsmittel: 'Hilfsmittel',
     },
     helpsWith: {
@@ -1758,7 +1758,7 @@ const de = {
     recentCheckInHint: 'Du hast gerade eben eingecheckt — magst du kurz schauen, ob sich dein Zugang zu etwas verändert hat?',
     domains: {
       wissen: 'Wissen',
-      faehigkeiten: 'Fähigkeiten',
+      faehigkeiten: 'Fähigkeiten (Skills)',
       ressourcen: 'Ressourcen',
       menschen: 'Menschen',
       orte: 'Orte',
