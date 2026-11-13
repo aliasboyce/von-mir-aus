@@ -25,6 +25,8 @@ import { LetGoPage } from './features/letGo/LetGoPage';
 import { BriefAnMichPage } from './features/briefAnMich/BriefAnMichPage';
 import { LetterImportPage } from './features/briefAnMich/LetterImportPage';
 import { ExplorePage } from './features/home/ExplorePage';
+import { AlltagPage } from './features/home/AlltagPage';
+import { FirstAidPage } from './features/firstaid/FirstAidPage';
 import { SafetyHubPage } from './features/home/SafetyHubPage';
 import { InnerWeatherPage } from './features/innerWeather/InnerWeatherPage';
 import { BridgesPage } from './features/bridges/BridgesPage';
@@ -105,6 +107,7 @@ function App() {
                 <Route path="/parkbox" element={<ParkboxPage />} />
                 <Route path="/nur-jetzt/:kind" element={<NurJetztListPage />} />
                 <Route path="/helfermodus" element={<HelperModePage />} />
+                <Route path="/erste-hilfe" element={<FirstAidPage />} />
                 <Route path="/entdecken/nervensystem" element={<NervousSystemReferencePage />} />
                 <Route path="/entdecken/koerper" element={<BodyAwarenessReferencePage />} />
                 <Route path="/entdecken/schutzstrategien" element={<ProtectionStrategiesReferencePage />} />
@@ -117,6 +120,7 @@ function App() {
                 <Route path="/inneres-wetter" element={<InnerWeatherPage />} />
 
                 <Route path="/entdecken" element={<ExplorePage />} />
+                <Route path="/alltag" element={<AlltagPage />} />
                 <Route path="/entdecken/ressourcen" element={<ResourcesHubPage />} />
                 <Route path="/entdecken/ressourcen/skillketten" element={<SkillkettenListPage />} />
                 <Route path="/entdecken/ressourcen/skillketten/neu" element={<SkillketteFormPage />} />

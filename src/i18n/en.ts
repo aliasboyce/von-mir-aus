@@ -46,6 +46,7 @@ const en: TranslationDictionary = {
   nav: {
     home: 'Now',
     explore: 'Explore',
+    everyday: 'Everyday',
     bridges: 'Bridges',
     network: 'Network',
     safety: 'Safety',
@@ -1617,7 +1618,7 @@ const en: TranslationDictionary = {
       person: 'Person',
       ort: 'Place',
       aktivitaet: 'Activity',
-      ressource: 'Resource',
+      ressource: 'Skill',
       hilfsmittel: 'Tool',
     },
     helpsWith: {
@@ -3741,7 +3742,7 @@ const en: TranslationDictionary = {
       gedanken: 'Thoughts',
       schreiben: 'Writing & remembering',
       struktur: 'Structure',
-      alltag: 'Everyday',
+      alltag: 'Medication & favourites',
       ordnen: 'Sort & plan',
       begleitung: 'Companion',
     },

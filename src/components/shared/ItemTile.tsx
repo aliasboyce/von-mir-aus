@@ -2,7 +2,8 @@ import type { ReactNode, CSSProperties } from 'react';
 import type { Bridge, Resource, ResourceCategory } from '../../data/types';
 import type { Skillkette } from '../../data/types';
 import { PhotoBackground } from './PhotoBackground';
-import { SKILL_CATEGORY_ZONE_COLOR, RESOURCE_CATEGORY_TO_GROUP } from '../../features/resources/resourceMeta';
+import { RESOURCE_CATEGORY_TO_GROUP } from '../../features/resources/resourceMeta';
+import { KIND_COLOR } from '../../features/resources/kindColors';
 import { BRIDGE_CATEGORY_META } from '../../features/bridges/bridgeMeta';
 import { useT } from '../../i18n';
 import { createCustomCategoryStore } from '../../services/customCategories';
@@ -23,8 +24,7 @@ const NEUTRAL = NEUTRAL_COLOR;
 export const CHAIN_COLOR = '#c9522f';
 
 export function resourceColor(category: ResourceCategory | string): string {
-  const skill = SKILL_CATEGORY_ZONE_COLOR[category as ResourceCategory];
-  if (skill) return skill;
+  if (category === 'menschen') return KIND_COLOR.person;
   const group = RESOURCE_CATEGORY_TO_GROUP[category as ResourceCategory] ?? customResourceCategories.getAll().find((c) => c.id === category)?.group;
   return (group && GROUP_COLOR[group]) || NEUTRAL;
 }

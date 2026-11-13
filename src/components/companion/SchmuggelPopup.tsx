@@ -46,7 +46,7 @@ export function SchmuggelPopup() {
   const perDayRef = useRef(perDay);
   perDayRef.current = perDay;
   const enabled = settings.schmuggelPopupEnabled !== false && settings.brainEnabled && !settings.companionAway && settings.companionChosen && settings.introSeen && !settings.tourActive && !settings.nurJetztMode;
-  const blockedHere = location.pathname === '/krisenmodus' || location.pathname === '/helfermodus' || location.pathname.startsWith('/inneres-wetter') || location.pathname === '/zugang';
+  const blockedHere = location.pathname === '/krisenmodus' || location.pathname === '/helfermodus' || location.pathname === '/erste-hilfe' || location.pathname.startsWith('/inneres-wetter') || location.pathname === '/zugang';
 
   // refs so the interval always sees the current blocking state
   const anyModalOpenRef = useLatest(anyModalOpen || running);

@@ -81,9 +81,8 @@ export function HomePage() {
   const { settings, updateSettings } = useSettings();
   const scope = scopeOf(settings);
   const lean = scope === 'core' || !!settings.simple;
-  const calm = settings.calmHome !== false;
-  const [moreOpen, setMoreOpen] = useState(false);
-  const showMore = !calm || moreOpen;
+  // no hidden "More" any more: garden, today, nudges are simply there (they can be dismissed)
+  const showMore = true;
   const [showScopeModal, setShowScopeModal] = useState(false);
   const [reminderDismissed, setReminderDismissed] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -377,6 +376,9 @@ export function HomePage() {
             )}
           </Card>
         </Link>
+        <Link to="/entdecken/tageskurve" data-testid="home-to-curve" className="flex items-center justify-center gap-1.5 mt-2.5 mx-auto w-fit px-3 py-1.5 text-[13.5px] text-[var(--color-primary)]">
+          {isEn ? 'To the curve' : 'Zur Kurve'} <span aria-hidden="true">→</span>
+        </Link>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -409,21 +411,12 @@ export function HomePage() {
 
       {showMore && !lean && <TodaySoFar />}
 
-      {calm && scope !== 'core' && (
-        <button
-          type="button"
-          onClick={() => setMoreOpen((v) => !v)}
-          aria-expanded={moreOpen}
-          className="block mx-auto my-4 px-4 py-2 rounded-full text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]"
-          data-testid="home-more-toggle"
-        >
-          {moreOpen ? (isEn ? 'Show less' : 'Weniger zeigen') : (isEn ? 'More: garden, today …' : 'Mehr: Garten, Heute …')}
-        </button>
-      )}
-
       {scope !== 'core' && (<>
       {/* everyday helpers, together in one calm place */}
-      <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{isEn ? 'Everyday' : 'Alltag'}</p>
+      <div className="flex items-baseline justify-between mb-2">
+        <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)]">{isEn ? 'Everyday' : 'Alltag'}</p>
+        {scope === 'all' && <Link to="/alltag" className="text-[12px] text-[var(--color-primary)] underline underline-offset-2" data-testid="home-everyday-more">{isEn ? 'More in Everyday' : 'Mehr im Alltag'}</Link>}
+      </div>
       <div className="grid grid-cols-2 gap-2 mb-6" data-testid="home-everyday">
         {scope === 'all' && (<Link to="/kalender" className={chip}>
           <CalendarDays size={15} />

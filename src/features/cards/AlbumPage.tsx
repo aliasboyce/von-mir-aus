@@ -7,6 +7,7 @@ import { useSettings } from '../../state/SettingsContext';
 import { useL } from '../projects/useL';
 import { buildAllCards } from './autoCards';
 import { cardCategoriesRepo, getPrefs } from './cardStore';
+import { getAlbumCover, textOn, type AlbumCover } from './albumCover';
 import { CardFace } from './CardFace';
 import { CardViewer } from './CardViewer';
 import { CardSettingsModal } from './CardSettingsModal';
@@ -40,6 +41,7 @@ export function AlbumPage() {
   const cards = useMemo(() => buildAllCards({ t, lang, settings }), [t, lang, settings, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const cats = useMemo(() => cardCategoriesRepo.getAll(), [version]); // eslint-disable-line react-hooks/exhaustive-deps
   const favs = getPrefs().favorites;
+  const cover = useMemo(() => getAlbumCover(), [version]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const chapters: Chapter[] = useMemo(() => {
     const list: Chapter[] = [{ id: 'all', label: L('Alle', 'All'), color: '#9a948a', emoji: '📚', count: cards.length, test: () => true }];
@@ -138,6 +140,7 @@ export function AlbumPage() {
         </div>
 
         <Book
+          cover={cover}
           cards={shown}
           page={page}
           pageCount={pageCount}
@@ -206,7 +209,7 @@ const PageView = memo(function PageView({ slice, start, perPage, cols, cardW, ca
   );
 });
 
-function Book({ cards, page, pageCount, perPage, wide, chapter, totalCards, onPage, onOpen, lang }: { cards: CardModel[]; page: number; pageCount: number; perPage: number; wide: boolean; chapter: Chapter; totalCards: number; onPage: (p: number) => void; onOpen: (cardIndex: number) => void; lang: 'de' | 'en' }) {
+function Book({ cover, cards, page, pageCount, perPage, wide, chapter, totalCards, onPage, onOpen, lang }: { cover: AlbumCover; cards: CardModel[]; page: number; pageCount: number; perPage: number; wide: boolean; chapter: Chapter; totalCards: number; onPage: (p: number) => void; onOpen: (cardIndex: number) => void; lang: 'de' | 'en' }) {
   const holder = useRef<HTMLDivElement>(null);
   const flipRef = useRef<HTMLDivElement>(null);
   const shadeRef = useRef<HTMLDivElement>(null);
@@ -345,7 +348,7 @@ function Book({ cards, page, pageCount, perPage, wide, chapter, totalCards, onPa
   };
 
   const content = (p: number): React.ReactNode => {
-    if (p === 0) return <Cover chapter={chapter} count={cards.length} total={totalCards} lang={lang} height={pageH} />;
+    if (p === 0) return <Cover chapter={chapter} count={cards.length} total={totalCards} lang={lang} height={pageH} cover={cover} />;
     const start = (p - 1) * perPage;
     return <PageView slice={sliceOf(start)} start={start} perPage={perPage} cols={cols} cardW={cardW} cardH={cardH} gap={gap} padX={padX} pageH={pageH} onOpen={stableOpen} blocked={blocked} />;
   };
@@ -364,7 +367,7 @@ function Book({ cards, page, pageCount, perPage, wide, chapter, totalCards, onPa
         onPointerCancel={onUp}
       >
         {/* Einband */}
-        <div aria-hidden="true" className="absolute inset-x-[-6px] top-1 bottom-[-4px] rounded-[18px]" style={{ background: 'linear-gradient(135deg,#6b3a3f,#4a2429)', boxShadow: '0 12px 30px rgba(0,0,0,0.35)' }} />
+        <div aria-hidden="true" className="absolute inset-x-[-6px] top-1 bottom-[-4px] rounded-[18px]" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${cover.color} 90%, black), color-mix(in srgb, ${cover.color} 62%, black))`, boxShadow: '0 12px 30px rgba(0,0,0,0.35)' }} />
         {/* Ringe */}
         <div aria-hidden="true" className="absolute left-[-4px] top-6 bottom-6 w-3 flex flex-col justify-between">
           {[0, 1, 2, 3, 4].map((i) => (
@@ -418,11 +421,31 @@ function Corner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
   );
 }
 
-function Cover({ chapter, count, total, lang, height }: { chapter: Chapter; count: number; total: number; lang: 'de' | 'en'; height: number }) {
+function Cover({ chapter, count, total, lang, height, cover }: { chapter: Chapter; count: number; total: number; lang: 'de' | 'en'; height: number; cover: AlbumCover }) {
+  const title = chapter.id === 'all' ? (cover.title.trim() || (lang === 'en' ? 'My collection' : 'Meine Sammlung')) : chapter.label;
+  const countLine = `${count} ${lang === 'en' ? 'cards' : 'Karten'}${chapter.id !== 'all' ? ` ${lang === 'en' ? 'of' : 'von'} ${total}` : ''}`;
+  const ink = textOn(cover.color);
+  if (cover.style !== 'klassisch') {
+    const minimal = cover.style === 'minimal';
+    return (
+      <div className="relative flex flex-col items-center justify-center text-center overflow-hidden" style={{ height, background: minimal ? cover.color : `linear-gradient(160deg, color-mix(in srgb, ${cover.color} 88%, white), ${cover.color})`, color: ink }} data-testid="album-cover" data-cover-style={cover.style}>
+        {!minimal && <div aria-hidden="true" className="absolute left-0 inset-y-0 w-[14px]" style={{ background: 'rgba(0,0,0,0.16)' }} />}
+        {!minimal && <div aria-hidden="true" className="absolute rounded-[6px]" style={{ inset: '16px 16px 16px 30px', border: `1.5px solid ${ink}`, opacity: 0.45 }} />}
+        <div className="relative px-6">
+          {cover.showSymbol && <p className="text-[40px] mb-3" aria-hidden="true">{chapter.emoji}</p>}
+          <p className="text-[24px] font-bold leading-tight" style={{ fontFamily: 'var(--font-display, Georgia, serif)' }}>{title}</p>
+          <p className="text-[12.5px] mt-1" style={{ opacity: 0.8 }}>{countLine}</p>
+          {!minimal && <p className="text-[14px] mt-5 italic" style={{ opacity: 0.75, fontFamily: 'var(--font-display, Georgia, serif)' }}>von mir aus</p>}
+          <p className="text-[11.5px] mt-6" style={{ opacity: 0.6 }}>{lang === 'en' ? 'Swipe to turn the page →' : 'Zum Blättern wischen →'}</p>
+        </div>
+      </div>
+    );
+  }
+  const c = cover.color;
   const gold = 'linear-gradient(180deg,#f8e8ad,#c49a3f 50%,#f1d98a 80%,#b88a30)';
   const goldText: React.CSSProperties = { background: gold, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', filter: 'drop-shadow(0 1px 0 rgba(0,0,0,0.55))' };
   return (
-    <div className="relative flex flex-col items-center justify-center text-center overflow-hidden" style={{ height, background: `${LEATHER_GRAIN}, radial-gradient(ellipse at 38% 28%, #8a4a3f 0%, #5e2f2c 48%, #3a1a1b 100%)`, backgroundBlendMode: 'multiply, normal' }}>
+    <div className="relative flex flex-col items-center justify-center text-center overflow-hidden" style={{ height, background: `${LEATHER_GRAIN}, radial-gradient(ellipse at 38% 28%, color-mix(in srgb, ${c} 78%, white) 0%, ${c} 48%, color-mix(in srgb, ${c} 55%, black) 100%)`, backgroundBlendMode: 'multiply, normal' }}>
       {/* abgegriffene, hellere Stellen */}
       <div aria-hidden="true" className="absolute inset-0" style={{ backgroundImage: WORN, opacity: 0.35, mixBlendMode: 'screen' }} />
       {/* Kanten dunkler (Patina) */}
@@ -436,15 +459,14 @@ function Cover({ chapter, count, total, lang, height }: { chapter: Chapter; coun
       <div aria-hidden="true" className="absolute rounded-[4px]" style={{ inset: '19px 19px 19px 45px', border: '1px solid rgba(214,178,92,0.75)' }} />
       <Corner pos="tl" /><Corner pos="tr" /><Corner pos="bl" /><Corner pos="br" />
       <div className="relative" style={{ paddingLeft: 22 }}>
-        <p className="text-[44px] mb-2" aria-hidden="true" style={{ filter: 'sepia(0.5) drop-shadow(0 2px 2px rgba(0,0,0,0.6))' }}>{chapter.emoji}</p>
+        {cover.showSymbol && <p className="text-[44px] mb-2" aria-hidden="true" style={{ filter: 'sepia(0.5) drop-shadow(0 2px 2px rgba(0,0,0,0.6))' }}>{chapter.emoji}</p>}
         {/* Titelschild */}
         <div className="mx-auto px-5 py-3 rounded-[4px]" style={{ background: 'linear-gradient(180deg,#e9d7aa,#cdb27a)', border: '1px solid #8a6b30', boxShadow: '0 2px 5px rgba(0,0,0,0.55), inset 0 0 0 3px rgba(255,255,255,0.25)', maxWidth: 230 }}>
           <p className="text-[22px] font-bold leading-tight" style={{ color: '#4a2c14', fontFamily: 'var(--font-display, Georgia, serif)', textShadow: '0 1px 0 rgba(255,255,255,0.4)' }}>
-            {chapter.id === 'all' ? (lang === 'en' ? 'My collection' : 'Meine Sammlung') : chapter.label}
+            {title}
           </p>
           <p className="text-[12px] mt-0.5" style={{ color: '#6b4a24' }}>
-            {count} {lang === 'en' ? 'cards' : 'Karten'}
-            {chapter.id !== 'all' ? ` ${lang === 'en' ? 'of' : 'von'} ${total}` : ''}
+            {countLine}
           </p>
         </div>
         <p className="text-[15px] mt-5 italic" style={{ ...goldText, fontFamily: 'var(--font-display, Georgia, serif)', letterSpacing: 1 }}>von mir aus</p>

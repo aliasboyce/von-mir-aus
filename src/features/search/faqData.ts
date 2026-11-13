@@ -63,7 +63,7 @@ export const FAQ: FaqItem[] = [
     id: 'auge',
     de: { q: 'Was macht der Augen-Knopf („Schnell weg“)?', a: 'Ein Tipp verdeckt die App sofort mit einem neutralen Bildschirm (Uhrzeit und Datum). Zweimal schnell tippen bringt dich zurück – genau auf die Seite, auf der du warst (mit PIN, falls du eine eingestellt hast). Der Knopf lässt sich wie das Wesen verschieben, wenn er im Weg ist. Ein- und ausschalten kannst du ihn in den Einstellungen.', toLabel: 'Zu den Einstellungen' },
     en: { q: 'What does the eye button (“Hide now”) do?', a: 'One tap covers the app at once with a neutral screen (time and date). Two quick taps bring you back – exactly to the page you were on (with a PIN if you set one). The button can be dragged like the Wesen if it is in the way. You can switch it on and off in Settings.', toLabel: 'To settings' },
-    to: '/einstellungen?bereich=sprache',
+    to: '/einstellungen?bereich=sicherheit',
   },
   {
     id: 'wesen',

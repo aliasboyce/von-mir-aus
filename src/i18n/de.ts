@@ -44,6 +44,7 @@ const de = {
   nav: {
     home: 'Jetzt',
     explore: 'Entdecken',
+    everyday: 'Alltag',
     bridges: 'Brücken',
     network: 'Netzwerk',
     safety: 'Sicherheit',
@@ -1620,7 +1621,7 @@ const de = {
       person: 'Person',
       ort: 'Ort',
       aktivitaet: 'Aktivität',
-      ressource: 'Ressource',
+      ressource: 'Fähigkeit',
       hilfsmittel: 'Hilfsmittel',
     },
     helpsWith: {
@@ -3744,7 +3745,7 @@ const de = {
       gedanken: 'Gedanken',
       schreiben: 'Schreiben & Merken',
       struktur: 'Struktur',
-      alltag: 'Alltag',
+      alltag: 'Medikamente & Favoriten',
       ordnen: 'Ordnen & Planen',
       begleitung: 'Begleitung',
     },

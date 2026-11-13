@@ -9,11 +9,25 @@ export interface SuggestIdea extends Bi {
   to: string;
   /** Bereich, nur zur Übersicht beim Pflegen */
   area: string;
+  /** Statt eines einzelnen „Direkt tun“: mehrere Orte zur Wahl */
+  choices?: { de: string; en: string; to: string }[];
 }
 
 const i = (area: string, to: string, de: string, en: string): SuggestIdea => ({ area, to, de, en });
 
 export const SUGGEST_IDEAS: SuggestIdea[] = [
+  // ---- Gedanken-Reset (Brain Dump): drei Orte zur Wahl
+  {
+    area: 'gedanken',
+    to: '/parkbox',
+    de: 'Mach einen Gedanken-Reset.\n\nEine der wirksamsten Möglichkeiten, mentale Unordnung loszuwerden, ist, Gedanken aus dem Kopf aufs Papier zu bringen. Schreib einfach alles auf, was dir gerade durch den Kopf geht: Unerledigtes, Sorgen, spontane Ideen und alles andere, was dich beschäftigt. Diese Methode heißt auch „Brain Dump“. Indem du Gedanken aus dem Arbeitsgedächtnis auslagerst, entlastest du deinen Kopf – und es fällt dir leichter, sie zu sortieren und weiterzuverarbeiten.\n\nWohin magst du sie legen?',
+    en: 'Do a thought reset.\n\nOne of the most effective ways to clear mental clutter is to get your thoughts out of your head and onto paper. Just write down everything that is going through your mind: unfinished things, worries, spontaneous ideas and anything else that is on your mind. This method is also called a “brain dump”. By moving thoughts out of your working memory you relieve your head – and it becomes easier to sort and process them.\n\nWhere would you like to put them?',
+    choices: [
+      { de: 'In die Parkbox', en: 'Into the park box', to: '/parkbox' },
+      { de: 'Ins Tagebuch', en: 'Into the diary', to: '/sicherheit/tagebuch' },
+      { de: 'Als Mindmap', en: 'As a mind map', to: '/entdecken/mindmap' },
+    ],
+  },
   // ---- Tagebuch
   i('tagebuch', '/sicherheit/tagebuch', 'Du könntest ein neues Tagebuch anlegen – ganz leer, ganz nach deinem Tempo.', 'You could start a new diary – completely empty, at your own pace.'),
   i('tagebuch', '/sicherheit/tagebuch', 'Magst du ein paar Zeilen ins Tagebuch schreiben? Es liest niemand mit.', 'Would you like to write a few lines in your diary? Nobody is reading along.'),

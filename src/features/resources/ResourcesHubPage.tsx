@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Wrench, Sparkles, Bookmark, MapPin, Activity, Users, Repeat, Info } from 'lucide-react';
 import { MoreMenu } from '../../components/ui/MoreMenu';
 import { Modal } from '../../components/ui/Modal';
+import { KIND_COLOR } from './kindColors';
 import { useRoutineTexts } from '../routines/routineTexts';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -59,11 +60,11 @@ export function ResourcesHubPage() {
   const need = needParam && NEED_ORDER.includes(needParam) ? needParam : null;
 
   const tiles = [
-    { key: 'skills', to: '/entdecken/ressourcen/skills', icon: Sparkles, title: t.resources.skillsTitle, subtitle: t.resources.skillsSubtitle },
-    { key: 'hilfsmittel', to: '/entdecken/ressourcen/hilfsmittel', icon: Wrench, title: t.resources.hilfsmittelTitle, subtitle: t.resources.hilfsmittelSubtitle },
-    { key: 'orte', to: '/entdecken/ressourcen/orte', icon: MapPin, title: t.resources.orteTitle, subtitle: t.resources.orteSubtitle },
-    { key: 'aktivitaeten', to: '/entdecken/ressourcen/aktivitaeten', icon: Activity, title: t.resources.aktivitaetenTitle, subtitle: t.resources.aktivitaetenSubtitle },
-    { key: 'personen', to: '/sicherheit/netzwerk', icon: Users, title: t.resources.personenTitle, subtitle: t.resources.personenSubtitle },
+    { key: 'skills', color: KIND_COLOR.faehigkeiten, to: '/entdecken/ressourcen/skills', icon: Sparkles, title: t.resources.skillsTitle, subtitle: t.resources.skillsSubtitle },
+    { key: 'hilfsmittel', color: KIND_COLOR.hilfsmittel, to: '/entdecken/ressourcen/hilfsmittel', icon: Wrench, title: t.resources.hilfsmittelTitle, subtitle: t.resources.hilfsmittelSubtitle },
+    { key: 'orte', color: KIND_COLOR.orte, to: '/entdecken/ressourcen/orte', icon: MapPin, title: t.resources.orteTitle, subtitle: t.resources.orteSubtitle },
+    { key: 'aktivitaeten', color: KIND_COLOR.aktivitaeten, to: '/entdecken/ressourcen/aktivitaeten', icon: Activity, title: t.resources.aktivitaetenTitle, subtitle: t.resources.aktivitaetenSubtitle },
+    { key: 'personen', color: KIND_COLOR.person, to: '/sicherheit/netzwerk', icon: Users, title: t.resources.personenTitle, subtitle: t.resources.personenSubtitle },
     { key: 'routinen', to: '/entdecken/garten', icon: Repeat, title: rtx.pageTitle, subtitle: rtx.tileSub, },
     { key: 'lesezeichen', to: '/entdecken/lesezeichen', icon: Bookmark, title: t.bookmarks.title, subtitle: t.bookmarks.subtitle },
   ];

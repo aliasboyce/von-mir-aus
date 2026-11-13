@@ -674,6 +674,29 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Gesperrte App: Sperrbildschirm im Startseiten-Look (Ecken, Schriftzug), Knopf „Notfall-Hilfe“ → `LockEmergency.tsx` (112 immer, Anlaufstellen ausklappbar; Plan/Menschen/Angaben nur nach Freigabe in Einstellungen → Sprache&Schutz → „Notfall-Zugang im gesperrten Modus“, Speicher `lock-emergency` in `services/lockEmergency.ts`).
 - Offen: Handy-Test (Teilen-Menü/AirDrop, Wischen, Sperrbildschirm), Notfall-Zugang nicht in der „PIN vergessen“-Ansicht.
 
+## Stand 13.11.2026 mittags (erledigt)
+- „Begleiter wechseln“ (Wesen-Menü) → direkt zu den Wesen in den Einstellungen (`#wesen-auswahl`).
+- Eigene Seite „Alltag“ im unteren Menü (`/alltag`, `AlltagPage`); „Mehr“ auf der Startseite entfernt; Hilfsmittel-Anstoß immer sichtbar außer Krise/reduziert, wegklickbar; „Zur Kurve →“ unter dem Kurz-Check.
+- „Etwas erhalten“: Hinweis, wie man selbst etwas verschickt.
+- Helfermodus: „Erste-Hilfe-Maßnahmen“ (`/erste-hilfe`, `features/firstaid/`): Assistent, immer nur der nächste Schritt; Quellen DRK/Malteser eingeklappt. Medizinische Texte bitte fachlich gegenlesen lassen.
+- Feste Farben je Ressourcen-Art (`features/resources/kindColors.ts`, `KindScope` für Hell/Dunkel/Paletten): Netzwerk, Seiten, Kacheln, Karten. Netzwerk neu: Kategorie „Aktivität“, „Ressource“ heißt „Fähigkeit“.
+- Sammelalbum: Begleiter-Karten für alle erstellten/benutzten Wesen (`services/usedCompanions.ts`); Cover anpassbar (`albumCover.ts`: Farbe, Stil klassisch/schlicht/minimal, Titel, Symbol).
+- Tester-Info beim Start (Willkommen → Info → Anleitung) und in den Einstellungen.
+
+## Idee für später
+- Erste Hilfe als Set zu den Vokabeln/Lernkarten hinzufügen.
+
+## Stand 13.11.2026 (erledigt)
+- Unteres Menü: `BottomNav` mittig ohne Transform und mit `useKeyboardOpen` (blendet aus, solange ein Eingabefeld Fokus hat/Tastatur offen; setzt Seitenversatz zurück); `overscroll-behavior-y: none` am Body. Auf echtem Handy noch zu prüfen (iOS/Android), im Browser nur simuliert.
+- „Sag mir was“: hum-44 bis hum-52 in `companionRegistry.ts`. „Überrasch mich“: Bilder 9–18 (`public/ablenkung/`), Spruch „ruin it yourself“ als Witz, Haftungshinweis vor der Kategorie (`DistractionOverlay.tsx`, `surprise-warning`). „Fragen zum Nachdenken“: 6 neue Impulse (einer war schon da) mit vorhandenem freiwilligem Textfeld (`ReflectionAnswer`).
+- Hinweis: Bilder 11 (Kelly van Koppenhagen), 12/13 (Mildryt) und die Memes sind fremde Werke – bei öffentlichem Betrieb Urheberrecht beachten.
+
+## Stand 13.11.2026 vormittags (erledigt) – Testphasen-Start
+- Start: Tester-Willkommenstext (Wortlaut von TB) + „Wo/wie melden“ nach Wesen & Name (`TesterWelcome.tsx`), danach ruhige Anleitung (4 Punkte, „Noch ein paar Dinge“ zum Ausklappen, aktualisiert: Tag beginnen/abschließen, Sammelalbum, Sicherheit & Sperre).
+- Wesen-Menü in ausklappbaren Gruppen; „Schlag mir was vor“: Gedanken-Reset mit Wahl Parkbox/Tagebuch/Mindmap.
+- Einstellungen: eigener Bereich „Sicherheit & Sperre“; Karteneditor „Einfach / Mehr Optionen“; „Alltag“ einheitlich benannt (Medikamente & Favoriten).
+- Rückmeldewege: langer anonymer Tally-Bogen (https://tally.so/r/YjDWG0) + „Kurz was an Boycie melden“ (Teilen/Kopieren/Mail an Projektadresse).
+
 ## Grundsatzprinzipien (als Leitlinie bei jeder künftigen Entscheidung)
 - Resonanz statt Optimierung, Wahl statt Zwang, Zugang statt Leistung
 - "Das hilft gerade nicht" muss bei Übungen immer möglich sein

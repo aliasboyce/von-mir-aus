@@ -984,13 +984,14 @@ The link below leads to letters to your future self.`,
     titleEn: `Settings`,
     body: `Hier passt du die App an dich an.
 
-Oben siehst du sechs Bereiche – tippe einen an, mit „Zurück“ kommst du zur Übersicht.
+Oben siehst du sieben Bereiche – tippe einen an, mit „Zurück“ kommst du zur Übersicht.
 
 • **So fängst du an:** die kurze Einstiegs-Erklärung, jederzeit wieder aufrufbar (oben)
 • **Design:** Welt, hell/dunkel und Farben (frei kombinierbar), Schrift, weniger Bewegung, Töne
 • **Wesen:** Begleiter wählen, ein- oder ausschalten, was es sagt und zeigt
 • **Erinnerungen & Tagesrahmen:** sanfte Hinweise und Termine; „Tag beginnen“ und „Tag abschließen“ ein-/ausschalten, Uhrzeit und welche Türen dabei sind; Hinweis-Karten
-• **Sprache, Umfang & Schutz:** Sprache, wie viel du siehst (Nötigstes / Sicherheitsplan / Alles), Einfach-Darstellung, App-Sperre mit PIN, „Schnell weg“-Knopf
+• **Sprache & Umfang:** Sprache, wie viel du siehst (Nötigstes / Sicherheitsplan / Alles), Einfach-Darstellung
+• **Sicherheit & Sperre:** App-Sperre mit PIN, „Schnell weg“-Knopf und der Notfall-Zugang im gesperrten Modus (du bestimmst, was Helfende sehen dürfen)
 • **Meine Daten:** Export und Import als Datei, Sicherungs-Erinnerung (abschaltbar), Datenschutz, alles zurücksetzen oder löschen
 • **Hilfe & Über:** die Idee dahinter, Anleitung, Test-Version und Rückmeldung
 
@@ -1009,13 +1010,14 @@ Du kannst das Wesen wegschicken und per Knopf auf der Startseite wieder herbeiru
 Statt eines Lichtwesens kann dich ein Tier begleiten – von Wolf bis Drache, Corgi, Papagei oder Piepmatz, jeweils in drei natürlichen Farbvarianten. Tippe ein Tier unter „Begleittiere“ an und richte es ein: Name, Farbe, kleines Extra zum Tragen (allgemeine wie Schleife, Halstuch, Krone, Blume, Brille, Mütze – und eigene je Tierart, z. B. Halsband beim Hund oder Doktorhut bei der Eule; bei Hunden ein Geschirr), etwas zum Halten oder Dabeihaben (z. B. Knochen, Buch – der Otter hält Muschel, Stein, Fisch, Seestern oder Perle, die Krähe Münze, Diamant, Schlüssel, Ring oder Perle) und wie es spricht. Das Tier zieht als Baby ein und wächst mit den Tagen, an denen du in der App irgendetwas machst – nach 30 solcher Tage ist es ausgewachsen. Das ist keine Serie: Pausen sind in Ordnung, es schrumpft nie, und du kannst es auch gleich erwachsen oder immer Baby lassen. Beim Wegschicken und Herbeirufen läuft es auf seine Art (der Hund galoppiert, die Gans watschelt, der Papagei fliegt).`,
     bodyEn: `Here you adapt the app to you.
 
-Six areas are shown at the top – tap one; "Back" returns to the overview.
+Seven areas are shown at the top – tap one; "Back" returns to the overview.
 
 • **How to start:** the short intro, always available (top)
 • **Design:** world, light/dark and colours (freely combinable), font, reduced motion, sounds
 • **Companion:** choose a companion, switch on or off what it says and shows
 • **Reminders & day frame:** gentle hints and dates; switch "Begin the day" / "Close the day" on or off, set the time and which doors are in them; hint cards
-• **Language, scope & protection:** language, how much you see (essentials / safety plan / everything), simple view, app lock with PIN, "Hide now" button
+• **Language & scope:** language, how much you see (essentials / safety plan / everything), simple view
+• **Security & lock:** app lock with PIN, "Hide now" button and emergency access on the lock screen (you decide what helpers may see)
 • **My data:** export and import as a file, backup reminder (can be turned off), privacy, reset or delete everything
 • **Help & about:** the idea behind it, guide, test version and feedback
 

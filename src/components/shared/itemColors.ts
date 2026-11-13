@@ -1,15 +1,16 @@
 import type { ResourceCategory } from '../../data/types';
-import { SKILL_CATEGORY_ZONE_COLOR, RESOURCE_CATEGORY_TO_GROUP } from '../../features/resources/resourceMeta';
+import { RESOURCE_CATEGORY_TO_GROUP } from '../../features/resources/resourceMeta';
+import { KIND_COLOR } from '../../features/resources/kindColors';
 import { BRIDGE_CATEGORY_META } from '../../features/bridges/bridgeMeta';
 
 /** One source for the colours of resources / bridges: skills use the colour of the
  * arousal zone they belong to (Stresstoleranz = Hyperarousal red …), the rest the
  * colour of their group. Used by ItemTile and by the symbol pictures of the examples. */
 export const RESOURCE_GROUP_COLOR: Record<string, string> = {
-  faehigkeiten: '#c9522f',
-  hilfsmittel: '#4a9d8f',
-  orte_gruppe: '#4a6fa5',
-  aktivitaeten: '#e8a83d',
+  faehigkeiten: KIND_COLOR.faehigkeiten,
+  hilfsmittel: KIND_COLOR.hilfsmittel,
+  orte_gruppe: KIND_COLOR.orte,
+  aktivitaeten: KIND_COLOR.aktivitaeten,
 };
 export const BRIDGE_GROUP_COLOR: Record<string, string> = {
   intrapersonell: '#8fae3d',
@@ -21,8 +22,8 @@ export const NEUTRAL_COLOR = '#9a948a';
 
 /** colour of a built-in resource category (custom categories are handled by ItemTile) */
 export function builtInResourceColor(category: ResourceCategory | string): string | undefined {
-  const skill = SKILL_CATEGORY_ZONE_COLOR[category as ResourceCategory];
-  if (skill) return skill;
+  // fixed colour per kind (Fähigkeiten, Hilfsmittel, Orte, Aktivitäten, Person) – the same in the network, on the pages and on the cards
+  if (category === 'menschen') return KIND_COLOR.person;
   const group = RESOURCE_CATEGORY_TO_GROUP[category as ResourceCategory];
   return group ? RESOURCE_GROUP_COLOR[group] : undefined;
 }

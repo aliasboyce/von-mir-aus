@@ -15,6 +15,8 @@ export const ALL_STORAGE_KEYS: string[] = [
   'reflexion-cards',
   'card-prefs',
   'card-numbers',
+  'companions-used',
+  'album-cover',
   'app-lock',
   'lock-emergency',
   'breath-prefs',

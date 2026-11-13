@@ -25,7 +25,7 @@ export const KIND_ORDER: CardKind[] = ['person', 'faehigkeit', 'aktion', 'ausrue
 
 export const KIND_META: Record<CardKind, { de: string; en: string; emoji: string; defaultColor: string }> = {
   person: { de: 'Held:in', en: 'Hero', emoji: '🦸', defaultColor: '#8FAF8A' },
-  faehigkeit: { de: 'Fähigkeit', en: 'Ability', emoji: '✨', defaultColor: '#D6A788' },
+  faehigkeit: { de: 'Fähigkeit', en: 'Ability', emoji: '✨', defaultColor: '#D9926E' },
   aktion: { de: 'Aktion', en: 'Action', emoji: '🎯', defaultColor: '#C77D9B' },
   ausruestung: { de: 'Ausrüstung', en: 'Gear', emoji: '🧰', defaultColor: '#E8C27E' },
   ort: { de: 'Ort', en: 'Place', emoji: '🗺️', defaultColor: '#8FB6CE' },

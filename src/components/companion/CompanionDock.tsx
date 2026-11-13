@@ -482,7 +482,7 @@ export function CompanionDock({ bottomOffset = 92, variant = 'floating' }: Compa
     onBreathe: () => { setMenuOpen(false); navigate('/entdecken/ressourcen/skills/atmen'); },
     onSleep: toggleSleep,
     onAway: sendAway,
-    onChange: () => { setMenuOpen(false); navigate('/einstellungen#begleiter-einstellungen'); },
+    onChange: () => { setMenuOpen(false); navigate('/einstellungen?bereich=wesen#wesen-auswahl'); },
     onFeedback: () => { setMenuOpen(false); setQuickFbOpen(true); },
   };
 

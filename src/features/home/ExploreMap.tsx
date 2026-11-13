@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { MAIN_AREAS, ADDON_GROUPS } from './exploreMapData';
@@ -34,26 +35,14 @@ function nodeStyle(color: string, i: number): React.CSSProperties {
   };
 }
 
-export function ExploreMap() {
+/** The groups of extra pages (used by the Explore map and the Everyday page) */
+export function ExtraGroups({ groups, color }: { groups: typeof ADDON_GROUPS; color: string }) {
   const t = useT();
   const sm = t.systemMap;
   const navigate = useNavigate();
-  const { settings } = useSettings();
-  const en = settings.language === 'en';
-
-  function scrollTo(id: string) {
-    document.getElementById(`explore-branch-${id}`)?.scrollIntoView({ behavior: settings.reduceMotion ? 'auto' : 'smooth', block: 'start' });
-  }
-
-  const jumps = [
-    ...MAIN_AREAS.map((a) => ({ id: a.id as string, color: a.color, label: sm.areas[a.id].title })),
-    { id: 'everyday', color: EVERYDAY_COLOR, label: en ? 'Everyday' : 'Alltag' },
-    { id: 'addons', color: ADDON_COLOR, label: t.explore.mapAddons },
-  ];
-  const everydayGroups = ADDON_GROUPS.filter((g) => EVERYDAY_KEYS.includes(g.labelKey));
-  const addonGroups = ADDON_GROUPS.filter((g) => !EVERYDAY_KEYS.includes(g.labelKey));
-  const renderGroups = (groups: typeof ADDON_GROUPS, color: string) =>
-    groups.map((g) => (
+  return (
+    <>
+    {groups.map((g) => (
       <div key={g.labelKey} className="mb-5">
         <p className="text-[14px] font-medium text-[var(--color-text)] mb-2 pl-1">{sm.extraGroupsNew[g.labelKey as keyof typeof sm.extraGroupsNew]}</p>
         <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
@@ -70,7 +59,41 @@ export function ExploreMap() {
           ))}
         </div>
       </div>
-    ));
+    ))}
+    </>
+  );
+}
+
+export const EVERYDAY_GROUP_KEYS = EVERYDAY_KEYS;
+export const EVERYDAY_COLOR_VALUE = EVERYDAY_COLOR;
+
+export function ExploreMap() {
+  const t = useT();
+  const sm = t.systemMap;
+  const navigate = useNavigate();
+  const { hash } = useLocation();
+  const { settings } = useSettings();
+  const en = settings.language === 'en';
+
+  // „Mehr im Alltag“ von der Startseite: /entdecken#alltag springt gleich zum Bereich
+  useEffect(() => {
+    if (hash !== '#alltag') return;
+    const timer = window.setTimeout(() => document.getElementById('explore-branch-everyday')?.scrollIntoView({ behavior: 'auto', block: 'start' }), 250);
+    return () => window.clearTimeout(timer);
+  }, [hash]);
+
+  function scrollTo(id: string) {
+    document.getElementById(`explore-branch-${id}`)?.scrollIntoView({ behavior: settings.reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  const jumps = [
+    ...MAIN_AREAS.map((a) => ({ id: a.id as string, color: a.color, label: sm.areas[a.id].title })),
+    { id: 'everyday', color: EVERYDAY_COLOR, label: en ? 'Everyday' : 'Alltag' },
+    { id: 'addons', color: ADDON_COLOR, label: t.explore.mapAddons },
+  ];
+  const everydayGroups = ADDON_GROUPS.filter((g) => EVERYDAY_KEYS.includes(g.labelKey));
+  const addonGroups = ADDON_GROUPS.filter((g) => !EVERYDAY_KEYS.includes(g.labelKey));
+  const renderGroups = (groups: typeof ADDON_GROUPS, color: string) => <ExtraGroups groups={groups} color={color} />;
 
   return (
     <div className="explore-map overflow-x-clip">

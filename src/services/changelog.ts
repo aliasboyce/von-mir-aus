@@ -16,6 +16,56 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-alltag-erste-hilfe-farben',
+    date: '2026',
+    items: [
+      'Neu im unteren Menü: „Alltag“ – alles, was dich durch den Tag trägt, an einem Ort (es bleibt auch in „Entdecken“).',
+      'Helfermodus: bei „Akuter Notfall“ führt „Erste-Hilfe-Maßnahmen“ Schritt für Schritt durch – immer nur der nächste Schritt, nach „Prüfen – Rufen – Handeln“.',
+      'Feste Farben für Person, Fähigkeit, Hilfsmittel, Ort und Aktivität: im Netzwerk, auf den Seiten und auf den Karten dieselbe Farbe – passen sich deinem Design automatisch an.',
+      'Sammelalbum: jedes Wesen, das du erstellt oder benutzt hast, bekommt eine Begleiter-Karte. Das Cover gestaltest du selbst (Farbe, Stil, Titel).',
+      'Startseite ruhiger: kein „Mehr“-Knopf mehr. „Zur Kurve“ führt direkt zur Tageskurve. „Begleiter wechseln“ springt gleich zu den Wesen in den Einstellungen.',
+      'Beim Start steht für Testpersonen klar und kurz, wie alles funktioniert (Startbildschirm, Updates, Daten, Löschen, Rückmeldung) – auch später in den Einstellungen nachlesbar.',
+    ],
+    itemsEn: [
+      'New in the bottom menu: “Everyday” – everything that carries you through the day in one place (it also stays in “Explore”).',
+      'Helper mode: “Acute emergency” now offers “First aid steps” – step by step, always just the next step, following “Check – Call – Act”.',
+      'Fixed colours for person, skill, tool, place and activity: the same colour in the network, on the pages and on the cards – they adapt to your design automatically.',
+      'Collection album: every companion you created or used gets a companion card. You design the cover yourself (colour, style, title).',
+      'Calmer home page: no “More” button. “To the curve” leads straight to the day curve. “Change companion” jumps right to the companions in settings.',
+      'At the start testers are told clearly and briefly how everything works (home screen, updates, data, deleting, feedback) – also readable later in settings.',
+    ],
+  },
+  {
+    id: '2026-ruhiger-start-tester',
+    date: '2026',
+    items: [
+      'Neuer Start: erst ein Willkommenstext für Testpersonen (mit „Wo und wie melde ich etwas?“), dann eine viel ruhigere Anleitung – vier Zeilen, der Rest zum Ausklappen.',
+      'Das Wesen-Menü ist in Gruppen ordentlich zum Ausklappen sortiert. Neu in „Schlag mir was vor“: der Gedanken-Reset (Brain-Dump) – direkt in Parkbox, Tagebuch oder Mindmap.',
+      'Einstellungen: „Sicherheit & Sperre“ ist ein eigener Bereich. Im Karteneditor zeigt „Einfach“ nur das Nötigste, „Mehr Optionen“ den Rest.',
+      '„Alltag“ heißt jetzt überall dasselbe: Medikamente & Favoriten stehen unter diesem Namen, den Alltag selbst erreichst du über „Mehr im Alltag“.',
+    ],
+    itemsEn: [
+      'New start: first a welcome note for testers (with “Where and how do I report something?”), then a much calmer guide – four lines, the rest folds out.',
+      'The companion menu is sorted into groups that fold out. New in “Suggest something”: the thought reset (brain dump) – straight into Parkbox, diary or mind map.',
+      'Settings: “Safety & lock” is its own section. In the card editor “Simple” shows only the essentials, “More options” the rest.',
+      '“Everyday” now means one thing everywhere: medication & favourites have their own name, and you reach everyday life itself via “More in everyday”.',
+    ],
+  },
+  {
+    id: '2026-sprueche-bilder-menue',
+    date: '2026',
+    items: [
+      'Das untere Menü rutscht nicht mehr mit hoch: Solange du tippst, ist es weg – danach sitzt es wieder fest unten.',
+      'Neue Sprüche bei „Sag mir was“ und ein neuer Spruch bei „Überrasch mich“, dazu zehn neue Bilder. Vor „Überrasch mich“ kommt jetzt ein kleiner Haftungshinweis.',
+      'Sieben neue „Fragen zum Nachdenken“ – jeweils mit freiwilligem Textfeld zum Aufschreiben.',
+    ],
+    itemsEn: [
+      'The bottom menu no longer rides up: while you type it is hidden – afterwards it sits firmly at the bottom again.',
+      'New sayings for “Tell me something” and a new one for “Surprise me”, plus ten new pictures. “Surprise me” now starts with a small liability notice.',
+      'Seven new “Questions to think about” – each with an optional text field to write down your thoughts.',
+    ],
+  },
+  {
     id: '2026-album-feinschliff-notfall',
     date: '2026',
     items: [

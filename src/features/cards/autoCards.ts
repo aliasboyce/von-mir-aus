@@ -5,7 +5,8 @@ import { bookmarksRepo } from '../bookmarks/bookmarksRepo';
 import { appointmentsRepo } from '../calendar/calendarRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { safetyPlansRepo } from '../safetyPlan/safetyPlansRepo';
-import { getAnyLichtwesen } from '../../components/companion/customLichtwesen';
+import { customLichtwesenRepo, getAnyLichtwesen } from '../../components/companion/customLichtwesen';
+import { getUsedCompanions } from '../../services/usedCompanions';
 import { RESOURCE_CATEGORY_TO_GROUP, resourceCategoryLabel } from '../resources/resourceMeta';
 import { ACCESS_CHANNEL_META } from '../zugangskanaele/accessChannels';
 import { umstandLabel } from '../bridges/conditions';
@@ -209,24 +210,29 @@ export function buildAutoDrafts(ctx: BuildCtx): Draft[] {
     });
   });
 
-  // Begleiter: das gewählte Wesen
+  // Begleiter: jedes Wesen, das ich erstellt oder benutzt habe – je eine Karte (das gewählte immer)
   if (settings.companionChosen) {
-    const w = safe(() => getAnyLichtwesen(settings.selectedBrainId), null);
-    if (w) {
+    const used = safe(() => getUsedCompanions(), []);
+    const firstUsed = new Map(used.map((u) => [u.id, u.firstUsedAt]));
+    const ids = new Set<string>([settings.selectedBrainId, ...used.map((u) => u.id), ...safe(() => customLichtwesenRepo.getAll(), []).map((c) => c.id)].filter(Boolean) as string[]);
+    ids.forEach((id) => {
+      const w = safe(() => getAnyLichtwesen(id), null);
+      if (!w || w.id !== id) return;
+      const isCurrent = id === settings.selectedBrainId;
       out.push({
         key: `begleiter:${w.id}`,
         kind: 'begleiter',
         title: w.name,
-        subtitle: L('Mein Wesen', 'My companion'),
+        subtitle: isCurrent ? L('Mein Wesen', 'My companion') : L('Ein Wesen von mir', 'A companion of mine'),
         text: w.trait,
         details: [...dt('', w.trait), ...dt(L('Dabei seit', 'With me since'), (w as { adoptedAt?: string }).adoptedAt ? spelledDate((w as { adoptedAt?: string }).adoptedAt as string, lang) : '')],
         portraitOf: w.id,
         emoji: '🌟',
         color: w.color,
-        createdAt: '0000',
-        route: '/einstellungen/wesen-info',
+        createdAt: isCurrent ? '0000' : (firstUsed.get(id) ?? '0001'),
+        route: '/einstellungen?bereich=wesen#wesen-auswahl',
       });
-    }
+    });
   }
 
   // Notfallkarten aus den Sicherheitsplänen

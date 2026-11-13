@@ -25,6 +25,7 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { resourcesRepo, seedResourcesIfEmpty, migrateResourceAccessChannelsIfNeeded, addMissingDbtSkills, patchKnownSkillCategoryIssues, assignDefaultZoneIdsToSkills } from './resourcesRepo';
 import { syncFavoriteResourceToNetwork, syncResourceEditToNetwork } from '../safetyNet/networkResourceSync';
+import { KindScope } from '../../components/shared/KindScope';
 import { RESOURCE_CATEGORY_ORDER, resourceCategoryLabel, RESOURCE_CATEGORY_GROUP_META, RESOURCE_CATEGORY_GROUP_ORDER, RESOURCE_CATEGORY_TO_GROUP, SKILL_CATEGORY_ZONE_COLOR } from './resourceMeta';
 import { suggestedImage, suggestedImageOptions } from '../../services/suggestedImages';
 import { ResourceDetailModal } from './ResourceDetailModal';
@@ -390,7 +391,7 @@ export function ResourcesPage() {
     await deliverPdf(bytes, safeFilename(resource.title, 'skill'), resource.title);
   }
 
-  return (
+  const page = (
     <div className="animate-in">
       <div className="no-print">
         <TopBar action={<HelpButton helpKey={typeScope ?? 'ressourcen'} />} />
@@ -1063,6 +1064,7 @@ export function ResourcesPage() {
       )}
     </div>
   );
+  return typeScope ? <KindScope kind={typeScope === 'skills' ? 'faehigkeiten' : typeScope}>{page}</KindScope> : page;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

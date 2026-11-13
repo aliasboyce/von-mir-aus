@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { TestPhaseNote } from './TestPhaseNote';
@@ -5,32 +7,44 @@ import { useSettings } from '../../state/SettingsContext';
 
 const TXT = {
   de: {
-    title: 'So fängst du am besten an',
-    sub: 'Die App ist ein Baukasten. Sie hilft erst, wenn sie zu dir passt – und das darf langsam gehen.',
+    title: 'So fängst du an',
+    sub: 'Ganz ruhig. Du musst nichts auf einmal – und es geht nichts verloren.',
     points: [
-      { icon: '🌱', h: 'Du musst nichts auf einmal einrichten', t: 'Nimm dir pro Tag eine Kleinigkeit vor – oder gar nichts. Leer lassen ist erlaubt. Es geht nichts verloren.' },
-      { icon: '🎨', h: 'Zuerst: dass es sich nach dir anfühlt', t: 'Such dir ein Wesen oder Tier, eine Welt und Farben aus (Einstellungen → Wesen und Design). Wenn dir ein Teil zu viel ist, wähle weniger Umfang oder blende ihn aus.' },
-      { icon: '🔍', h: 'Dann: einmal in Ruhe stöbern', t: 'Unter „Entdecken“ liegt vieles bereit – „Erforschen“ zum Verstehen, „Tun“ zum Ausprobieren. Du musst nichts davon nutzen. Schau, was dich neugierig macht oder entlastet – und fang mit genau einem Ding an.' },
-      { icon: '🧩', h: 'Danach: anpassen, bis es hilft', t: 'Ändere Namen, Bilder, Zeiten, Schritte. Eine Routine mit 2 statt 6 Karten ist auch eine Routine. Was nicht passt: „Das hilft gerade nicht“ – das geht immer.' },
-      { icon: '🔗', h: 'Alles hängt zusammen', t: 'Eine neue Schutzstrategie kann zugleich ein Garten-Eintrag und eine Routine sein – es bleibt ein einziger Eintrag, nicht mehrere Kopien. Hindernisse und alte Schutzstrategien verknüpfst du dort, wo du etwas anlegst.' },
-      { icon: '📅', h: 'Nach ein paar Tagen', t: 'Schau, was wirklich geholfen hat, und lass den Rest ruhen. Die App soll nicht mehr werden, nur klarer.' },
+      { icon: '🌱', h: 'Eine Kleinigkeit reicht', t: 'Pro Tag eins – oder gar nichts. Leer lassen ist erlaubt.' },
+      { icon: '🎨', h: 'Mach es zu deinem', t: 'Wesen, Farben und Umfang findest du in den Einstellungen. Zu viel? Wähle weniger.' },
+      { icon: '🔍', h: 'Stöbere, wie du magst', t: 'Unter „Entdecken“ liegt vieles bereit. Fang mit einem Ding an.' },
+      { icon: '🛟', h: '„Das hilft gerade nicht“ geht immer', t: 'Tippe aufs Wesen: Atmen, Orientieren, „Schlag mir was vor“ – alles ein Tipp entfernt.' },
     ],
-    again: 'Diese Seite findest du wieder unter Einstellungen → „So fängst du an“.',
+    moreLabel: 'Noch ein paar Dinge',
+    more: [
+      { icon: '🌅', h: 'Tag beginnen & abschließen', t: 'Kleine Rituale – du bestimmst, was darin steht.' },
+      { icon: '🗂️', h: 'Sammelalbum', t: 'Eigene Karten sammeln. „Mehr Optionen“ nur, wenn du magst.' },
+      { icon: '🔒', h: 'Sicherheit & Sperre', t: 'PIN, „Schnell weg“-Knopf und Notfall-Zugang: Einstellungen → Sicherheit & Sperre.' },
+      { icon: '🔗', h: 'Alles hängt zusammen', t: 'Ein Eintrag kann an mehreren Orten auftauchen – ohne Kopien.' },
+      { icon: '📅', h: 'Nach ein paar Tagen', t: 'Schau, was geholfen hat, und lass den Rest ruhen.' },
+    ],
+    again: 'Du findest das wieder unter Einstellungen → „So fängst du an“.',
     close: 'Verstanden',
-    open: 'So fängst du am besten an',
+    open: 'So fängst du an',
   },
   en: {
     title: 'How to start',
-    sub: 'The app is a toolkit. It only helps once it fits you – and that is allowed to take time.',
+    sub: 'Take it easy. You do not have to do anything at once – and nothing is lost.',
     points: [
-      { icon: '🌱', h: 'You do not have to set everything up at once', t: 'Take one small thing per day – or nothing. Leaving it empty is fine. Nothing is lost.' },
-      { icon: '🎨', h: 'First: make it feel like yours', t: 'Pick a being or animal, a world and colours (Settings → Companion and Design). If a part is too much, choose a smaller scope or hide it.' },
-      { icon: '🔍', h: 'Then: browse in peace', t: 'Under "Explore" there is a lot – parts for understanding what is going on, and parts for trying things out ("Do"). You do not have to use any of it. See what makes you curious or eases things – and start with just one.' },
-      { icon: '🧩', h: 'Then: adjust until it helps', t: 'Change names, pictures, times, steps. A routine with 2 cards instead of 6 is still a routine. If something does not fit: "This does not help right now" – always possible.' },
-      { icon: '🔗', h: 'Everything is connected', t: 'A new protection strategy can be a garden entry and a routine at the same time – still one single entry, not several copies. Link obstacles and old strategies where you create something.' },
-      { icon: '📅', h: 'After a few days', t: 'See what really helped and let the rest rest. The app should not become more, only clearer.' },
+      { icon: '🌱', h: 'One small thing is enough', t: 'One per day – or nothing. Leaving it empty is fine.' },
+      { icon: '🎨', h: 'Make it yours', t: 'Companion, colours and scope are in the settings. Too much? Choose less.' },
+      { icon: '🔍', h: 'Browse as you like', t: 'Under "Explore" there is a lot. Start with just one thing.' },
+      { icon: '🛟', h: '"This does not help right now" is always possible', t: 'Tap the companion: breathing, orienting, "Suggest something" – one tap away.' },
     ],
-    again: 'You find this page again under Settings → "How to start".',
+    moreLabel: 'A few more things',
+    more: [
+      { icon: '🌅', h: 'Begin & close the day', t: 'Small rituals – you decide what is in them.' },
+      { icon: '🗂️', h: 'Collection album', t: 'Collect your own cards. "More options" only if you like.' },
+      { icon: '🔒', h: 'Safety & lock', t: 'PIN, "Quick exit" button and emergency access: Settings → Safety & lock.' },
+      { icon: '🔗', h: 'Everything is connected', t: 'One entry can show up in several places – without copies.' },
+      { icon: '📅', h: 'After a few days', t: 'See what helped and let the rest rest.' },
+    ],
+    again: 'You find this again under Settings → "How to start".',
     close: 'Got it',
     open: 'How to start',
   },
@@ -40,22 +54,38 @@ export function startGuideLabel(en: boolean): string {
   return TXT[en ? 'en' : 'de'].open;
 }
 
-export function StartGuideContent() {
+function GuideRow({ p, small = false }: { p: { icon: string; h: string; t: string }; small?: boolean }) {
+  return (
+    <div className={`flex gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] ${small ? 'px-3 py-2.5' : 'px-3.5 py-3'}`} data-testid="start-guide-point">
+      <span className="text-[20px] leading-none mt-0.5" aria-hidden>{p.icon}</span>
+      <div>
+        <p className="text-[14.5px] text-[var(--color-text)]">{p.h}</p>
+        <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-0.5">{p.t}</p>
+      </div>
+    </div>
+  );
+}
+
+export function StartGuideContent({ showTestNote = true }: { showTestNote?: boolean }) {
   const { settings } = useSettings();
+  const [moreOpen, setMoreOpen] = useState(false);
   const T = TXT[settings.language === 'en' ? 'en' : 'de'];
   return (
-    <div className="flex flex-col gap-3" data-testid="start-guide">
-      {T.points.map((p, i) => (
-        <div key={i} className="flex gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3.5 py-3" data-testid="start-guide-point">
-          <span className="text-[22px] leading-none mt-0.5" aria-hidden>{p.icon}</span>
-          <div>
-            <p className="text-[14.5px] text-[var(--color-text)]">{p.h}</p>
-            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mt-0.5">{p.t}</p>
-          </div>
-        </div>
-      ))}
+    <div className="flex flex-col gap-2.5" data-testid="start-guide">
+      {T.points.map((p, i) => <GuideRow key={i} p={p} />)}
+      <button
+        type="button"
+        onClick={() => setMoreOpen((o) => !o)}
+        aria-expanded={moreOpen}
+        data-testid="start-guide-more"
+        className="flex items-center justify-between rounded-[var(--radius-md)] px-3.5 py-2.5 text-[13.5px] text-[var(--color-text-muted)] border border-dashed border-[var(--color-border-strong)]"
+      >
+        <span>{T.moreLabel}</span>
+        <ChevronDown size={16} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} aria-hidden />
+      </button>
+      {moreOpen && T.more.map((p, i) => <GuideRow key={i} p={p} small />)}
       <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed">{T.again}</p>
-      <TestPhaseNote />
+      {showTestNote && <TestPhaseNote />}
     </div>
   );
 }

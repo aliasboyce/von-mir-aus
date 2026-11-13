@@ -7,7 +7,7 @@ import { PALETTE_COLORS, EMOJI_GROUPS } from '../../content/emojiGroups';
 import { useL } from '../projects/useL';
 import { CardFace } from './CardFace';
 import { FONT_OPTIONS } from './cardRender';
-import { cardCategoriesRepo, colorForKind, newOwnCardId, numberFor, ownCardsRepo, peekNextNumber, savePhotoForCard, setRarity } from './cardStore';
+import { cardCategoriesRepo, colorForKind, isFixedKindColor, newOwnCardId, numberFor, ownCardsRepo, peekNextNumber, savePhotoForCard, setRarity } from './cardStore';
 import { formatCardDate } from './cardDate';
 import { CompanionStickerToggle, DateEditor, FitHint, RatingsEditor, type Rating } from './cardEditorParts';
 import { deleteOwnMedia } from '../../services/mediaStore';
@@ -58,9 +58,20 @@ export function CardEditorPage() {
   const [rarity, setRar] = useState<Rarity>(existing?.rarity ?? 'normal');
   const [newCat, setNewCat] = useState<{ label: string; emoji: string; color: string } | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
+  // „Einfach“ zeigt nur das Nötigste; „Mehr Optionen“ den Rest. Bestehende Karten mit Extras öffnen gleich mit allen Optionen.
+  const hasExtras = !!existing && (existing.frame !== 'standard' || !!existing.font || !!existing.stickers?.length || !!existing.rating2 || !!existing.companionSticker || existing.rarity !== 'normal');
+  const [more, setMore] = useState<boolean>(() => {
+    if (hasExtras) return true;
+    try { return localStorage.getItem('innerpath:card-editor-more') === '1'; } catch { return false; }
+  });
+  function chooseMore(v: boolean) {
+    setMore(v);
+    try { localStorage.setItem('innerpath:card-editor-more', v ? '1' : '0'); } catch { /* ohne Speicher geht es trotzdem */ }
+  }
 
   const cat = cats.find((c) => c.id === categoryId);
-  const effectiveColor = color ?? cat?.color ?? colorForKind(kind);
+  const fixedKind = isFixedKindColor(kind);
+  const effectiveColor = fixedKind ? colorForKind(kind) : (color ?? cat?.color ?? colorForKind(kind));
   const key = `own:${id}`;
 
   const preview = useMemo(
@@ -168,6 +179,14 @@ export function CardEditorPage() {
           </div>
         </div>
 
+        <div className="flex rounded-full p-1 mb-5 bg-[var(--color-surface-muted)]" role="group" aria-label={L('Umfang der Optionen', 'How many options')} data-testid="card-editor-mode">
+          {[{ v: false, de: 'Einfach', en: 'Simple' }, { v: true, de: 'Mehr Optionen', en: 'More options' }].map((o) => (
+            <button key={String(o.v)} type="button" onClick={() => chooseMore(o.v)} aria-pressed={more === o.v} className="flex-1 py-2 rounded-full text-[13.5px]" style={chip(more === o.v)} data-testid={o.v ? 'card-mode-more' : 'card-mode-simple'}>
+              {lang === 'en' ? o.en : o.de}
+            </button>
+          ))}
+        </div>
+
         <Section title={L('Art der Karte', 'Kind of card')}>
           <div className="flex flex-wrap gap-1.5">
             <button type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={chip(kind === 'eigen' && !categoryId)} onClick={() => { setKind('eigen'); setCategoryId(undefined); }}>
@@ -212,7 +231,7 @@ export function CardEditorPage() {
           <input className="input mb-2" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={L('Titel', 'Title')} maxLength={60} data-testid="card-title" />
           <textarea className="input" rows={3} value={text} onChange={(e) => setText(e.target.value)} placeholder={L('Ein paar Worte zur Karte (freiwillig)', 'A few words about the card (optional)')} maxLength={600} data-testid="card-text" />
           <FitHint card={preview} />
-          <DateEditor date={date} format={dateFormat} onDate={setDate} onFormat={setDateFormat} />
+          {(more || kind === 'ereignis') && <DateEditor date={date} format={dateFormat} onDate={setDate} onFormat={setDateFormat} />}
         </Section>
 
         <Section title={L('Bild', 'Picture')}>
@@ -244,7 +263,8 @@ export function CardEditorPage() {
           </div>
         </Section>
 
-        <Section title={L('Stil', 'Style')}>
+        <Section title={more ? L('Stil', 'Style') : L('Farbe', 'Colour')}>
+          {more && <>
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Rahmen', 'Frame')}</p>
           <div className="flex flex-wrap gap-1.5 mb-3">
             {FRAMES.map((f) => (
@@ -261,13 +281,22 @@ export function CardEditorPage() {
               </button>
             ))}
           </div>
+          </>}
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Farbe', 'Colour')}</p>
+          {fixedKind ? (
+            <p className="flex items-center gap-2 text-[12.5px] text-[var(--color-text-muted)] mb-3" data-testid="card-fixed-color">
+              <span className="w-6 h-6 rounded-full flex-shrink-0" style={{ background: effectiveColor }} />
+              {L('🔒 Diese Kartenart hat eine feste Farbe – so erkennst du sie überall wieder.', '🔒 This kind of card has a fixed colour – so you recognise it everywhere.')}
+            </p>
+          ) : (
           <div className="flex flex-wrap gap-1.5 mb-3">
             <button type="button" className="px-3 py-1.5 rounded-full text-[12.5px]" style={chip(!color)} onClick={() => setColor(undefined)}>{L('Standard', 'Default')}</button>
             {PALETTE_COLORS.map((c) => (
               <button key={c} type="button" onClick={() => setColor(c)} className="w-8 h-8 rounded-full" style={{ background: c, outline: color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} aria-label={c} />
             ))}
           </div>
+          )}
+          {more && <>
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Sticker (bis zu 3)', 'Stickers (up to 3)')}</p>
           <div className="flex flex-wrap gap-1 mb-3">
             {STICKERS.map((s) => (
@@ -278,9 +307,10 @@ export function CardEditorPage() {
           </div>
           <CompanionStickerToggle value={companionSticker} onChange={setCompanionSticker} />
           <RatingsEditor first={rating1} second={rating2} onFirst={setRating1} onSecond={setRating2} />
+          </>}
         </Section>
 
-        <Section title={L('Limitiert?', 'Limited?')}>
+        {more && <Section title={L('Limitiert?', 'Limited?')}>
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Glanz, Glitzer oder Holo – und ein leises Funkeln beim Ansehen.', 'Shine, glitter or holo – and a soft sparkle when you look at it.')}</p>
           <div className="flex flex-wrap gap-1.5">
             {RARITIES.map((r) => (
@@ -289,7 +319,7 @@ export function CardEditorPage() {
               </button>
             ))}
           </div>
-        </Section>
+        </Section>}
 
         <div className="flex gap-2 mt-6 flex-wrap">
           <Button onClick={save} disabled={!title.trim()} data-testid="card-save">{L('Karte speichern', 'Save card')}</Button>

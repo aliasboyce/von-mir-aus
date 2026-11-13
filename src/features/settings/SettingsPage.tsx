@@ -1,5 +1,6 @@
 import { InstallGuide } from '../../components/shared/InstallGuide';
 import { buildDate, feedbackTemplate, isIos, isStandalone } from '../../services/testSupport';
+import { TesterInfoContent } from '../../components/shared/TesterWelcome';
 import { TesterThanks } from '../../components/shared/TesterThanks';
 import { QuickFeedbackSheet } from '../../components/shared/QuickFeedbackSheet';
 import { StartGuideModal, startGuideLabel } from '../../components/shared/StartGuide';
@@ -120,7 +121,7 @@ export function SettingsPage() {
   const [hintsReset, setHintsReset] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // the settings are split into sub-pages: ?bereich=design|wesen|erinnerungen|sprache|daten|info (none = the overview)
+  // the settings are split into sub-pages: ?bereich=design|wesen|erinnerungen|sprache|sicherheit|daten|info (none = the overview)
   const section = searchParams.get('bereich');
   const show = (k: string) => section === k || section === 'alle'; // 'alle' = everything on one page (kept for old links)
   const en = settings.language === 'en';
@@ -128,12 +129,14 @@ export function SettingsPage() {
     { id: 'design', emoji: '🎨', title: en ? 'Design' : 'Design', sub: en ? 'World, light/dark, colours, text size, motion, sounds' : 'Welt, hell/dunkel, Farben, Schrift, Bewegung, Töne' },
     { id: 'wesen', emoji: '🧸', title: en ? 'Companion' : 'Wesen', sub: en ? 'Your companion: name, look, behaviour' : 'Dein Begleiter: Name, Aussehen, Verhalten' },
     { id: 'erinnerungen', emoji: '🔔', title: en ? 'Reminders & day frame' : 'Erinnerungen & Tagesrahmen', sub: en ? 'Reminders, begin/close the day, hint cards' : 'Erinnerungen, Tag beginnen/abschließen, Hinweis-Karten' },
-    { id: 'sprache', emoji: '🌐', title: en ? 'Language & scope' : 'Sprache, Umfang & Schutz', sub: en ? 'Language, how much is shown, app lock' : 'Sprache, wie viel zu sehen ist, App-Sperre' },
+    { id: 'sprache', emoji: '🌐', title: en ? 'Language & scope' : 'Sprache & Umfang', sub: en ? 'Language, how much of the app is shown' : 'Sprache, wie viel von der App zu sehen ist' },
+    { id: 'sicherheit', emoji: '🔒', title: en ? 'Security & lock' : 'Sicherheit & Sperre', sub: en ? 'PIN lock, hide-now button, emergency access on the lock screen' : 'PIN-Sperre, „Schnell weg“, Notfall-Zugang im gesperrten Modus' },
     { id: 'daten', emoji: '📦', title: en ? 'My data' : 'Meine Daten', sub: en ? 'Backup, export, privacy, start over' : 'Sicherung, Export, Datenschutz, neu anfangen' },
     { id: 'info', emoji: '💡', title: en ? 'Help & about' : 'Hilfe & Über', sub: en ? 'Help, guide, test version, feedback' : 'Hilfe, Anleitung, Test-Version, Rückmeldung' },
   ];
   const current = SECTIONS.find((x) => x.id === section);
   const [installOpen, setInstallOpen] = useState(false);
+  const [testerInfoOpen, setTesterInfoOpen] = useState(false);
   const [newReminderLabel, setNewReminderLabel] = useState('');
   const [newReminderTime, setNewReminderTime] = useState('18:00');
 
@@ -173,10 +176,12 @@ export function SettingsPage() {
   // of a generic Settings link — scrolls (and briefly highlights) the
   // companion section so the person doesn't have to hunt for it.
   useEffect(() => {
-    if (window.location.hash !== '#begleiter-einstellungen') return;
-    if (section !== 'wesen') { navigate('/einstellungen?bereich=wesen#begleiter-einstellungen', { replace: true }); return; }
-    const el = document.getElementById('begleiter-einstellungen');
-    el?.scrollIntoView({ behavior: settings.reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    const hash = window.location.hash;
+    if (hash !== '#begleiter-einstellungen' && hash !== '#wesen-auswahl') return;
+    if (section !== 'wesen') { navigate(`/einstellungen?bereich=wesen${hash}`, { replace: true }); return; }
+    // directly to the choice of companions (the grid), not just the start of the section
+    const el = document.getElementById('wesen-auswahl') ?? document.getElementById('begleiter-einstellungen');
+    window.setTimeout(() => el?.scrollIntoView({ behavior: settings.reduceMotion ? 'auto' : 'smooth', block: 'start' }), 60);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section]);
   const [resetConfirming, setResetConfirming] = useState(false);
@@ -300,14 +305,6 @@ export function SettingsPage() {
         <>
         {/* ================= Darstellung ================= */}
         <SectionLabel>🎨 {t.settings.appearance}</SectionLabel>
-        <Card className="mb-3" padding="md" data-testid="settings-calmhome">
-          <ToggleRow
-            label={settings.language === 'en' ? 'Calm start page' : 'Ruhige Startseite'}
-            checked={settings.calmHome !== false}
-            onChange={(v) => updateSettings({ calmHome: v })}
-          />
-          <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5 leading-relaxed">{settings.language === 'en' ? 'On: only the essentials are visible, the rest sits behind one “More” button. Off: the fuller start page as before.' : 'An: nur das Wichtigste ist sichtbar, der Rest steckt hinter einem „Mehr“-Knopf. Aus: die volle Startseite wie vorher.'}</p>
-        </Card>
         <WorldPackPicker />
         <WorldPicker />
         <WesenColorPicker />
@@ -530,12 +527,17 @@ export function SettingsPage() {
         <>
         {/* ================= Mein Wesen ================= */}
         {/* ================= Umfang & Schutz ================= */}
-        <SectionLabel>🔒 {settings.language === 'en' ? 'Scope and protection' : 'Umfang und Schutz'}</SectionLabel>
+        <SectionLabel>📐 {settings.language === 'en' ? 'Scope' : 'Umfang'}</SectionLabel>
         <Card padding="md" className="mb-3" data-testid="scope-card">
           <p className="text-[14px] font-medium text-[var(--color-text)] mb-0.5">{settings.language === 'en' ? 'How much of the app is shown' : 'Wie viel von der App zu sehen ist'}</p>
           <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed mb-3" data-hint>{settings.language === 'en' ? 'Start small and show more whenever you like.' : 'Fang klein an und zeig später mehr, wann immer du magst.'}</p>
           <ScopePicker simple={!!settings.simple} onChange={(sc) => updateSettings({ scope: sc, scopeChosen: true })} onSimple={(v) => updateSettings({ simple: v })} />
         </Card>
+        </>
+        )}
+        {show('sicherheit') && (
+        <>
+        <SectionLabel>🔒 {settings.language === 'en' ? 'Security & lock' : 'Sicherheit & Sperre'}</SectionLabel>
         <AppLockCard />
         </>
         )}
@@ -626,7 +628,7 @@ export function SettingsPage() {
                   {settings.companionAway ? (settings.language === 'en' ? 'Call back' : 'Herbeirufen') : (settings.language === 'en' ? 'Send away' : 'Wegschicken')}
                 </button>
               </div>
-              <div className="flex items-center justify-between mb-3">
+              <div id="wesen-auswahl" className="flex items-center justify-between mb-3 scroll-mt-4">
                 <p className="text-[13px] text-[var(--color-text-muted)]">{t.companion.changeCompanion}</p>
                 <button
                   onClick={() => setCreateCompanionOpen(true)}
@@ -940,6 +942,12 @@ export function SettingsPage() {
         <Card padding="md" className="mb-3" data-testid="test-card">
           <div className="mb-3">
             <TesterThanks compact />
+          </div>
+          <div className="mb-3">
+            <button type="button" onClick={() => setTesterInfoOpen((v) => !v)} aria-expanded={testerInfoOpen} data-testid="tester-info-toggle" className="text-[13.5px] text-[var(--color-primary)] underline underline-offset-2">
+              {testerInfoOpen ? (settings.language === 'en' ? 'Hide “Good to know”' : '„Gut zu wissen“ ausblenden') : (settings.language === 'en' ? 'Show “Good to know” (install, updates, data)' : '„Gut zu wissen“ anzeigen (Installation, Updates, Daten)')}
+            </button>
+            {testerInfoOpen && <div className="mt-3"><TesterInfoContent /></div>}
           </div>
           <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">
             {settings.language === 'en' ? 'Version' : 'Version'}: {buildDate()}

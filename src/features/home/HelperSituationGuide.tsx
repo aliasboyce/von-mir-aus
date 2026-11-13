@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Phone, AlertTriangle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Phone, AlertTriangle, HeartPulse } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
 import { useRegisterModalOpen } from '../../state/ModalStackContext';
@@ -26,6 +27,7 @@ export function HelperSituationGuide({ onOpenGrounding }: { onOpenGrounding: () 
   const t = useT();
   const { settings } = useSettings();
   const isEn = settings.language === 'en';
+  const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [safety, setSafety] = useState<Safety>(null);
   const [selected, setSelected] = useState<string[]>([]);
@@ -202,6 +204,15 @@ export function HelperSituationGuide({ onOpenGrounding }: { onOpenGrounding: () 
               <Phone size={16} className="flex-shrink-0 mt-0.5" />
               <p className="text-[14px] leading-relaxed font-medium">{t.helperMode.emergencyText}</p>
             </div>
+            <button
+              type="button"
+              onClick={() => { setShowEmergency(false); navigate('/erste-hilfe'); }}
+              data-testid="emergency-firstaid"
+              className="w-full flex items-center justify-center gap-2 py-3.5 mb-2 rounded-[var(--radius-lg)] text-[16px] font-semibold"
+              style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}
+            >
+              <HeartPulse size={19} /> {isEn ? 'First aid steps' : 'Erste-Hilfe-Maßnahmen'}
+            </button>
             <Button fullWidth variant="ghost" onClick={() => setShowEmergency(false)}>
               {t.common.close}
             </Button>

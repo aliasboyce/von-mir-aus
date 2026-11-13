@@ -10,7 +10,7 @@ import type { UserSettings } from '../data/types';
 export type Scope = 'core' | 'plan' | 'all';
 export const scopeOf = (s: Pick<UserSettings, 'scope'>): Scope => s.scope ?? 'all';
 
-const ALWAYS = ['/einstellungen', '/quellen', '/krisenmodus', '/inneres-wetter', '/entdecken/tageskurve', '/entdecken/ressourcen/skill-start', '/tag-beginnen', '/tag-abschliessen', '/nur-jetzt', '/sicherheit/plan'];
+const ALWAYS = ['/einstellungen', '/quellen', '/krisenmodus', '/erste-hilfe', '/inneres-wetter', '/entdecken/tageskurve', '/entdecken/ressourcen/skill-start', '/tag-beginnen', '/tag-abschliessen', '/nur-jetzt', '/sicherheit/plan'];
 const PLAN_EXTRA = ['/sicherheit', '/zugang', '/bruecken', '/entdecken/ressourcen', '/entdecken/medi-log'];
 const starts = (path: string, prefixes: string[]) => prefixes.some((p) => path === p || path.startsWith(p + '/'));
 

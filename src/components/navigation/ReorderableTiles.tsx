@@ -80,7 +80,7 @@ export function ReorderableTiles({ section, tiles, customization, hideReorder }:
             <Card interactive={!editing && !customization?.customizing} className="flex items-center gap-4">
               <div
                 className="w-11 h-11 rounded-[var(--radius-md)] flex items-center justify-center flex-shrink-0"
-                style={{ background: color ? `${color}22` : 'var(--color-primary-soft)', color: color ?? 'var(--color-primary)' }}
+                style={{ background: color ? `color-mix(in srgb, ${color} 30%, var(--color-surface))` : 'var(--color-primary-soft)', color: color ? `color-mix(in srgb, ${color} 55%, var(--color-text))` : 'var(--color-primary)' }}
               >
                 <Icon size={20} />
               </div>

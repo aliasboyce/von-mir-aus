@@ -116,6 +116,17 @@ function migrateNetworkRoles() {
   networkRolesV1.set(true);
 }
 
+const networkAktivitaetV1 = createKeyValueStore<boolean>('migration-network-aktivitaet-v1', false);
+/** „Aktivität“ is its own kind again (own colour): network nodes made from an activity resource follow it. */
+function migrateNetworkAktivitaet() {
+  if (networkAktivitaetV1.get()) return;
+  networkRepo.getAll().forEach((e) => {
+    const linked = e.linkedResourceId ? resourcesRepo.getById(e.linkedResourceId) : undefined;
+    if (linked && linked.category === 'aktivitaeten' && e.category !== 'aktivitaet') networkRepo.save({ ...e, category: 'aktivitaet' });
+  });
+  networkAktivitaetV1.set(true);
+}
+
 const seedSkillsV3 = createKeyValueStore<boolean>('migration-seed-items-are-skills-v3', false);
 
 /** The four starter items (Sanftes Piano, Atem holen, Waldspaziergang,
@@ -335,6 +346,7 @@ export function runStartupMigrations() {
   migrateHilfsmittelAndSkills();
   migrateDiaryReviewFlag();
   migrateNetworkRoles();
+  migrateNetworkAktivitaet();
   migrateSeedItemsToSkills();
   migrateSeedSkillZones();
   migrateSeedSkillFit();

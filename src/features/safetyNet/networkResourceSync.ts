@@ -3,11 +3,12 @@ import { createId } from '../../services/storage/repository';
 import type { Resource } from '../../data/types';
 import { RESOURCE_CATEGORY_TO_GROUP } from '../resources/resourceMeta';
 
-/** The network role a resource belongs to: a skill is a Ressource, a place
- * (category Orte) an Ort, every other tool a Hilfsmittel. */
-export function networkCategoryFor(resource: Resource): 'ressource' | 'hilfsmittel' | 'ort' {
+/** The network role a resource belongs to: a skill is a Fähigkeit (id 'ressource'), a place
+ * (category Orte) an Ort, an activity an Aktivität, every other tool a Hilfsmittel. */
+export function networkCategoryFor(resource: Resource): 'ressource' | 'hilfsmittel' | 'ort' | 'aktivitaet' {
   if (RESOURCE_CATEGORY_TO_GROUP[resource.category] === 'faehigkeiten') return 'ressource';
   if (resource.category === 'orte') return 'ort';
+  if (resource.category === 'aktivitaeten') return 'aktivitaet';
   return 'hilfsmittel';
 }
 

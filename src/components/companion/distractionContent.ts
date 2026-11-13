@@ -1157,6 +1157,12 @@ export const DISTRACTION_ITEMS: DistractionItem[] = [
   { kind: 'frage', text: 'IF YOU FEEL CALMER\n\nWITHOUT THEM, THAT\'S\nTHE ANSWER.', textEn: 'IF YOU FEEL CALMER\n\nWITHOUT THEM, THAT\'S\nTHE ANSWER.' },
   { kind: 'frage', text: 'Ich habe deine Frage gehört.\n\nIch sehe keinen Grund,\nsie zu beantworten.', textEn: 'I heard your question.\n\nI see no reason\nto answer it.' },
   { kind: 'frage', text: 'DANCE\nit\'s\n\ncheaper\nthan\n\ntherapy\n:)', textEn: 'DANCE\nit\'s\n\ncheaper\nthan\n\ntherapy\n:)' },
+  { kind: 'frage', text: 'Ich verstehe,\ndass dir wichtig war,\ndas noch gesagt zu\nhaben.', textEn: 'I understand\nthat it mattered to you\nto have said that.' },
+  { kind: 'frage', text: 'Meine Grenzen sind kein Angriff.', textEn: 'My boundaries are not an attack.' },
+  { kind: 'frage', text: 'Kümmere dich\num dich selbst\nals hinge dein\nLeben davon ab.\n\nDenn das tut es.', textEn: 'Take care\nof yourself\nas if your life\ndepended on it.\n\nBecause it does.' },
+  { kind: 'frage', text: 'Achtsamkeit\nin der\nZweisamkeit\nschützt vor\nEinsamkeit.', textEn: 'Mindfulness\nin togetherness\nprotects against\nloneliness.' },
+  { kind: 'frage', text: 'Ein lebendiges Leben muss nicht laut sein.', textEn: 'A lively life does not have to be loud.' },
+  { kind: 'frage', text: 'Es war nicht fair von\nmir, dich mit der\nVersion, die ich von dir\nin meinem Kopf habe,\nzu vergleichen.', textEn: 'It was not fair of me\nto compare you\nto the version of you\nthat I have in my head.' },
 
   // ---- Bilder ("Überrasch mich"): kommen nur dort zufällig vor ----
   { kind: 'bild', image: '/ablenkung/bild-1.jpg', text: 'Bild: Kauz mit schief gelegtem Kopf – „Yep! Looks like bullshit from this angle too!“', textEn: 'Picture: owl with its head tilted – "Yep! Looks like bullshit from this angle too!"' },
@@ -1168,6 +1174,17 @@ export const DISTRACTION_ITEMS: DistractionItem[] = [
   { kind: 'bild', image: '/ablenkung/bild-7.jpg', text: 'Bild: Lemur mit ausgebreiteten Armen – „I\'m about to lose it lose it“', textEn: 'Picture: lemur with arms spread – "I\'m about to lose it lose it"' },
   { kind: 'bild', image: '/ablenkung/bild-8.jpg', text: 'Bild: Puppe mit roten Federn auf dem Kopf und Schürze, schaut ratlos', textEn: 'Picture: puppet with red feathers on its head and an apron, looking puzzled' },
 
+  { kind: 'bild', image: '/ablenkung/bild-9.jpg', text: 'Bild: dunkler Waldweg – „forest = for rest“', textEn: 'Picture: dark forest path – “forest = for rest”' },
+  { kind: 'bild', image: '/ablenkung/bild-10.jpg', text: 'Bild: kleiner Pinguin läuft allein durch den Sand – „If nobody wants to go with you, go alone“', textEn: 'Picture: a small penguin walking alone through the sand – “If nobody wants to go with you, go alone”' },
+  { kind: 'bild', image: '/ablenkung/bild-11.jpg', text: 'Bild: zerzauste Amsel auf einem Pfahl – „It’s okay to have days that are a little ruffled …“ (© Kelly van Koppenhagen)', textEn: 'Picture: a ruffled blackbird on a post – “It’s okay to have days that are a little ruffled …” (© Kelly van Koppenhagen)' },
+  { kind: 'bild', image: '/ablenkung/bild-12.jpg', text: 'Bild: schlafender Fuchs mit leuchtendem Schmetterling zwischen Blumen – „You are loved“ (Mildryt)', textEn: 'Picture: a sleeping fox with a glowing butterfly among flowers – “You are loved” (Mildryt)' },
+  { kind: 'bild', image: '/ablenkung/bild-13.jpg', text: 'Bild: Bär schläft und hält ein kleines Tier im Arm – „You are loved“ (Mildryt)', textEn: 'Picture: a bear sleeping with a small animal in its arms – “You are loved” (Mildryt)' },
+  { kind: 'bild', image: '/ablenkung/bild-14.jpg', text: 'Bild: Bär und kleiner Wolf schauen nachts zum Mond', textEn: 'Picture: a bear and a little wolf looking at the moon at night' },
+  { kind: 'bild', image: '/ablenkung/bild-15.jpg', text: 'Bild: Schild mit durchgestrichenem Reiter auf Dinosaurier – „I hate it when you see a sign and suddenly your plans are ruined“', textEn: 'Picture: a sign with a crossed-out rider on a dinosaur – “I hate it when you see a sign and suddenly your plans are ruined”' },
+  { kind: 'bild', image: '/ablenkung/bild-16.jpg', text: 'Bild: Notausgang-Schild – „In case of emergency: moonwalk to the exit“', textEn: 'Picture: an emergency exit sign – “In case of emergency: moonwalk to the exit”' },
+  { kind: 'bild', image: '/ablenkung/bild-17.jpg', text: 'Bild: Schild „Tauben nicht füttern“ – „Please don’t season the pigeons“', textEn: 'Picture: a no-feeding sign – “Please don’t season the pigeons”' },
+  { kind: 'bild', image: '/ablenkung/bild-18.jpg', text: 'Bild: durchgestrichenes „History“ – „Today I rewrote history“', textEn: 'Picture: a crossed-out “History”, rewritten below – “Today I rewrote history”' },
+
   // ---- Witze ("Überrasch mich"): zufällig, wie die Bilder ----
   { kind: 'witz', text: 'Der Student geht so lange zur Mensa, bis er bricht.', textEn: 'The student keeps going to the canteen until he breaks. (German pun: “Der Krug geht so lange zum Brunnen, bis er bricht” – the jug goes to the well until it breaks.)' },
   { kind: 'witz', text: 'Wie berechnet man den Inhalt eines Schafes?\nNatürlich mit dem Wollumen.', textEn: 'How do you calculate the content of a sheep?\nWith the wool-ume, of course. (German pun: Wollumen / Volumen.)' },
@@ -1177,6 +1194,7 @@ export const DISTRACTION_ITEMS: DistractionItem[] = [
   { kind: 'witz', text: 'Was sagt man, wenn man 25% von seinem Dach verliert?\nAch.', textEn: 'What do you say when you lose 25% of your roof?\n“Ach.” (German pun: Dach minus ein Viertel = “ach”.)' },
   { kind: 'witz', text: 'In welcher Liga spielen Pilze?\nIn der Champignonsleague!', textEn: 'Which league do mushrooms play in?\nThe Champignons League! (Pun on Champions League.)' },
   { kind: 'witz', text: 'Wenn du dich alleine fühlst, denke daran, dass immer jemand an dich denkt: das Finanzamt.', textEn: 'If you feel alone, remember that someone is always thinking of you: the tax office.' },
+  { kind: 'witz', text: 'Don\'t let anyone else ruin your day.\nIt\'s your day.\nRuin it yourself.', textEn: 'Don\'t let anyone else ruin your day.\nIt\'s your day.\nRuin it yourself.' },
 
   // ---- Small observation tasks ----
   { kind: 'beobachtung', text: 'Schau dich kurz um: Wie viele verschiedene Farben kannst du in den nächsten 10 Sekunden entdecken?', textEn: 'Look around for a moment: how many different colors can you spot in the next 10 seconds?' },

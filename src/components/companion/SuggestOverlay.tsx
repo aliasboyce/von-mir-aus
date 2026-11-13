@@ -83,6 +83,7 @@ export function SuggestOverlay({ onClose }: { onClose: () => void }) {
   const idea = pool[idx];
   const text = en ? idea.en : idea.de;
   const long = text.length > 110;
+  const veryLong = text.length > 260;
 
   return createPortal(
     <div className="fixed inset-0 z-[240] bg-[var(--color-bg)] flex flex-col items-center px-6 py-14 overflow-y-auto animate-in no-print" role="dialog" aria-modal="true" aria-label={en ? INFO_SUGGEST.title.en : INFO_SUGGEST.title.de} data-testid="suggest-overlay">
@@ -103,21 +104,24 @@ export function SuggestOverlay({ onClose }: { onClose: () => void }) {
         </div>
       ) : (
         <>
-          <p data-testid="suggest-line" data-area={idea.area} className={`${long ? 'text-[18px]' : 'text-[22px]'} text-[var(--color-text)] text-center max-w-[320px] leading-snug mt-2 mb-8`} style={{ fontFamily: 'var(--font-companion)', fontWeight: 600 }}>
+          <p data-testid="suggest-line" data-area={idea.area} className={`${veryLong ? 'text-[15.5px] text-left whitespace-pre-line' : long ? 'text-[18px] text-center' : 'text-[22px] text-center'} text-[var(--color-text)] max-w-[320px] leading-snug mt-2 mb-8`} style={{ fontFamily: 'var(--font-companion)', fontWeight: 600 }}>
             {text}
           </p>
           <div className="flex flex-col items-center gap-3 w-full max-w-[290px]">
-            <Link
-              to={idea.to}
-              onClick={() => {
-                triggerHaptic('settle', settings);
-                onClose();
-              }}
-              className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full text-[15px] bg-[var(--color-primary)] text-[var(--color-surface)]"
-              data-testid="suggest-go"
-            >
-              {en ? 'Do it now' : 'Direkt tun'} <ArrowRight size={16} />
-            </Link>
+            {(idea.choices ?? [{ de: 'Direkt tun', en: 'Do it now', to: idea.to }]).map((c, n) => (
+              <Link
+                key={c.to}
+                to={c.to}
+                onClick={() => {
+                  triggerHaptic('settle', settings);
+                  onClose();
+                }}
+                className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full text-[15px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+                data-testid={n === 0 ? 'suggest-go' : `suggest-go-${n}`}
+              >
+                {en ? c.en : c.de} <ArrowRight size={16} />
+              </Link>
+            ))}
             <button onClick={() => setIdx(next())} className="flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]" data-testid="suggest-next">
               <RefreshCw size={14} /> {en ? 'Another idea' : 'Noch eine Idee'}
             </button>

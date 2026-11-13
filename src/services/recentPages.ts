@@ -13,7 +13,7 @@ export const RECENT_CHANGED = 'innerpath:recent-changed';
 const KEEP = 14;
 
 /** Seiten, die hier nicht auftauchen sollen: akute/sensible Bereiche, Einstellungen, Suche, die Startseite selbst */
-const SKIP = ['/sicherheit', '/krisenmodus', '/nur-jetzt', '/zugang', '/einstellungen', '/suche', '/helfermodus', '/inneres-wetter', '/tag-beginnen', '/tag-abschliessen', '/system-karte', '/wochenrueckblick', '/quellen', '/brief', '/entdecken/brief-an-mich'];
+const SKIP = ['/sicherheit', '/krisenmodus', '/nur-jetzt', '/zugang', '/einstellungen', '/suche', '/helfermodus', '/erste-hilfe', '/inneres-wetter', '/tag-beginnen', '/tag-abschliessen', '/system-karte', '/wochenrueckblick', '/quellen', '/brief', '/entdecken/brief-an-mich'];
 const ENTRIES = OVERVIEW_GROUPS.flatMap((g) => g.entries).filter((e) => e.to);
 
 function classify(path: string): { key: string } | null {

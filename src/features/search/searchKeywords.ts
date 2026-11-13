@@ -89,7 +89,7 @@ export const STATIC_FUNCS: StaticFunc[] = [
     emoji: '🔒',
     de: ['App-Sperre (PIN)', 'Die App mit einer PIN vor fremden Blicken schützen.'],
     en: ['App lock (PIN)', 'Protect the app from prying eyes with a PIN.'],
-    to: '/einstellungen?bereich=sprache',
+    to: '/einstellungen?bereich=sicherheit',
     kw: 'sperre pin code passwort schützen sicher lock privatsphäre',
   },
   {
@@ -99,6 +99,14 @@ export const STATIC_FUNCS: StaticFunc[] = [
     en: ['Reminders', 'Set gentle reminders for check-ins, appointments or your own things.'],
     to: '/einstellungen?bereich=erinnerungen',
     kw: 'erinnerung erinnern benachrichtigung push wecker reminder notification',
+  },
+  {
+    id: 'f-erstehilfe',
+    emoji: '🛟',
+    de: ['Erste Hilfe – Schritt für Schritt', 'Prüfen – Rufen – Handeln: Notruf, stabile Seitenlage, Wiederbelebung, Blutung, Schock.'],
+    en: ['First aid – step by step', 'Check – Call – Act: emergency call, recovery position, resuscitation, bleeding, shock.'],
+    to: '/erste-hilfe',
+    kw: 'erste hilfe notfall wiederbelebung reanimation seitenlage herzdruckmassage blutung schock bewusstlos notruf 112 first aid cpr',
   },
   {
     id: 'f-reset',

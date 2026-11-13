@@ -3,6 +3,7 @@ import { QuickExit } from '../features/lock/QuickExit';
 import { WorldAmbiance } from '../features/worlds/WorldAmbiance';
 import { markFirstUse, requestPersistentStorage } from '../services/testSupport';
 import { pendingLetterStore } from '../features/briefAnMich/lettersRepo';
+import { recordUsedCompanion } from '../services/usedCompanions';
 import { useEffect, useRef, useState } from 'react';
 import { useTapPulse } from '../hooks/useTapPulse';
 import { runStartupMigrations } from '../services/migrations';
@@ -88,6 +89,11 @@ export function AppShell() {
     runStartupMigrations();
     return true;
   });
+
+  // Das gewählte Wesen merken – daraus entstehen Begleiter-Sammelkarten im Album.
+  useEffect(() => {
+    if (settings.companionChosen) recordUsedCompanion(settings.selectedBrainId);
+  }, [settings.companionChosen, settings.selectedBrainId]);
 
   // longer real-life use: keep the data safe in the browser and remember since when the app is in use
   useEffect(() => {
@@ -263,6 +269,7 @@ export function AppShell() {
     location.pathname.startsWith('/inneres-wetter') ||
     (location.pathname === '/zugang') ||
     (location.pathname === '/krisenmodus') ||
+    (location.pathname === '/erste-hilfe') ||
     anyModalOpen ||
     settings.tourActive;
   // A hero (large, embedded) companion registers its own presence — see
@@ -283,7 +290,7 @@ export function AppShell() {
   // see ModalStackContext's doc comment for why that would unmount
   // CompanionDock's own child overlays (DistractionOverlay etc.) the
   // instant they open.
-  const hideCompanionDock = heroMounted || settings.tourActive || externalModalOpen;
+  const hideCompanionDock = heroMounted || settings.tourActive || externalModalOpen || location.pathname === '/erste-hilfe';
 
   // First launch, step 1: no choice yet — always "Verlässlich", just ask the
   // person's name. Changing to a different companion is still possible any

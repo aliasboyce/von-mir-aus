@@ -12,8 +12,9 @@ import { ScopePicker } from '../../features/scope/ScopePicker';
 import { Eye, Hand } from 'lucide-react';
 import { InstallGuide } from '../shared/InstallGuide';
 import { TesterThanks } from '../shared/TesterThanks';
-import { isStandalone } from '../../services/testSupport';
+import { isStandalone, TEST_PHASE } from '../../services/testSupport';
 import { StartGuideContent, START_GUIDE_TEXT } from '../shared/StartGuide';
+import { TesterWelcomeContent, TesterInfoContent, TESTER_WELCOME, TESTER_INFO } from '../shared/TesterWelcome';
 
 interface IntroSlide {
   text: string;
@@ -40,6 +41,8 @@ export function IntroFlow() {
   ];
   const [step, setStep] = useState(0);
   const [guideStep, setGuideStep] = useState(false);
+  const [testerStep, setTesterStep] = useState(false);
+  const [testerInfoStep, setTesterInfoStep] = useState(false);
   const [installStep, setInstallStep] = useState(false);
   const [scopeStep, setScopeStep] = useState(false);
   const [tourStep, setTourStep] = useState(false);
@@ -75,7 +78,8 @@ export function IntroFlow() {
   function next() {
     if (isLast) {
       // right after meeting the companion: a short orientation how to start (the app needs individualising), then the install step
-      setGuideStep(true);
+      if (TEST_PHASE) setTesterStep(true);
+      else setGuideStep(true);
       return;
       // Slides are done — hand off to the real, navigating app tour
       // overlay (rendered by AppShell once tourActive is set), landing on
@@ -108,12 +112,58 @@ export function IntroFlow() {
     else setScopeStep(true);
   }
 
+  if (testerStep) {
+    const W = TESTER_WELCOME[settings.language === 'en' ? 'en' : 'de'];
+    return (
+      <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="tester-welcome-step">
+        <div className="flex items-center justify-between mb-5">
+          <button onClick={() => setTesterStep(false)} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+            <ChevronLeft size={20} />
+          </button>
+          <span />
+        </div>
+        <div className="flex-1">
+          <TesterWelcomeContent />
+        </div>
+        <div className="mt-6 flex flex-col gap-2">
+          <Button fullWidth onClick={() => { setTesterStep(false); setTesterInfoStep(true); }} data-testid="tester-welcome-continue">{W.cont}</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (testerInfoStep) {
+    const I = TESTER_INFO[settings.language === 'en' ? 'en' : 'de'];
+    const W = TESTER_WELCOME[settings.language === 'en' ? 'en' : 'de'];
+    return (
+      <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="tester-info-step">
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => { setTesterInfoStep(false); setTesterStep(true); }} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+            <ChevronLeft size={20} />
+          </button>
+          <span />
+        </div>
+        <div className="flex flex-col items-center text-center gap-2 mb-5">
+          <LichtCompanion size="small" />
+          <h1 className="text-[22px] leading-tight">{I.title}</h1>
+          <p className="text-[13px] text-[var(--color-text-faint)] leading-relaxed max-w-[320px]">{I.sub}</p>
+        </div>
+        <div className="flex-1">
+          <TesterInfoContent />
+        </div>
+        <div className="mt-6 flex flex-col gap-2">
+          <Button fullWidth onClick={() => { setTesterInfoStep(false); setGuideStep(true); }} data-testid="tester-info-continue">{W.cont}</Button>
+        </div>
+      </div>
+    );
+  }
+
   if (guideStep) {
     const G = START_GUIDE_TEXT[settings.language === 'en' ? 'en' : 'de'];
     return (
       <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="start-guide-step">
         <div className="flex items-center justify-between mb-6">
-          <button onClick={() => setGuideStep(false)} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+          <button onClick={() => { setGuideStep(false); if (TEST_PHASE) setTesterInfoStep(true); }} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
             <ChevronLeft size={20} />
           </button>
           <span />
@@ -124,7 +174,7 @@ export function IntroFlow() {
           <p className="text-[13px] text-[var(--color-text-faint)] leading-relaxed max-w-[320px]">{G.sub}</p>
         </div>
         <div className="flex-1">
-          <StartGuideContent />
+          <StartGuideContent showTestNote={false} />
         </div>
         <div className="mt-6 flex flex-col gap-2">
           <Button fullWidth onClick={afterGuide} data-testid="start-guide-continue">{G.close}</Button>

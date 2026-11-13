@@ -90,6 +90,8 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
   useRegisterModalOpen(true);
   const isEn = settings.language === 'en';
   const [category, setCategory] = useState<DistractionCategory | null>(null);
+  // „Überrasch mich“: erst der Haftungshinweis, dann geht es los (jedes Mal beim Auswählen)
+  const [surpriseWarning, setSurpriseWarning] = useState(false);
   const [difficulty, setDifficulty] = useState<DistractionDifficulty | null>(null);
   const [puzzleType, setPuzzleType] = useState<'klassisch' | 'kreuzwort' | null>(null);
   const [current, setCurrent] = useState<DistractionItem | null>(null);
@@ -142,6 +144,10 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
     // this reset fixes: switching categories now always re-asks.
     setDifficulty(null);
     setPuzzleType(null);
+    if (cat === 'alles') {
+      setSurpriseWarning(true);
+      return;
+    }
     if (DIFFICULTY_AWARE_CATEGORIES.includes(cat)) {
       // Ask for a difficulty first rather than defaulting silently — the
       // brief specifically wants this to be a real, visible choice.
@@ -322,6 +328,25 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
               {t.companion.distractionChangeCategory}
             </button>
           </div>
+        </div>
+      ) : surpriseWarning ? (
+        <div className="mt-6 w-full max-w-[320px] text-center" data-testid="surprise-warning">
+          <p className="text-[24px] mb-3" aria-hidden="true">🎲</p>
+          <p className="text-[15px] text-[var(--color-text)] leading-relaxed mb-6">
+            {isEn
+              ? 'We accept no liability for fits of laughter, spontaneous outrage, emotional damage, lost lifetime or any other side effects.'
+              : 'Für Lachkrämpfe, spontane Empörung, emotionale Schäden, verlorene Lebenszeit oder sonstige Nebenwirkungen wird keinerlei Haftung übernommen.'}
+          </p>
+          <button
+            onClick={() => { setSurpriseWarning(false); startCategory('alles', null); }}
+            className="w-full px-4 py-3 rounded-[var(--radius-lg)] text-[15px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+            data-testid="surprise-warning-ok"
+          >
+            {isEn ? 'Understood – surprise me' : 'Verstanden – überrasch mich'}
+          </button>
+          <button onClick={() => setSurpriseWarning(false)} className="text-[13px] text-[var(--color-text-faint)] underline mt-4" data-testid="surprise-warning-back">
+            {isEn ? 'Back' : 'Zurück'}
+          </button>
         </div>
       ) : !category ? (
         <div className="mt-6 w-full max-w-[320px]">

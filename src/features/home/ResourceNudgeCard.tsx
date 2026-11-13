@@ -53,7 +53,7 @@ export function ResourceNudgeCard() {
   });
 
   const enabled = settings.resourceNudgeEnabled !== false && settings.brainEnabled && !settings.companionAway && settings.brainState === 'awake';
-  const shows = hash(`show-${slot}`) < 0.8;
+  const shows = true; // always shown (can be dismissed: "Gerade nicht"); comes back with the next time slot
 
   // "Eine andere" must really show a different one: the candidates get a stable order for this
   // time slot and every tap steps one further along (a random re-draw could land on the same one again).

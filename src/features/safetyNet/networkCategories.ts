@@ -1,16 +1,18 @@
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { createRepository } from '../../services/storage/repository';
 import type { ColorPalette, NetworkCategoryConfig } from '../../data/types';
+import { KIND_COLOR, fixedColorForNetworkId } from '../resources/kindColors';
 
-export const BUILT_IN_CATEGORY_IDS = ['person', 'ressource', 'hilfsmittel', 'ort'] as const;
+export const BUILT_IN_CATEGORY_IDS = ['person', 'ressource', 'hilfsmittel', 'ort', 'aktivitaet'] as const;
 
 /** The default, built-in categories — labels come from i18n at render time,
  * these just carry stable ids/icons/isCustom + starting colors. */
 export const DEFAULT_CATEGORIES: NetworkCategoryConfig[] = [
-  { id: 'person', label: 'Person', color: '#8FAF8A', iconKey: 'user', isCustom: false },
-  { id: 'ressource', label: 'Ressource', color: '#D6A788', iconKey: 'bookHeart', isCustom: false },
-  { id: 'hilfsmittel', label: 'Hilfsmittel', color: '#E8C27E', iconKey: 'sparkles', isCustom: false },
-  { id: 'ort', label: 'Ort', color: '#8FB6CE', iconKey: 'mapPin', isCustom: false },
+  { id: 'person', label: 'Person', color: KIND_COLOR.person, iconKey: 'user', isCustom: false },
+  { id: 'ressource', label: 'Fähigkeit', color: KIND_COLOR.faehigkeiten, iconKey: 'bookHeart', isCustom: false },
+  { id: 'hilfsmittel', label: 'Hilfsmittel', color: KIND_COLOR.hilfsmittel, iconKey: 'sparkles', isCustom: false },
+  { id: 'ort', label: 'Ort', color: KIND_COLOR.orte, iconKey: 'mapPin', isCustom: false },
+  { id: 'aktivitaet', label: 'Aktivität', color: KIND_COLOR.aktivitaeten, iconKey: 'bike', isCustom: false },
 ];
 
 /** A soft pastel palette, proposed as the default — gentle enough not to
@@ -83,7 +85,18 @@ export const customPalettesRepo = createRepository<ColorPalette>('network-custom
 export const networkCategoriesStore = {
   get(): NetworkCategoryConfig[] {
     const stored = categoriesStore.get();
-    return stored && stored.length > 0 ? stored : DEFAULT_CATEGORIES;
+    let list = stored && stored.length > 0 ? stored : DEFAULT_CATEGORIES;
+    // „Aktivität“ is a built-in kind of its own again – add it for people whose list was saved earlier
+    if (!list.some((c) => c.id === 'aktivitaet')) {
+      const at = list.findIndex((c) => c.id === 'ort');
+      const act = DEFAULT_CATEGORIES.find((c) => c.id === 'aktivitaet')!;
+      list = at >= 0 ? [...list.slice(0, at + 1), act, ...list.slice(at + 1)] : [...list, act];
+    }
+    // the colours of the built-in kinds are fixed (recognition) – whatever was stored or chosen before
+    return list.map((c) => {
+      const fixed = c.isCustom ? undefined : fixedColorForNetworkId(c.id);
+      return fixed ? { ...c, color: fixed } : c;
+    });
   },
   set(categories: NetworkCategoryConfig[]): void {
     categoriesStore.set(categories);

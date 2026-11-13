@@ -1,6 +1,6 @@
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { createRepository, createId } from '../../services/storage/repository';
-import { networkCategoriesStore } from '../safetyNet/networkCategories';
+import { KIND_COLOR, KIND_OF_CARD } from '../resources/kindColors';
 import { DEFAULT_PREFS, KIND_META, type CardCategory, type CardKind, type CardPrefs, type OwnCard, type Rarity, type ReflexionCard } from './cardTypes';
 
 export const ownCardsRepo = createRepository<OwnCard>('own-cards');
@@ -18,20 +18,17 @@ export function patchPrefs(patch: Partial<CardPrefs>): CardPrefs {
   return next;
 }
 
-/** Farbe einer Kartenart: eigene Wahl, sonst – wo es sie gibt – die Farbe aus dem Netzwerk, sonst Standard. */
+/** Farbe einer Kartenart. Person, Fähigkeit, Aktion (Aktivität), Ausrüstung (Hilfsmittel) und Ort haben feste Farben –
+ * dieselben wie im Netzwerk und auf den Ressourcen-Seiten (Wiedererkennung, nicht änderbar). Die übrigen: eigene Wahl, sonst Standard. */
 export function colorForKind(kind: CardKind, prefs = getPrefs()): string {
+  const fixed = KIND_OF_CARD[kind];
+  if (fixed) return KIND_COLOR[fixed];
   if (prefs.colors[kind]) return prefs.colors[kind]!;
-  try {
-    const net = networkCategoriesStore.get();
-    const fromNet = (id: string) => net.find((c) => c.id === id)?.color;
-    if (kind === 'person') return fromNet('person') ?? KIND_META.person.defaultColor;
-    if (kind === 'ausruestung') return fromNet('hilfsmittel') ?? KIND_META.ausruestung.defaultColor;
-    if (kind === 'ort') return fromNet('ort') ?? KIND_META.ort.defaultColor;
-    if (kind === 'faehigkeit') return fromNet('ressource') ?? KIND_META.faehigkeit.defaultColor;
-  } catch {
-    // Netzwerk-Farben nicht lesbar – Standard
-  }
   return KIND_META[kind].defaultColor;
+}
+/** true, wenn die Farbe dieser Kartenart fest ist */
+export function isFixedKindColor(kind: CardKind): boolean {
+  return !!KIND_OF_CARD[kind];
 }
 
 /** Dauerhafte, fortlaufende Nummer: die erste Karte ist 1. Wer zuerst kommt (nach Anlegedatum), bekommt die kleinere Zahl. */
