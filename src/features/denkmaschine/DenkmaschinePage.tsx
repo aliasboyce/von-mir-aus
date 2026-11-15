@@ -109,7 +109,7 @@ export function DenkmaschinePage() {
         <h1 className="text-[24px] mb-1">{t.glaubenssaetze.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-2 leading-relaxed">{t.glaubenssaetze.subtitle}</p>
 
-        <button onClick={() => setShowNameExplainer((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-5 block">
+        <button onClick={() => setShowNameExplainer((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-5 block hit44">
           {showNameExplainer ? t.glaubenssaetze.hideNameExplainerCta : t.glaubenssaetze.showNameExplainerCta}
         </button>
         {showNameExplainer && (
@@ -205,7 +205,7 @@ export function DenkmaschinePage() {
           </div>
         )}
 
-        <Link to="/entdecken/loslassen" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-6 mb-1">
+        <Link to="/entdecken/loslassen" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-6 mb-1 hit44">
           🕊️ {t.glaubenssaetze.loslassenLink}
         </Link>
         <p className="text-[12px] text-[var(--color-text-faint)] leading-relaxed mb-2">{t.glaubenssaetze.loslassenLinkHint}</p>
@@ -222,7 +222,7 @@ export function DenkmaschinePage() {
           >
             <div className="flex items-start justify-between mb-4">
               <p className="text-[16px] text-[var(--color-text)] flex-1 leading-relaxed whitespace-pre-wrap break-words">"{openNote.text}"</p>
-              <button onClick={() => setOpenNote(null)} aria-label={t.common.close} className="p-1 text-[var(--color-text-faint)] flex-shrink-0">
+              <button onClick={() => setOpenNote(null)} aria-label={t.common.close} className="p-1 text-[var(--color-text-faint)] flex-shrink-0 hit44">
                 <X size={18} />
               </button>
             </div>

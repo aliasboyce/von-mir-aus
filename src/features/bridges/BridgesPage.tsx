@@ -150,7 +150,7 @@ export function BridgesPage() {
       <div className="flex items-start justify-between mb-1">
         <div className="flex items-center gap-2">
           {location.key !== 'default' && (
-            <button onClick={() => goBack(navigate)} aria-label={t.common.back} className="w-8 h-8 -ml-1.5 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)] flex-shrink-0">
+            <button onClick={() => goBack(navigate)} aria-label={t.common.back} className="hit44 w-8 h-8 -ml-1.5 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)] flex-shrink-0">
               <ChevronLeft size={20} />
             </button>
           )}
@@ -221,7 +221,7 @@ export function BridgesPage() {
               </div>
             ))}
             {need && (
-              <button type="button" onClick={() => setFilter('beduerfnis', null)} className="text-[12.5px] text-[var(--color-primary)] self-start">
+              <button type="button" onClick={() => setFilter('beduerfnis', null)} className="text-[12.5px] text-[var(--color-primary)] self-start hit44">
                 {t.bridges.filterClear}
               </button>
             )}

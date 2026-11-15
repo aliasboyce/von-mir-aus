@@ -126,6 +126,37 @@ export function ThemeEffect() {
     document.documentElement.setAttribute('data-simple', settings.simple ? 'true' : 'false');
   }, [settings.simple]);
 
+  // Feinschliff F9: Textgröße
+  useEffect(() => {
+    document.documentElement.setAttribute('data-text-size', settings.textSize ?? 'normal');
+  }, [settings.textSize]);
+
+  // Feinschliff F3: Zwei-Finger-Zoom nur auf Wunsch (Standard bleibt: aus, wie bisher)
+  useEffect(() => {
+    document.documentElement.setAttribute('data-allow-zoom', settings.allowZoom ? 'true' : 'false');
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      meta.setAttribute(
+        'content',
+        settings.allowZoom
+          ? 'width=device-width, initial-scale=1.0, viewport-fit=cover'
+          : 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover',
+      );
+    }
+  }, [settings.allowZoom]);
+
+  // Feinschliff F4: Statusleiste des Handys passt sich der Hintergrundfarbe an
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => {
+      const c = parseColor(getComputedStyle(document.documentElement).getPropertyValue('--color-bg'));
+      if (!c) return;
+      let meta = document.querySelector('meta[name="theme-color"]');
+      if (!meta) { meta = document.createElement('meta'); meta.setAttribute('name', 'theme-color'); document.head.appendChild(meta); }
+      meta.setAttribute('content', toHex(c));
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [settings.palette, settings.themeMode, resolvedTheme, wesenKey, settings.worldPack]);
+
   return null;
 }
 

@@ -72,7 +72,7 @@ export function ZugangReviewPage() {
 
         {patterns.length > 0 && (
           <>
-            <button onClick={() => setShowPatterns((v) => !v)} className="text-[13px] text-[var(--color-primary)] mb-6 block">
+            <button onClick={() => setShowPatterns((v) => !v)} className="text-[13px] text-[var(--color-primary)] mb-6 block hit44">
               {showPatterns ? t.zugang.hidePatternsCta : t.zugang.showPatternsCta}
             </button>
             {showPatterns && (
@@ -292,7 +292,7 @@ export function ZugangReviewPage() {
                     <Link
                       key={v}
                       to={`/entdecken/wertekompass?wert=${encodeURIComponent(v)}`}
-                      className="px-2.5 py-1.5 rounded-full text-[13px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+                      className="px-2.5 py-1.5 rounded-full text-[13px] bg-[var(--color-primary-soft)] text-[var(--color-primary)] hit44"
                     >
                       {v}
                     </Link>

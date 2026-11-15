@@ -56,9 +56,9 @@ export function EmergencyCard({ en }: { en: boolean }) {
             <Phone size={22} className="flex-shrink-0" />
             <span><span className="block text-[17px] font-medium">{L.tel} 0800 111 0 111</span><span className="block text-[13px] text-black/70">{L.telSub}</span></span>
           </a>
-          <p className="px-4 pb-3 -mt-1 text-[14px] text-black/80 flex gap-4 flex-wrap">
-            <a href="tel:08001110222" className="underline underline-offset-2" data-testid="crisis-call-ts2">0800 111 0 222</a>
-            <a href="tel:116123" className="underline underline-offset-2" data-testid="crisis-call-ts3">116 123</a>
+          <p className="px-4 pb-1 -mt-1 text-[14px] text-black/80 flex gap-2 flex-wrap">
+            <a href="tel:08001110222" className="underline underline-offset-2 inline-flex items-center min-h-[44px] px-2 -ml-2" data-testid="crisis-call-ts2">0800 111 0 222</a>
+            <a href="tel:116123" className="underline underline-offset-2 inline-flex items-center min-h-[44px] px-2" data-testid="crisis-call-ts3">116 123</a>
           </p>
         </div>
         <a href="tel:116117" className={row} data-testid="crisis-call-116117">
@@ -66,7 +66,7 @@ export function EmergencyCard({ en }: { en: boolean }) {
           <span><span className="block text-[16px] font-medium">{L.doc}</span><span className="block text-[13px] text-black/70">{L.docSub}</span></span>
         </a>
       </div>
-      <button type="button" onClick={() => setMore((m) => !m)} aria-expanded={more} className="flex items-center gap-1.5 mt-3 text-[14px] text-black/75 underline underline-offset-2" data-testid="crisis-more-numbers">
+      <button type="button" onClick={() => setMore((m) => !m)} aria-expanded={more} className="flex items-center gap-1.5 mt-1 min-h-[44px] text-[14px] text-black/75 underline underline-offset-2" data-testid="crisis-more-numbers">
         <ChevronDown size={16} style={{ transform: more ? 'rotate(180deg)' : undefined }} /> {more ? L.less : L.more}
       </button>
       {more && (

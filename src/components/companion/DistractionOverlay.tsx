@@ -281,7 +281,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
       <button
         onClick={onClose}
         aria-label={t.common.close}
-        className="absolute top-5 right-5 w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+        className="absolute top-5 right-5 w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
         style={{ top: 'max(20px, env(safe-area-inset-top))' }}
       >
         <X size={20} />
@@ -316,7 +316,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
           <div className="flex items-center gap-3 mt-2">
             <button
               onClick={nextCustomItem}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] hit44"
             >
               <RefreshCw size={14} />
               {t.companion.distractionNext}
@@ -375,7 +375,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
           </div>
           <button
             onClick={() => setManageCustomOpen(true)}
-            className="text-[13px] text-[var(--color-primary)] mt-4 block mx-auto"
+            className="text-[13px] text-[var(--color-primary)] mt-4 block mx-auto hit44"
           >
             + {t.customDistraction.createFromPicker}
           </button>
@@ -397,7 +397,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
               </button>
             ))}
           </div>
-          <button onClick={() => setCategory(null)} className="text-[13px] text-[var(--color-text-faint)] underline mt-4 block mx-auto">
+          <button onClick={() => setCategory(null)} className="text-[13px] text-[var(--color-text-faint)] underline mt-4 block mx-auto hit44">
             {t.common.back}
           </button>
         </div>
@@ -418,7 +418,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
               {t.companion.puzzleTypeKreuzwort}
             </button>
           </div>
-          <button onClick={() => setDifficulty(null)} className="text-[13px] text-[var(--color-text-faint)] underline mt-4 block mx-auto">
+          <button onClick={() => setDifficulty(null)} className="text-[13px] text-[var(--color-text-faint)] underline mt-4 block mx-auto hit44">
             {t.common.back}
           </button>
         </div>
@@ -451,7 +451,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
               <button
                 onClick={checkMathAnswer}
                 disabled={mathInput.trim() === ''}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40"
+                className="flex items-center gap-1.5 px-5 py-2 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40 hit44"
               >
                 <Check size={14} />
                 {t.companion.mathCheck}
@@ -505,12 +505,12 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
                     <button
                       onClick={checkFreeText}
                       disabled={!freeTextInput.trim()}
-                      className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40"
+                      className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40 hit44"
                     >
                       {t.companion.checkAnswerCta}
                     </button>
                     {!hintShown && (current.hint || current.hintEn) && (
-                      <button onClick={() => setHintShown(true)} className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
+                      <button onClick={() => setHintShown(true)} className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text)] hit44">
                         {t.companion.hintCta}
                       </button>
                     )}
@@ -546,7 +546,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
                     key={i}
                     onClick={() => pickOption(i)}
                     disabled={quizState === 'correct' || quizState === 'solution'}
-                    className="px-4 py-2.5 rounded-[var(--radius-lg)] text-[14px] text-left"
+                    className="px-4 py-2.5 rounded-[var(--radius-lg)] text-[14px] text-left hit44"
                     style={{
                       background: showState && isCorrect ? 'var(--color-primary-soft)' : isSelected && !isCorrect ? 'var(--color-danger-soft, #fbe4e4)' : 'var(--color-surface-muted)',
                       color: showState && isCorrect ? 'var(--color-primary)' : isSelected && !isCorrect ? 'var(--color-danger)' : 'var(--color-text)',
@@ -609,7 +609,7 @@ export function DistractionOverlay({ onClose }: DistractionOverlayProps) {
       {category && category !== 'sudoku' && category !== 'vokabeln' && puzzleType !== 'kreuzwort' && (
         <button
           onClick={next}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] mt-2"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] mt-2 hit44"
         >
           <RefreshCw size={14} />
           {category === 'rechnen' && mathState === 'active' ? t.companion.mathSkip : t.companion.distractionNext}

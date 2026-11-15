@@ -152,7 +152,7 @@ export function MediLogOverallChart({ medications, width = 320, height = 160, zo
           <button
             onClick={zoomHandlers.zoomIn}
             aria-label={t.mediLog.zoomIn}
-            className="w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
+            className="hit44 w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
           >
             <ZoomIn size={14} />
           </button>
@@ -160,7 +160,7 @@ export function MediLogOverallChart({ medications, width = 320, height = 160, zo
             <button
               onClick={zoomHandlers.reset}
               aria-label={t.mediLog.zoomReset}
-              className="w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
+              className="hit44 w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
             >
               <RotateCcw size={13} />
             </button>

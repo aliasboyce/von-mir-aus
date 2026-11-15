@@ -203,7 +203,7 @@ export function BudgetPiggy() {
           </button>
           <div className="flex justify-center gap-3 mt-4" role="group" aria-label={L('Geld einwerfen', 'Drop money in')}>
             {[1, 2, 5].map((a) => (
-              <button key={a} type="button" onClick={() => drop(a)} className="flex flex-col items-center gap-1 min-w-[72px] py-2 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] active:scale-95 transition-transform" data-testid={`budget-coin-${a}`} aria-label={`${a} ${budgetSettingsStore.get().currency}`}>
+              <button key={a} type="button" onClick={() => drop(a)} className="flex flex-col items-center gap-1 min-w-[72px] py-2 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-border)] active:scale-95 transition-transform hit44" data-testid={`budget-coin-${a}`} aria-label={`${a} ${budgetSettingsStore.get().currency}`}>
                 {a >= 5 ? <span className="w-12 h-7 rounded-md flex items-center justify-center text-[14px] text-[#27583a]" style={{ background: '#9fd3a8', border: '2px solid rgba(0,0,0,.15)' }}>{a}</span> : <span className="w-9 h-9 rounded-full flex items-center justify-center text-[15px] text-[#6b4a05]" style={{ background: '#f2c46d', border: '2px solid rgba(0,0,0,.15)' }}>{a}</span>}
                 <span className="text-[12px] text-[var(--color-text-muted)]">{a} {budgetSettingsStore.get().currency}</span>
               </button>

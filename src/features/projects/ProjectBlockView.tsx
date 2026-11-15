@@ -50,13 +50,13 @@ export function ProjectBlockView({ api, blockId }: { api: ProjectApi; blockId: s
       icon={meta.icon}
       title={b.title || L(meta.de, meta.en)}
       color={KIND_COLOR[b.kind] ?? p.color}
-      right={<button type="button" onClick={() => setMenu(true)} aria-label={L('Mehr', 'More')} className="w-10 h-10 flex items-center justify-center text-[var(--color-text-muted)]" data-testid="block-menu"><Ellipsis size={20} /></button>}
+      right={<button type="button" onClick={() => setMenu(true)} aria-label={L('Mehr', 'More')} className="w-11 h-11 flex items-center justify-center text-[var(--color-text-muted)]" data-testid="block-menu"><Ellipsis size={20} /></button>}
     >
       <div data-testid={`block-${b.kind}`} data-block-id={b.id}>
         {renderBlock(b, props)}
         <div className="mt-4">
           {!noteOpen && !b.note?.trim() ? (
-            <button type="button" onClick={() => setNoteOpen(true)} className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)]" data-testid="block-note-open"><StickyNote size={14} />{L('Notiz dazu', 'Add a note')}</button>
+            <button type="button" onClick={() => setNoteOpen(true)} className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)] hit44" data-testid="block-note-open"><StickyNote size={14} />{L('Notiz dazu', 'Add a note')}</button>
           ) : (
             <div data-testid="block-note">
               <span className="block text-[12px] text-[var(--color-text-muted)] mb-1">{L('Notiz', 'Note')}</span>

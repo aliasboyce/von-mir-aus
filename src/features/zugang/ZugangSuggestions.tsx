@@ -218,7 +218,7 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
               <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{z.myContactsLabel}</p>
               <div className="flex flex-wrap gap-2">
                 {contacts.map((c) => (
-                  <button key={c.id} type="button" onClick={() => setAction(c.name)} className="px-3.5 py-2 rounded-full text-[14px]" style={{ background: action === c.name ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: action === c.name ? 'var(--color-surface)' : 'var(--color-text)' }}>
+                  <button key={c.id} type="button" onClick={() => setAction(c.name)} className="px-3.5 py-2 rounded-full text-[14px] hit44" style={{ background: action === c.name ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: action === c.name ? 'var(--color-surface)' : 'var(--color-text)' }}>
                     {c.name}
                   </button>
                 ))}
@@ -228,7 +228,7 @@ export function ZugangSuggestions({ need, obstacle, connection, bridgeId, setBri
           <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{z.actionExamplesLabel}</p>
           <div className="flex flex-wrap gap-2">
             {ACTION_EXAMPLES_DE.map((a) => (
-              <button key={a} type="button" onClick={() => setAction(a)} className="px-3.5 py-2 rounded-full text-[14px]" style={{ background: action === a ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: action === a ? 'var(--color-surface)' : 'var(--color-text)' }}>
+              <button key={a} type="button" onClick={() => setAction(a)} className="px-3.5 py-2 rounded-full text-[14px] hit44" style={{ background: action === a ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: action === a ? 'var(--color-surface)' : 'var(--color-text)' }}>
                 {a}
               </button>
             ))}

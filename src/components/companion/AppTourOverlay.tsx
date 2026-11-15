@@ -193,7 +193,7 @@ function AppTourInteractive({ onFinish, onPause }: AppTourOverlayProps) {
               <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">
                 {inExtras ? `${L.extra} ${index - CORE_COUNT + 1} ${L.of} ${extrasTotal}` : `${L.core} ${index + 1} ${L.of} ${CORE_COUNT}`}
               </p>
-              <button type="button" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed} className="flex items-center gap-1 text-[12px] text-[var(--color-text-faint)]">
+              <button type="button" onClick={() => setCollapsed((c) => !c)} aria-expanded={!collapsed} className="flex items-center gap-1 text-[12px] text-[var(--color-text-faint)] hit44">
                 {collapsed ? <ChevronUp size={14} /> : <ChevronDown size={14} />} {collapsed ? L.unfold : L.fold}
               </button>
             </div>
@@ -229,7 +229,7 @@ function AppTourInteractive({ onFinish, onPause }: AppTourOverlayProps) {
               </Button>
             </div>
             {inExtras && (
-              <button type="button" onClick={onPause} className="block mx-auto mt-2 text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2" data-testid="tour-pause">
+              <button type="button" onClick={onPause} className="block mx-auto mt-2 text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2 hit44" data-testid="tour-pause">
                 {L.pause}
               </button>
             )}

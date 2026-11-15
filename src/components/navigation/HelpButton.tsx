@@ -43,7 +43,7 @@ export function HelpButton({ helpKey, className }: HelpButtonProps) {
         aria-label={t.common.help}
         className={
           className ??
-          'w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-faint)] hover:bg-[var(--color-surface-muted)] transition-colors'
+          'w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-faint)] hover:bg-[var(--color-surface-muted)] transition-colors'
         }
       >
         <HelpCircle size={19} />

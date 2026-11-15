@@ -44,7 +44,7 @@ export function CardSettingsModal({ onClose }: { onClose: () => void }) {
                   <div className="px-1 pt-2 pb-1 animate-in">
                     <div className="flex flex-wrap gap-1.5">
                       {PALETTE_COLORS.map((c) => (
-                        <button key={c} type="button" onClick={() => setColor(k, c)} aria-label={c} className="w-8 h-8 rounded-full" style={{ background: c, outline: color.toLowerCase() === c.toLowerCase() ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} />
+                        <button key={c} type="button" onClick={() => setColor(k, c)} aria-label={c} className="hit44 w-8 h-8 rounded-full" style={{ background: c, outline: color.toLowerCase() === c.toLowerCase() ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} />
                       ))}
                       <input type="color" value={color.length === 7 ? color : '#999999'} onChange={(e) => setColor(k, e.target.value)} className="w-8 h-8 rounded-full border-0 p-0 bg-transparent" aria-label={L('Eigene Farbe', 'Custom colour')} />
                     </div>
@@ -66,7 +66,7 @@ export function CardSettingsModal({ onClose }: { onClose: () => void }) {
           <div className="flex gap-1.5 flex-wrap mb-3">
             {COVER_STYLES.map((st) => (
               <button key={st.id} type="button" onClick={() => setCover(patchAlbumCover({ style: st.id }))} data-testid={`cover-style-${st.id}`} aria-pressed={cover.style === st.id}
-                className="px-3 py-2 rounded-[var(--radius-md)] text-left text-[13px]"
+                className="px-3 py-2 rounded-[var(--radius-md)] text-left text-[13px] hit44"
                 style={{ background: cover.style === st.id ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', border: `1.5px solid ${cover.style === st.id ? 'var(--color-primary)' : 'transparent'}` }}>
                 <span className="block font-medium">{lang === 'en' ? st.en : st.de}</span>
                 <span className="block text-[11.5px] text-[var(--color-text-muted)]">{lang === 'en' ? st.hintEn : st.hintDe}</span>
@@ -75,7 +75,7 @@ export function CardSettingsModal({ onClose }: { onClose: () => void }) {
           </div>
           <div className="flex flex-wrap gap-1.5 items-center mb-3">
             {COVER_COLORS.map((c) => (
-              <button key={c} type="button" onClick={() => setCover(patchAlbumCover({ color: c }))} aria-label={c} data-testid={`cover-color-${c.slice(1)}`} className="w-8 h-8 rounded-full" style={{ background: c, border: '2px solid rgba(0,0,0,0.12)', outline: cover.color.toLowerCase() === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} />
+              <button key={c} type="button" onClick={() => setCover(patchAlbumCover({ color: c }))} aria-label={c} data-testid={`cover-color-${c.slice(1)}`} className="hit44 w-8 h-8 rounded-full" style={{ background: c, border: '2px solid rgba(0,0,0,0.12)', outline: cover.color.toLowerCase() === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} />
             ))}
             <input type="color" value={cover.color.length === 7 ? cover.color : '#6b3a35'} onChange={(e) => setCover(patchAlbumCover({ color: e.target.value }))} className="w-8 h-8 rounded-full border-0 p-0 bg-transparent" aria-label={L('Eigene Farbe', 'Custom colour')} />
           </div>
@@ -103,7 +103,7 @@ export function CardSettingsModal({ onClose }: { onClose: () => void }) {
             {L(`${prefs.hidden.length} ausgeblendete Karten wieder zeigen`, `Show ${prefs.hidden.length} hidden cards again`)}
           </button>
         )}
-        <button type="button" onClick={onClose} className="self-start px-4 py-2 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">
+        <button type="button" onClick={onClose} className="self-start px-4 py-2 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44">
           {L('Fertig', 'Done')}
         </button>
       </div>

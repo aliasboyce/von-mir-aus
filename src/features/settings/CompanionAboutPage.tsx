@@ -118,7 +118,7 @@ export function CompanionAboutPage() {
             );
           })}
         </div>
-        <Link to="/einstellungen/wesen-inhalte" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-5">
+        <Link to="/einstellungen/wesen-inhalte" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-5 hit44">
           {t.companionAbout.manageContentLink} →
         </Link>
       </div>

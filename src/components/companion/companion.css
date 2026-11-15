@@ -304,6 +304,12 @@
   cursor: pointer;
   padding: 2px;
   margin-top: 1px;
+  position: relative;
+}
+/* F1: unsichtbar größere Tippfläche (44 px) */
+.companion-tip__close::after {
+  content: ''; position: absolute; inset: 50% auto auto 50%;
+  width: 44px; height: 44px; transform: translate(-50%, -50%);
 }
 .companion-tip__close:hover {
   color: var(--color-text);

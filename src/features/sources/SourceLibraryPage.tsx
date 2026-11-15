@@ -70,7 +70,7 @@ export function SourceLibraryPage() {
             setPrinting(true);
             window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation), 50);
           }}
-          className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)] mb-6"
+          className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)] mb-6 hit44"
         >
           <Download size={14} />
           {t.sourceLibrary.exportCta}

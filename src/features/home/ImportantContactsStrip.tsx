@@ -16,7 +16,7 @@ export function ImportantContactsStrip() {
 
   if (important.length === 0) {
     return (
-      <Link to="/sicherheit/kontakte" className="text-[12px] text-[var(--color-primary)] block mb-6 -mt-3" data-testid="important-contacts-setup">
+      <Link to="/sicherheit/kontakte" className="text-[12px] text-[var(--color-primary)] block hit44 mb-6 -mt-3" data-testid="important-contacts-setup">
         {t.home.importantContactsSetup}
       </Link>
     );

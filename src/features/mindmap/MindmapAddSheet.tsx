@@ -17,7 +17,7 @@ const DIGITS = '0123456789'.split('');
 const SIGNS = ['&', '?', '!', '+', '#', '%', '@', '€', '$', '*', '='];
 
 const Tile = ({ icon, label, sub, onClick, testId }: { icon: ReactNode; label: string; sub?: string; onClick: () => void; testId: string }) => (
-  <button type="button" onClick={onClick} className="flex items-center gap-3 text-left rounded-[var(--radius-md)] px-3 py-2.5 bg-[var(--color-surface-muted)] min-w-0" data-testid={testId}>
+  <button type="button" onClick={onClick} className="flex items-center gap-3 text-left rounded-[var(--radius-md)] px-3 py-2.5 bg-[var(--color-surface-muted)] min-w-0 hit44" data-testid={testId}>
     <span className="text-[var(--color-primary)] shrink-0">{icon}</span>
     <span className="min-w-0">
       <span className="block text-[14px] text-[var(--color-text)] leading-tight">{label}</span>
@@ -79,7 +79,7 @@ export function MindmapAddSheet(p: AddSheetProps) {
       <div className="flex flex-col gap-4" data-testid="mm-insert-modal">
         <div data-testid="mm-add-sheet" className="contents" />
         {view !== 'main' && (
-          <button type="button" onClick={() => { setView('main'); setQ(''); }} className="self-start inline-flex items-center gap-1 text-[13.5px] text-[var(--color-primary)]" data-testid="mm-add-back">
+          <button type="button" onClick={() => { setView('main'); setQ(''); }} className="self-start inline-flex items-center gap-1 text-[13.5px] text-[var(--color-primary)] hit44" data-testid="mm-add-back">
             <ChevronLeft size={16} /> {L('Zurück zur Auswahl', 'Back to the choice')}
           </button>
         )}
@@ -91,7 +91,7 @@ export function MindmapAddSheet(p: AddSheetProps) {
             <p className="text-[12.5px] text-[var(--color-text-muted)]">{L('Groß und fett – Schrift und Farbe änderst du danach.', 'Big and bold – change font and colour afterwards.')}</p>
             <div className="flex flex-wrap gap-1.5">
               {[...LETTERS, ...DIGITS, ...SIGNS].map((g) => (
-                <button key={g} type="button" onClick={() => place({ shape: 'sticker', symbol: g, font: 'display', size: 3 })} className="w-10 h-10 rounded-[var(--radius-md)] text-[20px] font-bold border border-[var(--color-border)] text-[var(--color-text)]" style={{ fontFamily: 'Georgia, serif' }} data-testid={`mm-add-glyph-${g}`} aria-label={g}>
+                <button key={g} type="button" onClick={() => place({ shape: 'sticker', symbol: g, font: 'display', size: 3 })} className="w-11 h-11 rounded-[var(--radius-md)] text-[20px] font-bold border border-[var(--color-border)] text-[var(--color-text)]" style={{ fontFamily: 'Georgia, serif' }} data-testid={`mm-add-glyph-${g}`} aria-label={g}>
                   {g}
                 </button>
               ))}
@@ -154,7 +154,7 @@ export function MindmapAddSheet(p: AddSheetProps) {
             <Section title={L('Formen', 'Shapes')}>
               <div className="grid grid-cols-5 gap-1.5">
                 {SHAPES.filter((s) => !['plain', 'frame', 'note'].includes(s.id)).map((s) => (
-                  <button key={s.id} type="button" onClick={() => place({ shape: s.id, round: false }, { edit: 'text' })} className="flex flex-col items-center gap-0.5 rounded-[var(--radius-md)] py-1.5 text-[var(--color-text-muted)] bg-[var(--color-surface-muted)]" data-testid={`mm-add-shape-${s.id}`} aria-label={lang === 'en' ? s.en : s.de}>
+                  <button key={s.id} type="button" onClick={() => place({ shape: s.id, round: false }, { edit: 'text' })} className="flex flex-col items-center gap-0.5 rounded-[var(--radius-md)] py-1.5 text-[var(--color-text-muted)] bg-[var(--color-surface-muted)] hit44" data-testid={`mm-add-shape-${s.id}`} aria-label={lang === 'en' ? s.en : s.de}>
                     <ShapeThumb shape={s.id} active={false} round={false} />
                     <span className="text-[10px] leading-tight text-center">{lang === 'en' ? s.en : s.de}</span>
                   </button>

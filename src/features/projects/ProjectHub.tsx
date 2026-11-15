@@ -78,7 +78,7 @@ function ProjectSlipStrip({ api }: { api: ProjectApi }) {
     <div className="mb-4 flex flex-col gap-1.5" data-testid="hub-slips">
       {list.slice(0, 3).map((n) => {
         const c = slipColor(n);
-        return <button key={n.id} type="button" onClick={() => go('zettel')} className="text-left rounded-[6px] px-3 py-2 text-[13.5px] shadow-sm line-clamp-2" style={{ background: c.bg, color: c.ink }} data-testid="hub-slip">🗒️ {n.text}</button>;
+        return <button key={n.id} type="button" onClick={() => go('zettel')} className="text-left rounded-[6px] px-3 py-2 text-[13.5px] shadow-sm line-clamp-2 hit44" style={{ background: c.bg, color: c.ink }} data-testid="hub-slip">🗒️ {n.text}</button>;
       })}
       {list.length > 3 && <button type="button" onClick={() => go('zettel')} className="text-[12.5px] text-[var(--color-primary)] text-left underline underline-offset-2">{L(`+ ${list.length - 3} weitere Zettel in der Zettel-Box`, `+ ${list.length - 3} more slips in the slip box`)}</button>}
     </div>
@@ -120,7 +120,7 @@ export function ProjectHub({ api, onLooks, onInfos, onShare, onFinish, onAddBloc
         <input className="flex-1 min-w-0 bg-transparent outline-none text-[28px] leading-tight font-medium" value={p.title} placeholder={L('Name des Projekts', 'Project name')} onChange={(e) => update((c) => ({ ...c, title: e.target.value }))} data-testid="project-title" aria-label={L('Name des Projekts', 'Project name')} />
       </div>
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <button type="button" onClick={onInfos} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] border border-[var(--color-border-strong)] text-[var(--color-text-muted)]" data-testid="project-infos">
+        <button type="button" onClick={onInfos} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] border border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44" data-testid="project-infos">
           <Settings2 size={13} />{statusLabel(p.status, L)}{p.end ? ` · ${L('bis', 'until')} ${new Date(`${p.end}T12:00:00`).toLocaleDateString(lang === 'en' ? 'en-US' : 'de-DE', { day: '2-digit', month: '2-digit' })}` : ''}
         </button>
         {p.summary.trim() && <span className="text-[12.5px] text-[var(--color-text-faint)] truncate max-w-[55%]">{p.summary.trim().split('\n')[0]}</span>}
@@ -172,11 +172,11 @@ export function ProjectHub({ api, onLooks, onInfos, onShare, onFinish, onAddBloc
 
       <button type="button" onClick={quickNote} className="w-full mb-2 inline-flex items-center justify-center gap-2 py-3 rounded-full text-[15px] text-white" style={{ background: 'var(--color-primary)' }} data-testid="quicknote-button"><Zap size={17} />{L('Schnellnotiz – gleich festhalten', 'Quick note – catch it right away')}</button>
       <div className="flex gap-2">
-        <button type="button" onClick={onShare} className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[14px]" data-testid="project-share"><FileDown size={16} />{L('Teilen / PDF', 'Share / PDF')}</button>
+        <button type="button" onClick={onShare} className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[14px] hit44" data-testid="project-share"><FileDown size={16} />{L('Teilen / PDF', 'Share / PDF')}</button>
         {p.status !== 'done' ? (
-          <button type="button" onClick={onFinish} className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[14px]" data-testid="project-finish"><CheckCheck size={16} />{L('Abschließen', 'Complete')}</button>
+          <button type="button" onClick={onFinish} className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[14px] hit44" data-testid="project-finish"><CheckCheck size={16} />{L('Abschließen', 'Complete')}</button>
         ) : (
-          <button type="button" onClick={() => update((c) => ({ ...c, status: 'running', closedAt: undefined }))} className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[14px]" data-testid="project-reopen">{L('Wieder öffnen', 'Reopen')}</button>
+          <button type="button" onClick={() => update((c) => ({ ...c, status: 'running', closedAt: undefined }))} className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[14px] hit44" data-testid="project-reopen">{L('Wieder öffnen', 'Reopen')}</button>
         )}
       </div>
       {p.status === 'done' && <p className="text-center text-[13px] mt-3" style={{ color: p.color }} data-testid="project-done-banner">🎉 {L('Geschafft! Das Projekt bleibt gespeichert.', 'Done! The project stays saved.')}</p>}

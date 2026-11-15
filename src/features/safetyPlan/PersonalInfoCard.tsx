@@ -45,7 +45,7 @@ function MedList({
           <div key={m.id} className="rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] p-2.5 flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
               <input className="input" placeholder={T.medName} value={m.name} onChange={(e) => patch(m.id, { name: e.target.value })} />
-              <button type="button" aria-label={T.remove} onClick={() => onChange(items.filter((x) => x.id !== m.id))} className="text-[var(--color-text-faint)] p-1 flex-shrink-0">
+              <button type="button" aria-label={T.remove} onClick={() => onChange(items.filter((x) => x.id !== m.id))} className="text-[var(--color-text-faint)] p-1 flex-shrink-0 hit44">
                 <X size={14} />
               </button>
             </div>
@@ -183,7 +183,7 @@ export function PersonalInfoCard() {
                 <div key={c.id} className="rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] p-2.5 flex flex-col gap-1.5">
                   <div className="flex items-center gap-2">
                     <input className="input" placeholder={T.contactName} value={c.name} onChange={(e) => patchContact(c.id, { name: e.target.value })} />
-                    <button type="button" aria-label={T.remove} onClick={() => update({ contacts: contacts.filter((x) => x.id !== c.id) })} className="text-[var(--color-text-faint)] p-1 flex-shrink-0">
+                    <button type="button" aria-label={T.remove} onClick={() => update({ contacts: contacts.filter((x) => x.id !== c.id) })} className="text-[var(--color-text-faint)] p-1 flex-shrink-0 hit44">
                       <X size={14} />
                     </button>
                   </div>
@@ -211,7 +211,7 @@ export function PersonalInfoCard() {
                   <button
                     key={p.id}
                     type="button"
-                    className="text-[13px] rounded-full px-3 py-1.5 bg-[var(--color-primary-soft)] text-[var(--color-primary-soft-text)]"
+                    className="text-[13px] rounded-full px-3 py-1.5 bg-[var(--color-primary-soft)] text-[var(--color-primary-soft-text)] hit44"
                     onClick={() => {
                       update({ contacts: [...contacts, { id: createId('pcon'), name: p.name, phone: p.phone, email: p.email, fromNetworkId: p.id }] });
                       setPickNet(false);

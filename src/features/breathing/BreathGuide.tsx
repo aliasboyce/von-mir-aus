@@ -350,8 +350,8 @@ export function BreathGuide({ pattern, options, onClose }: { pattern: BreathPatt
           <p className="text-[24px] font-light text-[var(--color-text)] mt-6 mb-2">{L.doneTitle}</p>
           <p className="text-[14px] text-[var(--color-text-muted)] leading-relaxed max-w-[300px] mb-8">{L.doneText}</p>
           <div className="flex gap-3">
-            <button type="button" onClick={() => { setFinished(false); setPaused(false); setRun((n) => n + 1); }} className="px-5 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" data-testid="breath-again">{L.again}</button>
-            <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-full text-[14px] text-white" style={{ background: 'var(--color-primary)' }} data-testid="breath-finish">{L.close}</button>
+            <button type="button" onClick={() => { setFinished(false); setPaused(false); setRun((n) => n + 1); }} className="px-5 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" data-testid="breath-again">{L.again}</button>
+            <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-full text-[14px] text-white hit44" style={{ background: 'var(--color-primary)' }} data-testid="breath-finish">{L.close}</button>
           </div>
         </div>
       )}

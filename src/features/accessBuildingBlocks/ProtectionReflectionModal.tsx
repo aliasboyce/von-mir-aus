@@ -45,9 +45,9 @@ export function ProtectionReflectionModal({ strategy, onClose }: { strategy: str
           <p className="text-[14px] font-medium text-[var(--color-text)] mb-1">{px.moreAltTitle}</p>
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-3 leading-relaxed">{px.moreAltText}</p>
           <div className="flex flex-col gap-2">
-            <button type="button" className="text-left text-[13.5px] px-4 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text)]" onClick={() => { onClose(); setTimeout(() => document.getElementById('neue-schutzstrategien')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }} data-testid="protection-go-new">🛡️ {px.moreAltNew}</button>
-            <button type="button" className="text-left text-[13.5px] px-4 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text)]" onClick={() => go(`/entdecken/garten?alternativeFor=${encodeURIComponent(strategy)}`)} data-testid="protection-go-garden">🌱 {px.moreAltGarden}</button>
-            <button type="button" className="text-left text-[13.5px] px-4 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text)]" onClick={() => go(`/entdecken/routinen/neu?alternativeFor=${encodeURIComponent(strategy)}`)} data-testid="protection-go-routine">🔁 {px.moreAltRoutine}</button>
+            <button type="button" className="text-left text-[13.5px] px-4 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" onClick={() => { onClose(); setTimeout(() => document.getElementById('neue-schutzstrategien')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }} data-testid="protection-go-new">🛡️ {px.moreAltNew}</button>
+            <button type="button" className="text-left text-[13.5px] px-4 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" onClick={() => go(`/entdecken/garten?alternativeFor=${encodeURIComponent(strategy)}`)} data-testid="protection-go-garden">🌱 {px.moreAltGarden}</button>
+            <button type="button" className="text-left text-[13.5px] px-4 py-2.5 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" onClick={() => go(`/entdecken/routinen/neu?alternativeFor=${encodeURIComponent(strategy)}`)} data-testid="protection-go-routine">🔁 {px.moreAltRoutine}</button>
           </div>
         </div>
       ),

@@ -95,7 +95,7 @@ export function MeineEntwicklungPage() {
             <button
               key={p}
               onClick={() => setChartPeriod(p)}
-              className="px-3 py-1.5 rounded-full text-[13px]"
+              className="px-3 py-1.5 rounded-full text-[13px] hit44"
               style={{
                 background: chartPeriod === p ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                 color: chartPeriod === p ? 'var(--color-surface)' : 'var(--color-text-muted)',
@@ -108,14 +108,14 @@ export function MeineEntwicklungPage() {
           <button
             onClick={() => setFullscreen(true)}
             aria-label={t.polyvagal.expandChart}
-            className="w-9 h-9 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center flex-shrink-0"
+            className="w-11 h-11 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center flex-shrink-0"
           >
             <Maximize2 size={15} />
           </button>
           <button
             onClick={() => void exportCurvePdf(chartPeriod, t, locale)}
             aria-label={t.polyvagal.printChartCta}
-            className="w-9 h-9 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center flex-shrink-0"
+            className="w-11 h-11 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center flex-shrink-0"
           >
             <Printer size={15} />
           </button>
@@ -131,7 +131,7 @@ export function MeineEntwicklungPage() {
                 <button
                   onClick={() => setFullscreen(false)}
                   aria-label={t.common.close}
-                  className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+                  className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
                 >
                   <X size={20} />
                 </button>
@@ -141,7 +141,7 @@ export function MeineEntwicklungPage() {
                 <button
                   onClick={() => void exportCurvePdf(chartPeriod, t, locale)}
                   aria-label={t.polyvagal.printChartCta}
-                  className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+                  className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
                 >
                   <Printer size={18} />
                 </button>
@@ -178,7 +178,7 @@ export function MeineEntwicklungPage() {
         </div>
 
         {sortedDays.length === 0 ? (
-          <EmptyState title={t.polyvagal.developmentEmpty} />
+          <EmptyState title={t.polyvagal.developmentEmpty} hint={settings.language === 'en' ? 'One check-in on the day curve is the first point – after that your development appears here.' : 'Ein Check-in auf der Tageskurve ist der erste Punkt – danach erscheint hier dein Verlauf.'} />
         ) : (
           <>
             <div className="flex items-center justify-between mb-3">
@@ -186,7 +186,7 @@ export function MeineEntwicklungPage() {
               <button
                 onClick={() => window.setTimeout(() => triggerPrint(t.common.printStandaloneExplanation, 'daily-reviews'), 50)}
                 aria-label={t.polyvagal.printDailyReviewsCta}
-                className="w-8 h-8 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center flex-shrink-0"
+                className="hit44 w-8 h-8 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center flex-shrink-0"
               >
                 <Printer size={14} />
               </button>

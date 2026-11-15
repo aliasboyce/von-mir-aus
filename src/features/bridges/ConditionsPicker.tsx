@@ -40,7 +40,7 @@ export function ConditionsPicker({ selected, onChange }: { selected: string[]; o
               type="button"
               aria-pressed={isSel}
               onClick={() => onChange(isSel ? selected.filter((id) => id !== c.key) : [...selected, c.key])}
-              className="px-3 py-2 rounded-full text-[13px] flex items-center gap-1.5"
+              className="px-3 py-2 rounded-full text-[13px] flex items-center gap-1.5 hit44"
               style={{
                 background: isSel ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                 color: isSel ? 'var(--color-surface)' : 'var(--color-text)',
@@ -68,7 +68,7 @@ export function ConditionsPicker({ selected, onChange }: { selected: string[]; o
             onBlur={addOwn}
           />
         ) : (
-          <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-1 px-3 py-2 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]">
+          <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-1 px-3 py-2 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44">
             <Plus size={12} /> {t.bridges.conditionsOwnCta}
           </button>
         )}

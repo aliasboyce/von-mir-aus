@@ -77,7 +77,7 @@ export function ProtectionStrategiesReferencePage() {
         <h1 className="text-[24px] mb-1">{t.protectionRef.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-5 leading-relaxed">{t.protectionRef.subtitle}</p>
 
-        <button onClick={() => setShowStrategyExplainer((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
+        <button onClick={() => setShowStrategyExplainer((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block hit44">
           {showStrategyExplainer ? t.protectionRef.hideExplainerCta : t.protectionRef.showExplainerCta}
         </button>
         {showStrategyExplainer && (
@@ -139,7 +139,7 @@ export function ProtectionStrategiesReferencePage() {
           />
         </div>
 
-        <Link to="/entdecken/garten" className="text-[13px] text-[var(--color-primary)] mt-4 block">
+        <Link to="/entdecken/garten" className="text-[13px] text-[var(--color-primary)] mt-4 block hit44">
           🌱 {t.protectionRef.gardenLink} →
         </Link>
 
@@ -173,7 +173,7 @@ export function ProtectionStrategiesReferencePage() {
             ))}
           </div>
 
-          <button onClick={() => setShowObstacleExplainer((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
+          <button onClick={() => setShowObstacleExplainer((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block hit44">
             {showObstacleExplainer ? t.protectionRef.hideExplainerCta : t.protectionRef.showExplainerCta}
           </button>
           {showObstacleExplainer && (
@@ -226,7 +226,7 @@ export function ProtectionStrategiesReferencePage() {
               </div>
             </div>
           ) : (
-            <Link to="/bruecken" className="text-[13px] text-[var(--color-primary)] mt-4 block">
+            <Link to="/bruecken" className="text-[13px] text-[var(--color-primary)] mt-4 block hit44">
               🌉 {t.protectionRef.obstaclesBridgeLink} →
             </Link>
           )}

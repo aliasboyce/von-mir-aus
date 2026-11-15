@@ -74,7 +74,7 @@ export function SchmuggelOverlay({ onClose, autoStart = false }: { onClose: () =
     <div className="fixed inset-0 z-[240] bg-[var(--color-bg)] flex flex-col items-center px-6 py-14 overflow-y-auto animate-in no-print" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute flex gap-2" style={{ top: 'max(20px, env(safe-area-inset-top))', right: 20 }}>
         <WesenInfoButton info={INFO_SCHMUGGEL} />
-        <button onClick={onClose} aria-label={t.common.close} className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center">
+        <button onClick={onClose} aria-label={t.common.close} className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center">
           <X size={20} />
         </button>
       </div>

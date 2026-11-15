@@ -177,7 +177,7 @@ export function PhotoField({ id, onChange, L, label, testId }: { id: string | un
       {url && id ? (
         <div className="relative inline-block">
           <img src={url} alt="" className="max-h-48 rounded-[var(--radius-md)] border border-[var(--color-border)]" data-testid={`${testId}-img`} />
-          <button type="button" onClick={() => { void deleteOwnMedia(id); onChange(undefined); }} className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full bg-[var(--color-surface)] shadow flex items-center justify-center text-[var(--color-danger)]" aria-label={L('Foto entfernen', 'Remove photo')}><Trash2 size={15} /></button>
+          <button type="button" onClick={() => { void deleteOwnMedia(id); onChange(undefined); }} className="absolute top-1.5 right-1.5 hit44 w-8 h-8 rounded-full bg-[var(--color-surface)] shadow flex items-center justify-center text-[var(--color-danger)]" aria-label={L('Foto entfernen', 'Remove photo')}><Trash2 size={15} /></button>
         </div>
       ) : (
         <label className={`${ghostBtn} cursor-pointer`}>
@@ -205,7 +205,7 @@ export function SheetHeader({ title, onClose, L }: { title: string; onClose: () 
   return (
     <div className="flex items-center justify-between mb-3">
       <h2 className="text-[19px]">{title}</h2>
-      <button type="button" onClick={onClose} className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Schließen', 'Close')}><X size={19} /></button>
+      <button type="button" onClick={onClose} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Schließen', 'Close')}><X size={19} /></button>
     </div>
   );
 }
@@ -252,7 +252,7 @@ export function EmojiRow({ value, onChange, L }: { value: string; onChange: (e: 
       <span className="block text-[12.5px] text-[var(--color-text-muted)] mb-1">{L('Symbol', 'Symbol')}</span>
       <div className="flex gap-1.5 overflow-x-auto pb-1">
         {EMOJI_CHOICES.map((e) => (
-          <button key={e} type="button" onClick={() => onChange(e)} className="w-10 h-10 shrink-0 rounded-xl text-[20px] flex items-center justify-center" style={{ background: value === e ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', outline: value === e ? '2px solid var(--color-primary)' : 'none' }} aria-label={e}>{e}</button>
+          <button key={e} type="button" onClick={() => onChange(e)} className="w-11 h-11 shrink-0 rounded-xl text-[20px] flex items-center justify-center" style={{ background: value === e ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', outline: value === e ? '2px solid var(--color-primary)' : 'none' }} aria-label={e}>{e}</button>
         ))}
       </div>
     </div>

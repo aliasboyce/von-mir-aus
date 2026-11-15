@@ -402,7 +402,7 @@ export function NervousSystemReferencePage() {
           </Card>
         )}
 
-        <Link to="/inneres-wetter" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-6">
+        <Link to="/inneres-wetter" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-6 hit44">
           <Activity size={14} /> {t.nervousSystemRef.tageskurveLink}
         </Link>
 

@@ -174,7 +174,7 @@ export function SearchPage() {
               }}
               aria-label={L('Leeren', 'Clear')}
               data-testid="search-clear"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-faint)] hover:bg-[var(--color-surface-muted)]"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-faint)] hover:bg-[var(--color-surface-muted)]"
             >
               <X size={16} />
             </button>

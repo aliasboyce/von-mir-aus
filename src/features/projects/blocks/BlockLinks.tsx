@@ -57,7 +57,7 @@ export function BlockLinks({ block, project, L, onChange }: BlockProps<LinksBloc
                   </span>
                 );
               })}
-              <button type="button" onClick={() => setPicking(k)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]" data-testid={`links-add-${k}`}><Plus size={13} />{L('Verbinden', 'Connect')}</button>
+              <button type="button" onClick={() => setPicking(k)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44" data-testid={`links-add-${k}`}><Plus size={13} />{L('Verbinden', 'Connect')}</button>
             </div>
           </div>
         );

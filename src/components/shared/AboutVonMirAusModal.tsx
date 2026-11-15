@@ -22,7 +22,7 @@ export function AboutVonMirAusModal({ text, onClose }: AboutVonMirAusModalProps)
   return createPortal(
     <div className="fixed inset-0 z-[260] bg-[var(--color-bg)] flex flex-col animate-in no-print" role="dialog" aria-modal="true">
       <div className="flex items-center justify-end px-4 pt-4 pb-2" style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}>
-        <button onClick={onClose} aria-label={t.common.close} className="w-9 h-9 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)]">
+        <button onClick={onClose} aria-label={t.common.close} className="w-11 h-11 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)]">
           <X size={18} />
         </button>
       </div>

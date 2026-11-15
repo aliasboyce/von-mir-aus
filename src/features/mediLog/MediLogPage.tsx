@@ -1,3 +1,4 @@
+import { completionMoment } from '../../services/completionMoment';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -177,6 +178,7 @@ export function MediLogPage() {
   function save() {
     if (!editing || !editing.name.trim()) return;
     mediLogRepo.save({ ...editing, updatedAt: new Date().toISOString() });
+    completionMoment(settings); // Feinschliff F14
     setEditing(null);
     refresh();
     say(pickLine({ page: '*', trigger: 'speichern' }));
@@ -311,21 +313,21 @@ export function MediLogPage() {
           <button
             onClick={() => composeAndOpenDiaryDraft(entry)}
             aria-label={t.mediLog.addToDiary}
-            className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+            className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"
           >
             <NotebookPen size={14} />
           </button>
           <button
             onClick={() => setEditing(entry)}
             aria-label={t.common.edit}
-            className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+            className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"
           >
             <Pencil size={14} />
           </button>
           <button
             onClick={() => remove(entry.id)}
             aria-label={t.common.delete}
-            className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]"
+            className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hit44"
           >
             <Trash2 size={14} />
           </button>
@@ -409,6 +411,11 @@ export function MediLogPage() {
         <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-5">
           {t.mediLog.addNew}
         </Button>
+        <button type="button" onClick={() => setRangeEntryOpen(true)} data-testid="medilog-range-open"
+          className="w-full -mt-3 mb-5 py-2.5 min-h-[44px] rounded-[var(--radius-md)] flex items-center justify-center gap-2 text-[14px] text-[var(--color-primary)] bg-[var(--color-primary-soft)]">
+          <CalendarRange size={16} />
+          {settings.language === 'en' ? 'Enter several days at once' : 'Mehrere Tage auf einmal nachtragen'}
+        </button>
 
         <RecurringConfirmationPrompt pending={pending} onAnswer={handleRecurringAnswer} />
 
@@ -479,14 +486,14 @@ export function MediLogPage() {
                   <button
                     onClick={openOverallPdfRangePicker}
                     aria-label={t.mediLog.exportPdf}
-                    className="p-1 text-[var(--color-text-faint)]"
+                    className="p-1 text-[var(--color-text-faint)] hit44"
                   >
                     <FileDown size={15} />
                   </button>
                   <button
                     onClick={() => setOverallFullscreen(true)}
                     aria-label={t.mediLog.enlargeChart}
-                    className="p-1 text-[var(--color-text-faint)]"
+                    className="p-1 text-[var(--color-text-faint)] hit44"
                   >
                     <Maximize2 size={15} />
                   </button>
@@ -500,7 +507,7 @@ export function MediLogPage() {
                     <button
                       key={m.key}
                       onClick={() => toggleMedicationFilter(m.key)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px]"
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] hit44"
                       style={{
                         background: isMedicationSelected(m.key) ? `${m.color}22` : 'var(--color-surface-muted)',
                         outline: isMedicationSelected(m.key) ? `1.5px solid ${m.color}` : '1px solid transparent',
@@ -522,7 +529,7 @@ export function MediLogPage() {
           <div className="mb-4">
             <button
               onClick={() => setOpenMedication(null)}
-              className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] mb-3"
+              className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] mb-3 hit44"
             >
               <ChevronLeft size={15} />
               {t.mediLog.backToOverview}
@@ -608,14 +615,14 @@ export function MediLogPage() {
                   <button
                     onClick={() => openPdfRangePicker(activeMedication.key, chartEntries)}
                     aria-label={t.mediLog.exportPdf}
-                    className="p-1 text-[var(--color-text-faint)]"
+                    className="p-1 text-[var(--color-text-faint)] hit44"
                   >
                     <FileDown size={15} />
                   </button>
                   <button
                     onClick={() => setChartFullscreen(true)}
                     aria-label={t.mediLog.enlargeChart}
-                    className="p-1 text-[var(--color-text-faint)]"
+                    className="p-1 text-[var(--color-text-faint)] hit44"
                   >
                     <Maximize2 size={15} />
                   </button>
@@ -669,7 +676,7 @@ export function MediLogPage() {
                       key={m.id}
                       type="button"
                       onClick={() => applySavedMedication(m)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px]"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] hit44"
                       style={{
                         background: editing.medicationId === m.id ? m.color : 'var(--color-surface-muted)',
                         color: editing.medicationId === m.id ? '#fff' : 'var(--color-text)',
@@ -811,6 +818,7 @@ export function MediLogPage() {
         onClose={() => setRangeEntryOpen(false)}
         savedMeds={savedMeds}
         recurringMeds={recurring}
+        existing={entries}
         onSaved={() => {
           refresh();
         }}
@@ -893,7 +901,7 @@ export function MediLogPage() {
               <button
                 onClick={() => setOverallFullscreen(false)}
                 aria-label={t.common.close}
-                className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+                className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
               >
                 <X size={20} />
               </button>
@@ -909,7 +917,7 @@ export function MediLogPage() {
                       <button
                         key={m.key}
                         onClick={() => toggleMedicationFilter(m.key)}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px]"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] hit44"
                         style={{
                           background: isMedicationSelected(m.key) ? `${m.color}22` : 'var(--color-surface-muted)',
                           outline: isMedicationSelected(m.key) ? `1.5px solid ${m.color}` : '1px solid transparent',
@@ -938,7 +946,7 @@ export function MediLogPage() {
               <button
                 onClick={() => setChartFullscreen(false)}
                 aria-label={t.common.close}
-                className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+                className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
               >
                 <X size={20} />
               </button>

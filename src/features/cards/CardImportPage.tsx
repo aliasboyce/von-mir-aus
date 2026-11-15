@@ -110,7 +110,7 @@ export function CardImportPage() {
         ) : (
           <div className="flex gap-2 flex-wrap justify-center">
             <Button onClick={() => void accept()} data-testid="card-import-accept">{alreadyHave ? L('Nochmal ins Album', 'Into the album again') : L('In mein Album', 'Into my album')}</Button>
-            <Link to="/sammelalbum" className="px-4 py-2 rounded-full text-[14px] bg-[var(--color-surface-muted)]">{L('Nicht jetzt', 'Not now')}</Link>
+            <Link to="/sammelalbum" className="px-4 py-2 rounded-full text-[14px] bg-[var(--color-surface-muted)] hit44">{L('Nicht jetzt', 'Not now')}</Link>
           </div>
         )}
       </div>

@@ -16,6 +16,40 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-feinschliff',
+    date: '2026',
+    items: [
+      'Größere Tippflächen: Knöpfe und Links lassen sich jetzt leichter treffen (mindestens 44 Pixel), besonders im Krisenmodus.',
+      'Löschen mit „Rückgängig“: nach dem Löschen erscheint kurz ein ruhiger Hinweis, mit dem du es zurückholen kannst.',
+      'Neu in den Einstellungen: Textgröße (Normal, Groß, Sehr groß) und „Zoomen mit zwei Fingern erlauben“ (standardmäßig aus).',
+      'Beim Start wählst du selbst, ob die App Töne und Vibration hat – oder ganz still bleibt.',
+      'Handy: die Statusleiste passt sich deinem Design an, App-Kurzbefehle (Krisenmodus, Einchecken, Medi-Log) auf dem Startbildschirm, ein ruhiger Startbildschirm auf dem iPhone und der Seitentitel zeigt, wo du bist.',
+      'Leere Auswertungen sagen dir, wie es anfängt. Die vier Hauptseiten wechseln etwas flinker. Schatten haben einen Hauch der Farbe deines Designs. Ein sanftes Signal beim Abschließen (Check-in, Medi-Log, Zugang).',
+    ],
+    itemsEn: [
+      'Larger tap targets: buttons and links are easier to hit (at least 44 pixels), especially in crisis mode.',
+      'Delete with “Undo”: after deleting, a calm note appears for a moment so you can bring it back.',
+      'New in settings: text size (Normal, Large, Very large) and “Allow pinch-to-zoom” (off by default).',
+      'At the start you choose yourself whether the app has sounds and vibration – or stays completely quiet.',
+      'Phone: the status bar follows your design, app shortcuts (crisis mode, check-in, medication log) on the home screen, a calm start screen on iPhone, and the page title shows where you are.',
+      'Empty analyses tell you how it begins. The four main pages switch a little quicker. Shadows carry a hint of your design colour. A soft signal when you finish something (check-in, medication log, access).',
+    ],
+  },
+  {
+    id: '2026-medi-zeitraum-sicherung',
+    date: '2026',
+    items: [
+      'Medi-Log: „Mehrere Tage auf einmal nachtragen“ – auch mit unterschiedlicher Dosis pro Tag (⤓ übernimmt eine Dosis für alle folgenden Tage, 🚫 lässt Tage aus, vorhandene Tage werden nicht doppelt angelegt). Ein Fehler, bei dem Zeiträume um einen Tag verschoben waren, ist behoben.',
+      'Datensicherung: Schritt-für-Schritt-Anleitung direkt in Einstellungen → Meine Daten, Anzeige „Letzte Sicherung“, und beim Wiederherstellen siehst du vorher, von wann die Datei ist.',
+      'Im Alltag ist die Stecknadel größer.',
+    ],
+    itemsEn: [
+      'Medication log: “Enter several days at once” – also with a different dose per day (⤓ carries a dose down to all following days, 🚫 skips days, existing days are not duplicated). A bug that shifted ranges by one day is fixed.',
+      'Backup: step-by-step guide right in Settings → My data, “Last backup” display, and before restoring you see which date the file is from.',
+      'The pin in Everyday is bigger.',
+    ],
+  },
+  {
     id: '2026-startseite-sicherheit-pins',
     date: '2026',
     items: [

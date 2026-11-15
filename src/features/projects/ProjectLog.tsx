@@ -45,7 +45,7 @@ export function ProjectLog({ api }: { api: ProjectApi }) {
       <p className="text-[13px] text-[var(--color-text-muted)] mb-3">{L('Alles bekommt automatisch Datum und Uhrzeit. Vieles trägt sich von selbst ein.', 'Everything gets date and time automatically. Much of it enters itself.')}</p>
       <div className="flex flex-wrap gap-1.5 mb-1" role="group" aria-label={L('Was möchtest du eintragen?', 'What do you want to add?')}>
         {adders.map((a) => (
-          <button key={a.id} type="button" onClick={() => setKind(a.id)} aria-pressed={kind === a.id} className="px-3 py-1.5 rounded-full text-[13px] border transition-colors" style={kind === a.id ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'transparent' } : { borderColor: 'var(--color-border-strong)', color: 'var(--color-text-muted)' }} data-testid={`log-kind-${a.id}`}>{a.icon} {L(a.de, a.en)}</button>
+          <button key={a.id} type="button" onClick={() => setKind(a.id)} aria-pressed={kind === a.id} className="px-3 py-1.5 rounded-full text-[13px] border transition-colors hit44" style={kind === a.id ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'transparent' } : { borderColor: 'var(--color-border-strong)', color: 'var(--color-text-muted)' }} data-testid={`log-kind-${a.id}`}>{a.icon} {L(a.de, a.en)}</button>
         ))}
       </div>
       <AddRow placeholder={L(cur.ph[0], cur.ph[1])} onAdd={add} testId="log-add" />
@@ -62,7 +62,7 @@ export function ProjectLog({ api }: { api: ProjectApi }) {
                     <span className="absolute -left-[27px] top-0.5 w-[14px] h-[14px] rounded-full" style={{ background: p.color }} aria-hidden="true" />
                     <span className="text-[11.5px] tabular-nums text-[var(--color-text-faint)] pt-[3px] w-10 shrink-0">{new Date(e.at).toLocaleTimeString(lang === 'en' ? 'en-US' : 'de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
                     <button type="button" disabled={!hasBlock} onClick={() => hasBlock && go(`b/${e.blockId}`)} className="flex-1 min-w-0 text-left text-[14px] leading-snug text-[var(--color-text)] disabled:cursor-default"><span aria-hidden="true">{LOG_ICON[e.kind]} </span>{e.text}</button>
-                    <button type="button" onClick={() => update((c) => ({ ...c, log: (c.log ?? []).filter((x) => x.id !== e.id) }))} className="w-7 h-7 shrink-0 flex items-center justify-center text-[var(--color-text-faint)]" aria-label={L('Eintrag entfernen', 'Remove entry')}><X size={13} /></button>
+                    <button type="button" onClick={() => update((c) => ({ ...c, log: (c.log ?? []).filter((x) => x.id !== e.id) }))} className="hit44 w-7 h-7 shrink-0 flex items-center justify-center text-[var(--color-text-faint)]" aria-label={L('Eintrag entfernen', 'Remove entry')}><X size={13} /></button>
                   </li>
                 );
               })}

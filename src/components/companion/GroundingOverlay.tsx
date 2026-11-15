@@ -95,7 +95,7 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
       <button
         onClick={onClose}
         aria-label={t.common.close}
-        className="absolute top-5 right-5 w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+        className="absolute top-5 right-5 w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
         style={{ top: 'max(20px, env(safe-area-inset-top))' }}
       >
         <X size={20} />
@@ -161,7 +161,7 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
 
       {isLast ? (
         <div className="flex flex-col items-center gap-3">
-          <button onClick={() => setAfterOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">
+          <button onClick={() => setAfterOpen(true)} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44">
             {isEn ? 'What next?' : 'Wie geht es weiter?'}
             <ArrowRight size={14} />
           </button>
@@ -176,7 +176,7 @@ export function GroundingOverlay({ onClose }: GroundingOverlayProps) {
         <>
           <button
             onClick={() => setStep((s) => s + 1)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] hit44"
           >
             {t.companion.pickerContinue}
             <ArrowRight size={14} />

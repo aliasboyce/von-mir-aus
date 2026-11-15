@@ -80,14 +80,14 @@ export function ListsPage() {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-3" data-testid="lists-categories">
           {cats.length > 0 && (
             <>
-              <button type="button" onClick={() => setCatFilter('all')} aria-pressed={activeFilter === 'all'} className="shrink-0 px-3 py-1.5 rounded-full text-[13px] border" style={activeFilter === 'all' ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' } : { borderColor: 'var(--color-border-strong)' }}>{L('Alle', 'All')}</button>
+              <button type="button" onClick={() => setCatFilter('all')} aria-pressed={activeFilter === 'all'} className="shrink-0 px-3 py-1.5 rounded-full text-[13px] border hit44" style={activeFilter === 'all' ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' } : { borderColor: 'var(--color-border-strong)' }}>{L('Alle', 'All')}</button>
               {cats.map((c) => (
-                <button key={c.id} type="button" onClick={() => setCatFilter(c.id)} aria-pressed={activeFilter === c.id} className="shrink-0 px-3 py-1.5 rounded-full text-[13px] border" style={activeFilter === c.id ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' } : { borderColor: 'var(--color-border-strong)' }} data-testid="lists-cat-chip">{c.emoji} {c.name}</button>
+                <button key={c.id} type="button" onClick={() => setCatFilter(c.id)} aria-pressed={activeFilter === c.id} className="shrink-0 px-3 py-1.5 rounded-full text-[13px] border hit44" style={activeFilter === c.id ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' } : { borderColor: 'var(--color-border-strong)' }} data-testid="lists-cat-chip">{c.emoji} {c.name}</button>
               ))}
-              <button type="button" onClick={() => setCatFilter('none')} aria-pressed={activeFilter === 'none'} className="shrink-0 px-3 py-1.5 rounded-full text-[13px] border" style={activeFilter === 'none' ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' } : { borderColor: 'var(--color-border-strong)' }}>{L('Ohne', 'None')}</button>
+              <button type="button" onClick={() => setCatFilter('none')} aria-pressed={activeFilter === 'none'} className="shrink-0 px-3 py-1.5 rounded-full text-[13px] border hit44" style={activeFilter === 'none' ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' } : { borderColor: 'var(--color-border-strong)' }}>{L('Ohne', 'None')}</button>
             </>
           )}
-          <button type="button" onClick={() => setManage(true)} className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] text-[var(--color-primary)]" data-testid="lists-manage-cats"><FolderCog size={15} />{cats.length === 0 ? L('Kategorien anlegen', 'Add categories') : L('Kategorien', 'Categories')}</button>
+          <button type="button" onClick={() => setManage(true)} className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] text-[var(--color-primary)] hit44" data-testid="lists-manage-cats"><FolderCog size={15} />{cats.length === 0 ? L('Kategorien anlegen', 'Add categories') : L('Kategorien', 'Categories')}</button>
         </div>
 
         {live.length === 0 && (

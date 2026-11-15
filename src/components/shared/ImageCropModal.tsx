@@ -161,10 +161,10 @@ export function ImageCropModal({ src, onCancel, onConfirm }: ImageCropModalProps
           aria-label={t.imageCrop.zoomLabel}
         />
         <div className="flex gap-2">
-          <button onClick={onCancel} className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[14px] text-[var(--color-text-muted)] border border-[var(--color-border)]">
+          <button onClick={onCancel} className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[14px] text-[var(--color-text-muted)] border border-[var(--color-border)] hit44">
             {t.common.cancel}
           </button>
-          <button onClick={confirm} className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">
+          <button onClick={confirm} className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44">
             {t.imageCrop.confirmCta}
           </button>
         </div>

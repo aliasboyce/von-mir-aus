@@ -214,7 +214,7 @@ export function HomePage() {
           <div className="flex-1">
             <p className="text-[13px] text-[var(--color-text)]">{dueLetters[0].fromName ? t.briefAnMich.arrivedFromBanner.replace('{name}', dueLetters[0].fromName) : t.briefAnMich.arrivedBanner}</p>
           </div>
-          <button onClick={() => setOpenLetter(dueLetters[0])} className="text-[13px] text-[var(--color-primary)] flex-shrink-0">
+          <button onClick={() => setOpenLetter(dueLetters[0])} className="text-[13px] text-[var(--color-primary)] flex-shrink-0 hit44">
             {t.briefAnMich.tapToOpen}
           </button>
         </Card>
@@ -230,7 +230,7 @@ export function HomePage() {
           <div className="flex-1">
             <p className="text-[13px] text-[var(--color-text)]">{t.briefAnMich.pendingLetterTitle}</p>
           </div>
-          <Link to={`/brief/importieren?d=${pendingToken}`} className="text-[13px] text-[var(--color-primary)] flex-shrink-0">
+          <Link to={`/brief/importieren?d=${pendingToken}`} className="text-[13px] text-[var(--color-primary)] flex-shrink-0 hit44">
             {t.briefAnMich.pendingLetterCta}
           </Link>
         </Card>
@@ -253,12 +253,12 @@ export function HomePage() {
               </button>
             )}
             {m.actionKind === 'link' && m.actionTo && m.actionLabel && (
-              <Link to={m.actionTo} onClick={() => markMailRead(m.id)} className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5">
+              <Link to={m.actionTo} onClick={() => markMailRead(m.id)} className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5 hit44">
                 {m.actionLabel} →
               </Link>
             )}
           </div>
-          <button onClick={() => markMailRead(m.id)} data-sound="close" aria-label={t.postfach.markRead} className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0">
+          <button onClick={() => markMailRead(m.id)} data-sound="close" aria-label={t.postfach.markRead} className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0 hit44">
             <X size={16} />
           </button>
         </Card>
@@ -279,7 +279,7 @@ export function HomePage() {
               setDueCustomReminders((prev) => prev.filter((x) => x.id !== r.id));
             }}
             aria-label={t.home.reminderDismiss}
-            className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0"
+            className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-text)] flex-shrink-0 hit44"
           >
             <X size={16} />
           </button>
@@ -305,7 +305,7 @@ export function HomePage() {
   const rank = (k: string) => (k === 'slip' ? -1 : k === 'letter' ? 0 : k === 'pending' ? 1 : k === 'backup' ? 2 : 3);
   const shownNotices = settings.tourActive ? [] : [...notices].sort((x, y) => rank(x.key) - rank(y.key));
 
-  const chip = 'flex items-center justify-center gap-2 px-3 py-2.5 rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]';
+  const chip = 'flex items-center justify-center gap-2 px-3 py-2.5 min-h-[44px] rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]';
 
   return (
     <div className="px-5 pt-8 pb-6 animate-in relative" data-testid="home-page">
@@ -322,7 +322,7 @@ export function HomePage() {
             to="/suche"
             aria-label={t.common.search}
             data-testid="home-search"
-            className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
           >
             <Search size={20} />
           </Link>
@@ -330,7 +330,7 @@ export function HomePage() {
           <Link
             to="/einstellungen"
             aria-label={t.settings.title}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
           >
             <Settings2 size={20} />
           </Link>
@@ -350,7 +350,7 @@ export function HomePage() {
         <div className="mb-5" data-testid="home-notices">
           <div key={shownNotices[0].key}>{shownNotices[0].node}</div>
           {shownNotices.length > 1 && (
-            <button type="button" onClick={() => setPostfachOpen(true)} className="block mx-auto mt-2 text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2" data-testid="home-more-notices">
+            <button type="button" onClick={() => setPostfachOpen(true)} className="block mx-auto mt-2 text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2 hit44" data-testid="home-more-notices">
               {isEn ? `${shownNotices.length - 1} more in the Postfach` : `${shownNotices.length - 1} weitere im Postfach`}
             </button>
           )}
@@ -375,7 +375,7 @@ export function HomePage() {
             )}
           </Card>
         </Link>
-        <Link to="/entdecken/tageskurve" data-testid="home-to-curve" className="flex items-center justify-center gap-1.5 mt-2.5 mx-auto w-fit px-3 py-1.5 text-[13.5px] text-[var(--color-primary)]">
+        <Link to="/entdecken/tageskurve" data-testid="home-to-curve" className="flex items-center justify-center gap-1.5 mt-1 mx-auto w-fit px-3 min-h-[44px] text-[13.5px] text-[var(--color-primary)]">
           {isEn ? 'To the curve' : 'Zur Kurve'} <span aria-hidden="true">→</span>
         </Link>
         <button
@@ -384,7 +384,7 @@ export function HomePage() {
             setShowWeatherExplainer(true);
           }}
           aria-label={t.weather.explainerCta}
-          className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-faint)] shadow-[var(--shadow-sm)]"
+          className="absolute top-2.5 right-2.5 hit44 w-7 h-7 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-faint)] shadow-[var(--shadow-sm)]"
         >
           <Info size={13} />
         </button>
@@ -420,7 +420,7 @@ export function HomePage() {
 
       {showMore && scope !== 'core' && (<button
         onClick={() => setShowNurJetztExplainer(true)}
-        className="flex items-center justify-center gap-2 mx-auto mt-4 text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2"
+        className="flex items-center justify-center gap-2 mx-auto mt-4 min-h-[44px] text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2"
         data-testid="nurjetzt-entry"
       >
         <Compass size={13} className="flex-shrink-0" />
@@ -428,7 +428,7 @@ export function HomePage() {
       </button>)}
 
       {scope !== 'all' && (
-        <button type="button" onClick={() => setShowScopeModal(true)} className="block mx-auto mt-5 text-[13px] text-[var(--color-primary)] underline underline-offset-2" data-testid="home-show-more">
+        <button type="button" onClick={() => setShowScopeModal(true)} className="block mx-auto mt-5 text-[13px] text-[var(--color-primary)] underline underline-offset-2 hit44" data-testid="home-show-more">
           {isEn ? 'Show more of the app' : 'Mehr von der App zeigen'}
         </button>
       )}
@@ -452,7 +452,7 @@ export function HomePage() {
                   updateSettings({ nurJetztMode: true });
                   setShowNurJetztExplainer(false);
                 }}
-                className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+                className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
               >
                 {t.home.nurJetztStartCta}
               </button>

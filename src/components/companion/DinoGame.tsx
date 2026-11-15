@@ -756,7 +756,7 @@ export function DinoGame({ onClose }: DinoGameProps) {
                 e.stopPropagation();
                 startRun();
               }}
-              className="mt-1 px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+              className="mt-1 px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
             >
               {t.dinoGame.restartCta}
             </button>

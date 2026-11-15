@@ -97,7 +97,7 @@ export function MedicationManagerModal({ open, onClose, onChange, onAddAsRecurri
                   key={c}
                   onClick={() => setEditing({ ...editing, color: c })}
                   aria-label={c}
-                  className="w-9 h-9 rounded-full flex items-center justify-center"
+                  className="w-11 h-11 rounded-full flex items-center justify-center"
                   style={{ background: c, outline: editing.color === c ? '2.5px solid var(--color-text)' : 'none', outlineOffset: 2 }}
                 >
                   {editing.color === c && <Check size={15} color="#fff" />}
@@ -165,10 +165,10 @@ export function MedicationManagerModal({ open, onClose, onChange, onAddAsRecurri
                       </p>
                     )}
                   </div>
-                  <button onClick={() => setEditing(m)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)]">
+                  <button onClick={() => setEditing(m)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)] hit44">
                     <Pencil size={14} />
                   </button>
-                  <button onClick={() => remove(m.id)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)]">
+                  <button onClick={() => remove(m.id)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)] hit44">
                     <Trash2 size={14} />
                   </button>
                 </div>

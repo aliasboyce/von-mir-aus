@@ -42,7 +42,9 @@ import { customPalettesRepo, deleteCustomPalette } from '../../services/customPa
 import { CreatePaletteModal } from '../../components/settings/CreatePaletteModal';
 import type { SupportedLanguage, ThemeMode } from '../../data/types';
 import { customRemindersRepo, type CustomReminder } from '../../services/customReminders';
-import { downloadBackup, importBackup } from '../../services/backup';
+import { downloadBackup, importBackup, parseBackupFile } from '../../services/backup';
+import { lastBackupStore } from '../../services/testSupport';
+import { BackupGuide } from './BackupGuide';
 import { createId } from '../../services/storage/repository';
 import { BUILT_IN_PALETTE_IDS } from '../../data/types';
 import { WesenColorPicker } from '../worlds/WesenColorPicker';
@@ -115,6 +117,7 @@ export function SettingsPage() {
   const [addingReminder, setAddingReminder] = useState(false);
   const backupFileInputRef = useRef<HTMLInputElement>(null);
   const [backupNote, setBackupNote] = useState('');
+  const [lastBackup, setLastBackup] = useState<string | null>(() => lastBackupStore.get());
   const [feedbackCopied, setFeedbackCopied] = useState(false);
   const [quickFbOpen, setQuickFbOpen] = useState(false);
   const [startGuideOpen, setStartGuideOpen] = useState(false);
@@ -498,6 +501,32 @@ export function SettingsPage() {
           </div>
         </Card>
 
+        {/* Feinschliff F9 + F3: Textgröße und Zoom */}
+        <Card className="mb-6" padding="md" data-testid="text-size-card">
+          <p className="text-[14px] font-medium text-[var(--color-text)] mb-2">{settings.language === 'en' ? 'Text size' : 'Textgröße'}</p>
+          <div className="flex gap-2 flex-wrap" role="radiogroup" aria-label={settings.language === 'en' ? 'Text size' : 'Textgröße'}>
+            {([['normal', settings.language === 'en' ? 'Normal' : 'Normal'], ['large', settings.language === 'en' ? 'Large' : 'Groß'], ['xlarge', settings.language === 'en' ? 'Very large' : 'Sehr groß']] as const).map(([id, lab]) => {
+              const on = (settings.textSize ?? 'normal') === id;
+              return (
+                <button key={id} type="button" role="radio" aria-checked={on} data-testid={`text-size-${id}`}
+                  onClick={() => updateSettings({ textSize: id })}
+                  className="px-4 min-h-[44px] rounded-full text-[14px]"
+                  style={{ background: on ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: on ? 'var(--color-surface)' : 'var(--color-text)' }}>
+                  {lab}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-3 pt-3 border-t border-[var(--color-border)]" data-testid="allow-zoom-row">
+            <ToggleRow
+              label={settings.language === 'en' ? 'Allow pinch-to-zoom' : 'Zoomen mit zwei Fingern erlauben'}
+              checked={!!settings.allowZoom}
+              onChange={(v) => updateSettings({ allowZoom: v })}
+            />
+            <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{settings.language === 'en' ? 'Off by default so the view stays steady while scrolling. Switch on if you want to zoom into details.' : 'Standardmäßig aus, damit die Ansicht beim Scrollen ruhig bleibt. Schalte es an, wenn du in Details hineinzoomen willst.'}</p>
+          </div>
+        </Card>
+
         <Card className="mb-6" padding="md">
           <ToggleRow
             label={t.settings.hapticsEnabled}
@@ -622,7 +651,7 @@ export function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => updateSettings({ companionAway: !settings.companionAway })}
-                  className="flex-shrink-0 px-3.5 py-2 rounded-full text-[13px] border border-[var(--color-primary)] text-[var(--color-primary)]"
+                  className="flex-shrink-0 px-3.5 py-2 rounded-full text-[13px] border border-[var(--color-primary)] text-[var(--color-primary)] hit44"
                   data-testid="settings-away-toggle"
                 >
                   {settings.companionAway ? (settings.language === 'en' ? 'Call back' : 'Herbeirufen') : (settings.language === 'en' ? 'Send away' : 'Wegschicken')}
@@ -632,7 +661,7 @@ export function SettingsPage() {
                 <p className="text-[13px] text-[var(--color-text-muted)]">{t.companion.changeCompanion}</p>
                 <button
                   onClick={() => setCreateCompanionOpen(true)}
-                  className="flex items-center gap-1 text-[12px] text-[var(--color-primary)]"
+                  className="flex items-center gap-1 text-[12px] text-[var(--color-primary)] hit44"
                 >
                   <Plus size={13} /> {t.companion.createOwn}
                 </button>
@@ -689,13 +718,13 @@ export function SettingsPage() {
           )}
           <Link
             to="/einstellungen/wesen-inhalte"
-            className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] mt-3"
+            className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] mt-3 hit44"
           >
             <MessageSquareText size={13} /> {t.companionContent.settingsLinkCta}
           </Link>
           <Link
             to="/einstellungen/wesen-info"
-            className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] mt-2"
+            className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] mt-2 hit44"
           >
             <Info size={13} /> {t.companionAbout.settingsLinkCta}
           </Link>
@@ -811,13 +840,13 @@ export function SettingsPage() {
               };
               return (
                 <>
-                  <button onClick={() => updateSettings({ hintMode: 'still' })} aria-pressed={!flags.sound && !flags.vibration} className="rounded-full px-4 py-2 text-[13px] border" style={chip(!flags.sound && !flags.vibration)}>
+                  <button onClick={() => updateSettings({ hintMode: 'still' })} aria-pressed={!flags.sound && !flags.vibration} className="rounded-full px-4 py-2 text-[13px] border hit44" style={chip(!flags.sound && !flags.vibration)}>
                     {t.settings.hintModeStill}
                   </button>
-                  <button onClick={() => choose(!flags.sound, flags.vibration)} aria-pressed={flags.sound} className="rounded-full px-4 py-2 text-[13px] border" style={chip(flags.sound)} data-testid="hint-sound">
+                  <button onClick={() => choose(!flags.sound, flags.vibration)} aria-pressed={flags.sound} className="rounded-full px-4 py-2 text-[13px] border hit44" style={chip(flags.sound)} data-testid="hint-sound">
                     {t.settings.hintModeSound}
                   </button>
-                  <button disabled={!vibrationSupported()} onClick={() => choose(flags.sound, !flags.vibration)} aria-pressed={flags.vibration} className="rounded-full px-4 py-2 text-[13px] border disabled:opacity-40" style={chip(flags.vibration)} data-testid="hint-vibration">
+                  <button disabled={!vibrationSupported()} onClick={() => choose(flags.sound, !flags.vibration)} aria-pressed={flags.vibration} className="rounded-full px-4 py-2 text-[13px] border disabled:opacity-40 hit44" style={chip(flags.vibration)} data-testid="hint-vibration">
                     {t.settings.hintModeVibration}
                   </button>
                 </>
@@ -860,7 +889,7 @@ export function SettingsPage() {
                   key={key}
                   onClick={() => updateSettings({ gentleReminders: key })}
                   aria-pressed={active}
-                  className="rounded-full px-4 py-2 text-[13px] border"
+                  className="rounded-full px-4 py-2 text-[13px] border hit44"
                   style={active ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
                 >
                   {label}
@@ -870,7 +899,7 @@ export function SettingsPage() {
           </div>
           {(settings.gentleReminders ?? 'normal') !== 'off' && (
             <div className="mt-4">
-              <button onClick={exportDailyIcs} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+              <button onClick={exportDailyIcs} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44">
                 <CalendarPlus size={14} /> {t.settings.icsRemindersButton}
               </button>
               <p className="text-[11.5px] leading-relaxed text-[var(--color-text-faint)] mt-1.5">{t.calendar.icsNotice}</p>
@@ -895,7 +924,7 @@ export function SettingsPage() {
                 className="w-5 h-5 accent-[var(--color-primary)] flex-shrink-0"
                 aria-label={r.label}
               />
-              <button onClick={() => removeCustomReminder(r.id)} aria-label={t.common.delete} className="p-1 text-[var(--color-danger)] flex-shrink-0">
+              <button onClick={() => removeCustomReminder(r.id)} aria-label={t.common.delete} className="p-1 text-[var(--color-danger)] flex-shrink-0 hit44">
                 <Trash2 size={15} />
               </button>
             </div>
@@ -917,7 +946,7 @@ export function SettingsPage() {
                   className="input"
                   style={{ width: 110 }}
                 />
-                <button onClick={addCustomReminder} className="flex-1 py-2 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">
+                <button onClick={addCustomReminder} className="flex-1 py-2 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44">
                   {t.common.save}
                 </button>
                 <button onClick={() => setAddingReminder(false)} className="px-3 py-2 text-[13px] text-[var(--color-text-faint)]">
@@ -926,7 +955,7 @@ export function SettingsPage() {
               </div>
             </div>
           ) : (
-            <button onClick={() => setAddingReminder(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] pt-3 border-t border-[var(--color-border)] mt-1 w-full">
+            <button onClick={() => setAddingReminder(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] pt-3 border-t border-[var(--color-border)] mt-1 w-full hit44">
               <Plus size={14} /> {t.settings.addCustomReminderCta}
             </button>
           )}
@@ -971,7 +1000,7 @@ export function SettingsPage() {
               {installOpen && <div className="mt-3"><InstallGuide /></div>}
             </div>
           )}
-          <button type="button" className="mt-3 mr-2 py-2.5 px-4 rounded-[var(--radius-md)] text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" onClick={() => setQuickFbOpen(true)} data-testid="quick-feedback-open">
+          <button type="button" className="mt-3 mr-2 py-2.5 px-4 rounded-[var(--radius-md)] text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" onClick={() => setQuickFbOpen(true)} data-testid="quick-feedback-open">
             💬 {settings.language === 'en' ? 'Quick note to Boycie (one tap)' : 'Kurz was an Boycie melden (ein Tipp)'}
           </button>
           {quickFbOpen && <QuickFeedbackSheet open onClose={() => setQuickFbOpen(false)} />}
@@ -982,7 +1011,7 @@ export function SettingsPage() {
           </p>
           <button
             type="button"
-            className="mt-3 py-2.5 px-4 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+            className="mt-3 py-2.5 px-4 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
             data-testid="feedback-copy"
             onClick={async () => {
               const text = feedbackTemplate(settings.language === 'en');
@@ -1094,7 +1123,7 @@ export function SettingsPage() {
               <li key={pt} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{pt}</li>
             ))}
           </ul>
-          <Link to="/einstellungen/datenschutz" className="flex items-center gap-1 text-[13px] text-[var(--color-primary)]" data-testid="privacy-link">
+          <Link to="/einstellungen/datenschutz" className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] hit44" data-testid="privacy-link">
             {t.settings.privacyOpenCta} <ChevronRight size={14} />
           </Link>
         </Card>
@@ -1116,6 +1145,12 @@ export function SettingsPage() {
               ? 'Included: all your entries, settings, routines and your own photos, videos and sounds (up to about 60 MB). Not included on purpose: the app lock (PIN and security question) – it stays with the device, so the file contains nothing that could help guess it.'
               : 'Dabei sind: alle deine Einträge, Einstellungen, Routinen und deine eigenen Fotos, Videos und Töne (zusammen bis etwa 60 MB). Bewusst nicht dabei: die App-Sperre (PIN und Sicherheitsfrage) – sie bleibt am Gerät, damit in der Datei nichts steckt, das beim Erraten helfen könnte.'}
           </p>
+          <p className="text-[13px] mb-3 text-[var(--color-text)]" data-testid="backup-last">
+            {lastBackup
+              ? (settings.language === 'en' ? 'Last backup: ' : 'Letzte Sicherung: ') + new Date(lastBackup).toLocaleDateString(settings.language === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: 'long', year: 'numeric' })
+              : (settings.language === 'en' ? 'No backup made yet.' : 'Noch keine Sicherung erstellt.')}
+          </p>
+          <BackupGuide />
           <label className="flex items-start gap-2.5 mb-3 cursor-pointer">
             <input type="checkbox" className="mt-0.5" checked={settings.backupReminder !== false} onChange={(e) => updateSettings({ backupReminder: e.target.checked })} data-testid="backup-reminder-toggle" />
             <span className="text-[13px] text-[var(--color-text)]">{settings.language === 'en' ? 'Remind me gently to make a backup (after about a week)' : 'Sanft an eine Sicherung erinnern (nach etwa einer Woche)'}</span>
@@ -1125,6 +1160,7 @@ export function SettingsPage() {
             <button
               onClick={async () => {
                 const sum = await downloadBackup();
+                setLastBackup(lastBackupStore.get());
                 setBackupNote(
                   settings.language === 'en'
                     ? `Backup created: ${sum.keyCount} areas${sum.mediaCount ? `, ${sum.mediaCount} own photos/videos/sounds` : ''}.${sum.mediaSkipped ? ` ${sum.mediaSkipped} large file(s) did not fit and are not included.` : ''}`
@@ -1132,14 +1168,14 @@ export function SettingsPage() {
                 );
               }}
               data-testid="backup-create"
-              className="py-2.5 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+              className="py-2.5 rounded-[var(--radius-md)] text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
             >
               {t.settings.fullBackupCreateCta}
             </button>
             <button
               onClick={() => backupFileInputRef.current?.click()}
               data-testid="backup-restore"
-              className="py-2.5 rounded-[var(--radius-md)] text-[14px] border border-[var(--color-border)] text-[var(--color-text)]"
+              className="py-2.5 rounded-[var(--radius-md)] text-[14px] border border-[var(--color-border)] text-[var(--color-text)] hit44"
             >
               {t.settings.fullBackupRestoreCta}
             </button>
@@ -1152,8 +1188,16 @@ export function SettingsPage() {
                 const file = e.target.files?.[0];
                 e.target.value = '';
                 if (!file) return;
-                if (!window.confirm(t.settings.fullBackupConfirmOverwrite)) return;
                 const text = await file.text();
+                const parsed = parseBackupFile(text);
+                if (!parsed) { window.alert(t.settings.fullBackupRestoreError); return; }
+                const en2 = settings.language === 'en';
+                const when = parsed.exportedAt ? new Date(parsed.exportedAt).toLocaleDateString(en2 ? 'en-GB' : 'de-DE', { day: '2-digit', month: 'long', year: 'numeric' }) : '?';
+                const nMedia = Object.keys(parsed.media ?? {}).length;
+                const summary = en2
+                  ? `This backup is from ${when} (${Object.keys(parsed.data).length} areas${nMedia ? `, ${nMedia} own photos/videos/sounds` : ''}).\n\n`
+                  : `Diese Sicherung ist vom ${when} (${Object.keys(parsed.data).length} Bereiche${nMedia ? `, ${nMedia} eigene Fotos/Videos/Töne` : ''}).\n\n`;
+                if (!window.confirm(summary + t.settings.fullBackupConfirmOverwrite + (en2 ? '\n\nTip: if you are unsure, cancel and create a backup of the current state first.' : '\n\nTipp: Wenn du unsicher bist, brich ab und erstelle zuerst eine Sicherung vom jetzigen Stand.'))) return;
                 const result = await importBackup(text);
                 if (result.ok) {
                   window.alert(
@@ -1385,9 +1429,9 @@ function DayOptionPicker({ phase }: { phase: DayPhase }) {
           <li key={id} className="flex items-center gap-2 rounded-[var(--radius-md)] px-3 py-2 bg-[var(--color-surface-muted)]" data-testid={`day-active-${phase}-${id}`}>
             <span aria-hidden="true">{emojiOf(id)}</span>
             <span className="flex-1 text-[13.5px] text-[var(--color-text)] leading-snug">{label(id)}</span>
-            <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={en ? 'Move up' : 'Nach oben'} className="w-8 h-8 rounded-full text-[15px] disabled:opacity-30">↑</button>
-            <button type="button" onClick={() => move(i, 1)} disabled={i === active.length - 1} aria-label={en ? 'Move down' : 'Nach unten'} className="w-8 h-8 rounded-full text-[15px] disabled:opacity-30">↓</button>
-            <button type="button" onClick={() => remove(id)} aria-label={en ? 'Remove' : 'Entfernen'} data-testid={`day-option-${phase}-${id}`} className="w-8 h-8 rounded-full text-[16px] text-[var(--color-text-muted)]">✕</button>
+            <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={en ? 'Move up' : 'Nach oben'} className="hit44 w-8 h-8 rounded-full text-[15px] disabled:opacity-30">↑</button>
+            <button type="button" onClick={() => move(i, 1)} disabled={i === active.length - 1} aria-label={en ? 'Move down' : 'Nach unten'} className="hit44 w-8 h-8 rounded-full text-[15px] disabled:opacity-30">↓</button>
+            <button type="button" onClick={() => remove(id)} aria-label={en ? 'Remove' : 'Entfernen'} data-testid={`day-option-${phase}-${id}`} className="hit44 w-8 h-8 rounded-full text-[16px] text-[var(--color-text-muted)]">✕</button>
           </li>
         ))}
       </ol>
@@ -1397,7 +1441,7 @@ function DayOptionPicker({ phase }: { phase: DayPhase }) {
           <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{en ? 'Add a door:' : 'Tür hinzufügen:'}</p>
           <div className="flex flex-wrap gap-2 mb-2">
             {available.map((id) => (
-              <button key={id} type="button" onClick={() => add(id)} data-testid={`day-add-${phase}-${id}`} className="rounded-full px-3.5 py-1.5 text-[13px] border" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)' }}>
+              <button key={id} type="button" onClick={() => add(id)} data-testid={`day-add-${phase}-${id}`} className="rounded-full px-3.5 py-1.5 text-[13px] border hit44" style={{ borderColor: 'var(--color-border)', color: 'var(--color-text)' }}>
                 + {emojiOf(id)} {label(id)}
               </button>
             ))}
@@ -1416,17 +1460,17 @@ function DayOptionPicker({ phase }: { phase: DayPhase }) {
             ))}
           </select>
           <div className="flex gap-2">
-            <button type="button" onClick={createDoor} disabled={!draft.title.trim()} className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40" data-testid={`day-custom-save-${phase}`}>{en ? 'Add' : 'Hinzufügen'}</button>
+            <button type="button" onClick={createDoor} disabled={!draft.title.trim()} className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40 hit44" data-testid={`day-custom-save-${phase}`}>{en ? 'Add' : 'Hinzufügen'}</button>
             <button type="button" onClick={() => setDraft(null)} className="px-3 py-2 text-[13px] text-[var(--color-text-muted)]">{en ? 'Cancel' : 'Abbrechen'}</button>
           </div>
         </div>
       ) : (
-        <button type="button" onClick={() => setDraft({ title: '', emoji: '⭐', to: '' })} className="rounded-full px-3.5 py-1.5 text-[13px] border border-dashed text-[var(--color-primary)]" style={{ borderColor: 'var(--color-border-strong)' }} data-testid={`day-custom-new-${phase}`}>
+        <button type="button" onClick={() => setDraft({ title: '', emoji: '⭐', to: '' })} className="rounded-full px-3.5 py-1.5 text-[13px] border border-dashed text-[var(--color-primary)] hit44" style={{ borderColor: 'var(--color-border-strong)' }} data-testid={`day-custom-new-${phase}`}>
           + {en ? 'Own door' : 'Eigene Tür'}
         </button>
       )}
       {!isDefault && (
-        <button type="button" onClick={() => updateSettings(phase === 'start' ? { dayStartOptions: undefined } : { dayEndOptions: undefined })} className="block mt-3 text-[12.5px] text-[var(--color-text-muted)] underline underline-offset-2" data-testid={`day-reset-${phase}`}>
+        <button type="button" onClick={() => updateSettings(phase === 'start' ? { dayStartOptions: undefined } : { dayEndOptions: undefined })} className="block mt-3 text-[12.5px] text-[var(--color-text-muted)] underline underline-offset-2 hit44" data-testid={`day-reset-${phase}`}>
           {en ? 'Back to the preset' : 'Zurück zur Voreinstellung'}
         </button>
       )}

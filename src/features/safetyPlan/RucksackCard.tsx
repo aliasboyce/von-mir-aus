@@ -65,7 +65,7 @@ export function RucksackCard() {
                 <details>
                   <summary className="text-[13px] text-[var(--color-primary)] cursor-pointer py-1">{L('Ideen, was hineinkönnte', 'Ideas for what could go in')}</summary>
                   <div className="flex gap-1.5 flex-wrap mt-2">
-                    {suggestions.map((s) => <button key={s.de} type="button" onClick={() => addRucksackItem(L(s.de, s.en))} className="px-3 py-1.5 rounded-full text-[12.5px] border border-[var(--color-border-strong)] text-[var(--color-text-muted)]" data-testid="rucksack-suggestion">+ {L(s.de, s.en)}</button>)}
+                    {suggestions.map((s) => <button key={s.de} type="button" onClick={() => addRucksackItem(L(s.de, s.en))} className="px-3 py-1.5 rounded-full text-[12.5px] border border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44" data-testid="rucksack-suggestion">+ {L(s.de, s.en)}</button>)}
                   </div>
                 </details>
               )}
@@ -85,7 +85,7 @@ export function RucksackCard() {
                   <button type="button" onClick={() => setConfirmRemove(false)} className="underline underline-offset-2">{L('Nein', 'No')}</button>
                 </div>
               ) : (
-                <button type="button" onClick={() => setConfirmRemove(true)} className="self-start text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2">{L('Nicht mehr beim Sicherheitsplan', 'Not part of the safety plan any more')}</button>
+                <button type="button" onClick={() => setConfirmRemove(true)} className="self-start text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2 hit44">{L('Nicht mehr beim Sicherheitsplan', 'Not part of the safety plan any more')}</button>
               )}
             </>
           )}

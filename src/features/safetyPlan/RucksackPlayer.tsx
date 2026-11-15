@@ -49,7 +49,7 @@ export function RucksackPlayer({ onClose, onFinished }: { onClose: () => void; o
           <ChevronLeft size={18} />{done || idx === 0 ? L('Schließen', 'Close') : L('Zurück', 'Back')}
         </button>
         <span className="text-[13px] text-[var(--color-text-muted)]">{items.length > 0 && !done ? `${idx + 1} / ${items.length}` : ''}</span>
-        <button type="button" onClick={onClose} className="w-10 h-10 flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Beenden (Stand bleibt gespeichert)', 'Stop (progress stays saved)')}><X size={20} /></button>
+        <button type="button" onClick={onClose} className="w-11 h-11 flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Beenden (Stand bleibt gespeichert)', 'Stop (progress stays saved)')}><X size={20} /></button>
       </div>
       <div className="mx-5 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--color-surface-muted)' }} aria-hidden>
         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${items.length ? ((done ? items.length : idx) / items.length) * 100 : 0}%`, background: 'var(--color-primary)' }} />

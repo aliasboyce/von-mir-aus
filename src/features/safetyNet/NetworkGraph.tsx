@@ -498,7 +498,7 @@ export function NetworkGraph({
               onClick={b.run}
               aria-label={b.label}
               data-testid={`network-zoom-${b.id}`}
-              className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]"
+              className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]"
             >
               {b.icon}
             </button>

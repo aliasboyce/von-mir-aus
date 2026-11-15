@@ -21,7 +21,7 @@ interface BackupMedia {
   type: string;
   dataUrl: string;
 }
-interface BackupFile {
+export interface BackupFile {
   app: 'von-mir-aus';
   version?: number;
   exportedAt: string;

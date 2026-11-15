@@ -389,7 +389,7 @@ export function GardenPage({ embedded = false }: { embedded?: boolean }) {
           <h1 className="text-[24px] mb-1 text-center">{t.garden.title}</h1>
         )}
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1 text-center">{t.garden.subtitle}</p>
-        <Link to="/entdecken/schutzstrategien" className="text-[12px] text-[var(--color-primary)] block text-center mb-1">
+        <Link to="/entdecken/schutzstrategien" className="text-[12px] text-[var(--color-primary)] block text-center mb-1 hit44">
           {t.garden.patternExplainerLink}
         </Link>
         <p className="text-[12px] text-[var(--color-text-faint)] mb-5 text-center">{t.garden.growsOncePerDayNote}</p>
@@ -406,7 +406,7 @@ export function GardenPage({ embedded = false }: { embedded?: boolean }) {
           </div>
         </Card>
 
-        <button onClick={() => setPreviewOpen(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-6">
+        <button onClick={() => setPreviewOpen(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-6 hit44">
           <Eye size={14} /> {t.garden.previewCta}
         </button>
 
@@ -470,12 +470,12 @@ export function GardenPage({ embedded = false }: { embedded?: boolean }) {
                           <button
                             onClick={() => togglePause(e)}
                             aria-label={e.status === 'paused' ? t.garden.resume : t.garden.pause}
-                            className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+                            className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"
                           >
                             {e.status === 'paused' ? <Play size={15} /> : <Pause size={15} />}
                           </button>
                         )}
-                        <button onClick={() => remove(e.id)} aria-label={t.common.delete} className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]">
+                        <button onClick={() => remove(e.id)} aria-label={t.common.delete} className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hit44">
                           <Trash2 size={15} />
                         </button>
                       </div>
@@ -496,10 +496,10 @@ export function GardenPage({ embedded = false }: { embedded?: boolean }) {
 
                     {e.kind === 'veraenderung' ? (
                       <div className="flex gap-2 mt-2">
-                        <button onClick={() => setConfirmResetId(e.id)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)]">
+                        <button onClick={() => setConfirmResetId(e.id)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)] hit44">
                           <RotateCcw size={13} /> {t.garden.reset}
                         </button>
-                        <button onClick={() => endEntry(e)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-text-faint)]">
+                        <button onClick={() => endEntry(e)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-text-faint)] hit44">
                           <X size={13} /> {t.garden.end}
                         </button>
                       </div>
@@ -612,7 +612,7 @@ export function GardenPage({ embedded = false }: { embedded?: boolean }) {
                       <button
                         key={day}
                         onClick={() => setNewWeekday(day)}
-                        className="px-3 py-1.5 rounded-full text-[13px]"
+                        className="px-3 py-1.5 rounded-full text-[13px] hit44"
                         style={{
                           background: newWeekday === day ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                           color: newWeekday === day ? 'var(--color-surface)' : 'var(--color-text)',
@@ -681,7 +681,7 @@ export function GardenPage({ embedded = false }: { embedded?: boolean }) {
                               <button
                                 onClick={() => setNewDailyTargetTimes(newDailyTargetTimes.filter((_, idx) => idx !== i))}
                                 aria-label={t.common.delete}
-                                className="p-1.5 text-[var(--color-danger)]"
+                                className="p-1.5 text-[var(--color-danger)] hit44"
                               >
                                 <X size={14} />
                               </button>
@@ -690,7 +690,7 @@ export function GardenPage({ embedded = false }: { embedded?: boolean }) {
                         ))}
                         <button
                           onClick={() => setNewDailyTargetTimes([...newDailyTargetTimes, '12:00'])}
-                          className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] w-fit"
+                          className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] w-fit hit44"
                         >
                           <Plus size={13} /> {t.garden.addTime}
                         </button>

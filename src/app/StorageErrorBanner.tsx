@@ -29,7 +29,7 @@ export function StorageErrorBanner() {
     >
       <AlertTriangle size={18} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--color-accent-clay)' }} />
       <p className="text-[13px] text-[var(--color-text)] leading-relaxed flex-1">{t.common.storageErrorText}</p>
-      <button onClick={() => setVisible(false)} aria-label={t.common.close} className="p-1 text-[var(--color-text-faint)] flex-shrink-0">
+      <button onClick={() => setVisible(false)} aria-label={t.common.close} className="p-1 text-[var(--color-text-faint)] flex-shrink-0 hit44">
         <X size={16} />
       </button>
     </div>

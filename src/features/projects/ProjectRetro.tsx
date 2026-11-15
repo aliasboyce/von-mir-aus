@@ -275,7 +275,7 @@ export function ProjectRetro({ api, onShare, onReopen }: { api: ProjectApi; onSh
               <div key={i}>
                 <div className="flex items-start gap-2">
                   <p className="flex-1 text-[14.5px] leading-snug" data-testid={`retro-q-${i}`}>{i + 1}. {q}</p>
-                  <button type="button" onClick={() => { const nq = qs.map((x, k) => (k === i ? nextQuestion(i, x, L) : x)); setQs(nq); persist(nq, as); }} className="shrink-0 inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text-muted)]" data-testid={`retro-swap-${i}`}><RefreshCw size={12} />{L('andere Frage', 'other question')}</button>
+                  <button type="button" onClick={() => { const nq = qs.map((x, k) => (k === i ? nextQuestion(i, x, L) : x)); setQs(nq); persist(nq, as); }} className="shrink-0 inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44" data-testid={`retro-swap-${i}`}><RefreshCw size={12} />{L('andere Frage', 'other question')}</button>
                 </div>
                 <textarea className="input mt-1.5" rows={3} value={as[i] ?? ''} onChange={(e) => { const na = as.map((x, k) => (k === i ? e.target.value : x)); setAs(na); persist(qs, na); }} placeholder={L('Was kommt dir dazu?', 'What comes to mind?')} aria-label={q} data-testid={`retro-a-${i}`} />
               </div>
@@ -286,7 +286,7 @@ export function ProjectRetro({ api, onShare, onReopen }: { api: ProjectApi; onSh
 
         <div className="flex flex-col gap-2">
           <button type="button" onClick={onShare} className="inline-flex items-center justify-center gap-2 py-3 rounded-full text-white text-[15px]" style={{ background: 'var(--color-primary)' }} data-testid="retro-pdf"><FileDown size={17} />{L('Rückblick als PDF / teilen', 'Looking back as PDF / share')}</button>
-          <button type="button" onClick={() => go('alles')} className="py-2.5 rounded-full border border-[var(--color-border-strong)] text-[14px]" data-testid="retro-all">{L('Alles im Detail ansehen', 'See everything in detail')}</button>
+          <button type="button" onClick={() => go('alles')} className="py-2.5 rounded-full border border-[var(--color-border-strong)] text-[14px] hit44" data-testid="retro-all">{L('Alles im Detail ansehen', 'See everything in detail')}</button>
           <button type="button" onClick={onReopen} className="py-2 text-[13px] text-[var(--color-text-muted)] underline" data-testid="retro-reopen">{L('Doch noch nicht fertig? Projekt wieder öffnen', 'Not finished after all? Reopen the project')}</button>
         </div>
       </div>

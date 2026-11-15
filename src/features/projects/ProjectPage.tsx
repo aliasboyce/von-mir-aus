@@ -192,7 +192,7 @@ export function ProjectPage() {
       <Modal open={adding} onClose={() => setAdding(false)} title={L('Seite hinzufügen', 'Add a page')} subtitle={L('Was braucht dein Projekt gerade?', 'What does your project need right now?')}>
         <div className="flex flex-col gap-2" data-testid="project-block-picker">
           {BLOCK_META.filter((m) => !(m.kind === 'team' && hasTeam)).map((m) => (
-            <button key={m.kind} type="button" onClick={() => addBlock(m.kind)} className="flex items-start gap-3 text-left rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2.5" data-testid={`add-block-${m.kind}`}>
+            <button key={m.kind} type="button" onClick={() => addBlock(m.kind)} className="flex items-start gap-3 text-left rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2.5 hit44" data-testid={`add-block-${m.kind}`}>
               <span className="text-[20px]" aria-hidden="true">{m.icon}</span>
               <span><span className="block text-[14.5px] text-[var(--color-text)]">{L(m.de, m.en)}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L(m.subDe, m.subEn)}</span></span>
             </button>
@@ -214,13 +214,13 @@ export function ProjectPage() {
           {PROJECT_EMOJI_GROUPS.map((g) => (
             <div key={g.id}>
               <p className="text-[12px] text-[var(--color-text-muted)] mb-1">{L(g.de, g.en)}</p>
-              <div className="flex flex-wrap gap-1.5">{g.items.map((e) => <button key={e} type="button" onClick={() => update((c) => ({ ...c, emoji: e, image: undefined }))} aria-pressed={p.emoji === e && !p.image} className="w-10 h-10 rounded-xl text-[22px] border" style={{ borderColor: p.emoji === e && !p.image ? p.color : 'var(--color-border)', background: p.emoji === e && !p.image ? `${p.color}22` : 'transparent' }}>{e}</button>)}</div>
+              <div className="flex flex-wrap gap-1.5">{g.items.map((e) => <button key={e} type="button" onClick={() => update((c) => ({ ...c, emoji: e, image: undefined }))} aria-pressed={p.emoji === e && !p.image} className="w-11 h-11 rounded-xl text-[22px] border" style={{ borderColor: p.emoji === e && !p.image ? p.color : 'var(--color-border)', background: p.emoji === e && !p.image ? `${p.color}22` : 'transparent' }}>{e}</button>)}</div>
             </div>
           ))}
           <div>
             <p className="text-[12px] text-[var(--color-text-muted)] mb-1">{L('Farbe', 'Colour')}</p>
             <div className="flex flex-wrap gap-2 items-center">
-              {PROJECT_COLORS.map((c) => <button key={c} type="button" onClick={() => update((cur) => ({ ...cur, color: c }))} aria-label={c} aria-pressed={p.color === c} className="w-9 h-9 rounded-full" style={{ background: c, outline: p.color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} />)}
+              {PROJECT_COLORS.map((c) => <button key={c} type="button" onClick={() => update((cur) => ({ ...cur, color: c }))} aria-label={c} aria-pressed={p.color === c} className="w-11 h-11 rounded-full" style={{ background: c, outline: p.color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} />)}
               <label className="inline-flex items-center gap-1.5 text-[12.5px] text-[var(--color-text-muted)] ml-1">
                 <input type="color" value={/^#[0-9a-f]{6}$/i.test(p.color) ? p.color : '#4a8f9e'} onChange={(e) => update((cur) => ({ ...cur, color: e.target.value }))} className="w-9 h-9 rounded-full border-0 p-0 bg-transparent" aria-label={L('Eigene Farbe wählen', 'Pick your own colour')} data-testid="looks-color-custom" />
                 {L('eigene Farbe', 'own colour')}

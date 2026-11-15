@@ -64,7 +64,7 @@ export function AchievementSection() {
   return (
     // Zum Ausklappen: standardmäßig zu, damit die Startseite ruhig bleibt; aufgeklappt gibt es Eingabe und die heutigen Einträge.
     <div className="mb-6 rounded-[var(--radius-lg)] px-4 py-3" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }} data-testid="achievement-section">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="w-full flex items-center justify-between gap-2 text-left" data-testid="achievement-toggle">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="w-full flex items-center justify-between gap-2 text-left min-h-[44px] -my-2" data-testid="achievement-toggle">
         <span className="flex items-center gap-1.5 text-[14px] font-medium text-[var(--color-text)]">
           <Sparkles size={15} className="text-[var(--color-accent-clay)]" />
           {t.home.achievementTitle}

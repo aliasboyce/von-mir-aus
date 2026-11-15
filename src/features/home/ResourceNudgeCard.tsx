@@ -90,20 +90,20 @@ export function ResourceNudgeCard() {
             <ResourceTile resource={pick.resource} subtitle={pick.resource.description || undefined} compact />
           </Link>
           <div className="flex flex-wrap items-center gap-2">
-            <Link to={openPath} className="px-3.5 py-1.5 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)]">
+            <Link to={openPath} className="px-3.5 py-1.5 min-h-[44px] inline-flex items-center rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)]">
               {isSkill ? (en ? 'Start' : 'Starten') : (en ? 'Look' : 'Ansehen')}
             </Link>
             {pick.count > 1 && (
-              <button type="button" onClick={() => update({ ...state, shuffle: state.shuffle + 1 })} className="px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text)]" data-testid="nudge-another">
+              <button type="button" onClick={() => update({ ...state, shuffle: state.shuffle + 1 })} className="px-3 py-1.5 min-h-[44px] rounded-full text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text)]" data-testid="nudge-another">
                 {en ? 'Another one' : 'Eine andere'}
               </button>
             )}
-            <button type="button" onClick={() => update({ ...state, dismissed: true })} className="text-[12.5px] text-[var(--color-text-faint)] underline px-1">
+            <button type="button" onClick={() => update({ ...state, dismissed: true })} className="text-[12.5px] text-[var(--color-text-faint)] underline px-1 hit44">
               {en ? 'Not now' : 'Gerade nicht'}
             </button>
           </div>
         </div>
-        <WesenInfoButton info={INFO_NUDGE} className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-text-faint)] flex-shrink-0" />
+        <WesenInfoButton info={INFO_NUDGE} className="w-11 h-11 -m-2 rounded-full flex items-center justify-center text-[var(--color-text-faint)] flex-shrink-0" />
       </div>
       <span className="sr-only">{t.common.help}</span>
     </Card>

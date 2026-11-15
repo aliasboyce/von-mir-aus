@@ -58,7 +58,7 @@ export function ReviewMailBody({ mail }: { mail: MailItem }) {
               {l}
             </p>
           ))}
-          <button onClick={pdf} className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)] mt-2">
+          <button onClick={pdf} className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)] mt-2 hit44">
             <FileDown size={13} /> {t.reviewSummary.pdf}
           </button>
         </>
@@ -66,7 +66,7 @@ export function ReviewMailBody({ mail }: { mail: MailItem }) {
       {kind === 'day' && days[0] && days[0].checkIns.length === 0 && lines.map((l, i) => (
         <p key={i} className="text-[13px] text-[var(--color-text-muted)]">{l}</p>
       ))}
-      <button onClick={() => navigate(kind === 'day' ? '/sicherheit/tagebuch' : '/wochenrueckblick')} className="text-[13px] text-[var(--color-primary)] mt-2 block">
+      <button onClick={() => navigate(kind === 'day' ? '/sicherheit/tagebuch' : '/wochenrueckblick')} className="text-[13px] text-[var(--color-primary)] mt-2 block hit44">
         {t.reviewMail.open} →
       </button>
     </div>

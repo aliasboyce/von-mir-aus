@@ -99,7 +99,7 @@ export function NeedsCompassPage() {
         <p className="text-[12px] text-[var(--color-text-faint)] mb-2 leading-relaxed">{t.weather.needsSimplifiedNote}</p>
         <button
           onClick={() => setShowExplainer((v) => !v)}
-          className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] underline underline-offset-2 mb-6"
+          className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] underline underline-offset-2 mb-6 hit44"
         >
           <Info size={14} />
           {t.accessWheel.compassExplainerCta}
@@ -274,7 +274,7 @@ export function NeedsCompassPage() {
                   })}
                 </div>
               )}
-              <Link to="/sicherheit/netzwerk" className="text-[13px] text-[var(--color-primary)] mt-2 inline-block">
+              <Link to="/sicherheit/netzwerk" className="text-[13px] text-[var(--color-primary)] mt-2 inline-block hit44">
                 {t.network.title} →
               </Link>
             </div>

@@ -264,7 +264,7 @@ export function BridgeDetailPage() {
           <button
             onClick={() => (zugangEntryId ? leaveToAfter() : fromZugang ? setShowZugangExitDialog(true) : goBack(navigate))}
             aria-label={t.common.back}
-            className="w-10 h-10 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-text)]"
+            className="w-11 h-11 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-text)]"
           >
             <ArrowLeft size={20} />
           </button>
@@ -276,7 +276,7 @@ export function BridgeDetailPage() {
             <button
               onClick={() => setEditing(true)}
               aria-label={t.common.edit}
-              className="w-10 h-10 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-text)]"
+              className="w-11 h-11 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-text)]"
             >
               <Pencil size={18} />
             </button>
@@ -284,14 +284,14 @@ export function BridgeDetailPage() {
               onClick={toggleFavorite}
               aria-label={t.common.favorite}
               aria-pressed={bridge.favorite}
-              className="w-10 h-10 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-accent-clay)]"
+              className="w-11 h-11 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-accent-clay)]"
             >
               <Heart size={19} className={bridge.favorite ? 'fill-current' : ''} />
             </button>
             <button
               onClick={deleteBridge}
               aria-label={t.common.delete}
-              className="w-10 h-10 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-danger)]"
+              className="w-11 h-11 rounded-full bg-white/85 backdrop-blur flex items-center justify-center text-[var(--color-danger)]"
             >
               <Trash2 size={18} />
             </button>
@@ -393,7 +393,7 @@ export function BridgeDetailPage() {
         )}
 
         <p className="text-[13px] text-[var(--color-text-faint)] mb-3">{t.bridges.chooseLevelPrompt}</p>
-        <button type="button" onClick={() => setShowNeedsInfo((v) => !v)} aria-expanded={showNeedsInfo} data-testid="needs-info-btn" className="text-[12px] text-[var(--color-primary)] mb-2 inline-flex items-center gap-1">
+        <button type="button" onClick={() => setShowNeedsInfo((v) => !v)} aria-expanded={showNeedsInfo} data-testid="needs-info-btn" className="text-[12px] text-[var(--color-primary)] mb-2 inline-flex items-center gap-1 hit44">
           ⓘ {settings.language === 'en' ? 'What do energy, time and access channels mean here?' : 'Was bedeuten Energie, Zeit und Zugangskanäle hier?'}
         </button>
         {showNeedsInfo && (
@@ -482,7 +482,7 @@ export function BridgeDetailPage() {
                   type="button"
                   data-testid={`step-timer-${lvl.level}`}
                   onClick={() => { setTimerLevelNo(lvl.level); setTimerOpen(true); setTimerWasUsed(true); }}
-                  className="self-start inline-flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)]"
+                  className="self-start inline-flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)] hit44"
                 >
                   <TimerIcon size={14} /> {settings.language === 'en' ? 'Timer for this step' : 'Timer für diesen Schritt'}
                 </button>
@@ -499,7 +499,7 @@ export function BridgeDetailPage() {
         {bridge.levels.length > 1 && (
           <p data-hint className="text-[11px] text-[var(--color-text-faint)] -mt-3 mb-4">{t.bridges.multiLevelHint}</p>
         )}
-        <button onClick={() => setShowAccessGap(true)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
+        <button onClick={() => setShowAccessGap(true)} className="text-[12px] text-[var(--color-primary)] mb-4 block hit44">
           🌉 {t.bridges.accessGapEntryCta}
         </button>
 

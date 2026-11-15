@@ -33,7 +33,7 @@ export function HintCard({ hintId, delayMs = 600 }: { hintId: string; delayMs?: 
 
   const card = (
     <div role="dialog" aria-label={c.title} className="relative w-full rounded-[var(--radius-xl)] p-5 pr-12 animate-in" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-md)', maxWidth: 380 }} data-testid={`hint-${hintId}`}>
-      <button type="button" onClick={closeNow} aria-label={L('Schließen – kommt später wieder', 'Close – may come back later')} className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]" data-testid="hint-close">
+      <button type="button" onClick={closeNow} aria-label={L('Schließen – kommt später wieder', 'Close – may come back later')} className="absolute top-2.5 right-2.5 w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]" data-testid="hint-close">
         <X size={18} />
       </button>
       <p className="text-[16px] font-medium text-[var(--color-text)] mb-1.5">{c.title}</p>

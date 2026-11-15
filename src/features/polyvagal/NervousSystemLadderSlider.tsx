@@ -1,3 +1,4 @@
+import { completionMoment } from '../../services/completionMoment';
 import { ResourceTile } from '../../components/shared/ItemTile';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -132,6 +133,7 @@ export function NervousSystemLadderSlider({ onSelect, onNone, noneSelected, sele
       const nowIso = new Date(nowMs).toISOString();
       polyvagalRepo.save({ id: createId('pv'), createdAt: nowIso, zone: polyvagalZoneForValue(value), tensionValue: value });
       tensionRepo.save({ id: createId('tension'), createdAt: nowIso, value });
+      completionMoment(settings); // Feinschliff F14
     }
     navigate(`/entdecken/ressourcen/skills?zone=${band.id}&v=${Math.round(value)}`);
   }
@@ -231,7 +233,7 @@ export function NervousSystemLadderSlider({ onSelect, onNone, noneSelected, sele
        * extra. */}
       <button
         onClick={() => setBodyDetectiveOpen(true)}
-        className="flex items-center justify-center gap-1.5 py-2 rounded-full text-[13px]"
+        className="flex items-center justify-center gap-1.5 py-2 rounded-full text-[13px] hit44"
         style={{ border: '1.5px solid var(--color-border)', color: 'var(--color-text-muted)' }}
       >
         <Search size={14} />
@@ -284,11 +286,11 @@ export function NervousSystemLadderSlider({ onSelect, onNone, noneSelected, sele
             ))}
           </div>
           <div className="flex gap-2">
-            <button onClick={saveCalibration} className="flex-1 py-2 rounded-full text-[13px]" style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}>
+            <button onClick={saveCalibration} className="flex-1 py-2 rounded-full text-[13px] hit44" style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}>
               {t.polyvagal.arousalCalibrationSave}
             </button>
             {hasCalibration && (
-              <button onClick={resetCalibration} className="px-4 py-2 rounded-full text-[13px]" style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
+              <button onClick={resetCalibration} className="px-4 py-2 rounded-full text-[13px] hit44" style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
                 {t.polyvagal.arousalCalibrationReset}
               </button>
             )}
@@ -297,7 +299,7 @@ export function NervousSystemLadderSlider({ onSelect, onNone, noneSelected, sele
           <button onClick={saveWindowProgress} className="w-full mt-2 py-2 rounded-full text-[13px]" style={{ border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}>
             {progressSaved ? t.polyvagal.arousalProgressSaved : t.polyvagal.arousalProgressSaveCta}
           </button>
-          <button onClick={() => setChronicleOpen((v) => !v)} className="w-full mt-2 text-[12.5px] text-[var(--color-primary)]">
+          <button onClick={() => setChronicleOpen((v) => !v)} className="w-full mt-2 text-[12.5px] text-[var(--color-primary)] hit44">
             {chronicleOpen ? t.polyvagal.arousalChronicleHide : t.polyvagal.arousalChronicleShow}
           </button>
           {chronicleOpen && (
@@ -487,7 +489,7 @@ export function NervousSystemLadderSlider({ onSelect, onNone, noneSelected, sele
         {!hideSupportLinks && (
         <button
           onClick={() => setExercisePickerOpen(true)}
-          className="text-[12.5px] font-medium flex items-center gap-1"
+          className="hit44 text-[12.5px] font-medium flex items-center gap-1"
           style={{ color: band.color }}
         >
           {t.polyvagal.arousalExercisePrompt.replace('{name}', band.exercises[0].exerciseName)} →
@@ -581,7 +583,7 @@ export function NervousSystemLadderSlider({ onSelect, onNone, noneSelected, sele
               <button
                 key={s}
                 onClick={() => onSelect(band.polyvagalZone, s)}
-                className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[var(--radius-md)] text-[13px]"
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[var(--radius-md)] text-[13px] hit44"
                 style={{
                   border: `1.5px solid ${isSelected ? band.color : 'var(--color-border)'}`,
                   background: isSelected ? `${band.color}1f` : 'var(--color-surface)',
@@ -597,7 +599,7 @@ export function NervousSystemLadderSlider({ onSelect, onNone, noneSelected, sele
             <button
               type="button"
               onClick={() => onNone(band.polyvagalZone)}
-              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[var(--radius-md)] text-[13px] col-span-2"
+              className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[var(--radius-md)] text-[13px] col-span-2 hit44"
               style={{
                 border: `1.5px dashed ${noneSelected ? band.color : 'var(--color-border-strong)'}`,
                 background: noneSelected ? `${band.color}1f` : 'transparent',

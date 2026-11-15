@@ -54,7 +54,7 @@ export function NextAppointmentBlock({ personId, personName }: { personId: strin
       ) : (
         <p className="text-[13px] text-[var(--color-text-muted)]">{t.calendar.noneWithPerson.replace('{name}', personName)}</p>
       )}
-      <button onClick={() => navigate(`/kalender?new=${personId}`)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-2.5">
+      <button onClick={() => navigate(`/kalender?new=${personId}`)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-2.5 hit44">
         <Plus size={14} /> {t.calendar.newWithPerson.replace('{name}', personName)}
       </button>
     </div>

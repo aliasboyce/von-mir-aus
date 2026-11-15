@@ -23,7 +23,7 @@ export function EnergyLevelPicker({ value, onChange }: { value?: EnergyLevel; on
             type="button"
             onClick={() => onChange(active ? undefined : e.level)}
             aria-pressed={active}
-            className="text-left rounded-[var(--radius-md)] border px-3 py-2.5"
+            className="text-left rounded-[var(--radius-md)] border px-3 py-2.5 hit44"
             style={{ borderColor: active ? 'var(--color-primary)' : 'var(--color-border)', background: active ? 'var(--color-primary-soft)' : 'var(--color-surface)' }}
           >
             <span className="flex items-start gap-3">

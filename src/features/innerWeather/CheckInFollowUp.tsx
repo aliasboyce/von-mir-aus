@@ -20,13 +20,13 @@ export function CheckInFollowUp() {
   ];
   return (
     <div className="w-full rounded-[var(--radius-lg)] p-4 text-left relative animate-in" style={{ background: 'var(--color-surface-muted)', border: '1px solid var(--color-border)' }} data-testid="checkin-followup">
-      <button type="button" onClick={() => setOpen(false)} aria-label={en ? 'Close' : 'Schließen'} className="absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]" data-testid="checkin-followup-close">
+      <button type="button" onClick={() => setOpen(false)} aria-label={en ? 'Close' : 'Schließen'} className="absolute top-2 right-2 hit44 w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface)]" data-testid="checkin-followup-close">
         <X size={16} />
       </button>
       <p className="text-[14px] text-[var(--color-text)] mb-3 pr-8 leading-snug">{en ? 'Only if it feels good: is there something else you would like to do now?' : 'Nur wenn es sich gut anfühlt: Möchtest du jetzt noch etwas tun?'}</p>
       <div className="flex flex-wrap gap-2">
         {items.map((i) => (
-          <button key={i.id} type="button" onClick={() => navigate(i.to)} className="px-3.5 py-2 rounded-full text-[13px] text-[var(--color-text)] bg-[var(--color-surface)] border border-[var(--color-border-strong)]" data-testid={`checkin-followup-${i.id}`}>
+          <button key={i.id} type="button" onClick={() => navigate(i.to)} className="px-3.5 py-2 rounded-full text-[13px] text-[var(--color-text)] bg-[var(--color-surface)] border border-[var(--color-border-strong)] hit44" data-testid={`checkin-followup-${i.id}`}>
             {i.emoji} {i.label}
           </button>
         ))}

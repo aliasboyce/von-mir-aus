@@ -202,7 +202,7 @@ export function FeelingsWheel({ openId, onSelect, colorVersion }: { openId: stri
                 <button
                   key={sub}
                   onClick={() => {}}
-                  className="absolute pointer-events-auto px-2 py-1 rounded-full text-[11px] whitespace-nowrap"
+                  className="absolute pointer-events-auto px-2 py-1 rounded-full text-[11px] whitespace-nowrap hit44"
                   style={{
                     left: `${(pos.x / SIZE) * 100}%`,
                     top: `${(pos.y / SIZE) * 100}%`,

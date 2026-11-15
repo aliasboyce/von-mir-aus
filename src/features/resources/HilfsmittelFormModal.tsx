@@ -167,7 +167,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
                   type="button"
                   onClick={() => setSubcategory(subcategory === s.id ? undefined : s.id)}
                   aria-pressed={subcategory === s.id}
-                  className="rounded-full px-3.5 py-1.5 text-[13px] border"
+                  className="rounded-full px-3.5 py-1.5 text-[13px] border hit44"
                   style={subcategory === s.id ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
                 >
                   {settings.language === 'en' ? s.en : s.de}
@@ -273,7 +273,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
         <Field label={t.bridges.imageLabel}>
           <div className="flex flex-col gap-2">
             <ImageSuggestionCarousel images={imageSuggestions} selected={image} onSelect={(url) => setImage(url)} ariaLabel={t.resources.pickThisImage} />
-            <button type="button" onClick={() => setImageSuggestions(suggestedImageOptions(title, category))} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+            <button type="button" onClick={() => setImageSuggestions(suggestedImageOptions(title, category))} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44">
               <RefreshCw size={13} /> {t.resources.moreSuggestions}
             </button>
             <OwnImageControl image={image} onChange={setImage} fallback={() => suggestedImage(title, category)} />

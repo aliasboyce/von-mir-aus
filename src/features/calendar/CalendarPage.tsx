@@ -169,7 +169,7 @@ export function CalendarPage() {
                 onClick={() => setSelected(key)}
                 aria-label={d.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
                 aria-pressed={isSelected}
-                className="aspect-square rounded-[var(--radius-lg)] p-1.5 flex flex-col items-center text-center transition-colors"
+                className="aspect-square rounded-[var(--radius-lg)] p-1.5 flex flex-col items-center text-center transition-colors hit44"
                 style={{
                   background: isSelected ? 'var(--color-primary-soft)' : 'var(--color-surface)',
                   border: isToday ? '2.5px solid var(--color-primary)' : '1px solid var(--color-border)',
@@ -267,7 +267,7 @@ export function CalendarPage() {
             );
           })}
         </div>
-        <button onClick={openNew} className="flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)] mb-8" data-testid="cal-add-link">
+        <button onClick={openNew} className="flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)] mb-8 hit44" data-testid="cal-add-link">
           <Plus size={15} /> {t.calendar.addAppointment}
         </button>
 
@@ -304,7 +304,7 @@ export function CalendarPage() {
                 >
                   {w.intent === 'will' ? t.calendar.intentWill : w.intent === 'soll' ? t.calendar.intentSoll : t.calendar.intentUnset}
                 </button>
-                <button onClick={() => removeWish(w.id)} aria-label={t.calendar.wishDelete} className="p-1 text-[var(--color-text-faint)]">
+                <button onClick={() => removeWish(w.id)} aria-label={t.calendar.wishDelete} className="p-1 text-[var(--color-text-faint)] hit44">
                   <X size={14} />
                 </button>
               </div>

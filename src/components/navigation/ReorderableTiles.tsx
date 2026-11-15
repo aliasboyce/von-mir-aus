@@ -67,7 +67,7 @@ export function ReorderableTiles({ section, tiles, customization, hideReorder }:
     <div>
       {!hideReorder && (
         <div className="flex justify-end mb-2">
-          <button onClick={() => setEditing((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+          <button onClick={() => setEditing((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44">
             {editing ? <Check size={14} /> : <ArrowUpDown size={14} />}
             {editing ? t.common.done : t.common.reorder}
           </button>
@@ -94,7 +94,7 @@ export function ReorderableTiles({ section, tiles, customization, hideReorder }:
                     onClick={() => customization.onTogglePin(key)}
                     aria-pressed={customization.pinned.includes(key)}
                     aria-label={customization.pinned.includes(key) ? t.explore.unpinCta : t.explore.pinCta}
-                    className="p-2 rounded-full"
+                    className="p-2 rounded-full hit44"
                     style={customization.pinned.includes(key) ? { background: 'var(--color-primary)', color: 'var(--color-surface)' } : { color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}
                   >
                     <Pin size={15} />
@@ -103,7 +103,7 @@ export function ReorderableTiles({ section, tiles, customization, hideReorder }:
                     onClick={() => customization.onToggleArchive(key)}
                     aria-pressed={customization.archived.includes(key)}
                     aria-label={customization.archived.includes(key) ? t.explore.unarchiveCta : t.explore.archiveCta}
-                    className="p-2 rounded-full"
+                    className="p-2 rounded-full hit44"
                     style={customization.archived.includes(key) ? { background: 'var(--color-text-muted)', color: 'var(--color-surface)' } : { color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}
                   >
                     <Archive size={15} />
@@ -115,7 +115,7 @@ export function ReorderableTiles({ section, tiles, customization, hideReorder }:
                     onClick={() => move(i, -1)}
                     disabled={i === 0}
                     aria-label={t.common.moveUp}
-                    className="p-1 rounded-full text-[var(--color-text-muted)] disabled:opacity-25 hover:bg-[var(--color-surface-muted)]"
+                    className="p-1 rounded-full text-[var(--color-text-muted)] disabled:opacity-25 hover:bg-[var(--color-surface-muted)] hit44"
                   >
                     <ChevronUp size={16} />
                   </button>
@@ -123,7 +123,7 @@ export function ReorderableTiles({ section, tiles, customization, hideReorder }:
                     onClick={() => move(i, 1)}
                     disabled={i === ordered.length - 1}
                     aria-label={t.common.moveDown}
-                    className="p-1 rounded-full text-[var(--color-text-muted)] disabled:opacity-25 hover:bg-[var(--color-surface-muted)]"
+                    className="p-1 rounded-full text-[var(--color-text-muted)] disabled:opacity-25 hover:bg-[var(--color-surface-muted)] hit44"
                   >
                     <ChevronDown size={16} />
                   </button>

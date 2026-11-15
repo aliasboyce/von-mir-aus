@@ -79,7 +79,7 @@ export function SudokuGame({ difficulty }: SudokuGameProps) {
             <button
               key={n}
               onClick={() => setCell(activeCell[0], activeCell[1], n)}
-              className="w-8 h-8 rounded-[var(--radius-md)] text-[15px] bg-[var(--color-surface-muted)] text-[var(--color-text)]"
+              className="hit44 w-8 h-8 rounded-[var(--radius-md)] text-[15px] bg-[var(--color-surface-muted)] text-[var(--color-text)]"
             >
               {n}
             </button>
@@ -87,7 +87,7 @@ export function SudokuGame({ difficulty }: SudokuGameProps) {
           <button
             onClick={() => setCell(activeCell[0], activeCell[1], 0)}
             aria-label={t.common.delete}
-            className="w-8 h-8 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text-faint)]"
+            className="hit44 w-8 h-8 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text-faint)]"
           >
             ×
           </button>

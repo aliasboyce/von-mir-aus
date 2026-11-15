@@ -89,7 +89,7 @@ export function CardViewer({ cards, index, onIndex, onClose, onChanged, onShare,
       aria-label={card.title}
       data-testid="card-viewer"
     >
-      <button onClick={onClose} aria-label={L('Schließen', 'Close')} className="absolute right-4 w-10 h-10 rounded-full flex items-center justify-center bg-white/10 text-white" style={{ top: 'max(16px, env(safe-area-inset-top))' }} data-testid="card-viewer-close">
+      <button onClick={onClose} aria-label={L('Schließen', 'Close')} className="absolute right-4 w-11 h-11 rounded-full flex items-center justify-center bg-white/10 text-white" style={{ top: 'max(16px, env(safe-area-inset-top))' }} data-testid="card-viewer-close">
         <X size={20} />
       </button>
       <p className="absolute text-[12px] text-white/60" style={{ top: 'max(24px, env(safe-area-inset-top))', left: 20 }}>
@@ -195,7 +195,7 @@ export function CardViewer({ cards, index, onIndex, onClose, onChanged, onShare,
                 if (r.id !== 'normal') window.setTimeout(playSparkle, 120);
               }}
               aria-pressed={card.rarity === r.id}
-              className="px-3 py-2 rounded-full text-[13px]"
+              className="px-3 py-2 rounded-full text-[13px] hit44"
               style={{ background: card.rarity === r.id ? '#fff' : 'rgba(255,255,255,0.12)', color: card.rarity === r.id ? '#222' : '#fff' }}
             >
               {r.emoji} {lang === 'en' ? r.en : r.de}
@@ -215,7 +215,7 @@ function ActionBtn({ children, label, onClick, active, testid }: { children: Rea
       onClick={onClick}
       data-testid={testid}
       aria-pressed={active}
-      className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px]"
+      className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13px] hit44"
       style={{ background: active ? '#fff' : 'rgba(255,255,255,0.12)', color: active ? '#222' : '#fff' }}
     >
       {children}

@@ -984,6 +984,10 @@ export interface UserSettings {
   scopeChosen?: boolean;
   /** "Einfach"-Darstellung: bigger surfaces, fewer choices and hints */
   simple?: boolean;
+  /** Feinschliff F3: Zwei-Finger-Zoom erlauben (Standard: aus) */
+  allowZoom?: boolean;
+  /** Feinschliff F9: Textgröße (Standard: normal) */
+  textSize?: 'normal' | 'large' | 'xlarge';
   /** show the small "Schnell weg" button */
   quickExit?: boolean;
   /** gentle reminder to make a backup after about a week; false = off */

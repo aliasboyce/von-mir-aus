@@ -99,7 +99,7 @@ export function DismissibleCustomList({
 
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-1 px-3 py-2 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]"
+          className="flex items-center gap-1 px-3 py-2 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44"
         >
           <Plus size={13} /> {t.protectionRef.addOwnCta}
         </button>
@@ -129,7 +129,7 @@ export function DismissibleCustomList({
               setShowAdd(false);
               refresh();
             }}
-            className="px-3 py-2 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+            className="px-3 py-2 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
           >
             {t.common.save}
           </button>
@@ -157,7 +157,7 @@ export function DismissibleCustomList({
               setEditingId(null);
               refresh();
             }}
-            className="px-3 py-2 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+            className="px-3 py-2 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
           >
             {t.common.save}
           </button>
@@ -178,7 +178,7 @@ export function DismissibleCustomList({
                 manager.restore(item);
                 refresh();
               }}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text-faint)]"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-[12px] bg-[var(--color-surface-muted)] text-[var(--color-text-faint)] hit44"
             >
               <RotateCcw size={11} /> {zl(item)}
             </button>

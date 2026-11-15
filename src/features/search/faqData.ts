@@ -13,8 +13,8 @@ export interface FaqItem {
 export const FAQ: FaqItem[] = [
   {
     id: 'daten',
-    de: { q: 'Wo sind meine Daten – und was passiert, wenn ich das Handy wechsle?', a: 'Alles bleibt auf diesem Gerät (nichts liegt auf einem Server). Wenn du das Handy wechselst oder den Browser-Speicher löschst, ist es weg – außer du hast vorher eine Sicherung gemacht. Unter Einstellungen → Sicherung kannst du alles als Datei speichern und auf dem neuen Gerät wieder einlesen.', toLabel: 'Zu den Einstellungen' },
-    en: { q: 'Where is my data – and what happens if I change phones?', a: 'Everything stays on this device (nothing lives on a server). If you change phones or clear the browser storage it is gone – unless you made a backup first. Under Settings → Backup you can save everything as a file and load it on the new device.', toLabel: 'To settings' },
+    de: { q: 'Wo sind meine Daten – und was passiert, wenn ich das Handy wechsle?', a: 'Alles bleibt auf diesem Gerät (nichts liegt auf einem Server). Wenn du das Handy wechselst oder den Browser-Speicher löschst, ist es weg – außer du hast vorher eine Sicherung gemacht. Unter Einstellungen → Meine Daten → „Sicherung erstellen“ speicherst du alles als Datei (Ordner „Downloads“) – lege eine Kopie in Cloud, USB-Stick oder E-Mail an dich selbst. Auf dem neuen Gerät: „Sicherung wiederherstellen“ und die Datei wählen. Dort steht auch eine Schritt-für-Schritt-Anleitung.', toLabel: 'Zu den Einstellungen' },
+    en: { q: 'Where is my data – and what happens if I change phones?', a: 'Everything stays on this device (nothing lives on a server). If you change phones or clear the browser storage it is gone – unless you made a backup first. Under Settings → My data → “Create backup” you save everything as a file (Downloads folder) – put a copy in the cloud, on a USB stick or email it to yourself. On the new device: “Restore backup” and choose the file. A step-by-step guide is there too.', toLabel: 'To settings' },
     to: '/einstellungen?bereich=daten',
   },
   {

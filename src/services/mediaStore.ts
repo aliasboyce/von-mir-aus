@@ -1,3 +1,4 @@
+import { deferMediaDelete } from './undoDelete';
 /**
  * Own photos, videos and audio files are too big for localStorage. They live in the browser's IndexedDB
  * on this device only (never uploaded, never part of links or shared files) and are referenced by id.
@@ -78,6 +79,12 @@ export async function ownMediaUrl(id: string): Promise<string | null> {
 }
 
 export async function deleteOwnMedia(id: string): Promise<void> {
+  // Feinschliff F6: solange „Rückgängig“ angeboten wird, bleibt die Datei erhalten
+  if (deferMediaDelete(id)) return;
+  return deleteOwnMediaNow(id);
+}
+
+export async function deleteOwnMediaNow(id: string): Promise<void> {
   const cached = urlCache.get(id);
   if (cached) {
     URL.revokeObjectURL(cached);

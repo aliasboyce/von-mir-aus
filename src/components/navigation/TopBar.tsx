@@ -25,7 +25,7 @@ export function TopBar({ onBack, action, transparent = false }: TopBarProps) {
       <button
         onClick={() => (onBack ? onBack() : goBack(navigate))}
         aria-label={t.common.back}
-        className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-[var(--color-text)] hover:bg-[var(--color-surface-muted)] transition-colors"
+        className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-[var(--color-text)] hover:bg-[var(--color-surface-muted)] transition-colors"
       >
         <ChevronLeft size={22} />
       </button>

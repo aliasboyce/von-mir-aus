@@ -99,19 +99,19 @@ export function AlbumPage() {
               {special ? ` · ${special} ${L('limitiert', 'limited')}` : ''}
             </p>
           </div>
-          <button type="button" onClick={() => setSettingsOpen(true)} aria-label={L('Farben & Ton', 'Colours & sound')} className="w-10 h-10 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] flex-shrink-0" data-testid="album-settings">
+          <button type="button" onClick={() => setSettingsOpen(true)} aria-label={L('Farben & Ton', 'Colours & sound')} className="w-11 h-11 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] flex-shrink-0" data-testid="album-settings">
             <Settings2 size={18} />
           </button>
         </div>
 
         <div className="flex gap-2 mt-3 mb-3 flex-wrap">
-          <Link to="/sammelalbum/neu" className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13.5px] bg-[var(--color-primary)] text-[var(--color-surface)]" data-testid="album-new">
+          <Link to="/sammelalbum/neu" className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full text-[13.5px] bg-[var(--color-primary)] text-[var(--color-surface)]" data-testid="album-new">
             <Plus size={15} /> {L('Neue Karte', 'New card')}
           </Link>
-          <Link to="/sammelalbum/tageskarte" className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13.5px] bg-[var(--color-surface-muted)] text-[var(--color-text)]" data-testid="album-day">
+          <Link to="/sammelalbum/tageskarte" className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full text-[13.5px] bg-[var(--color-surface-muted)] text-[var(--color-text)]" data-testid="album-day">
             <Moon size={15} /> {L('Tageskarte', 'Day card')}
           </Link>
-          <button type="button" onClick={() => printCards(shown)} disabled={busy || shown.length === 0} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-[13.5px] bg-[var(--color-surface-muted)] text-[var(--color-text)] disabled:opacity-50" data-testid="album-print">
+          <button type="button" onClick={() => printCards(shown)} disabled={busy || shown.length === 0} className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full text-[13.5px] bg-[var(--color-surface-muted)] text-[var(--color-text)] disabled:opacity-50" data-testid="album-print">
             <Printer size={15} /> {busy ? L('Moment …', 'One moment …') : L('Drucken (PDF)', 'Print (PDF)')}
           </button>
         </div>
@@ -125,7 +125,7 @@ export function AlbumPage() {
               aria-selected={c.id === chapterId}
               onClick={() => { setChapterId(c.id); }}
               data-testid={`album-chapter-${c.id}`}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] whitespace-nowrap flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 min-h-[44px] rounded-full text-[13px] whitespace-nowrap flex-shrink-0"
               style={{
                 background: c.id === chapterId ? c.color : `color-mix(in srgb, var(--color-surface) 80%, ${c.color} 20%)`,
                 color: c.id === chapterId ? (c.id === 'all' ? '#fff' : '#1f1d1a') : 'var(--color-text)',
@@ -389,13 +389,13 @@ function Book({ cover, cards, page, pageCount, perPage, wide, chapter, totalCard
       </div>
 
       <div className="flex items-center justify-center gap-4 mt-4">
-        <button type="button" onClick={() => turn('prev')} disabled={page === 0 || !!drag} className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-surface-muted)] disabled:opacity-40" aria-label="Zurück" data-testid="album-prev">
+        <button type="button" onClick={() => turn('prev')} disabled={page === 0 || !!drag} className="px-4 py-2 min-h-[44px] min-w-[44px] rounded-full text-[13px] bg-[var(--color-surface-muted)] disabled:opacity-40" aria-label="Zurück" data-testid="album-prev">
           ‹
         </button>
         <span className="text-[12.5px] text-[var(--color-text-muted)] tabular-nums" data-testid="album-pageno">
           {page === 0 ? (lang === 'en' ? 'Cover' : 'Titelseite') : `${page} / ${pageCount - 1}`}
         </span>
-        <button type="button" onClick={() => turn('next')} disabled={page >= pageCount - 1 || !!drag} className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-surface-muted)] disabled:opacity-40" aria-label="Weiter" data-testid="album-next">
+        <button type="button" onClick={() => turn('next')} disabled={page >= pageCount - 1 || !!drag} className="px-4 py-2 min-h-[44px] min-w-[44px] rounded-full text-[13px] bg-[var(--color-surface-muted)] disabled:opacity-40" aria-label="Weiter" data-testid="album-next">
           ›
         </button>
       </div>

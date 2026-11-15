@@ -182,7 +182,7 @@ export function PolyvagalPage() {
 
           <button
             onClick={() => setShowLadderDetail((v) => !v)}
-            className="text-[12px] text-[var(--color-primary)] mt-4 mx-auto block"
+            className="text-[12px] text-[var(--color-primary)] mt-4 mx-auto block hit44"
           >
             {showLadderDetail ? t.polyvagal.hideLadderDetailCta : t.polyvagal.showLadderDetailCta}
           </button>
@@ -193,7 +193,7 @@ export function PolyvagalPage() {
           )}
         </Card>
 
-        <Link to="/entdecken/nervensystem" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-6">
+        <Link to="/entdecken/nervensystem" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-6 hit44">
           🧠 {t.polyvagal.nervensystemPageLink}
         </Link>
 
@@ -207,7 +207,7 @@ export function PolyvagalPage() {
               <button
                 key={p}
                 onClick={() => setChartPeriod(p)}
-                className="px-2.5 py-1 rounded-full text-[12px]"
+                className="px-2.5 py-1 rounded-full text-[12px] hit44"
                 style={{
                   background: chartPeriod === p ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                   color: chartPeriod === p ? 'var(--color-surface)' : 'var(--color-text-muted)',
@@ -220,7 +220,7 @@ export function PolyvagalPage() {
           <button
             onClick={() => setFullscreen(true)}
             aria-label={t.polyvagal.expandChart}
-            className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+            className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"
           >
             <Maximize2 size={15} />
           </button>
@@ -271,7 +271,7 @@ export function PolyvagalPage() {
               <button
                 onClick={() => setFullscreen(false)}
                 aria-label={t.common.close}
-                className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+                className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
               >
                 <X size={20} />
               </button>
@@ -281,7 +281,7 @@ export function PolyvagalPage() {
               <button
                 onClick={() => void exportCurvePdf(chartPeriod, t, settings.language === 'de' ? 'de-DE' : 'en-US')}
                 aria-label={t.polyvagal.printChartCta}
-                className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+                className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
               >
                 <Printer size={18} />
               </button>
@@ -314,7 +314,7 @@ export function PolyvagalPage() {
                   <button
                     onClick={() => setOpenSection(isOpen ? null : section)}
                     aria-expanded={isOpen}
-                    className="w-full flex items-center justify-between py-2.5 text-left"
+                    className="w-full flex items-center justify-between py-2.5 min-h-[44px] text-left"
                   >
                     <span className="text-[13px] text-[var(--color-text)]">{t.polyvagal[EXPLAINER_TITLE_KEY[section]]}</span>
                     <ChevronDown

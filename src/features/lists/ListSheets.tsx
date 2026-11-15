@@ -56,7 +56,7 @@ export function ListEditSheet({ initial, onClose, onSave, onDelete }: { initial?
           <span className={lbl}>{L('Symbol', 'Symbol')}</span>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
             {LIST_EMOJIS.map((e) => (
-              <button key={e} type="button" onClick={() => setEmoji(e)} className="w-10 h-10 shrink-0 rounded-xl text-[20px] flex items-center justify-center" style={{ background: emoji === e ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', outline: emoji === e ? '2px solid var(--color-primary)' : 'none' }} aria-label={e}>{e}</button>
+              <button key={e} type="button" onClick={() => setEmoji(e)} className="w-11 h-11 shrink-0 rounded-xl text-[20px] flex items-center justify-center" style={{ background: emoji === e ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', outline: emoji === e ? '2px solid var(--color-primary)' : 'none' }} aria-label={e}>{e}</button>
             ))}
           </div>
           <input className="input mt-1.5" value={LIST_EMOJIS.includes(emoji) ? '' : emoji} onChange={(e) => setEmoji(Array.from(e.target.value).slice(-2).join('') || '📝')} placeholder={L('… oder ein eigenes Symbol tippen', '… or type your own symbol')} aria-label={L('Eigenes Symbol', 'Own symbol')} data-testid="list-emoji-own" />
@@ -65,7 +65,7 @@ export function ListEditSheet({ initial, onClose, onSave, onDelete }: { initial?
           <span className={lbl}>{L('Farbe', 'Colour')}</span>
           <div className="flex gap-2 flex-wrap">
             {LIST_COLORS.map((c) => (
-              <button key={c} type="button" onClick={() => setColor(c)} className="w-9 h-9 rounded-full" style={{ background: c, border: '1.5px solid rgba(0,0,0,0.15)', outline: color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={c} data-testid={`list-color-${c.slice(1)}`} />
+              <button key={c} type="button" onClick={() => setColor(c)} className="w-11 h-11 rounded-full" style={{ background: c, border: '1.5px solid rgba(0,0,0,0.15)', outline: color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={c} data-testid={`list-color-${c.slice(1)}`} />
             ))}
             <label className="relative w-9 h-9 rounded-full overflow-hidden cursor-pointer" style={{ background: 'conic-gradient(#e8a83d,#7fb069,#6aa8c9,#9a7bc4,#d9778a,#e8a83d)' }} title={L('Eigene Farbe', 'Own colour')}>
               <input type="color" value={/^#[0-9a-f]{6}$/i.test(color) ? color : '#6aa8c9'} onChange={(e) => setColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" aria-label={L('Eigene Farbe', 'Own colour')} />
@@ -136,12 +136,12 @@ export function ItemSheet({ item, kind, canUp, canDown, onSave, onDelete, onMove
             {sub.map((s) => (
               <li key={s.id} className="flex items-center gap-1.5">
                 {check && (
-                  <button type="button" onClick={() => setSub((a) => a.map((x) => (x.id === s.id ? { ...x, done: !x.done } : x)))} className="w-10 h-10 shrink-0 flex items-center justify-center" aria-label={s.done ? L('Wieder öffnen', 'Reopen') : L('Abhaken', 'Tick off')}>
+                  <button type="button" onClick={() => setSub((a) => a.map((x) => (x.id === s.id ? { ...x, done: !x.done } : x)))} className="w-11 h-11 shrink-0 flex items-center justify-center" aria-label={s.done ? L('Wieder öffnen', 'Reopen') : L('Abhaken', 'Tick off')}>
                     <span className="w-[22px] h-[22px] rounded-md border-2 flex items-center justify-center" style={{ borderColor: 'var(--color-border-strong)', background: s.done ? 'var(--color-primary)' : 'transparent' }}>{s.done && <Check size={14} color="#fff" />}</span>
                   </button>
                 )}
                 <input className="input flex-1" value={s.text} onChange={(e) => setSub((a) => a.map((x) => (x.id === s.id ? { ...x, text: e.target.value } : x)))} data-testid="list-sub-text" />
-                <button type="button" onClick={() => setSub((a) => a.filter((x) => x.id !== s.id))} className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Unterpunkt entfernen', 'Remove sub-item')}><X size={17} /></button>
+                <button type="button" onClick={() => setSub((a) => a.filter((x) => x.id !== s.id))} className="w-11 h-11 shrink-0 rounded-full flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Unterpunkt entfernen', 'Remove sub-item')}><X size={17} /></button>
               </li>
             ))}
           </ul>
@@ -218,7 +218,7 @@ export function CategoryManagerSheet({ onClose }: { onClose: () => void }) {
             <li key={c.id} className="flex items-center gap-2" data-testid="category-row">
               <input className="input w-14 text-center" value={c.emoji} onChange={(e) => { renameListCategory(c.id, c.name, Array.from(e.target.value).slice(-2).join('') || '🗂️'); reload(); }} aria-label={L('Symbol', 'Symbol')} />
               <input className="input flex-1" value={c.name} onChange={(e) => { renameListCategory(c.id, e.target.value || ' ', undefined); reload(); }} aria-label={L('Name', 'Name')} />
-              <button type="button" onClick={() => { removeListCategory(c.id); reload(); }} className="w-10 h-10 flex items-center justify-center text-[var(--color-danger)]" aria-label={L('Kategorie löschen', 'Delete category')} data-testid="category-delete"><X size={17} /></button>
+              <button type="button" onClick={() => { removeListCategory(c.id); reload(); }} className="w-11 h-11 flex items-center justify-center text-[var(--color-danger)]" aria-label={L('Kategorie löschen', 'Delete category')} data-testid="category-delete"><X size={17} /></button>
             </li>
           ))}
         </ul>

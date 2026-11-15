@@ -185,7 +185,7 @@ export function BreathPage({ initialId, embedded }: { initialId?: string; embedd
                   </div>
 
                   <CautionNote resource={{ id: Object.entries(BREATH_SKILL_PATTERN).find(([, pid]) => pid === p.id)?.[0] ?? '' }} />
-                  <button type="button" onClick={() => setRunning({ pattern: p, options: o })} className="self-start px-6 py-2.5 rounded-full text-[14px] text-white" style={{ background: 'var(--color-primary)' }} data-testid={`breath-start-${p.id}`}>
+                  <button type="button" onClick={() => setRunning({ pattern: p, options: o })} className="self-start px-6 py-2.5 rounded-full text-[14px] text-white hit44" style={{ background: 'var(--color-primary)' }} data-testid={`breath-start-${p.id}`}>
                     {L.start}
                   </button>
                   <p className="text-[11.5px] text-[var(--color-text-faint)]">{L.saved}</p>
@@ -200,8 +200,8 @@ export function BreathPage({ initialId, embedded }: { initialId?: string; embedd
         <p className="text-[14px] text-[var(--color-text)] mb-1">{L.alt}</p>
         <p className="text-[13px] text-[var(--color-text-muted)] mb-2">{L.altText}</p>
         <div className="flex flex-col gap-2">
-          <Link to="/entdecken/koerper" className="flex items-center gap-2 text-[13.5px] text-[var(--color-primary)]"><Activity size={15} />{L.altBody}</Link>
-          <Link to="/entdecken/ressourcen/skills" className="flex items-center gap-2 text-[13.5px] text-[var(--color-primary)]"><Sparkles size={15} />{L.altSkills}</Link>
+          <Link to="/entdecken/koerper" className="flex items-center gap-2 text-[13.5px] text-[var(--color-primary)] hit44"><Activity size={15} />{L.altBody}</Link>
+          <Link to="/entdecken/ressourcen/skills" className="flex items-center gap-2 text-[13.5px] text-[var(--color-primary)] hit44"><Sparkles size={15} />{L.altSkills}</Link>
         </div>
       </div>
 

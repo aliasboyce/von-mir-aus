@@ -40,7 +40,7 @@ export function BlockTeam({ project, L, onProject }: BlockProps<TeamBlock>) {
         })}
       </ul>
       <AddRow placeholder={L('Name …', 'Name …')} onAdd={(name) => onProject((pr) => ({ ...pr, people: [...pr.people, { id: newId('pp'), name }] }))} testId="person-new" />
-      <button type="button" onClick={() => setPick(true)} className="mt-2 inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid="person-from-network"><UserPlus size={15} />{L('Aus meinem Netzwerk', 'From my network')}</button>
+      <button type="button" onClick={() => setPick(true)} className="mt-2 inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)] hit44" data-testid="person-from-network"><UserPlus size={15} />{L('Aus meinem Netzwerk', 'From my network')}</button>
 
       <div className="mt-5">
         <SmallLabel>{L('Rollen: wer übernimmt was?', 'Roles: who does what?')}</SmallLabel>
@@ -70,7 +70,7 @@ export function BlockTeam({ project, L, onProject }: BlockProps<TeamBlock>) {
         <div className="flex flex-col gap-2">
           {net.length === 0 && <p className="text-[13.5px] text-[var(--color-text-muted)]">{L('Hier ist niemand mehr zum Hinzufügen.', 'Nobody left to add here.')}</p>}
           {net.map((n) => (
-            <button key={n.id} type="button" onClick={() => { onProject((pr) => ({ ...pr, people: [...pr.people, { id: newId('pp'), name: n.name, networkId: n.id, contact: n.phone || n.email || undefined }] })); }} className="text-left rounded-[var(--radius-md)] px-3 py-2.5 border border-[var(--color-border)] text-[14.5px]" data-testid={`net-pick-${n.id}`}>
+            <button key={n.id} type="button" onClick={() => { onProject((pr) => ({ ...pr, people: [...pr.people, { id: newId('pp'), name: n.name, networkId: n.id, contact: n.phone || n.email || undefined }] })); }} className="text-left rounded-[var(--radius-md)] px-3 py-2.5 border border-[var(--color-border)] text-[14.5px] hit44" data-testid={`net-pick-${n.id}`}>
               {n.name}{n.role ? <span className="text-[12px] text-[var(--color-text-faint)]"> · {n.role}</span> : null}
             </button>
           ))}

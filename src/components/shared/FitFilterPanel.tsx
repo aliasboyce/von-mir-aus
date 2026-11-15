@@ -26,7 +26,7 @@ function Chip({ active, onClick, children, hint }: { active: boolean; onClick: (
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="text-left rounded-[var(--radius-md)] border px-2.5 py-2 transition-colors"
+      className="text-left rounded-[var(--radius-md)] border px-2.5 py-2 transition-colors hit44"
       style={{ borderColor: active ? 'var(--color-primary)' : 'var(--color-border)', background: active ? 'var(--color-primary-soft)' : 'var(--color-surface)' }}
     >
       <span className="block text-[12.5px] text-[var(--color-text)] leading-tight">{children}</span>
@@ -152,7 +152,7 @@ export function FitFilterPanel({
                   type="button"
                   onClick={() => setFilter({ minutes: filter.minutes === m ? null : m })}
                   aria-pressed={filter.minutes === m}
-                  className="rounded-full border px-3 py-1.5 text-[12.5px]"
+                  className="rounded-full border px-3 py-1.5 text-[12.5px] hit44"
                   style={{
                     borderColor: filter.minutes === m ? 'var(--color-primary)' : 'var(--color-border)',
                     background: filter.minutes === m ? 'var(--color-primary-soft)' : 'var(--color-surface)',
@@ -180,7 +180,7 @@ export function FitFilterPanel({
                     aria-pressed={missing}
                     title={meta.hint(t)}
                     data-testid={`fit-channel-${c}`}
-                    className="px-2.5 py-2 rounded-[var(--radius-md)] text-[12.5px] text-left flex items-center gap-1.5 transition-colors"
+                    className="px-2.5 py-2 rounded-[var(--radius-md)] text-[12.5px] text-left flex items-center gap-1.5 transition-colors hit44"
                     style={{
                       background: missing ? 'var(--color-surface-muted)' : there ? 'var(--color-primary-soft)' : 'var(--color-surface)',
                       border: `1.5px ${missing ? 'dashed' : 'solid'} ${there ? 'var(--color-primary)' : 'var(--color-border-strong)'}`,
@@ -201,7 +201,7 @@ export function FitFilterPanel({
                 {lang === 'en' ? 'Nothing is missing right now' : 'Gerade fehlt nichts'}
               </button>
             )}
-            <Link to="/entdecken/zugangskanaele" className="inline-block mt-2 text-[12.5px] text-[var(--color-primary)] underline underline-offset-2">
+            <Link to="/entdecken/zugangskanaele" className="inline-block mt-2 text-[12.5px] text-[var(--color-primary)] underline underline-offset-2 hit44">
               {f.channelsPage}
             </Link>
           </Group>
@@ -251,11 +251,11 @@ export function FitFilterPanel({
           )}
           <div className="flex flex-wrap gap-2">
             {(hiddenUnmarked > 0 || filter.includeUnmarked) && (
-              <button type="button" onClick={() => setFilter({ includeUnmarked: !filter.includeUnmarked })} className="rounded-full border px-3 py-1.5 text-[12.5px]" style={{ borderColor: 'var(--color-border-strong)', color: 'var(--color-text)' }} data-testid="fit-toggle-unmarked">
+              <button type="button" onClick={() => setFilter({ includeUnmarked: !filter.includeUnmarked })} className="rounded-full border px-3 py-1.5 text-[12.5px] hit44" style={{ borderColor: 'var(--color-border-strong)', color: 'var(--color-text)' }} data-testid="fit-toggle-unmarked">
                 {filter.includeUnmarked ? f.hideUnmarked : f.showUnmarked}
               </button>
             )}
-            <button type="button" onClick={reset} className="rounded-full px-3 py-1.5 text-[12.5px] text-white" style={{ background: 'var(--color-primary)' }} data-testid="fit-show-all">
+            <button type="button" onClick={reset} className="rounded-full px-3 py-1.5 text-[12.5px] text-white hit44" style={{ background: 'var(--color-primary)' }} data-testid="fit-show-all">
               {f.showAllFit}
             </button>
           </div>

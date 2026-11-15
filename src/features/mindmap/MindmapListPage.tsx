@@ -197,7 +197,7 @@ export function MindmapListPage() {
               {depth === 0 && parent && <p className="text-[11.5px] text-[var(--color-text-faint)] truncate">{fmt(X.subOf, { t: parent.title })}</p>}
             </div>
           </button>
-          <button type="button" onClick={() => setActionFor(m.id)} aria-label={X.actMore} className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-muted)] shrink-0" data-testid={`mindmap-actions-${m.id}`}>
+          <button type="button" onClick={() => setActionFor(m.id)} aria-label={X.actMore} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] shrink-0" data-testid={`mindmap-actions-${m.id}`}>
             <Ellipsis size={18} />
           </button>
         </div>
@@ -221,10 +221,10 @@ export function MindmapListPage() {
         </button>
 
         <div className="flex gap-2 mb-5 -mt-2">
-          <button type="button" onClick={() => { setCreateFolder(''); setFolderModal(true); }} className="flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" data-testid="mindmap-folder-new">
+          <button type="button" onClick={() => { setCreateFolder(''); setFolderModal(true); }} className="flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" data-testid="mindmap-folder-new">
             <FolderPlus size={16} /> {lang === 'en' ? 'New folder' : 'Neuer Ordner'}
           </button>
-          <button type="button" onClick={() => navigate('/entdecken/projekte')} className="flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" data-testid="mindmap-to-projects">
+          <button type="button" onClick={() => navigate('/entdecken/projekte')} className="flex-1 flex items-center justify-center gap-2 rounded-full py-2.5 text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" data-testid="mindmap-to-projects">
             <FolderKanban size={16} /> {lang === 'en' ? 'My projects' : 'Meine Projekte'}
           </button>
         </div>
@@ -253,7 +253,7 @@ export function MindmapListPage() {
                       <span className="text-[12px] text-[var(--color-text-faint)]">({f.rows.length})</span>
                     </button>
                     <button type="button" onClick={() => setRenameFolder(f.name)} className="text-[12.5px] px-2 py-1 text-[var(--color-text-muted)] underline underline-offset-2" data-testid={`mindmap-folder-rename-${f.name}`}>{X.folderRename}</button>
-                    <button type="button" onClick={() => removeFolder(f.name)} aria-label={lang === 'en' ? 'Remove folder' : 'Ordner entfernen'} className="w-8 h-8 flex items-center justify-center text-[var(--color-text-muted)]" data-testid={`mindmap-folder-delete-${f.name}`}><Trash2 size={14} /></button>
+                    <button type="button" onClick={() => removeFolder(f.name)} aria-label={lang === 'en' ? 'Remove folder' : 'Ordner entfernen'} className="hit44 w-8 h-8 flex items-center justify-center text-[var(--color-text-muted)]" data-testid={`mindmap-folder-delete-${f.name}`}><Trash2 size={14} /></button>
                   </div>
                   {open && f.rows.length === 0 && <p className="text-[13px] text-[var(--color-text-faint)] pl-7 pb-1" data-testid={`mindmap-folder-empty-${f.name}`}>{lang === 'en' ? 'Empty – move mind maps in via “…” → “Move”, or create one here.' : 'Leer – Mindmaps kommst du über „…“ → „Verschieben“ hinein, oder lege hier eine neue an.'}</p>}
                   {open && <ul className="flex flex-col gap-2.5">{f.rows.map(renderRow)}</ul>}
@@ -278,7 +278,7 @@ export function MindmapListPage() {
                     <p className="text-[14.5px] text-[var(--color-text)] truncate">{m.title || T.untitled}</p>
                     <p className="text-[12px] text-[var(--color-text-faint)]">{m.nodes.length === 1 ? X.oneElement : T.elements.replace('{n}', String(m.nodes.length))}</p>
                   </button>
-                  <button type="button" onClick={() => restore(m)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] border border-[var(--color-border-strong)] text-[var(--color-text)] shrink-0" data-testid={`mindmap-restore-${m.id}`}>
+                  <button type="button" onClick={() => restore(m)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] border border-[var(--color-border-strong)] text-[var(--color-text)] shrink-0 hit44" data-testid={`mindmap-restore-${m.id}`}>
                     <RotateCcw size={13} /> {X.actRestore}
                   </button>
                   <button type="button" onClick={() => remove(m)} className="text-[12.5px] px-2 py-1 text-[var(--color-danger)] shrink-0" data-testid={`mindmap-archived-delete-${m.id}`}>{X.actDelete}</button>
@@ -349,7 +349,7 @@ export function MindmapListPage() {
                 <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{X.moveFolders}</p>
                 <div className="flex flex-col gap-1.5">
                   {folderNames.map((f) => (
-                    <button key={f} type="button" onClick={() => moveTo(mv, { folder: f })} className="text-left rounded-[var(--radius-md)] px-4 py-2.5 border border-[var(--color-border-strong)] text-[14.5px] text-[var(--color-text)] flex items-center gap-2" data-testid={`mindmap-move-folder-${f}`}>
+                    <button key={f} type="button" onClick={() => moveTo(mv, { folder: f })} className="text-left rounded-[var(--radius-md)] px-4 py-2.5 border border-[var(--color-border-strong)] text-[14.5px] text-[var(--color-text)] flex items-center gap-2 hit44" data-testid={`mindmap-move-folder-${f}`}>
                       <Folder size={15} className="text-[var(--color-primary)]" /> {f}
                     </button>
                   ))}
@@ -368,7 +368,7 @@ export function MindmapListPage() {
               {subTargets.length === 0 && <p className="text-[13px] text-[var(--color-text-faint)]">{X.moveNoOthers}</p>}
               <div className="flex flex-col gap-1.5 max-h-[30vh] overflow-y-auto">
                 {subTargets.sort((a, b) => a.title.localeCompare(b.title)).map((t) => (
-                  <button key={t.id} type="button" onClick={() => moveTo(mv, { parentId: t.id })} className="text-left rounded-[var(--radius-md)] px-4 py-2.5 border border-[var(--color-border-strong)] text-[14.5px] text-[var(--color-text)]" data-testid={`mindmap-move-sub-${t.id}`}>
+                  <button key={t.id} type="button" onClick={() => moveTo(mv, { parentId: t.id })} className="text-left rounded-[var(--radius-md)] px-4 py-2.5 border border-[var(--color-border-strong)] text-[14.5px] text-[var(--color-text)] hit44" data-testid={`mindmap-move-sub-${t.id}`}>
                     {t.title || T.untitled}
                   </button>
                 ))}

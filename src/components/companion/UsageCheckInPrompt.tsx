@@ -33,14 +33,14 @@ export function UsageCheckInPrompt({ context, onContinue, onExit }: UsageCheckIn
         <div className="flex gap-2">
           <button
             onClick={onExit}
-            className="flex-1 py-2.5 rounded-full text-[14px]"
+            className="flex-1 py-2.5 rounded-full text-[14px] hit44"
             style={{ background: 'var(--color-surface-muted)', color: 'var(--color-text)' }}
           >
             {t.usageCheckIn.exitCta}
           </button>
           <button
             onClick={onContinue}
-            className="flex-1 py-2.5 rounded-full text-[14px]"
+            className="flex-1 py-2.5 rounded-full text-[14px] hit44"
             style={{ background: 'var(--color-primary)', color: 'var(--color-surface)' }}
           >
             {t.usageCheckIn.continueCta}

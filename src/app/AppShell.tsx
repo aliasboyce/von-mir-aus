@@ -33,6 +33,8 @@ import { useHeroCompanion } from '../state/HeroCompanionContext';
 import { customPalettesRepo, derivePaletteVars } from '../services/customPalettes';
 import { BUILT_IN_PALETTE_IDS } from '../data/types';
 import { StorageErrorBanner } from './StorageErrorBanner';
+import { UndoToast } from './UndoToast';
+import { onRestored } from '../services/undoDelete';
 import { IOSPrintFallbackModal } from '../components/shared/IOSPrintFallbackModal';
 import { MailboxSync } from '../components/shared/MailboxSync';
 import { CalendarSync } from '../features/calendar/CalendarSync';
@@ -63,7 +65,20 @@ export function AppShell() {
     const id = window.setTimeout(() => recordVisit(path), 1200);
     return () => window.clearTimeout(id);
   }, [location.pathname, location.search]);
+  // Feinschliff F10: Seitentitel = erste Überschrift der Seite (Tab-Liste, Verlauf, Screenreader)
+  useEffect(() => {
+    const base = 'von mir aus';
+    const id = window.setTimeout(() => {
+      const h = document.querySelector('main h1, main h2');
+      const txt = (h?.textContent ?? '').replace(/\s+/g, ' ').trim();
+      document.title = location.pathname === '/' || !txt ? `${base} — Dein ruhiger Ort` : `${txt.slice(0, 60)} — ${base}`;
+    }, 350);
+    return () => window.clearTimeout(id);
+  }, [location.pathname]);
   const navType = useNavigationType();
+  // Feinschliff F6: nach „Rückgängig“ die Seite neu aufbauen, damit sie den zurückgeholten Eintrag zeigt
+  const [restoreTick, setRestoreTick] = useState(0);
+  useEffect(() => onRestored(() => setRestoreTick((n) => n + 1)), []);
   // Strg/⌘ + K öffnet die Lupe (Suche in der ganzen App)
   const searchNav = useNavigate();
   useEffect(() => {
@@ -335,7 +350,7 @@ export function AppShell() {
       <WorldAmbiance />
       <main
         key={settings.reduceMotion ? undefined : location.pathname}
-        className={settings.reduceMotion ? undefined : 'page-transition'}
+        className={settings.reduceMotion ? undefined : (['/', '/sicherheit', '/alltag', '/entdecken'].includes(location.pathname) ? 'page-transition page-transition--tab' : 'page-transition')}
         style={{
           paddingBottom: settings.tourActive
             ? 'calc(var(--tour-card-h, 220px) + env(safe-area-inset-bottom))'
@@ -346,7 +361,7 @@ export function AppShell() {
         }}
         {...overrideProps}
       >
-        <ErrorBoundary key={location.pathname}>
+        <ErrorBoundary key={`${location.pathname}|${restoreTick}`}>
           <Outlet />
         </ErrorBoundary>
       </main>
@@ -387,6 +402,7 @@ export function AppShell() {
         />
       )}
       <StorageErrorBanner />
+      <UndoToast />
       <MailboxSync />
       <CalendarSync />
       <BudgetSync />

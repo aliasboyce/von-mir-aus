@@ -121,7 +121,7 @@ export function LetGoPage() {
                     <button
                       onClick={() => openRitual(w, 'papierflieger')}
                       disabled={!!releasing}
-                      className="flex-1 flex flex-col items-center gap-1 py-2 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] disabled:opacity-40"
+                      className="flex-1 flex flex-col items-center gap-1 py-2 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] disabled:opacity-40 hit44"
                     >
                       <Send size={16} className="text-[var(--color-primary)]" />
                       <span className="text-[11px] text-[var(--color-text)]">{t.letGo.ritualPlaneLabel}</span>
@@ -129,7 +129,7 @@ export function LetGoPage() {
                     <button
                       onClick={() => openRitual(w, 'zerknuellen')}
                       disabled={!!releasing}
-                      className="flex-1 flex flex-col items-center gap-1 py-2 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] disabled:opacity-40"
+                      className="flex-1 flex flex-col items-center gap-1 py-2 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] disabled:opacity-40 hit44"
                     >
                       <Wind size={16} className="text-[var(--color-primary)]" />
                       <span className="text-[11px] text-[var(--color-text)]">{t.letGo.ritualCrumpleLabel}</span>
@@ -137,7 +137,7 @@ export function LetGoPage() {
                     <button
                       onClick={() => openRitual(w, 'zerreissen')}
                       disabled={!!releasing}
-                      className="flex-1 flex flex-col items-center gap-1 py-2 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] disabled:opacity-40"
+                      className="flex-1 flex flex-col items-center gap-1 py-2 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] disabled:opacity-40 hit44"
                     >
                       <Scissors size={16} className="text-[var(--color-primary)]" />
                       <span className="text-[11px] text-[var(--color-text)]">{t.letGo.ritualTearLabel}</span>

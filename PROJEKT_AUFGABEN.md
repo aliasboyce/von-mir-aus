@@ -683,6 +683,11 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Sammelalbum: Begleiter-Karten für alle erstellten/benutzten Wesen (`services/usedCompanions.ts`); Cover anpassbar (`albumCover.ts`: Farbe, Stil klassisch/schlicht/minimal, Titel, Symbol).
 - Tester-Info beim Start (Willkommen → Info → Anleitung) und in den Einstellungen.
 
+## Stand 15.11.2026 (erledigt)
+- Medi-Log: Zeitraum nachtragen mit Dosis pro Tag (`RangeEntryModal`, sichtbarer Knopf `medilog-range-open`); Tagesfehler in `eachDay` behoben.
+- Sicherung: `BackupGuide` + „Letzte Sicherung“ + Vorschau vor dem Wiederherstellen; Skript `Sicherung-erstellen.bat` und `Anleitung-Sicherung.md` im Ordner `von-mir-aus`.
+- Recherche-Bericht „Feinschliff-Vergleich“ (Doc). Offen daraus (nach Wunsch umsetzen): Tippflächen ≥44 px (v. a. Krisenmodus-Nummern), Zoom erlauben, `theme-color` je Design, Android-Kurzbefehle im Manifest, globales „Rückgängig“, Ton/Vibration beim Start fragen, Schriftgrößen-Stufen, Seitentitel, getrennte Icons, iOS-Startbild.
+
 ## Stand 13.11.2026 nachmittags (erledigt)
 - Startseite entschlackt: Alltag-Block, Helfermodus und „Weiterbearbeiten“ (ContinueCard) entfernt; Krisenmodus-Chip bleibt auf Jetzt (Sicherheit). Im Kernmodus bleibt ein Medi-Log-Link.
 - Sicherheit-Seite: Kacheln Krisenmodus + Helfermodus (Helfermodus nur bei vollem Umfang).
@@ -711,3 +716,7 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 - Nach innen UND nach außen balancieren, nicht nur Selbstbeobachtung
 - Ressourcen (Dinge, auf die man zurückgreift) vs. Brücken (zusammengesetzte Handlungsmöglichkeiten aus Ressourcen) — Unterschied muss überall verständlich bleiben
 - Quellen bei allen fachlichen Inhalten nachvollziehbar, keine Diagnosen, Modelle als Modelle kennzeichnen
+
+## Feinschliff 15.11.2026 (F1–F15, einzeln rückgängig machbar)
+Übersicht und Undo-Anleitung: `docs/FEINSCHLIFF.md`. Erledigt: F1/F2 Tippflächen, F3 Zoom-Einstellung, F4 Statusleistenfarbe, F5 App-Kurzbefehle, F6 Rückgängig nach Löschen, F7 Ton/Vibration im Start, F8 Orientierung in leeren Auswertungen, F9 Textgröße, F10 Seitentitel, F11 maskable Icons, F12 iPhone-Startbild, F13 flinkerer Hauptseitenwechsel, F14 Geschafft-Signal, F15 getönte Schatten.
+Offen/Prüfen am echten Handy: F4, F5, F12 (nur installiert sichtbar); Dichte der unsichtbaren Tippflächen (F2) in engen Reihen.

@@ -41,19 +41,19 @@ export function RecurringConfirmationPrompt({ pending, onAnswer }: RecurringConf
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={() => onAnswer(p, 'taken')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
               >
                 <Check size={13} /> {t.mediLog.answerYes}
               </button>
               <button
                 onClick={() => onAnswer(p, 'now')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)]"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] hit44"
               >
                 <Clock size={13} /> {t.mediLog.answerNow}
               </button>
               <button
                 onClick={() => onAnswer(p, 'skipped')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] text-[var(--color-text-faint)]"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] text-[var(--color-text-faint)] hit44"
               >
                 <X size={13} /> {t.mediLog.answerNo}
               </button>

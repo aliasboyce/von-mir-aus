@@ -182,7 +182,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
                 type="button"
                 aria-pressed={modality === key}
                 onClick={() => setModality(key)}
-                className="flex-1 rounded-[var(--radius-md)] border px-3 py-2.5 text-[13px] text-left"
+                className="flex-1 rounded-[var(--radius-md)] border px-3 py-2.5 text-[13px] text-left hit44"
                 style={modality === key ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-soft)', color: 'var(--color-text)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
               >
                 {label}
@@ -210,7 +210,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
           {contextPhoto ? (
             <div className="relative mb-3">
               <img src={contextPhoto} alt="" className="w-full max-h-[180px] object-cover rounded-[var(--radius-md)]" />
-              <button type="button" onClick={() => setContextPhoto(undefined)} aria-label={t.resources.voiceDelete} className="absolute top-2 right-2 rounded-full p-1.5" style={{ background: 'rgba(0,0,0,0.5)', color: '#fff' }}>
+              <button type="button" onClick={() => setContextPhoto(undefined)} aria-label={t.resources.voiceDelete} className="absolute top-2 right-2 rounded-full p-1.5 hit44" style={{ background: 'rgba(0,0,0,0.5)', color: '#fff' }}>
                 <Trash2 size={14} />
               </button>
             </div>
@@ -280,7 +280,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
                 </button>
               </div>
             ))}
-            <button type="button" onClick={() => setSteps([...steps, ''])} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-1">
+            <button type="button" onClick={() => setSteps([...steps, ''])} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-1 hit44">
               <Plus size={14} /> {t.resources.skillAddStepCta}
             </button>
           </div>
@@ -301,7 +301,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
         <Field label={t.bridges.imageLabel}>
           <div className="flex flex-col gap-2">
             <ImageSuggestionCarousel images={imageSuggestions} selected={image} onSelect={(url) => setImage(url)} ariaLabel={t.resources.pickThisImage} />
-            <button type="button" onClick={() => setImageSuggestions(suggestedImageOptions(title, category))} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+            <button type="button" onClick={() => setImageSuggestions(suggestedImageOptions(title, category))} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44">
               <RefreshCw size={13} /> {t.resources.moreSuggestions}
             </button>
             <OwnImageControl image={image} onChange={setImage} fallback={() => suggestedImage(title, category)} />
@@ -322,7 +322,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
                     key={r.id}
                     type="button"
                     onClick={() => toggleHilfsmittel(r.id)}
-                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-full)] px-3 py-1.5 text-[13px] font-medium border"
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-full)] px-3 py-1.5 text-[13px] font-medium border hit44"
                     style={isSelected ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
                   >
                     {r.title}

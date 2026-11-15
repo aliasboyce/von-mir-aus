@@ -143,9 +143,9 @@ export function RoutinesGardenPage() {
                   <div className="flex items-center gap-2 mt-3">
                     <Button size="sm" icon={<Play size={14} />} onClick={() => navigate(`/entdecken/routinen/${r.id}/start`)} data-testid={`routine-start-${r.id}`}>{rt.start}</Button>
                     <div className="flex-1" />
-                    <button type="button" onClick={() => setHistoryId(historyId === r.id ? null : r.id)} aria-label={rt.history} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"><History size={16} /></button>
-                    <button type="button" onClick={() => navigate(`/entdecken/routinen/${r.id}/bearbeiten`)} aria-label={rt.edit} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]" data-testid={`routine-edit-${r.id}`}><Pencil size={16} /></button>
-                    <button type="button" onClick={() => remove(r)} aria-label={rt.remove} className="p-2 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]"><Trash2 size={16} /></button>
+                    <button type="button" onClick={() => setHistoryId(historyId === r.id ? null : r.id)} aria-label={rt.history} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"><History size={16} /></button>
+                    <button type="button" onClick={() => navigate(`/entdecken/routinen/${r.id}/bearbeiten`)} aria-label={rt.edit} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44" data-testid={`routine-edit-${r.id}`}><Pencil size={16} /></button>
+                    <button type="button" onClick={() => remove(r)} aria-label={rt.remove} className="p-2 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hit44"><Trash2 size={16} /></button>
                   </div>
                   {historyId === r.id && (
                     <div className="mt-3 pt-3 border-t border-[var(--color-border)] animate-in" data-testid="routine-history">
@@ -164,7 +164,7 @@ export function RoutinesGardenPage() {
                               </div>
                             ))}
                           </div>
-                          <Link to="/wochenrueckblick" className="text-[12.5px] text-[var(--color-primary)] underline underline-offset-2 inline-block mt-2">{rt.toReview}</Link>
+                          <Link to="/wochenrueckblick" className="text-[12.5px] text-[var(--color-primary)] underline underline-offset-2 inline-block mt-2 hit44">{rt.toReview}</Link>
                         </>
                       )}
                     </div>

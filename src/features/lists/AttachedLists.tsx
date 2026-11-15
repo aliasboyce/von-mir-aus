@@ -56,7 +56,7 @@ export function AttachedLists({ kind, refId, contextTitle }: { kind: ListLinkKin
                 {l.emoji} {l.title}
                 {l.kind === 'check' && l.items.length > 0 && <span className="text-[var(--color-text-faint)]"> · {l.items.filter((i) => i.done).length}/{l.items.length}</span>}
               </Link>
-              <button type="button" onClick={() => detachList(l.id, kind, refId)} className="w-8 h-8 flex items-center justify-center text-[var(--color-text-faint)]" aria-label={L('Verknüpfung lösen (die Liste bleibt)', 'Detach (the list stays)')} data-testid="attached-list-detach">
+              <button type="button" onClick={() => detachList(l.id, kind, refId)} className="hit44 w-8 h-8 flex items-center justify-center text-[var(--color-text-faint)]" aria-label={L('Verknüpfung lösen (die Liste bleibt)', 'Detach (the list stays)')} data-testid="attached-list-detach">
                 <X size={14} />
               </button>
             </li>

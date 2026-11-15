@@ -8,7 +8,7 @@ function Chip({ active, onClick, children, hint }: { active: boolean; onClick: (
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className="text-left rounded-[var(--radius-md)] border px-2.5 py-2"
+      className="text-left rounded-[var(--radius-md)] border px-2.5 py-2 hit44"
       style={{ borderColor: active ? 'var(--color-primary)' : 'var(--color-border)', background: active ? 'var(--color-primary-soft)' : 'var(--color-surface)' }}
     >
       <span className="block text-[12.5px] text-[var(--color-text)] leading-tight">{children}</span>
@@ -56,7 +56,7 @@ export function FitProfileFields({ value, onChange }: { value?: FitProfile; onCh
             type="button"
             onClick={() => patch({ minutes: v.minutes === m ? undefined : m })}
             aria-pressed={v.minutes === m}
-            className="rounded-full border px-3 py-1.5 text-[12.5px]"
+            className="rounded-full border px-3 py-1.5 text-[12.5px] hit44"
             style={{
               borderColor: v.minutes === m ? 'var(--color-primary)' : 'var(--color-border)',
               background: v.minutes === m ? 'var(--color-primary-soft)' : 'var(--color-surface)',

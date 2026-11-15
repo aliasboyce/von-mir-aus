@@ -1736,7 +1736,7 @@ function Editor({ initial }: { initial: MindMap }) {
           <button
             type="button"
             onClick={() => { flush(); backToDiary(); }}
-            className="absolute left-3 z-10 px-3.5 py-2 rounded-full text-[13px] font-medium shadow-md"
+            className="absolute left-3 z-10 px-3.5 py-2 rounded-full text-[13px] font-medium shadow-md hit44"
             style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 54px)', background: 'var(--color-primary)', color: 'var(--color-surface)' }}
             data-testid="mm-back-diary"
           >
@@ -2018,7 +2018,7 @@ function Editor({ initial }: { initial: MindMap }) {
             <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{T.bgTone}</p>
             <div className="flex gap-2.5 flex-wrap items-center">
               {BG_TONES.map((t) => (
-                <button key={t.id} type="button" onClick={() => commit((m) => ({ ...m, bg: { ...m.bg, tone: t.id } }))} aria-label={lang === 'en' ? t.en : t.de} className="w-10 h-10 rounded-full" style={{ background: t.css ?? t.color, border: `2px solid ${mixHex(t.color, '#000000', 0.18)}`, outline: map.bg.tone === t.id ? '3px solid var(--color-primary)' : 'none', outlineOffset: 2 }} data-testid={`mm-bgtone-${t.id}`} />
+                <button key={t.id} type="button" onClick={() => commit((m) => ({ ...m, bg: { ...m.bg, tone: t.id } }))} aria-label={lang === 'en' ? t.en : t.de} className="w-11 h-11 rounded-full" style={{ background: t.css ?? t.color, border: `2px solid ${mixHex(t.color, '#000000', 0.18)}`, outline: map.bg.tone === t.id ? '3px solid var(--color-primary)' : 'none', outlineOffset: 2 }} data-testid={`mm-bgtone-${t.id}`} />
               ))}
               <label className="relative w-10 h-10 rounded-full overflow-hidden cursor-pointer" style={{ background: HEX_TONE.test(map.bg.tone) ? map.bg.tone : 'conic-gradient(#e8a83d, #6fbf73, #4a8f9e, #9a7bc4, #d9778a, #e8a83d)', outline: HEX_TONE.test(map.bg.tone) ? '3px solid var(--color-primary)' : 'none', outlineOffset: 2 }} title={X.bgCustom}>
                 <input type="color" value={HEX_TONE.test(map.bg.tone) ? map.bg.tone : '#fbf8f1'} onChange={(e) => commit((m) => ({ ...m, bg: { ...m.bg, tone: e.target.value } }), 'bgcolor')} className="absolute inset-0 opacity-0 cursor-pointer" aria-label={X.bgCustom} data-testid="mm-bgtone-custom" />
@@ -2028,11 +2028,11 @@ function Editor({ initial }: { initial: MindMap }) {
           <div>
             <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{lang === 'en' ? 'Own photo as background' : 'Eigenes Foto als Hintergrund'}</p>
             <div className="flex gap-2 flex-wrap items-center">
-              <button type="button" onClick={() => bgPhotoInput.current?.click()} className="px-4 py-2 rounded-full text-[13.5px] border border-[var(--color-border-strong)] text-[var(--color-text)] flex items-center gap-1.5" data-testid="mm-bgimg-pick">
+              <button type="button" onClick={() => bgPhotoInput.current?.click()} className="px-4 py-2 rounded-full text-[13.5px] border border-[var(--color-border-strong)] text-[var(--color-text)] flex items-center gap-1.5 hit44" data-testid="mm-bgimg-pick">
                 <ImageIcon size={15} /> {map.bg.img ? (lang === 'en' ? 'Change photo' : 'Foto ändern') : (lang === 'en' ? 'Choose a photo' : 'Foto wählen')}
               </button>
               {map.bg.img && (
-                <button type="button" onClick={() => commit((m) => ({ ...m, bg: { kind: m.bg.kind, tone: m.bg.tone } }))} className="px-4 py-2 rounded-full text-[13.5px] border border-[var(--color-border-strong)] text-[var(--color-text-muted)]" data-testid="mm-bgimg-remove">
+                <button type="button" onClick={() => commit((m) => ({ ...m, bg: { kind: m.bg.kind, tone: m.bg.tone } }))} className="px-4 py-2 rounded-full text-[13.5px] border border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44" data-testid="mm-bgimg-remove">
                   {lang === 'en' ? 'Remove photo' : 'Foto entfernen'}
                 </button>
               )}

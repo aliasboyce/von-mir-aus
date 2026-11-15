@@ -152,7 +152,7 @@ export function DayFlowPage({ phase }: { phase: DayPhase }) {
             );
           })}
         </div>
-        <button type="button" onClick={() => navigate('/')} className="mt-6 block mx-auto text-[13.5px] text-[var(--color-primary)] underline underline-offset-2" data-testid="day-flow-home">
+        <button type="button" onClick={() => navigate('/')} className="mt-6 block mx-auto text-[13.5px] text-[var(--color-primary)] underline underline-offset-2 hit44" data-testid="day-flow-home">
           {dx.toHome}
         </button>
       </div>

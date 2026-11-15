@@ -420,7 +420,7 @@ export function DiaryPage() {
                 <button
                   key={f}
                   onClick={() => updateSettings({ diaryFont: f })}
-                  className="px-3 py-1.5 rounded-full text-[13px]"
+                  className="px-3 py-1.5 rounded-full text-[13px] hit44"
                   style={{
                     fontFamily: DIARY_FONT_META[f].family,
                     background: diaryFont === f ? 'var(--color-primary)' : 'var(--color-surface-muted)',
@@ -468,7 +468,7 @@ export function DiaryPage() {
                       onChange={(e) => setNewCategoryName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && addCategory()}
                     />
-                    <button onClick={addCategory} className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0">
+                    <button onClick={addCategory} className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0 hit44">
                       <Plus size={15} />
                     </button>
                   </div>
@@ -477,7 +477,7 @@ export function DiaryPage() {
                       <button
                         key={idea}
                         onClick={() => setNewCategoryName(idea)}
-                        className="text-[11px] px-2 py-1 rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
+                        className="text-[11px] px-2 py-1 rounded-full bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] hit44"
                       >
                         {idea}
                       </button>
@@ -491,14 +491,14 @@ export function DiaryPage() {
               <div className="flex flex-wrap gap-x-4 mb-4">
                 <button
                   onClick={() => setStylingCategoryId(activeCategory)}
-                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] py-2 px-3 -mx-3 rounded-[var(--radius-md)] active:bg-[var(--color-primary-soft)]"
+                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] py-2 px-3 -mx-3 rounded-[var(--radius-md)] active:bg-[var(--color-primary-soft)] hit44"
                 >
                   <Type size={14} />
                   {t.diary.styleThisCategoryCta}
                 </button>
                 <button
                   onClick={() => setBookCodeOpen(true)}
-                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] py-2 px-3 -mx-3 rounded-[var(--radius-md)] active:bg-[var(--color-primary-soft)]"
+                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] py-2 px-3 -mx-3 rounded-[var(--radius-md)] active:bg-[var(--color-primary-soft)] hit44"
                   data-testid="book-code-open"
                 >
                   <Lock size={14} />
@@ -574,7 +574,7 @@ export function DiaryPage() {
                         type="button"
                         onClick={() => setDraftPhoto(undefined)}
                         aria-label={t.diary.removePhoto}
-                        className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center"
+                        className="absolute top-1.5 right-1.5 hit44 w-7 h-7 rounded-full bg-black/60 text-white flex items-center justify-center"
                       >
                         <X size={14} />
                       </button>
@@ -661,7 +661,7 @@ export function DiaryPage() {
                           remove(entry.id);
                         }}
                         aria-label={t.common.delete}
-                        className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0"
+                        className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 hit44"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -716,7 +716,7 @@ export function DiaryPage() {
                                 openMap(mid, entry.id);
                               }}
                               data-no-tap-feedback
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[13px]"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[13px] hit44"
                               data-testid="diary-entry-map"
                             >
                               <Network size={13} /> {m.title || (langEn ? 'Mind map' : 'Mindmap')}

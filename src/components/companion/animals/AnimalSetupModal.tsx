@@ -121,7 +121,7 @@ function SetupForm({ open, onClose, animalId, editing, onSaved, onDeleted, en }:
                     setOwnColor(undefined);
                     if (animal.harness) setHarness(variantOf(animal, v.id).opt?.harness ?? false);
                   }}
-                  className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border text-[13px]"
+                  className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full border text-[13px] hit44"
                   style={{ borderColor: on ? 'var(--color-primary)' : 'var(--color-border-strong)', background: on ? 'color-mix(in srgb, var(--color-primary) 10%, transparent)' : 'transparent', color: 'var(--color-text)' }}
                 >
                   <span className="w-5 h-5 rounded-full border border-black/10" style={{ background: `linear-gradient(135deg, ${pal.body} 55%, ${pal.belly} 55%)` }} />

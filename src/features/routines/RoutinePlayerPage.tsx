@@ -65,7 +65,7 @@ function EnergyGate({ routine }: { routine: Routine }) {
     return createPortal(
       <div className="fixed inset-0 z-[220] flex flex-col px-5" style={{ background: 'var(--color-bg)', paddingTop: 'max(18px, env(safe-area-inset-top))', paddingBottom: 'max(18px, env(safe-area-inset-bottom))' }} data-testid="routine-energy-gate">
         <div className="flex items-center mb-6">
-          <button type="button" onClick={() => goBack(navigate, '/entdecken/garten')} aria-label={rt.energyNotNow} className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center" data-testid="routine-energy-close"><X size={19} /></button>
+          <button type="button" onClick={() => goBack(navigate, '/entdecken/garten')} aria-label={rt.energyNotNow} className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center" data-testid="routine-energy-close"><X size={19} /></button>
         </div>
         <div className="flex-1 flex flex-col justify-center max-w-[440px] w-full mx-auto">
           <p className="text-[34px] text-center mb-2">{routine.emoji}</p>
@@ -479,7 +479,7 @@ function Player({ routine, energy }: { routine: Routine; energy?: EnergyLevel })
       {phase === 'run' && (
         <>
           <div className="flex items-center gap-3 px-4 pb-2">
-            <button type="button" onClick={() => setConfirmEnd(true)} aria-label={rt.endEarly} data-sound="close" className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center flex-shrink-0" data-testid="routine-close">
+            <button type="button" onClick={() => setConfirmEnd(true)} aria-label={rt.endEarly} data-sound="close" className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center flex-shrink-0" data-testid="routine-close">
               <X size={19} />
             </button>
             <div className="flex-1 flex items-center justify-center gap-1.5" aria-label={rt.cardOf.replace('{n}', String(idx + 1)).replace('{m}', String(cards.length))}>

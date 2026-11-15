@@ -66,7 +66,7 @@ export function QuickSheet({
           ) : (
             <span className="inline-flex items-center gap-1.5 shrink-0">
               <input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && name.trim()) { savePreset(name, node); setName(''); setNaming(false); } }} placeholder={L('Name, z. B. „Wichtig“', 'Name, e.g. “Important”')} className="h-8 w-40 rounded-full border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-[12.5px]" data-testid="mm-preset-name" />
-              <button type="button" disabled={!name.trim()} onClick={() => { savePreset(name, node); setName(''); setNaming(false); }} className="px-3 py-1.5 rounded-full text-[12.5px] text-white disabled:opacity-40" style={{ background: 'var(--color-primary)' }} data-testid="mm-preset-save">{L('Speichern', 'Save')}</button>
+              <button type="button" disabled={!name.trim()} onClick={() => { savePreset(name, node); setName(''); setNaming(false); }} className="px-3 py-1.5 rounded-full text-[12.5px] text-white disabled:opacity-40 hit44" style={{ background: 'var(--color-primary)' }} data-testid="mm-preset-save">{L('Speichern', 'Save')}</button>
             </span>
           )}
         </div>

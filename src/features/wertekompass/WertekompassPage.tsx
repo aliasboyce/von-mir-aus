@@ -169,19 +169,19 @@ export function WertekompassPage() {
           </Card>
         )}
 
-        <Link to="/zugang" className="text-[13px] text-[var(--color-primary)] block mb-6">
+        <Link to="/zugang" className="text-[13px] text-[var(--color-primary)] block mb-6 hit44">
           {t.wertekompass.startZugangLink} →
         </Link>
 
         {/* Section D — everything else, bundled behind one toggle so the
          * page above this line is the calm, scannable "was ist das,
          * was kann ich hier tun" view the brief asked for. */}
-        <button onClick={() => setShowMore((v) => !v)} className="text-[13px] text-[var(--color-primary)] mb-4 block">
+        <button onClick={() => setShowMore((v) => !v)} className="text-[13px] text-[var(--color-primary)] mb-4 block hit44">
           {showMore ? t.wertekompass.hideMoreCta : t.wertekompass.showMoreCta}
         </button>
         {showMore && (
           <>
-            <button onClick={() => setShowActExplainer((v) => !v)} className="text-[13px] text-[var(--color-primary)] mb-6 block">
+            <button onClick={() => setShowActExplainer((v) => !v)} className="text-[13px] text-[var(--color-primary)] mb-6 block hit44">
               {showActExplainer ? t.wertekompass.hideActExplainerCta : t.wertekompass.showActExplainerCta}
             </button>
             {showActExplainer && (

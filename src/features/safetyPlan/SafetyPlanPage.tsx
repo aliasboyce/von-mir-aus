@@ -55,10 +55,10 @@ function ExampleRow({ text, onKeep, onDelete, T }: { text: string; onKeep: () =>
         <span className="flex-1 italic">{text}</span>
       </div>
       <div className="flex gap-4 mt-1.5 ml-0.5">
-        <button type="button" onClick={onKeep} className="flex items-center gap-1 text-[12px] text-[var(--color-primary)] underline underline-offset-2" data-testid="example-keep">
+        <button type="button" onClick={onKeep} className="flex items-center gap-1 text-[12px] text-[var(--color-primary)] underline underline-offset-2 hit44" data-testid="example-keep">
           <Check size={12} /> {T.exampleKeep}
         </button>
-        <button type="button" onClick={onDelete} className="flex items-center gap-1 text-[12px] text-[var(--color-danger)] underline underline-offset-2" data-testid="example-delete">
+        <button type="button" onClick={onDelete} className="flex items-center gap-1 text-[12px] text-[var(--color-danger)] underline underline-offset-2 hit44" data-testid="example-delete">
           <X size={12} /> {T.exampleDelete}
         </button>
       </div>
@@ -268,7 +268,7 @@ export function SafetyPlanPage() {
                 onChange={(e) => setNewPlanName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addPlan()}
               />
-              <button onClick={addPlan} className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+              <button onClick={addPlan} className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] hit44">
                 <Plus size={15} />
               </button>
             </div>
@@ -282,7 +282,7 @@ export function SafetyPlanPage() {
         {hasExamples && (
           <div className="rounded-[var(--radius-md)] px-3.5 py-3 mb-5 flex flex-col gap-2" style={{ border: '1.5px dashed var(--color-border-strong)' }} data-testid="examples-hint">
             <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{T.exampleHint}</p>
-            <button type="button" onClick={deleteAllExamples} className="self-start text-[12.5px] text-[var(--color-danger)] underline underline-offset-2" data-testid="examples-delete-all">
+            <button type="button" onClick={deleteAllExamples} className="self-start text-[12.5px] text-[var(--color-danger)] underline underline-offset-2 hit44" data-testid="examples-delete-all">
               {T.exampleDeleteAll}
             </button>
           </div>
@@ -400,7 +400,7 @@ export function SafetyPlanPage() {
                           <div className="ml-4 mt-1 flex items-center gap-1.5">
                             <span aria-hidden="true" style={{ color: tierColor.color }}>→</span>
                             <div className="flex-1 min-w-0"><ResourceTile resource={linkedRes} compact /></div>
-                            <button onClick={() => setWarningResource(w.id, undefined)} aria-label={t.common.remove} className="text-[var(--color-text-faint)] no-print p-1">
+                            <button onClick={() => setWarningResource(w.id, undefined)} aria-label={t.common.remove} className="text-[var(--color-text-faint)] no-print p-1 hit44">
                               <X size={12} />
                             </button>
                           </div>
@@ -427,7 +427,7 @@ export function SafetyPlanPage() {
                 />
                 <button
                   onClick={() => addWarning(tier, warnKey)}
-                  className="p-2 rounded-full flex-shrink-0"
+                  className="p-2 rounded-full flex-shrink-0 hit44"
                   style={{ background: tierColor.soft, color: tierColor.color }}
                 >
                   <Plus size={15} />
@@ -469,7 +469,7 @@ export function SafetyPlanPage() {
                 />
                 <button
                   onClick={() => addHelp(tier, helpKey)}
-                  className="p-2 rounded-full flex-shrink-0"
+                  className="p-2 rounded-full flex-shrink-0 hit44"
                   style={{ background: tierColor.soft, color: tierColor.color }}
                 >
                   <Plus size={15} />
@@ -554,7 +554,7 @@ export function SafetyPlanPage() {
                   />
                   <button
                     onClick={() => addSectionItem(key)}
-                    className="p-2.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0"
+                    className="p-2.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0 hit44"
                   >
                     <Plus size={16} />
                   </button>

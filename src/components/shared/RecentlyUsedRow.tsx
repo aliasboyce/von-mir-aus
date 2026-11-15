@@ -29,7 +29,7 @@ export function RecentlyUsedRow({ type, hrefFor }: RecentlyUsedRowProps) {
           <Link
             key={event.id}
             to={hrefFor(event.refId!)}
-            className="flex-shrink-0 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] px-3.5 py-2 text-[13px] text-[var(--color-text)] whitespace-nowrap"
+            className="flex-shrink-0 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] px-3.5 py-2 text-[13px] text-[var(--color-text)] whitespace-nowrap hit44"
           >
             {event.label}
           </Link>

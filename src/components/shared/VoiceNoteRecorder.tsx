@@ -73,11 +73,11 @@ export function VoiceNoteRecorder({ value, onChange }: { value?: string; onChang
         </div>
       )}
       {state === 'recording' ? (
-        <button type="button" onClick={stop} className="flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[13.5px] text-[var(--color-surface)]" style={{ background: 'var(--color-danger)' }}>
+        <button type="button" onClick={stop} className="flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[13.5px] text-[var(--color-surface)] hit44" style={{ background: 'var(--color-danger)' }}>
           <Square size={14} /> {t.resources.voiceStop} · {seconds}s
         </button>
       ) : (
-        <button type="button" onClick={start} className="flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[13.5px] border" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
+        <button type="button" onClick={start} className="flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[13.5px] border hit44" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
           <Mic size={15} /> {value ? t.resources.voiceAgain : t.resources.voiceRecord}
         </button>
       )}

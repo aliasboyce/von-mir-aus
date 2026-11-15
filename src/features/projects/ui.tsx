@@ -17,7 +17,7 @@ export interface BlockProps<B extends ProjectBlock = ProjectBlock> {
 
 export function IconBtn({ onClick, label, children, danger, testId, disabled }: { onClick: () => void; label: string; children: ReactNode; danger?: boolean; testId?: string; disabled?: boolean }) {
   return (
-    <button type="button" onClick={onClick} aria-label={label} title={label} disabled={disabled} className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center disabled:opacity-30 ${danger ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-muted)]'}`} data-testid={testId}>
+    <button type="button" onClick={onClick} aria-label={label} title={label} disabled={disabled} className={`w-11 h-11 shrink-0 rounded-full flex items-center justify-center disabled:opacity-30 ${danger ? 'text-[var(--color-danger)]' : 'text-[var(--color-text-muted)]'}`} data-testid={testId}>
       {children}
     </button>
   );

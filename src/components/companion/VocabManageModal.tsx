@@ -107,10 +107,10 @@ export function VocabManageModal({ open, onClose }: VocabManageModalProps) {
                       {t.vocab.cardCount.replace('{n}', String(cardsForCollection(col.id).length))}
                     </p>
                   </button>
-                  <button onClick={() => renameCollection(col)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)]">
+                  <button onClick={() => renameCollection(col)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)] hit44">
                     <Pencil size={14} />
                   </button>
-                  <button onClick={() => deleteCollection(col)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)]">
+                  <button onClick={() => deleteCollection(col)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)] hit44">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -120,7 +120,7 @@ export function VocabManageModal({ open, onClose }: VocabManageModalProps) {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <button onClick={() => setOpenCollectionId(null)} className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] -mt-2 w-fit">
+          <button onClick={() => setOpenCollectionId(null)} className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] -mt-2 w-fit hit44">
             <ChevronLeft size={14} /> {t.vocab.allCollections}
           </button>
 
@@ -138,7 +138,7 @@ export function VocabManageModal({ open, onClose }: VocabManageModalProps) {
                     <p className="text-[14px] text-[var(--color-text)]">{card.front}</p>
                     <p className="text-[12px] text-[var(--color-text-muted)]">{card.back}</p>
                   </button>
-                  <button onClick={() => deleteCard(card.id)} aria-label={t.common.delete} className="p-1.5 mr-2 text-[var(--color-danger)] flex-shrink-0">
+                  <button onClick={() => deleteCard(card.id)} aria-label={t.common.delete} className="p-1.5 mr-2 text-[var(--color-danger)] flex-shrink-0 hit44">
                     <Trash2 size={14} />
                   </button>
                 </div>

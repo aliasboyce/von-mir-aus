@@ -160,7 +160,7 @@ export function ListDetailPage() {
                   {i.sub.map((s) => (
                     <li key={s.id} className="flex items-center" data-testid="list-sub" data-done={s.done ? '1' : '0'}>
                       {check ? (
-                        <button type="button" onClick={() => toggleSub(i, s.id)} className="w-10 h-10 shrink-0 flex items-center justify-center -ml-2" aria-label={s.done ? L('Wieder öffnen', 'Reopen') : L('Abhaken', 'Tick off')} aria-pressed={s.done} data-testid="list-sub-check">
+                        <button type="button" onClick={() => toggleSub(i, s.id)} className="w-11 h-11 shrink-0 flex items-center justify-center -ml-2" aria-label={s.done ? L('Wieder öffnen', 'Reopen') : L('Abhaken', 'Tick off')} aria-pressed={s.done} data-testid="list-sub-check">
                           <span className="w-[20px] h-[20px] rounded-md border-2 flex items-center justify-center" style={{ borderColor: s.done ? list.color : 'var(--color-border-strong)', background: s.done ? list.color : 'transparent' }}>{s.done && <Check size={13} color="#fff" strokeWidth={3} />}</span>
                         </button>
                       ) : <span className="w-4 shrink-0" style={{ color: list.color }} aria-hidden>–</span>}
@@ -245,7 +245,7 @@ function ListBelongsTo({ list }: { list: UserList }) {
     <div className="flex flex-wrap gap-1.5 my-2" data-testid="list-belongs">
       {cat && <span className="text-[12.5px] px-2.5 py-1 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text-muted)]">{cat.emoji} {cat.name}</span>}
       {targets.map(({ x, t }) => (
-        <Link key={`${x.kind}${x.refId}`} to={t.to} className="text-[12.5px] px-2.5 py-1 rounded-full text-[var(--color-primary)] border border-[var(--color-primary)]" data-testid="list-belongs-link">
+        <Link key={`${x.kind}${x.refId}`} to={t.to} className="text-[12.5px] px-2.5 py-1 rounded-full text-[var(--color-primary)] border border-[var(--color-primary)] hit44" data-testid="list-belongs-link">
           {lang === 'en' ? LINK_KIND_LABEL[x.kind][1] : LINK_KIND_LABEL[x.kind][0]}: {t.label} →
         </Link>
       ))}

@@ -181,7 +181,7 @@ export function CardEditorPage() {
 
         <div className="flex rounded-full p-1 mb-5 bg-[var(--color-surface-muted)]" role="group" aria-label={L('Umfang der Optionen', 'How many options')} data-testid="card-editor-mode">
           {[{ v: false, de: 'Einfach', en: 'Simple' }, { v: true, de: 'Mehr Optionen', en: 'More options' }].map((o) => (
-            <button key={String(o.v)} type="button" onClick={() => chooseMore(o.v)} aria-pressed={more === o.v} className="flex-1 py-2 rounded-full text-[13.5px]" style={chip(more === o.v)} data-testid={o.v ? 'card-mode-more' : 'card-mode-simple'}>
+            <button key={String(o.v)} type="button" onClick={() => chooseMore(o.v)} aria-pressed={more === o.v} className="flex-1 py-2 rounded-full text-[13.5px] hit44" style={chip(more === o.v)} data-testid={o.v ? 'card-mode-more' : 'card-mode-simple'}>
               {lang === 'en' ? o.en : o.de}
             </button>
           ))}
@@ -189,20 +189,20 @@ export function CardEditorPage() {
 
         <Section title={L('Art der Karte', 'Kind of card')}>
           <div className="flex flex-wrap gap-1.5">
-            <button type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={chip(kind === 'eigen' && !categoryId)} onClick={() => { setKind('eigen'); setCategoryId(undefined); }}>
+            <button type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={chip(kind === 'eigen' && !categoryId)} onClick={() => { setKind('eigen'); setCategoryId(undefined); }}>
               🃏 {L('Frei', 'Free')}
             </button>
             {PICKABLE.map((k) => (
-              <button key={k} type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={chip(kind === k)} onClick={() => { setKind(k); setCategoryId(undefined); }}>
+              <button key={k} type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={chip(kind === k)} onClick={() => { setKind(k); setCategoryId(undefined); }}>
                 {KIND_META[k].emoji} {lang === 'en' ? KIND_META[k].en : KIND_META[k].de}
               </button>
             ))}
             {cats.map((c) => (
-              <button key={c.id} type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={chip(kind === 'eigen' && categoryId === c.id)} onClick={() => { setKind('eigen'); setCategoryId(c.id); }} data-testid="card-own-category">
+              <button key={c.id} type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={chip(kind === 'eigen' && categoryId === c.id)} onClick={() => { setKind('eigen'); setCategoryId(c.id); }} data-testid="card-own-category">
                 {c.emoji} {c.label}
               </button>
             ))}
-            <button type="button" className="px-3 py-1.5 rounded-full text-[13px] flex items-center gap-1 border border-dashed border-[var(--color-border-strong)] text-[var(--color-primary)]" onClick={() => setNewCat({ label: '', emoji: '💌', color: PALETTE_COLORS[2] })} data-testid="card-new-category">
+            <button type="button" className="px-3 py-1.5 rounded-full text-[13px] flex items-center gap-1 border border-dashed border-[var(--color-border-strong)] text-[var(--color-primary)] hit44" onClick={() => setNewCat({ label: '', emoji: '💌', color: PALETTE_COLORS[2] })} data-testid="card-new-category">
               <Plus size={13} /> {L('Eigene Kategorie', 'Own category')}
             </button>
           </div>
@@ -211,12 +211,12 @@ export function CardEditorPage() {
               <input className="input" placeholder={L('z. B. Wunschkarte, Fragekarte, Ereigniskarte …', 'e.g. wish card, question card …')} value={newCat.label} onChange={(e) => setNewCat({ ...newCat, label: e.target.value })} data-testid="card-category-name" />
               <div className="flex flex-wrap gap-1.5">
                 {['💌', '🌠', '❓', '🎉', '📌', '🧸', '🎁', '🔮'].map((e) => (
-                  <button key={e} type="button" onClick={() => setNewCat({ ...newCat, emoji: e })} className="w-9 h-9 rounded-full text-[18px]" style={{ background: newCat.emoji === e ? 'var(--color-primary-soft)' : 'var(--color-surface)' }}>{e}</button>
+                  <button key={e} type="button" onClick={() => setNewCat({ ...newCat, emoji: e })} className="w-11 h-11 rounded-full text-[18px]" style={{ background: newCat.emoji === e ? 'var(--color-primary-soft)' : 'var(--color-surface)' }}>{e}</button>
                 ))}
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {PALETTE_COLORS.slice(0, 18).map((c) => (
-                  <button key={c} type="button" onClick={() => setNewCat({ ...newCat, color: c })} className="w-7 h-7 rounded-full" style={{ background: c, outline: newCat.color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} aria-label={c} />
+                  <button key={c} type="button" onClick={() => setNewCat({ ...newCat, color: c })} className="hit44 w-7 h-7 rounded-full" style={{ background: c, outline: newCat.color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} aria-label={c} />
                 ))}
               </div>
               <div className="flex gap-2">
@@ -249,14 +249,14 @@ export function CardEditorPage() {
           <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{L('Ohne Foto zeigt die Karte dieses Symbol:', 'Without a photo the card shows this symbol:')}</p>
           <div className="chip-row no-scrollbar -mx-1 px-1 mb-2">
             {EMOJI_GROUPS.map((g) => (
-              <button key={g.id} type="button" onClick={() => setEmojiGroup(g.id)} className="px-2.5 py-1 rounded-full text-[12.5px] flex-shrink-0" style={chip(emojiGroup === g.id)}>
+              <button key={g.id} type="button" onClick={() => setEmojiGroup(g.id)} className="px-2.5 py-1 rounded-full text-[12.5px] flex-shrink-0 hit44" style={chip(emojiGroup === g.id)}>
                 {g.icon} {lang === 'en' ? g.labelEn : g.label}
               </button>
             ))}
           </div>
           <div className="flex flex-wrap gap-1">
             {(EMOJI_GROUPS.find((g) => g.id === emojiGroup)?.items ?? []).map((e) => (
-              <button key={e} type="button" onClick={() => setEmoji(e)} className="w-10 h-10 rounded-[var(--radius-md)] text-[22px]" style={{ background: emoji === e ? 'var(--color-primary-soft)' : 'transparent', outline: emoji === e ? '2px solid var(--color-primary)' : 'none' }} aria-label={e}>
+              <button key={e} type="button" onClick={() => setEmoji(e)} className="w-11 h-11 rounded-[var(--radius-md)] text-[22px]" style={{ background: emoji === e ? 'var(--color-primary-soft)' : 'transparent', outline: emoji === e ? '2px solid var(--color-primary)' : 'none' }} aria-label={e}>
                 {e}
               </button>
             ))}
@@ -268,7 +268,7 @@ export function CardEditorPage() {
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Rahmen', 'Frame')}</p>
           <div className="flex flex-wrap gap-1.5 mb-3">
             {FRAMES.map((f) => (
-              <button key={f.id} type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={chip(frame === f.id)} onClick={() => setFrame(f.id)} data-testid={`card-frame-${f.id}`}>
+              <button key={f.id} type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={chip(frame === f.id)} onClick={() => setFrame(f.id)} data-testid={`card-frame-${f.id}`}>
                 {f.emoji} {lang === 'en' ? f.en : f.de}
               </button>
             ))}
@@ -276,7 +276,7 @@ export function CardEditorPage() {
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Schrift', 'Font')}</p>
           <div className="flex flex-wrap gap-1.5 mb-3">
             {FONT_OPTIONS.map((f) => (
-              <button key={f.id} type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={{ ...chip((font ?? 'rund') === f.id), fontFamily: f.family }} onClick={() => setFont(f.id)}>
+              <button key={f.id} type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={{ ...chip((font ?? 'rund') === f.id), fontFamily: f.family }} onClick={() => setFont(f.id)}>
                 {lang === 'en' ? f.en : f.de}
               </button>
             ))}
@@ -290,9 +290,9 @@ export function CardEditorPage() {
             </p>
           ) : (
           <div className="flex flex-wrap gap-1.5 mb-3">
-            <button type="button" className="px-3 py-1.5 rounded-full text-[12.5px]" style={chip(!color)} onClick={() => setColor(undefined)}>{L('Standard', 'Default')}</button>
+            <button type="button" className="px-3 py-1.5 rounded-full text-[12.5px] hit44" style={chip(!color)} onClick={() => setColor(undefined)}>{L('Standard', 'Default')}</button>
             {PALETTE_COLORS.map((c) => (
-              <button key={c} type="button" onClick={() => setColor(c)} className="w-8 h-8 rounded-full" style={{ background: c, outline: color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} aria-label={c} />
+              <button key={c} type="button" onClick={() => setColor(c)} className="hit44 w-8 h-8 rounded-full" style={{ background: c, outline: color === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} aria-label={c} />
             ))}
           </div>
           )}
@@ -300,7 +300,7 @@ export function CardEditorPage() {
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Sticker (bis zu 3)', 'Stickers (up to 3)')}</p>
           <div className="flex flex-wrap gap-1 mb-3">
             {STICKERS.map((s) => (
-              <button key={s} type="button" onClick={() => setStickers(stickers.includes(s) ? stickers.filter((x) => x !== s) : [...stickers, s].slice(-3))} className="w-10 h-10 rounded-[var(--radius-md)] text-[22px]" style={{ background: stickers.includes(s) ? 'var(--color-primary-soft)' : 'transparent', outline: stickers.includes(s) ? '2px solid var(--color-primary)' : 'none' }} aria-label={s}>
+              <button key={s} type="button" onClick={() => setStickers(stickers.includes(s) ? stickers.filter((x) => x !== s) : [...stickers, s].slice(-3))} className="w-11 h-11 rounded-[var(--radius-md)] text-[22px]" style={{ background: stickers.includes(s) ? 'var(--color-primary-soft)' : 'transparent', outline: stickers.includes(s) ? '2px solid var(--color-primary)' : 'none' }} aria-label={s}>
                 {s}
               </button>
             ))}
@@ -314,7 +314,7 @@ export function CardEditorPage() {
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Glanz, Glitzer oder Holo – und ein leises Funkeln beim Ansehen.', 'Shine, glitter or holo – and a soft sparkle when you look at it.')}</p>
           <div className="flex flex-wrap gap-1.5">
             {RARITIES.map((r) => (
-              <button key={r.id} type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={chip(rarity === r.id)} onClick={() => setRar(r.id)} data-testid={`card-rarity-${r.id}`}>
+              <button key={r.id} type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={chip(rarity === r.id)} onClick={() => setRar(r.id)} data-testid={`card-rarity-${r.id}`}>
                 {lang === 'en' ? r.en : r.de}
               </button>
             ))}

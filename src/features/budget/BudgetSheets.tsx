@@ -44,7 +44,7 @@ export function QuickAddSheet({ dir, onClose, onSaved, catId: startCat, date: st
         )}
         <TextField value={label} onChange={setLabel} label={out ? L('Wo oder was? (freiwillig)', 'Where or what? (optional)') : L('Von wem oder was? (freiwillig)', 'From whom or what? (optional)')} placeholder={out ? L('z. B. Supermarkt', 'e.g. supermarket') : L('z. B. Geschenk, Verkauf', 'e.g. gift, sale')} testId="budget-quick-label" />
         {!more ? (
-          <button type="button" onClick={() => setMore(true)} className="self-start text-[13px] underline underline-offset-2 text-[var(--color-primary)]" data-testid="budget-quick-more">{L('Mehr: Datum, Ort, Konto …', 'More: date, place, account …')}</button>
+          <button type="button" onClick={() => setMore(true)} className="self-start text-[13px] underline underline-offset-2 text-[var(--color-primary)] hit44" data-testid="budget-quick-more">{L('Mehr: Datum, Ort, Konto …', 'More: date, place, account …')}</button>
         ) : (
           <div className="flex flex-col gap-3">
             <DateField value={date} onChange={setDate} label={L('Datum', 'Date')} testId="budget-quick-date" />
@@ -223,7 +223,7 @@ export function RecurringSheet({ dir, initial, contractMode, onClose, onSaved, m
           </div>
         )}
         {!more ? (
-          <button type="button" onClick={() => setMore(true)} className="self-start text-[13px] underline underline-offset-2 text-[var(--color-primary)]">{L('Mehr: gilt von … bis …, Notiz', 'More: from … to …, note')}</button>
+          <button type="button" onClick={() => setMore(true)} className="self-start text-[13px] underline underline-offset-2 text-[var(--color-primary)] hit44">{L('Mehr: gilt von … bis …, Notiz', 'More: from … to …, note')}</button>
         ) : (
           <div className="flex flex-col gap-3">
             <div className="flex gap-3">

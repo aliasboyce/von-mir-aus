@@ -166,7 +166,7 @@ export function RecurringMedicationsModal({ open, onClose, savedMeds, onChange, 
                         doseUnit: m.typicalDoseUnit ?? 'mg',
                       })
                     }
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px]"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] hit44"
                     style={{ background: m.color, color: '#fff' }}
                   >
                     {m.name}
@@ -216,7 +216,7 @@ export function RecurringMedicationsModal({ open, onClose, savedMeds, onChange, 
                     setNewDoseFrom(new Date().toISOString().slice(0, 10));
                     setChangingDose(true);
                   }}
-                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
+                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44"
                 >
                   <History size={14} /> {t.mediLog.changeDoseCta}
                 </button>
@@ -279,7 +279,7 @@ export function RecurringMedicationsModal({ open, onClose, savedMeds, onChange, 
                     type="button"
                     onClick={() => setEditing({ ...editing, color: c })}
                     aria-label={c}
-                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    className="hit44 w-8 h-8 rounded-full flex items-center justify-center"
                     style={{ background: c, outline: editing.color === c ? '2.5px solid var(--color-text)' : 'none', outlineOffset: 2 }}
                   >
                     {editing.color === c && <Check size={13} color="#fff" />}
@@ -314,13 +314,13 @@ export function RecurringMedicationsModal({ open, onClose, savedMeds, onChange, 
                 <div key={i} className="flex items-center gap-2">
                   <input type="time" className="input" value={time} onChange={(e) => updateTime(i, e.target.value)} />
                   {editing.times.length > 1 && (
-                    <button onClick={() => removeTime(i)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)]">
+                    <button onClick={() => removeTime(i)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)] hit44">
                       <X size={14} />
                     </button>
                   )}
                 </div>
               ))}
-              <button onClick={addTime} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] w-fit">
+              <button onClick={addTime} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] w-fit hit44">
                 <Plus size={13} /> {t.mediLog.addTime}
               </button>
             </div>
@@ -333,7 +333,7 @@ export function RecurringMedicationsModal({ open, onClose, savedMeds, onChange, 
                 <button
                   key={d}
                   onClick={() => toggleDay(d)}
-                  className="px-2.5 py-1.5 rounded-full text-[12px]"
+                  className="px-2.5 py-1.5 rounded-full text-[12px] hit44"
                   style={{
                     background: editing.days.includes(d) ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                     color: editing.days.includes(d) ? '#fff' : 'var(--color-text)',
@@ -377,13 +377,13 @@ export function RecurringMedicationsModal({ open, onClose, savedMeds, onChange, 
                       {r.times.join(', ')} · {r.days.length === 7 ? t.mediLog.daily : r.days.map((d) => dayLabels[d]).join(', ')}
                     </p>
                   </div>
-                  <button onClick={() => toggleActive(r)} aria-label={r.active ? t.mediLog.pauseRecurring : t.mediLog.resumeRecurring} className="p-1.5 text-[var(--color-text-muted)]">
+                  <button onClick={() => toggleActive(r)} aria-label={r.active ? t.mediLog.pauseRecurring : t.mediLog.resumeRecurring} className="p-1.5 text-[var(--color-text-muted)] hit44">
                     {r.active ? <Pause size={14} /> : <Play size={14} />}
                   </button>
-                  <button onClick={() => setEditing(r)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)]">
+                  <button onClick={() => setEditing(r)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)] hit44">
                     <Pencil size={14} />
                   </button>
-                  <button onClick={() => remove(r.id)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)]">
+                  <button onClick={() => remove(r.id)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)] hit44">
                     <Trash2 size={14} />
                   </button>
                 </div>

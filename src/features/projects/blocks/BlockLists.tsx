@@ -190,7 +190,7 @@ export function BlockImages({ block, L, onChange }: BlockProps<ImagesBlock>) {
         ))}
       </div>
       <input ref={ref} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { void add(e.target.files); e.target.value = ''; }} data-testid="images-file" />
-      <button type="button" onClick={() => ref.current?.click()} className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[var(--color-border-strong)] text-[14px]" data-testid="images-add"><ImagePlus size={16} />{L('Bild hinzufügen', 'Add picture')}</button>
+      <button type="button" onClick={() => ref.current?.click()} className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[var(--color-border-strong)] text-[14px] hit44" data-testid="images-add"><ImagePlus size={16} />{L('Bild hinzufügen', 'Add picture')}</button>
       {msg && <p className="text-[12.5px] text-[var(--color-text-muted)] mt-1" role="status">{msg}</p>}
     </div>
   );

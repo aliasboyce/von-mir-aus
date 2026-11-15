@@ -136,13 +136,13 @@ export function CustomDistractionManageModal({ open, onClose, startCreating }: C
                       {t.customDistraction.itemCount.replace('{n}', String(itemCountByCategory.get(cat.id) ?? 0))}
                     </p>
                   </button>
-                  <button onClick={() => renameCategory(cat)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)]">
+                  <button onClick={() => renameCategory(cat)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)] hit44">
                     <Pencil size={14} />
                   </button>
-                  <button onClick={() => archiveCategory(cat)} aria-label={t.customDistraction.archiveCta} className="p-1.5 text-[var(--color-text-muted)]">
+                  <button onClick={() => archiveCategory(cat)} aria-label={t.customDistraction.archiveCta} className="p-1.5 text-[var(--color-text-muted)] hit44">
                     <Archive size={14} />
                   </button>
-                  <button onClick={() => deleteCategory(cat)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)]">
+                  <button onClick={() => deleteCategory(cat)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)] hit44">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -151,7 +151,7 @@ export function CustomDistractionManageModal({ open, onClose, startCreating }: C
           )}
 
           {archivedCategories.length > 0 && (
-            <button onClick={() => setShowArchive((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-2">
+            <button onClick={() => setShowArchive((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-2 hit44">
               <Archive size={14} />
               {showArchive ? t.customDistraction.hideArchive : t.customDistraction.showArchive.replace('{n}', String(archivedCategories.length))}
             </button>
@@ -166,7 +166,7 @@ export function CustomDistractionManageModal({ open, onClose, startCreating }: C
                       {t.customDistraction.itemCount.replace('{n}', String(itemCountByCategory.get(cat.id) ?? 0))}
                     </p>
                   </div>
-                  <button onClick={() => unarchiveCategory(cat)} className="text-[12px] text-[var(--color-primary)] flex-shrink-0">
+                  <button onClick={() => unarchiveCategory(cat)} className="text-[12px] text-[var(--color-primary)] flex-shrink-0 hit44">
                     {t.customDistraction.restoreCta}
                   </button>
                 </div>
@@ -176,13 +176,13 @@ export function CustomDistractionManageModal({ open, onClose, startCreating }: C
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <button onClick={() => setOpenCategoryId(null)} className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] -mt-2 w-fit">
+          <button onClick={() => setOpenCategoryId(null)} className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] -mt-2 w-fit hit44">
             <ChevronLeft size={14} /> {t.customDistraction.allCategories}
           </button>
           {openCategory.archived && (
             <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)]">
               <p className="text-[12px] text-[var(--color-text-faint)]">{t.customDistraction.categoryIsArchived}</p>
-              <button onClick={() => unarchiveCategory(openCategory)} className="text-[12px] text-[var(--color-primary)] flex-shrink-0">
+              <button onClick={() => unarchiveCategory(openCategory)} className="text-[12px] text-[var(--color-primary)] flex-shrink-0 hit44">
                 {t.customDistraction.restoreCta}
               </button>
             </div>
@@ -206,11 +206,11 @@ export function CustomDistractionManageModal({ open, onClose, startCreating }: C
                   <button
                     onClick={() => setEditingItem({ id: item.id, text: item.text, answer: item.answer ?? '', source: item.source })}
                     aria-label={t.common.edit}
-                    className="p-1.5 text-[var(--color-text-muted)]"
+                    className="p-1.5 text-[var(--color-text-muted)] hit44"
                   >
                     <Pencil size={14} />
                   </button>
-                  <button onClick={() => deleteItem(item.id)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)]">
+                  <button onClick={() => deleteItem(item.id)} aria-label={t.common.delete} className="p-1.5 text-[var(--color-danger)] hit44">
                     <Trash2 size={14} />
                   </button>
                 </div>

@@ -130,7 +130,7 @@ export function AfterGrounding({ onClose, startPhase = 'safety' }: { onClose: ()
               <ul className="flex flex-col gap-1.5">
                 {SAFETY_IDEAS.map((i) => <li key={i.de} className="text-[13px] text-[var(--color-text)] leading-snug">• {tx(i)}</li>)}
               </ul>
-              <Link to="/sicherheit" onClick={onClose} className="inline-block mt-2.5 text-[12.5px] text-[var(--color-primary)] underline underline-offset-2">
+              <Link to="/sicherheit" onClick={onClose} className="inline-block mt-2.5 text-[12.5px] text-[var(--color-primary)] underline underline-offset-2 hit44">
                 {tx({ de: 'Zum Sicherheitsbereich', en: 'To the safety area' })}
               </Link>
             </div>
@@ -139,7 +139,7 @@ export function AfterGrounding({ onClose, startPhase = 'safety' }: { onClose: ()
           <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{tx({ de: 'Tipp an, was auf dich zutrifft – oder nichts davon.', en: 'Tap what applies – or none of them.' })}</p>
           <div className="flex flex-wrap gap-2 mb-3">
             {STIMULI.map((s) => (
-              <button key={s.id} onClick={() => toggle(stimuli, setStimuli, s.id)} aria-pressed={stimuli.includes(s.id)} className="px-3.5 py-2 rounded-full text-[13.5px]" style={chip(stimuli.includes(s.id))}>
+              <button key={s.id} onClick={() => toggle(stimuli, setStimuli, s.id)} aria-pressed={stimuli.includes(s.id)} className="px-3.5 py-2 rounded-full text-[13.5px] hit44" style={chip(stimuli.includes(s.id))}>
                 {tx(s.label)}
               </button>
             ))}
@@ -156,7 +156,7 @@ export function AfterGrounding({ onClose, startPhase = 'safety' }: { onClose: ()
           <p className="text-[12.5px] text-[var(--color-text-faint)] text-center mb-4">{tx({ de: 'Wo in deinem Körper ist gerade am meisten los – oder am wenigsten?', en: 'Where in your body is the most going on right now – or the least?' })}</p>
           <div className="flex flex-wrap gap-2 justify-center mb-3">
             {PLACES.map((p) => (
-              <button key={p.de} onClick={() => toggle(places, setPlaces, p.de)} aria-pressed={places.includes(p.de)} className="px-3.5 py-2 rounded-full text-[13.5px]" style={chip(places.includes(p.de))}>
+              <button key={p.de} onClick={() => toggle(places, setPlaces, p.de)} aria-pressed={places.includes(p.de)} className="px-3.5 py-2 rounded-full text-[13.5px] hit44" style={chip(places.includes(p.de))}>
                 {tx(p)}
               </button>
             ))}
@@ -171,7 +171,7 @@ export function AfterGrounding({ onClose, startPhase = 'safety' }: { onClose: ()
           <p className="text-[12.5px] text-[var(--color-text-faint)] text-center mb-4">{tx({ de: 'Ein Wort oder ein kurzer Satz reicht. Sprache zu finden holt den Teil von dir zurück, der ordnen kann – das Sprachzentrum (Broca-Areal) beruhigt die Alarmzentrale. „Keine Ahnung“ zählt auch.', en: 'One word or a short sentence is enough. Finding language brings back the part of you that can sort things – the speech area (Broca) calms the alarm centre. "No idea" counts too.' })}</p>
           <div className="flex flex-wrap gap-2 justify-center mb-3">
             {STARTERS.map((s) => (
-              <button key={s.de} onClick={() => setNaming(tx(s))} className="px-3 py-1.5 rounded-full text-[13px]" style={chip(naming === tx(s))}>
+              <button key={s.de} onClick={() => setNaming(tx(s))} className="px-3 py-1.5 rounded-full text-[13px] hit44" style={chip(naming === tx(s))}>
                 {tx(s)}
               </button>
             ))}
@@ -194,7 +194,7 @@ export function AfterGrounding({ onClose, startPhase = 'safety' }: { onClose: ()
           <p className="text-[12.5px] text-[var(--color-text-faint)] text-center mb-4">{tx({ de: 'Eher aufgedreht? Dann eher beruhigend (Druck, Wärme, Halt). Eher schwer, leer oder weit weg? Dann eher weckend (Kühle, Stampfen, Bewegung).', en: 'Rather wired? Go for calming (pressure, warmth, support). Rather heavy, empty or far away? Go for waking (coolness, stomping, movement).' })}</p>
           <div className="flex flex-wrap gap-2 justify-center mb-3">
             {SOMA.map((s) => (
-              <button key={s.id} onClick={() => setSoma(soma === s.id ? null : s.id)} aria-pressed={soma === s.id} className="px-3.5 py-2 rounded-full text-[13.5px]" style={chip(soma === s.id)}>
+              <button key={s.id} onClick={() => setSoma(soma === s.id ? null : s.id)} aria-pressed={soma === s.id} className="px-3.5 py-2 rounded-full text-[13.5px] hit44" style={chip(soma === s.id)}>
                 {tx(s.label)}
               </button>
             ))}
@@ -222,7 +222,7 @@ export function AfterGrounding({ onClose, startPhase = 'safety' }: { onClose: ()
           <p className="text-[12.5px] text-[var(--color-text-faint)] text-center mb-4">{tx({ de: 'Such dir eine aus – oder lass es. Alles hier ist freiwillig, Halten kannst du weglassen.', en: 'Pick one – or leave it. All optional, you can skip holds.' })}</p>
           <div className="flex flex-col gap-2 mb-2">
             {BREATH_PATTERNS.map((p) => (
-              <Link key={p.id} to={breathHrefFor(p.id)} onClick={onClose} data-testid={`after-breath-${p.id}`} className="flex items-center gap-3 px-4 py-2.5 rounded-[var(--radius-lg)]" style={{ background: 'var(--color-surface-muted)' }}>
+              <Link key={p.id} to={breathHrefFor(p.id)} onClick={onClose} data-testid={`after-breath-${p.id}`} className="flex items-center gap-3 px-4 py-2.5 rounded-[var(--radius-lg)] hit44" style={{ background: 'var(--color-surface-muted)' }}>
                 <span className="text-[22px]" aria-hidden="true">{p.emoji}</span>
                 <span className="min-w-0">
                   <span className="block text-[14px] text-[var(--color-text)]">{en ? p.titleEn : p.title}</span>
@@ -236,11 +236,11 @@ export function AfterGrounding({ onClose, startPhase = 'safety' }: { onClose: ()
 
       <div className="flex flex-col items-center gap-3 mt-5">
         {phase === 'breath' ? (
-          <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]" data-testid="after-grounding-done">
+          <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] hit44" data-testid="after-grounding-done">
             {tx({ de: 'Heute nicht atmen – fertig', en: 'No breathing today – done' })}
           </button>
         ) : (
-          <button onClick={next} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]">
+          <button onClick={next} className="flex items-center gap-2 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] hit44">
             {phase === 'name' ? tx({ de: 'Stoppen', en: 'Stop' }) : phase === 'soma' ? tx({ de: 'Zum Schluss: Atmen', en: 'Last: breathing' }) : tx({ de: 'Weiter', en: 'Continue' })}
             <ArrowRight size={14} />
           </button>

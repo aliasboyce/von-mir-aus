@@ -36,7 +36,7 @@ export function UpdateAvailableBanner() {
       <Sparkles size={18} className="flex-shrink-0 mt-0.5" />
       <p className="text-[13px] flex-1 leading-relaxed">{t.updateBanner.text}</p>
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
-        <button onClick={() => window.location.reload()} className="text-[13px] font-medium px-3 py-1.5 rounded-full whitespace-nowrap" style={{ background: 'var(--color-surface)', color: 'var(--color-primary)' }}>
+        <button onClick={() => window.location.reload()} className="text-[13px] font-medium px-3 py-1.5 rounded-full whitespace-nowrap hit44" style={{ background: 'var(--color-surface)', color: 'var(--color-primary)' }}>
           {t.updateBanner.cta}
         </button>
         <button onClick={dismiss} aria-label={t.common.close} className="p-0.5 opacity-80">

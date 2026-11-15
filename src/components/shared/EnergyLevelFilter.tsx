@@ -38,7 +38,7 @@ export function EnergyLevelFilter({ value, onChange, hideQuestion = false }: { v
               key={e.level}
               onClick={() => onChange(value === e.level ? null : e.level)}
               aria-pressed={value === e.level}
-              className="flex flex-col items-center gap-0.5 py-2 px-0.5 rounded-[var(--radius-md)] border transition-colors"
+              className="flex flex-col items-center gap-0.5 py-2 px-0.5 rounded-[var(--radius-md)] border transition-colors hit44"
               style={{
                 borderColor: value === e.level ? 'var(--color-primary)' : 'var(--color-border)',
                 background: value === e.level ? 'var(--color-primary-soft)' : 'var(--color-surface)',

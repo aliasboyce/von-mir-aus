@@ -34,7 +34,7 @@ export function FirstAidPage() {
         <button onClick={back} aria-label={en ? 'Back' : 'Zurück'} data-testid="firstaid-back" className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-[var(--color-text)] hover:bg-[var(--color-surface-muted)]">
           <ChevronLeft size={24} />
         </button>
-        <a href="tel:112" data-testid="firstaid-112" className="flex items-center gap-2 rounded-full px-4 py-2.5 text-[15px] font-semibold" style={{ background: 'var(--color-accent-clay)', color: '#fff' }}>
+        <a href="tel:112" data-testid="firstaid-112" className="flex items-center gap-2 rounded-full px-4 py-2.5 min-h-[44px] text-[15px] font-semibold" style={{ background: 'var(--color-accent-clay)', color: '#fff' }}>
           <Phone size={17} /> 112
         </a>
       </div>
@@ -110,7 +110,7 @@ export function FirstAidPage() {
 
       {(id === FA_START || node.end) && (
         <div className="mt-6">
-          <button type="button" onClick={() => setShowSources((v) => !v)} aria-expanded={showSources} data-testid="firstaid-sources-toggle" className="flex items-center gap-1.5 mx-auto text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 py-2">
+          <button type="button" onClick={() => setShowSources((v) => !v)} aria-expanded={showSources} data-testid="firstaid-sources-toggle" className="flex items-center gap-1.5 mx-auto min-h-[44px] text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 py-2">
             <ChevronDown size={14} style={{ transform: showSources ? 'rotate(180deg)' : undefined }} /> {en ? 'Sources' : 'Quellen'}
           </button>
           {showSources && (

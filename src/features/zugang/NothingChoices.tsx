@@ -16,7 +16,7 @@ export function NothingChoices({ step, selected, onPick }: { step: NothingStep; 
           const on = selected.includes(m);
           return (
             <button key={m} type="button" onClick={() => onPick(m)} aria-pressed={on} data-testid={`nothing-${step}-${NOTHING_CHOICES[step].indexOf(m)}`}
-              className="px-3.5 py-2 rounded-full text-[14px] border border-dashed"
+              className="px-3.5 py-2 rounded-full text-[14px] border border-dashed hit44"
               style={{ borderColor: on ? 'var(--color-primary)' : 'var(--color-border-strong)', background: on ? 'var(--color-primary-soft)' : 'transparent', color: 'var(--color-text)' }}>
               {on ? '✓ ' : ''}{zl(m)}
             </button>

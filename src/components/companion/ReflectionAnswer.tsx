@@ -43,12 +43,12 @@ export function ReflectionAnswer({ question, questionEn, isEn }: { question: str
             saveReflectionNote(question, questionEn, text);
             setSaved(true);
           }}
-          className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40"
+          className="px-4 py-2 rounded-full text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40 hit44"
           data-testid="reflection-save"
         >
           {isEn ? 'Save in review' : 'Im Rückblick speichern'}
         </button>
-        <button type="button" onClick={() => setOpen(false)} className="px-3 py-2 rounded-full text-[13px] text-[var(--color-text-faint)]">
+        <button type="button" onClick={() => setOpen(false)} className="px-3 py-2 rounded-full text-[13px] text-[var(--color-text-faint)] hit44">
           {isEn ? 'Just think' : 'Nur nachdenken'}
         </button>
       </div>

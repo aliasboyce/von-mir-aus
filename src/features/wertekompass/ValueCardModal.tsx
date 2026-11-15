@@ -63,7 +63,7 @@ export function ValueCardModal({ value, onClose }: { value: string; onClose: () 
                     </Link>
                   ))}
                 </div>
-                <Link to={`/bruecken?wert=${encodeURIComponent(value)}`} className="inline-block text-[13px] text-[var(--color-primary)] mt-2.5">
+                <Link to={`/bruecken?wert=${encodeURIComponent(value)}`} className="inline-block text-[13px] text-[var(--color-primary)] mt-2.5 hit44">
                   {matchingBridges.length > 0 ? t.wertekompass.cardAllBridges : t.wertekompass.cardBuildBridge} →
                 </Link>
               </div>

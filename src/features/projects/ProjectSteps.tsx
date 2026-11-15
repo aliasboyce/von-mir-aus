@@ -15,14 +15,14 @@ function StepCard({ s, first, api, onChange, onDone, onUp, onDelete }: { s: Proj
     <div className={`rounded-2xl p-3 ${first ? 'proj-glow' : ''}`} style={{ ['--tile-c' as string]: c, background: `color-mix(in srgb, ${c} ${first ? 16 : 7}%, var(--color-surface))`, border: `2px solid color-mix(in srgb, ${c} ${first ? 90 : 40}%, transparent)` }} data-testid={first ? 'step-current' : 'step-card'}>
       {first && <p className="text-[11.5px] mb-1" style={{ color: c }}>✨ {L('Jetzt dran', 'Up now')}</p>}
       <div className="flex items-start gap-2.5">
-        <button type="button" onClick={onDone} className="w-9 h-9 shrink-0 rounded-full border-2 flex items-center justify-center" style={{ borderColor: c, color: c }} aria-label={L('Geschafft', 'Done')} data-testid="step-done"><Check size={18} /></button>
+        <button type="button" onClick={onDone} className="w-11 h-11 shrink-0 rounded-full border-2 flex items-center justify-center" style={{ borderColor: c, color: c }} aria-label={L('Geschafft', 'Done')} data-testid="step-done"><Check size={18} /></button>
         <input className="flex-1 min-w-0 bg-transparent outline-none text-[16px] leading-snug py-1.5" value={s.text} onChange={(e) => onChange({ text: e.target.value })} aria-label={L('Schritt', 'Step')} data-testid="step-text" />
-        {onUp && <button type="button" onClick={onUp} className="w-8 h-8 shrink-0 flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Nach vorne', 'Move to front')} data-testid="step-up"><ArrowUp size={16} /></button>}
-        <button type="button" onClick={onDelete} className="w-8 h-8 shrink-0 flex items-center justify-center text-[var(--color-text-faint)]" aria-label={L('Entfernen', 'Remove')} data-testid="step-delete"><Trash2 size={15} /></button>
+        {onUp && <button type="button" onClick={onUp} className="hit44 w-8 h-8 shrink-0 flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Nach vorne', 'Move to front')} data-testid="step-up"><ArrowUp size={16} /></button>}
+        <button type="button" onClick={onDelete} className="hit44 w-8 h-8 shrink-0 flex items-center justify-center text-[var(--color-text-faint)]" aria-label={L('Entfernen', 'Remove')} data-testid="step-delete"><Trash2 size={15} /></button>
       </div>
       <div className="flex items-center gap-2 mt-1 flex-wrap">
         <span className="text-[11.5px] text-[var(--color-text-faint)]">{stamp(s.createdAt, lang)}</span>
-        <button type="button" onClick={() => setCal((v) => !v)} aria-expanded={cal} className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] border" style={scheduled ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'transparent' } : { borderColor: 'var(--color-border-strong)', color: 'var(--color-text-muted)' }} data-testid="step-calendar">
+        <button type="button" onClick={() => setCal((v) => !v)} aria-expanded={cal} className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] border hit44" style={scheduled ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'transparent' } : { borderColor: 'var(--color-border-strong)', color: 'var(--color-text-muted)' }} data-testid="step-calendar">
           <CalendarPlus size={14} />{scheduled ? `${new Date(`${s.date}T12:00:00`).toLocaleDateString(lang === 'en' ? 'en-US' : 'de-DE', { day: '2-digit', month: '2-digit' })} ${s.time || '09:00'}` : L('In den Kalender', 'Into the calendar')}
         </button>
       </div>
@@ -77,7 +77,7 @@ export function ProjectSteps({ api }: { api: ProjectApi }) {
                   <span className="text-[14px]">✓</span>
                   <span className="flex-1 min-w-0 text-[14px] text-[var(--color-text-muted)] line-through truncate">{s.text}</span>
                   <span className="text-[11px] text-[var(--color-text-faint)] shrink-0">{s.doneAt ? stamp(s.doneAt, lang) : ''}</span>
-                  <button type="button" onClick={() => patch(s.id, { done: false, doneAt: undefined })} className="w-8 h-8 flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Wieder öffnen', 'Reopen')}><Undo2 size={15} /></button>
+                  <button type="button" onClick={() => patch(s.id, { done: false, doneAt: undefined })} className="hit44 w-8 h-8 flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Wieder öffnen', 'Reopen')}><Undo2 size={15} /></button>
                 </div>
               ))}
             </div>

@@ -235,7 +235,7 @@ export function ZugangAfterPage() {
                   key={o}
                   type="button"
                   onClick={() => setHarder(harder.includes(o) ? harder.filter((x) => x !== o) : [...harder, o])}
-                  className="px-3 py-1.5 rounded-full text-[13px]"
+                  className="px-3 py-1.5 rounded-full text-[13px] hit44"
                   style={{ background: harder.includes(o) ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: harder.includes(o) ? 'var(--color-surface)' : 'var(--color-text)' }}
                 >
                   {o}
@@ -255,7 +255,7 @@ export function ZugangAfterPage() {
         </label>
 
         <Button fullWidth onClick={save} data-sound="complete">{a.save}</Button>
-        <button type="button" onClick={skip} className="w-full text-center text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 mt-4">
+        <button type="button" onClick={skip} className="w-full text-center text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 mt-4 hit44">
           {a.later}
         </button>
       </div>

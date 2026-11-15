@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { playSound } from '../../services/sounds';
+import { triggerHaptic } from '../../services/haptics';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { LichtCompanion } from './LichtCompanion';
@@ -46,6 +48,7 @@ export function IntroFlow() {
   const [installStep, setInstallStep] = useState(false);
   const [scopeStep, setScopeStep] = useState(false);
   const [tourStep, setTourStep] = useState(false);
+  const [soundStep, setSoundStep] = useState(false); // Feinschliff F7
   const [joyBurst, setJoyBurst] = useState<'hop' | 'spin' | 'wobble' | 'dance' | null>(null);
 
   const slides: IntroSlide[] = t.companion.introSlides.map((text, i) => {
@@ -117,7 +120,7 @@ export function IntroFlow() {
     return (
       <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="tester-welcome-step">
         <div className="flex items-center justify-between mb-5">
-          <button onClick={() => setTesterStep(false)} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+          <button onClick={() => setTesterStep(false)} aria-label={t.common.back} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
             <ChevronLeft size={20} />
           </button>
           <span />
@@ -138,7 +141,7 @@ export function IntroFlow() {
     return (
       <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="tester-info-step">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => { setTesterInfoStep(false); setTesterStep(true); }} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+          <button onClick={() => { setTesterInfoStep(false); setTesterStep(true); }} aria-label={t.common.back} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
             <ChevronLeft size={20} />
           </button>
           <span />
@@ -163,7 +166,7 @@ export function IntroFlow() {
     return (
       <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="start-guide-step">
         <div className="flex items-center justify-between mb-6">
-          <button onClick={() => { setGuideStep(false); if (TEST_PHASE) setTesterInfoStep(true); }} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+          <button onClick={() => { setGuideStep(false); if (TEST_PHASE) setTesterInfoStep(true); }} aria-label={t.common.back} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
             <ChevronLeft size={20} />
           </button>
           <span />
@@ -183,7 +186,45 @@ export function IntroFlow() {
     );
   }
 
-  if (scopeStep && !tourStep) {
+  // Feinschliff F7: Ton und Vibration von Anfang an selbst wählen (Rückgängig: diesen Block und setSoundStep(true) beim „Weiter“ des Umfangs entfernen)
+  if (soundStep && !tourStep) {
+    const en = settings.language === 'en';
+    const mode = settings.soundsEnabled && settings.hapticsEnabled ? 'both' : settings.hapticsEnabled ? 'haptic' : !settings.soundsEnabled && !settings.hapticsEnabled ? 'quiet' : 'sound';
+    const opts: { id: string; title: string; sub: string; s: boolean; h: boolean }[] = [
+      { id: 'both', title: en ? 'Gentle sounds and vibration' : 'Sanfte Töne und Vibration', sub: en ? 'Small signals when something happens.' : 'Kleine Signale, wenn etwas passiert.', s: true, h: true },
+      { id: 'haptic', title: en ? 'Vibration only' : 'Nur Vibration', sub: en ? 'You feel it, nothing is heard.' : 'Du spürst es, es ist nichts zu hören.', s: false, h: true },
+      { id: 'quiet', title: en ? 'Completely quiet' : 'Ganz still', sub: en ? 'No sound, no vibration.' : 'Kein Ton, keine Vibration.', s: false, h: false },
+    ];
+    return (
+      <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="sound-step">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={() => setSoundStep(false)} aria-label={t.common.back} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text)]"><ChevronLeft size={20} /></button>
+          <span />
+        </div>
+        <div className="flex flex-col items-center text-center gap-3 mb-5">
+          <LichtCompanion size="small" />
+          <h1 className="text-[22px] leading-tight">{en ? 'How should the app feel?' : 'Wie soll sich die App anfühlen?'}</h1>
+          <p className="text-[13px] text-[var(--color-text-faint)] leading-relaxed max-w-[320px]">{en ? 'You can change this any time in the settings.' : 'Das kannst du jederzeit in den Einstellungen ändern.'}</p>
+        </div>
+        <div className="flex-1 flex flex-col gap-2.5" role="radiogroup">
+          {opts.map((o) => (
+            <button key={o.id} type="button" role="radio" aria-checked={mode === o.id} data-testid={`sound-choice-${o.id}`}
+              onClick={() => { updateSettings({ soundsEnabled: o.s, hapticsEnabled: o.h }); if (o.s) playSound('settle', { soundsEnabled: true }); if (o.h) triggerHaptic('settle', { hapticsEnabled: true }); }}
+              className="text-left rounded-[var(--radius-lg)] px-4 py-3.5 min-h-[56px]"
+              style={{ border: mode === o.id ? '2px solid var(--color-primary)' : '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
+              <span className="block text-[16px] text-[var(--color-text)]">{o.title}</span>
+              <span className="block text-[13px] text-[var(--color-text-faint)]">{o.sub}</span>
+            </button>
+          ))}
+        </div>
+        <div className="mt-6 flex flex-col gap-2">
+          <Button fullWidth onClick={() => setTourStep(true)} data-testid="sound-continue">{en ? 'Continue' : 'Weiter'}</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (scopeStep && !tourStep && !soundStep) {
     const en = settings.language === 'en';
     return (
       <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="scope-step">
@@ -202,7 +243,7 @@ export function IntroFlow() {
           />
         </div>
         <div className="mt-6 flex flex-col gap-2">
-          <Button fullWidth onClick={() => { updateSettings({ scopeChosen: true }); setTourStep(true); }} data-testid="scope-continue">
+          <Button fullWidth onClick={() => { updateSettings({ scopeChosen: true }); setSoundStep(true); }} data-testid="scope-continue">
             {en ? 'Continue' : 'Weiter'}
           </Button>
         </div>
@@ -224,7 +265,7 @@ export function IntroFlow() {
     return (
       <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="tour-choice-step">
         <div className="flex items-center justify-between mb-6">
-          <button onClick={() => setTourStep(false)} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+          <button onClick={() => setTourStep(false)} aria-label={t.common.back} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
             <ChevronLeft size={20} />
           </button>
           <span />
@@ -252,7 +293,7 @@ export function IntroFlow() {
     return (
       <div className="min-h-screen flex flex-col px-6 pt-10 pb-10 animate-in" data-testid="install-step">
         <div className="flex items-center justify-between mb-6">
-          <button onClick={() => { setInstallStep(false); setGuideStep(true); }} aria-label={t.common.back} className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
+          <button onClick={() => { setInstallStep(false); setGuideStep(true); }} aria-label={t.common.back} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]">
             <ChevronLeft size={20} />
           </button>
           <span />
@@ -289,7 +330,7 @@ export function IntroFlow() {
           <button
             onClick={() => setStep((s) => s - 1)}
             aria-label={t.common.back}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
           >
             <ChevronLeft size={20} />
           </button>

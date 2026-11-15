@@ -61,9 +61,9 @@ export function VersionsModal({
               {cur.map.nodes.length ? <MindmapDrawing map={cur.map} maxHeight="30vh" testId="mm-version-preview" /> : <p className="p-6 text-center text-[13px] text-[var(--color-text-faint)]">{L('Leer', 'Empty')}</p>}
             </div>
             <div className="flex gap-2 flex-wrap">
-              <button type="button" onClick={() => { onRestore(cur); setPick(null); setTick((t) => t + 1); onClose(); }} className="px-4 py-2.5 rounded-full text-[14px] text-white inline-flex items-center gap-1.5" style={{ background: 'var(--color-primary)' }} data-testid="mm-version-restore"><RotateCcw size={15} /> {L('Diesen Zustand zurückholen', 'Bring this state back')}</button>
-              <button type="button" onClick={() => { onCopy(cur); }} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)] inline-flex items-center gap-1.5" data-testid="mm-version-copy"><Copy size={15} /> {L('Als Kopie öffnen', 'Open as a copy')}</button>
-              <button type="button" onClick={() => { deleteVersion(cur.id); setPick(null); setTick((t) => t + 1); }} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-danger)] inline-flex items-center gap-1.5" data-testid="mm-version-delete"><Trash2 size={15} /> {L('Löschen', 'Delete')}</button>
+              <button type="button" onClick={() => { onRestore(cur); setPick(null); setTick((t) => t + 1); onClose(); }} className="px-4 py-2.5 rounded-full text-[14px] text-white inline-flex items-center gap-1.5 hit44" style={{ background: 'var(--color-primary)' }} data-testid="mm-version-restore"><RotateCcw size={15} /> {L('Diesen Zustand zurückholen', 'Bring this state back')}</button>
+              <button type="button" onClick={() => { onCopy(cur); }} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)] inline-flex items-center gap-1.5 hit44" data-testid="mm-version-copy"><Copy size={15} /> {L('Als Kopie öffnen', 'Open as a copy')}</button>
+              <button type="button" onClick={() => { deleteVersion(cur.id); setPick(null); setTick((t) => t + 1); }} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-danger)] inline-flex items-center gap-1.5 hit44" data-testid="mm-version-delete"><Trash2 size={15} /> {L('Löschen', 'Delete')}</button>
             </div>
           </div>
         )}

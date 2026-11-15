@@ -1,3 +1,4 @@
+import { completionMoment } from '../../services/completionMoment';
 import { useEffect, useRef, useState } from 'react';
 import { HintCard } from '../../components/hints/HintCard';
 import { goBack as goBackSafe } from '../../services/navigation';
@@ -355,6 +356,7 @@ export function ZugangPage() {
     setBranch(null);
     setStep(FINAL_STEP);
     saveEntry('complete', { choice: 'done' });
+    completionMoment(settings); // Feinschliff F14
     setSaved(true);
     say(pickLine({ page: '/zugang', trigger: 'speichern' }), { joy: true });
   }
@@ -490,7 +492,7 @@ export function ZugangPage() {
             </div>
           </div>
         )}
-        <Link to="/zugang/rueckblick" className="flex items-center justify-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+        <Link to="/zugang/rueckblick" className="flex items-center justify-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44">
           <History size={14} /> {t.zugang.reviewCta}
         </Link>
       </div>
@@ -660,7 +662,7 @@ export function ZugangPage() {
                 }}
               />
             )}
-            <Link to="/entdecken/koerper" className="text-[12px] text-[var(--color-primary)] block mt-4">
+            <Link to="/entdecken/koerper" className="text-[12px] text-[var(--color-primary)] block mt-4 hit44">
               {t.zugang.bodyRefLink}
             </Link>
             <NothingChoices step="body" selected={body} onPick={(v) => toggle(body, setBody, v)} />
@@ -679,7 +681,7 @@ export function ZugangPage() {
               value={tensionValue}
               onValueChange={setTensionValue}
             />
-            <Link to="/entdecken/nervensystem" className="text-[12px] text-[var(--color-primary)] block mt-4">
+            <Link to="/entdecken/nervensystem" className="text-[12px] text-[var(--color-primary)] block mt-4 hit44">
               {t.zugang.nervousSystemRefLink}
             </Link>
           </div>
@@ -731,7 +733,7 @@ export function ZugangPage() {
                           <button
                             key={s}
                             onClick={() => toggle(feelings, setFeelings, s)}
-                            className="px-3 py-1.5 rounded-full text-[13px]"
+                            className="px-3 py-1.5 rounded-full text-[13px] hit44"
                             style={{
                               background: feelings.includes(s) ? g.color : 'var(--color-surface-muted)',
                               color: feelings.includes(s) ? '#fff' : 'var(--color-text)',
@@ -767,7 +769,7 @@ export function ZugangPage() {
             />
               </>
             )}
-            <Link to="/entdecken/gefuehle" className="text-[12px] text-[var(--color-primary)] block mt-4">
+            <Link to="/entdecken/gefuehle" className="text-[12px] text-[var(--color-primary)] block mt-4 hit44">
               {t.zugang.feelingsRefLink}
             </Link>
 
@@ -884,7 +886,7 @@ export function ZugangPage() {
                 </div>
               );
             })()}
-            <Link to="/entdecken/schutzstrategien" className="text-[12px] text-[var(--color-primary)] block mt-3">
+            <Link to="/entdecken/schutzstrategien" className="text-[12px] text-[var(--color-primary)] block mt-3 hit44">
               {t.zugang.protectionRefLink}
             </Link>
             {gardenOfferShown && (
@@ -907,7 +909,7 @@ export function ZugangPage() {
              * Strategie waehlt. Dieser Link ist unabhaengig davon immer
              * da, sobald mindestens eine Strategie gewaehlt wurde. */}
             {protectionStrategy.length > 0 && (
-              <Link to="/entdecken/garten" className="text-[12px] text-[var(--color-primary)] block mt-4">
+              <Link to="/entdecken/garten" className="text-[12px] text-[var(--color-primary)] block mt-4 hit44">
                 🌱 {t.zugang.protectionGardenLink}
               </Link>
             )}
@@ -923,7 +925,7 @@ export function ZugangPage() {
                         key={n}
                         onClick={() => !added && setNeed([...realWords(need), n])}
                         disabled={added}
-                        className="px-3 py-1.5 rounded-full text-[13px] flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-full text-[13px] flex items-center gap-1 hit44"
                         style={{
                           background: added ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                           color: added ? 'var(--color-surface)' : 'var(--color-text)',
@@ -951,7 +953,7 @@ export function ZugangPage() {
                   <button
                     key={text}
                     onClick={() => toggle(careWish, setCareWish, text)}
-                    className="text-left px-4 py-2.5 rounded-[var(--radius-lg)] border"
+                    className="text-left px-4 py-2.5 rounded-[var(--radius-lg)] border hit44"
                     style={{
                       borderColor: careWish.includes(text) ? 'var(--color-primary)' : 'var(--color-border)',
                       background: careWish.includes(text) ? 'var(--color-primary-soft)' : 'var(--color-surface)',
@@ -1047,7 +1049,7 @@ export function ZugangPage() {
                           <button
                             key={s}
                             onClick={() => toggle(need, setNeed, s)}
-                            className="px-3.5 py-2 rounded-full text-[14px]"
+                            className="px-3.5 py-2 rounded-full text-[14px] hit44"
                             style={{
                               background: need.includes(s) ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                               color: need.includes(s) ? 'var(--color-surface)' : 'var(--color-text)',
@@ -1084,7 +1086,7 @@ export function ZugangPage() {
               </div>
             </div>
             <NothingChoices step="need" selected={need} onPick={(v) => toggle(need, setNeed, v)} />
-            <Link to="/entdecken/beduerfnis-kompass" className="text-[12px] text-[var(--color-primary)] block mt-4">
+            <Link to="/entdecken/beduerfnis-kompass" className="text-[12px] text-[var(--color-primary)] block mt-4 hit44">
               {t.zugang.needsRefLink}
             </Link>
           </div>
@@ -1112,10 +1114,10 @@ export function ZugangPage() {
               }}
             />
             <NothingChoices step="obstacle" selected={obstacle} onPick={(v) => toggle(obstacle, setObstacle, v)} />
-            <Link to="/entdecken/schutzstrategien" className="text-[12px] text-[var(--color-primary)] block text-center mt-4">
+            <Link to="/entdecken/schutzstrategien" className="text-[12px] text-[var(--color-primary)] block text-center mt-4 hit44">
               {t.zugang.obstaclesRefLink}
             </Link>
-            <Link to="/entdecken/denkmaschine" className="text-[12px] text-[var(--color-primary)] block text-center mt-2">
+            <Link to="/entdecken/denkmaschine" className="text-[12px] text-[var(--color-primary)] block text-center mt-2 hit44">
               {t.zugang.glaubenssaetzeLink}
             </Link>
           </div>
@@ -1143,7 +1145,7 @@ export function ZugangPage() {
               }}
             />
             <NothingChoices step="connection" selected={connection} onPick={(v) => toggle(connection, setConnection, v)} />
-            <Link to="/entdecken/wertekompass" className="text-[12px] text-[var(--color-primary)] block text-center mt-4">
+            <Link to="/entdecken/wertekompass" className="text-[12px] text-[var(--color-primary)] block text-center mt-4 hit44">
               {t.zugang.wertekompassLink}
             </Link>
           </div>
@@ -1199,7 +1201,7 @@ export function ZugangPage() {
               <textarea className="input" rows={3} placeholder={t.zugang.reflectionPlaceholder} value={reflection} onChange={(e) => setReflection(e.target.value)} />
             </label>
 
-            <button onClick={() => setShowWhatMadeHarder((v) => !v)} className="text-[13px] text-[var(--color-primary)] mb-6 block">
+            <button onClick={() => setShowWhatMadeHarder((v) => !v)} className="text-[13px] text-[var(--color-primary)] mb-6 block hit44">
               {showWhatMadeHarder ? t.zugang.hideHarderCta : t.zugang.showHarderCta}
             </button>
             {showWhatMadeHarder && (
@@ -1211,7 +1213,7 @@ export function ZugangPage() {
                     <button
                       key={o}
                       onClick={() => toggle(harderFactors, setHarderFactors, o)}
-                      className="px-3 py-1.5 rounded-full text-[13px]"
+                      className="px-3 py-1.5 rounded-full text-[13px] hit44"
                       style={{
                         background: harderFactors.includes(o) ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                         color: harderFactors.includes(o) ? 'var(--color-surface)' : 'var(--color-text)',
@@ -1231,7 +1233,7 @@ export function ZugangPage() {
                     onChange={(e) => setWhatMightHaveHelped(e.target.value)}
                   />
                 </label>
-                <button onClick={() => setShowAccessGap(true)} className="text-[12px] text-[var(--color-primary)] mt-3 block">
+                <button onClick={() => setShowAccessGap(true)} className="text-[12px] text-[var(--color-primary)] mt-3 block hit44">
                   🌉 {t.zugang.accessGapEntryCta}
                 </button>
               </Card>

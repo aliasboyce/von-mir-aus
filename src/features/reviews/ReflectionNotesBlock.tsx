@@ -25,7 +25,7 @@ export function ReflectionNotesBlock({ days }: { days: number }) {
                 reflectionNotesRepo.remove(n.id);
                 setNotes(reflectionNotesSince(days));
               }}
-              className="text-[11.5px] text-[var(--color-text-faint)] flex items-center gap-1 mt-1"
+              className="text-[11.5px] text-[var(--color-text-faint)] flex items-center gap-1 mt-1 hit44"
               aria-label={en ? 'Remove' : 'Entfernen'}
             >
               <Trash2 size={12} /> {en ? 'Remove' : 'Entfernen'}

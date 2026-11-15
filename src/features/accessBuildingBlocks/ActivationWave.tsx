@@ -50,7 +50,7 @@ export function ActivationWave() {
           <button
             key={s}
             onClick={() => setScenario(s)}
-            className="px-3 py-1.5 rounded-full text-[12px] transition-colors"
+            className="px-3 py-1.5 rounded-full text-[12px] transition-colors hit44"
             style={{
               background: scenario === s ? 'var(--color-primary)' : 'var(--color-surface-muted)',
               color: scenario === s ? 'var(--color-surface)' : 'var(--color-text-muted)',

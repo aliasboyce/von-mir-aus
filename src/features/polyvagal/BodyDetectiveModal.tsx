@@ -196,7 +196,7 @@ export function BodyDetectiveModal({ onClose, onResult }: BodyDetectiveModalProp
                         );
                       })}
                     </div>
-                    <button onClick={addToPlan} className="rounded-full px-4 py-2 text-[13px] border" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
+                    <button onClick={addToPlan} className="rounded-full px-4 py-2 text-[13px] border hit44" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
                       {t.polyvagal.bodyDetective.planCta}
                     </button>
                   </>

@@ -83,7 +83,7 @@ export function HelperSituationGuide({ onOpenGrounding }: { onOpenGrounding: () 
                   <button
                     key={s.id}
                     onClick={() => toggle(s.id)}
-                    className="px-3 py-1.5 rounded-full text-[12px]"
+                    className="px-3 py-1.5 rounded-full text-[12px] hit44"
                     style={{ background: isSel ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: isSel ? 'var(--color-surface)' : 'var(--color-text)' }}
                   >
                     {isEn ? s.labelEn : s.label}
@@ -103,7 +103,7 @@ export function HelperSituationGuide({ onOpenGrounding }: { onOpenGrounding: () 
                 <button
                   key={v}
                   onClick={() => setSafety(v)}
-                  className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px]"
+                  className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px] hit44"
                   style={{ background: safety === v ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: safety === v ? 'var(--color-surface)' : 'var(--color-text)' }}
                 >
                   {t.helperMode.guideSafetyOptions[v]}

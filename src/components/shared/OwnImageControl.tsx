@@ -44,12 +44,12 @@ export function OwnImageControl({ image, onChange, fallback }: OwnImageControlPr
       {isOwn && (
         <div className="flex items-center gap-3">
           <img src={image} alt={T.mine} className="w-20 h-20 rounded-[var(--radius-md)] object-cover border" style={{ borderColor: 'var(--color-primary)' }} />
-          <button type="button" onClick={() => onChange(fallback())} className="flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)]">
+          <button type="button" onClick={() => onChange(fallback())} className="flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)] hit44">
             <Trash2 size={14} /> {T.remove}
           </button>
         </div>
       )}
-      <button type="button" onClick={() => inputRef.current?.click()} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] self-start">
+      <button type="button" onClick={() => inputRef.current?.click()} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] self-start hit44">
         <Upload size={14} /> {isOwn ? T.replace : T.upload}
       </button>
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={pick} />

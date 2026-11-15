@@ -43,7 +43,7 @@ export function AccessChannelPicker({
               type="button"
               onClick={() => onChange(isSel ? selected.filter((id) => id !== c) : [...selected, c])}
               title={meta.hint(t)}
-              className="px-2.5 py-1.5 rounded-full text-[12px] flex items-center gap-1"
+              className="px-2.5 py-1.5 rounded-full text-[12px] flex items-center gap-1 hit44"
               style={{
                 background: isSel ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                 color: isSel ? 'var(--color-surface)' : 'var(--color-text)',

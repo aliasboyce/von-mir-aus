@@ -137,7 +137,7 @@ export function ReflectionModal({
                       e.preventDefault();
                       setValue(step.id, val.trim() ? `${val.replace(/\s+$/, '')}\n${sg}` : sg);
                     }}
-                    className="px-2.5 py-1.5 rounded-full text-[12px] text-left"
+                    className="px-2.5 py-1.5 rounded-full text-[12px] text-left hit44"
                     style={{ background: has ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', color: 'var(--color-text)', opacity: has ? 0.7 : 1 }}
                   >
                     {has ? '✓ ' : '+ '}{sg}
@@ -169,7 +169,7 @@ export function ReflectionModal({
                 key={opt}
                 type="button"
                 onClick={() => toggle(opt)}
-                className="flex items-center gap-2.5 text-left px-3 py-2 rounded-[var(--radius-md)]"
+                className="flex items-center gap-2.5 text-left px-3 py-2 rounded-[var(--radius-md)] hit44"
                 style={{ background: isSel ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)' }}
               >
                 <span
@@ -203,7 +203,7 @@ export function ReflectionModal({
           >
             {heading}
           </p>
-          <button onClick={onClose} aria-label={t.common.close} className="p-1 text-[var(--color-text-faint)] flex-shrink-0">
+          <button onClick={onClose} aria-label={t.common.close} className="p-1 text-[var(--color-text-faint)] flex-shrink-0 hit44">
             <X size={18} />
           </button>
         </div>

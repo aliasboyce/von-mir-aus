@@ -80,7 +80,7 @@ export function BodySilhouette() {
           <button
             key={r}
             onClick={() => selectRegion(r)}
-            className="px-3 py-1.5 rounded-full text-[12px]"
+            className="px-3 py-1.5 rounded-full text-[12px] hit44"
             style={{
               background: region === r ? 'var(--color-primary)' : 'var(--color-surface-muted)',
               color: region === r ? 'var(--color-surface)' : 'var(--color-text)',
@@ -99,7 +99,7 @@ export function BodySilhouette() {
             <button
               key={s}
               onClick={() => setSelectedSensation(isSelected ? null : s)}
-              className="px-3 py-1.5 rounded-full text-[13px]"
+              className="px-3 py-1.5 rounded-full text-[13px] hit44"
               style={
                 color
                   ? { background: isSelected ? color : `${color}18`, color: isSelected ? '#fff' : color, border: `1.5px solid ${color}` }

@@ -180,7 +180,7 @@ export function CrisisModePage() {
 function BackHeader({ onBack, label }: { onBack: () => void; label: string }) {
   return (
     <div className="flex items-center gap-2 mb-2">
-      <button onClick={onBack} aria-label="Zurück" className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center text-black hover:bg-black/5">
+      <button onClick={onBack} aria-label="Zurück" className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center text-black hover:bg-black/5">
         <ChevronLeft size={22} />
       </button>
       <p className="text-[18px] text-black font-medium">{label}</p>

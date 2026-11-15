@@ -40,7 +40,7 @@ export function CustomDurationInput({ onStart }: { onStart: (minutes: number) =>
         type="button"
         onClick={submit}
         disabled={!value}
-        className="px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40"
+        className="px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] disabled:opacity-40 hit44"
       >
         {t.bridges.timerCustomStartCta}
       </button>

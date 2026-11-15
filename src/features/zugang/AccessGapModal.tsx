@@ -74,7 +74,7 @@ export function AccessGapModal({ subject, onClose }: { subject?: string; onClose
       >
         <div className="flex items-start justify-between mb-2">
           <p className="text-[18px] text-[var(--color-text)] flex-1">🌉 {t.accessGap.title}</p>
-          <button onClick={onClose} aria-label={t.common.close} className="p-1 text-[var(--color-text-faint)] flex-shrink-0">
+          <button onClick={onClose} aria-label={t.common.close} className="p-1 text-[var(--color-text-faint)] flex-shrink-0 hit44">
             <X size={18} />
           </button>
         </div>
@@ -94,7 +94,7 @@ export function AccessGapModal({ subject, onClose }: { subject?: string; onClose
                       <button
                         key={a}
                         onClick={() => setAnswer(d.id, a)}
-                        className="flex-1 py-2 rounded-[var(--radius-md)] text-[12px]"
+                        className="flex-1 py-2 rounded-[var(--radius-md)] text-[12px] hit44"
                         style={{
                           background: answers[d.id] === a ? 'var(--color-primary)' : 'var(--color-surface-muted)',
                           color: answers[d.id] === a ? 'var(--color-surface)' : 'var(--color-text)',

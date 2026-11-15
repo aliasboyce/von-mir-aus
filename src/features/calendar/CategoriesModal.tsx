@@ -64,7 +64,7 @@ export function CategoriesModal({ open, onClose, onChanged }: { open: boolean; o
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {CATEGORY_COLOR_CHOICES.map((col) => (
-                <button key={col} onClick={() => recolor(c, col)} aria-label={col} className="w-7 h-7 rounded-full" style={{ background: col, outline: c.color === col ? '2px solid var(--color-text)' : 'none', outlineOffset: 2 }} />
+                <button key={col} onClick={() => recolor(c, col)} aria-label={col} className="hit44 w-7 h-7 rounded-full" style={{ background: col, outline: c.color === col ? '2px solid var(--color-text)' : 'none', outlineOffset: 2 }} />
               ))}
               <label className="relative w-7 h-7 rounded-full overflow-hidden border border-[var(--color-border)] flex items-center justify-center text-[14px] cursor-pointer" title={t.calendar.categoryOwnColor} style={{ background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)' }}>
                 <input type="color" value={c.color} onChange={(e) => recolor(c, e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" aria-label={t.calendar.categoryOwnColor} />
@@ -77,7 +77,7 @@ export function CategoriesModal({ open, onClose, onChanged }: { open: boolean; o
           <input className="input mb-2" placeholder={t.calendar.categoryName} value={name} onChange={(e) => setName(e.target.value)} />
           <div className="flex flex-wrap gap-2 mb-3">
             {CATEGORY_COLOR_CHOICES.map((col) => (
-              <button key={col} onClick={() => setColor(col)} aria-label={col} className="w-7 h-7 rounded-full" style={{ background: col, outline: color === col ? '2px solid var(--color-text)' : 'none', outlineOffset: 2 }} />
+              <button key={col} onClick={() => setColor(col)} aria-label={col} className="hit44 w-7 h-7 rounded-full" style={{ background: col, outline: color === col ? '2px solid var(--color-text)' : 'none', outlineOffset: 2 }} />
             ))}
             <label className="relative w-7 h-7 rounded-full overflow-hidden border border-[var(--color-border)] cursor-pointer" title={t.calendar.categoryOwnColor} style={{ background: 'conic-gradient(red, yellow, lime, aqua, blue, magenta, red)' }}>
               <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" aria-label={t.calendar.categoryOwnColor} />

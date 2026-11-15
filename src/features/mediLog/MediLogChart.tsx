@@ -83,7 +83,14 @@ export function MediLogChart({ entries, color, width = 320, height = 140, zoomab
   const allFilledDays = allDaysWithZeros(byDay);
 
   if (allFilledDays.length < 2) {
-    return <p className="text-[12px] text-[var(--color-text-faint)]">{t.mediLog.chartNeedsMore}</p>;
+    // Feinschliff F8: Orientierung statt nur „noch nichts“
+    return (
+      <p className="text-[12px] text-[var(--color-text-faint)]">
+        {allFilledDays.length === 1
+          ? (settings.language === 'en' ? 'One day is in. With one more day the history chart appears here.' : 'Ein Tag ist schon da. Mit einem weiteren Tag erscheint hier die Verlaufskurve.')
+          : t.mediLog.chartNeedsMore}
+      </p>
+    );
   }
 
   // Slice to the currently zoomed-in day window (a fraction of the full
@@ -171,7 +178,7 @@ export function MediLogChart({ entries, color, width = 320, height = 140, zoomab
           <button
             onClick={zoomHandlers.zoomIn}
             aria-label={t.mediLog.zoomIn}
-            className="w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
+            className="hit44 w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
           >
             <ZoomIn size={14} />
           </button>
@@ -179,7 +186,7 @@ export function MediLogChart({ entries, color, width = 320, height = 140, zoomab
             <button
               onClick={zoomHandlers.reset}
               aria-label={t.mediLog.zoomReset}
-              className="w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
+              className="hit44 w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
             >
               <RotateCcw size={13} />
             </button>

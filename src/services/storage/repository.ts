@@ -1,4 +1,5 @@
 import { storageAdapter } from './StorageAdapter';
+import { recordRemoval } from '../undoDelete';
 
 interface WithId {
   id: string;
@@ -65,7 +66,10 @@ export function createRepository<T extends WithId>(collectionKey: string) {
     },
 
     remove(id: string): void {
-      writeAll(readAll().filter((item) => item.id !== id));
+      const all = readAll();
+      const index = all.findIndex((item) => item.id === id);
+      writeAll(all.filter((item) => item.id !== id));
+      if (index >= 0) recordRemoval(collectionKey, all[index], index); // Feinschliff F6
     },
 
     /** Replace the whole collection at once (e.g. reordering, import). */

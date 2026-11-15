@@ -149,7 +149,7 @@ export function SkillketteDetailPage() {
               <Pencil size={14} /> {t.common.edit}
             </button>
           </Link>
-          <button onClick={remove} className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[var(--radius-full)] text-[13px]" style={{ border: '1px solid var(--color-border)', color: 'var(--color-danger)' }}>
+          <button onClick={remove} className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[var(--radius-full)] text-[13px] hit44" style={{ border: '1px solid var(--color-border)', color: 'var(--color-danger)' }}>
             <Trash2 size={14} /> {t.common.delete}
           </button>
         </div>

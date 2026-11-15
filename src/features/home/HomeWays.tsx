@@ -46,7 +46,7 @@ export function HomeWays({ isEn, onOpenGrounding, onIntent }: { isEn: boolean; o
           </Link>
         </div>
         <div className="flex justify-center gap-4 mt-2.5">
-          <Link to="/entdecken" className="text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2 py-1.5" data-testid="home-way-all">
+          <Link to="/entdecken" className="text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2 py-1.5 hit44" data-testid="home-way-all">
             {isEn ? 'See everything in Discover' : 'Alles in „Entdecken“ ansehen'}
           </Link>
         </div>
@@ -78,14 +78,14 @@ export function HomeWays({ isEn, onOpenGrounding, onIntent }: { isEn: boolean; o
         <span className="leading-snug">{isEn ? ZUGANG.en.title : ZUGANG.de.title} <span className="text-[var(--color-text-faint)]">· {isEn ? ZUGANG.en.sub : ZUGANG.de.sub}</span></span>
       </Link>
       <div className="flex justify-center gap-4 mt-2 flex-wrap">
-        <button type="button" onClick={() => updateSettings({ homeWay: undefined })} className="text-[12.5px] text-[var(--color-primary)] underline underline-offset-2 py-1.5" data-testid="home-way-change">
+        <button type="button" onClick={() => updateSettings({ homeWay: undefined })} className="text-[12.5px] text-[var(--color-primary)] underline underline-offset-2 py-1.5 hit44" data-testid="home-way-change">
           {isEn ? 'Choose another way' : 'Anderen Weg wählen'}
         </button>
-        <Link to="/entdecken" className="text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2 py-1.5">
+        <Link to="/entdecken" className="text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2 py-1.5 hit44">
           {isEn ? 'See everything in Discover' : 'Alles in „Entdecken“ ansehen'}
         </Link>
         {onIntent && (
-          <button type="button" onClick={onIntent} className="text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2 py-1.5">
+          <button type="button" onClick={onIntent} className="text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2 py-1.5 hit44">
             {isEn ? 'Tell me what you need' : 'Sag mir, was du brauchst'}
           </button>
         )}

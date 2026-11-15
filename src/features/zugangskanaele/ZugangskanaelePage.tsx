@@ -122,7 +122,7 @@ export function ZugangskanaelePage() {
             type="button"
             onClick={suggest}
             disabled={!band}
-            className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] disabled:text-[var(--color-text-faint)]"
+            className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] disabled:text-[var(--color-text-faint)] hit44"
           >
             <Sparkles size={14} /> {p.suggest}
           </button>
@@ -147,7 +147,7 @@ export function ZugangskanaelePage() {
                   aria-pressed={missing}
                   title={meta.hint(t)}
                   data-testid={`zk-missing-${c}`}
-                  className="px-3 py-2 rounded-full text-[13px] inline-flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-2 rounded-full text-[13px] inline-flex items-center gap-1.5 transition-colors hit44"
                   style={{
                     background: missing ? 'var(--color-surface-muted)' : there ? 'var(--color-primary-soft)' : 'var(--color-surface)',
                     border: `1.5px ${missing ? 'dashed' : 'solid'} ${there ? 'var(--color-primary)' : 'var(--color-border-strong)'}`,

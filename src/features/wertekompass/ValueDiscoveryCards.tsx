@@ -49,17 +49,17 @@ export function ValueDiscoveryCards({ onChanged }: { onChanged: () => void }) {
       <div className="flex gap-2">
         <button
           onClick={() => advance('no')}
-          className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
+          className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text-muted)] hit44"
         >
           {t.wertekompass.reactionNo}
         </button>
         <button
           onClick={() => advance('maybe')}
-          className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text)]"
+          className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-surface-muted)] text-[var(--color-text)] hit44"
         >
           {t.wertekompass.reactionMaybe}
         </button>
-        <button onClick={() => advance('yes')} className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)]">
+        <button onClick={() => advance('yes')} className="flex-1 py-2.5 rounded-[var(--radius-md)] text-[13px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44">
           {t.wertekompass.reactionYes}
         </button>
       </div>

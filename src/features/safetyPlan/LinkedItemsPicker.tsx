@@ -77,7 +77,7 @@ export function LinkedItemsPicker({
                 <button
                   onClick={() => toggle(item.id)}
                   aria-label={t.common.delete}
-                  className="p-1.5 text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 no-print"
+                  className="p-1.5 text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 no-print hit44"
                 >
                   <X size={14} />
                 </button>
@@ -91,7 +91,7 @@ export function LinkedItemsPicker({
               <button
                 onClick={() => toggle(item.id)}
                 aria-label={t.common.delete}
-                className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 no-print"
+                className="p-1 text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 no-print hit44"
               >
                 <X size={14} />
               </button>
@@ -104,7 +104,7 @@ export function LinkedItemsPicker({
       {!atLimit && (
         <button
           onClick={() => setPickerOpen(true)}
-          className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] no-print"
+          className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] no-print hit44"
         >
           <Plus size={15} /> {t.common.add}
         </button>

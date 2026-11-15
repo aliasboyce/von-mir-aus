@@ -78,7 +78,7 @@ export function StartGuideContent({ showTestNote = true }: { showTestNote?: bool
         onClick={() => setMoreOpen((o) => !o)}
         aria-expanded={moreOpen}
         data-testid="start-guide-more"
-        className="flex items-center justify-between rounded-[var(--radius-md)] px-3.5 py-2.5 text-[13.5px] text-[var(--color-text-muted)] border border-dashed border-[var(--color-border-strong)]"
+        className="flex items-center justify-between rounded-[var(--radius-md)] px-3.5 py-2.5 text-[13.5px] text-[var(--color-text-muted)] border border-dashed border-[var(--color-border-strong)] hit44"
       >
         <span>{T.moreLabel}</span>
         <ChevronDown size={16} className={`transition-transform ${moreOpen ? 'rotate-180' : ''}`} aria-hidden />

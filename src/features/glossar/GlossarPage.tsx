@@ -59,7 +59,7 @@ export function GlossarPage() {
             className="w-full min-h-[44px] rounded-[var(--radius-lg)] pl-9 pr-10 text-[15px] bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)]"
           />
           {q && (
-            <button type="button" onClick={() => setQ('')} aria-label={L('Suche leeren', 'Clear search')} className="absolute right-1 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-[var(--color-text-muted)]">
+            <button type="button" onClick={() => setQ('')} aria-label={L('Suche leeren', 'Clear search')} className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-[var(--color-text-muted)]">
               <X size={16} />
             </button>
           )}

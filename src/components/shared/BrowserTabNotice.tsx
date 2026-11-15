@@ -45,7 +45,7 @@ export function BrowserTabNotice() {
           <li key={s} className="text-[13px] text-[var(--color-text-muted)] leading-relaxed">{s}</li>
         ))}
       </ol>
-      <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13.5px] text-[var(--color-surface)]" style={{ background: 'var(--color-primary)' }}>
+      <button type="button" onClick={copy} className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-[13.5px] text-[var(--color-surface)] hit44" style={{ background: 'var(--color-primary)' }}>
         {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? T.copied : T.copy}
       </button>
     </div>

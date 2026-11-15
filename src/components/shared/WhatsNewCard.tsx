@@ -30,7 +30,7 @@ export function WhatsNewCard() {
               {settings.language === 'en' ? '(Boycie was unhappy again)' : '(Boycie war schon wieder unzufrieden)'}
             </span>
           </p>
-          <button onClick={dismiss} data-sound="close" aria-label={settings.language === 'en' ? 'Close' : 'Schließen'} className="p-1 -mr-1 -mt-1 text-[var(--color-text-faint)]">
+          <button onClick={dismiss} data-sound="close" aria-label={settings.language === 'en' ? 'Close' : 'Schließen'} className="p-1 -mr-1 -mt-1 text-[var(--color-text-faint)] hit44">
             <X size={16} />
           </button>
         </div>

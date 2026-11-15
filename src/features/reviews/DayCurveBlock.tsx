@@ -152,11 +152,11 @@ export function DayCurveBlock({ checkIns, skillUses, onPdf }: { checkIns: Polyva
         {checkIns.some((c) => c.afterSkillTitle || c.afterRoutineTitle) && <p className="text-[10.5px] text-[var(--color-text-faint)] mt-1">{t.reviewSummary.legendAfterSkill}</p>}
       </div>
       <div className="flex items-center gap-4 mt-1.5">
-        <button onClick={() => setEnlarged(true)} className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)]">
+        <button onClick={() => setEnlarged(true)} className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)] hit44">
           <Maximize2 size={13} /> {t.reviewSummary.enlarge}
         </button>
         {onPdf && (
-          <button onClick={onPdf} className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)]">
+          <button onClick={onPdf} className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)] hit44">
             <FileDown size={13} /> {t.reviewSummary.pdfDay}
           </button>
         )}

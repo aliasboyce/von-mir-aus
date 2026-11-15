@@ -155,8 +155,8 @@ export function RoutineEditorPage() {
                     <span className="text-[14px] text-[var(--color-text)] truncate">{i + 1}. {c.text || rt.cardTextPh}</span>
                     {isOpen ? <ChevronUp size={15} className="ml-auto flex-shrink-0" /> : <ChevronDown size={15} className="ml-auto flex-shrink-0" />}
                   </button>
-                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={rt.moveUp} className="p-1.5 rounded-full disabled:opacity-25"><ArrowUp size={15} /></button>
-                  <button type="button" onClick={() => move(i, 1)} disabled={i === routine.cards.length - 1} aria-label={rt.moveDown} className="p-1.5 rounded-full disabled:opacity-25"><ArrowDown size={15} /></button>
+                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={rt.moveUp} className="p-1.5 rounded-full disabled:opacity-25 hit44"><ArrowUp size={15} /></button>
+                  <button type="button" onClick={() => move(i, 1)} disabled={i === routine.cards.length - 1} aria-label={rt.moveDown} className="p-1.5 rounded-full disabled:opacity-25 hit44"><ArrowDown size={15} /></button>
                 </div>
 
                 {isOpen && (
@@ -185,7 +185,7 @@ export function RoutineEditorPage() {
                       <p className="text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5">{rt.energyLabel}</p>
                       <div className="flex flex-col gap-1.5">
                         {([1, 2, 3] as const).map((lv) => (
-                          <button key={lv} type="button" aria-pressed={(c.minEnergy ?? 3) === lv} onClick={() => patchCard(c.id, { minEnergy: lv === 3 ? undefined : lv })} data-testid={`routine-energy-${i}-${lv}`} className="text-left px-3 py-2 rounded-[var(--radius-md)] flex items-center gap-2.5 text-[13.5px] border-2" style={{ borderColor: (c.minEnergy ?? 3) === lv ? 'var(--color-primary)' : 'var(--color-border)', background: (c.minEnergy ?? 3) === lv ? 'var(--color-primary-soft)' : 'var(--color-surface)', color: 'var(--color-text)' }}>
+                          <button key={lv} type="button" aria-pressed={(c.minEnergy ?? 3) === lv} onClick={() => patchCard(c.id, { minEnergy: lv === 3 ? undefined : lv })} data-testid={`routine-energy-${i}-${lv}`} className="text-left px-3 py-2 rounded-[var(--radius-md)] flex items-center gap-2.5 text-[13.5px] border-2 hit44" style={{ borderColor: (c.minEnergy ?? 3) === lv ? 'var(--color-primary)' : 'var(--color-border)', background: (c.minEnergy ?? 3) === lv ? 'var(--color-primary-soft)' : 'var(--color-surface)', color: 'var(--color-text)' }}>
                             <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: ENERGY_COLORS[lv] }} aria-hidden="true" />
                             {lv === 1 ? rt.energyOpt1 : lv === 2 ? rt.energyOpt2 : rt.energyOpt3}
                           </button>
@@ -198,7 +198,7 @@ export function RoutineEditorPage() {
                       <OwnImageControl image={c.image ?? ''} onChange={(url) => patchCard(c.id, { image: url || undefined })} fallback={() => ''} />
                     </div>
 
-                    <button type="button" onClick={() => setMoreOpen((s) => { const n = new Set(s); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })} className="text-[13px] text-[var(--color-primary)] self-start flex items-center gap-1" data-testid={`routine-more-${i}`}>
+                    <button type="button" onClick={() => setMoreOpen((s) => { const n = new Set(s); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })} className="text-[13px] text-[var(--color-primary)] self-start flex items-center gap-1 hit44" data-testid={`routine-more-${i}`}>
                       {more ? rt.less : rt.more} {more ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                     </button>
 
@@ -269,7 +269,7 @@ export function RoutineEditorPage() {
                           {c.ownMedia ? (
                             <div className="flex items-center gap-2">
                               <span className="text-[13.5px] text-[var(--color-text)] truncate" data-testid={`routine-own-name-${i}`}>{c.ownMedia.kind === 'video' ? '🎬' : c.ownMedia.kind === 'audio' ? '🎵' : '🖼️'} {c.ownMedia.name}</span>
-                              <button type="button" onClick={() => { void deleteOwnMedia(c.ownMedia!.id); patchCard(c.id, { ownMedia: undefined }); }} className="text-[12.5px] text-[var(--color-text-faint)] underline flex-shrink-0">{rt.ownFileRemove}</button>
+                              <button type="button" onClick={() => { void deleteOwnMedia(c.ownMedia!.id); patchCard(c.id, { ownMedia: undefined }); }} className="text-[12.5px] text-[var(--color-text-faint)] underline flex-shrink-0 hit44">{rt.ownFileRemove}</button>
                             </div>
                           ) : (
                             <button type="button" onClick={() => { fileFor.current = c.id; fileInput.current?.click(); }} className="text-[13px] text-[var(--color-primary)]" data-testid={`routine-own-pick-${i}`}>＋ {rt.ownFilePick}</button>
@@ -306,7 +306,7 @@ export function RoutineEditorPage() {
                     )}
 
                     {routine.cards.length > 1 && (
-                      <button type="button" onClick={() => removeCard(c.id)} className="text-[13px] text-[var(--color-danger)] self-start flex items-center gap-1.5">
+                      <button type="button" onClick={() => removeCard(c.id)} className="text-[13px] text-[var(--color-danger)] self-start flex items-center gap-1.5 hit44">
                         <Trash2 size={14} /> {rt.deleteCard}
                       </button>
                     )}
@@ -335,7 +335,7 @@ export function RoutineEditorPage() {
 
 function Pill({ on, onClick, children, testId }: { on: boolean; onClick: () => void; children: React.ReactNode; testId?: string }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={on} data-testid={testId} className="px-3 py-1.5 rounded-full text-[12.5px]" style={{ background: on ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: on ? 'var(--color-surface)' : 'var(--color-text)' }}>
+    <button type="button" onClick={onClick} aria-pressed={on} data-testid={testId} className="px-3 py-1.5 rounded-full text-[12.5px] hit44" style={{ background: on ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: on ? 'var(--color-surface)' : 'var(--color-text)' }}>
       {children}
     </button>
   );
@@ -416,7 +416,7 @@ function MediPicker({ open, onClose, onPick }: { open: boolean; onClose: () => v
     <Modal open={open} onClose={onClose} title={en ? 'Choose a medication' : 'Medikament wählen'}>
       <div className="flex flex-col gap-1.5" style={{ maxHeight: '58vh', overflowY: 'auto' }} data-testid="routine-medi-list">
         {opts.map((o) => (
-          <button key={o.key} type="button" onClick={() => onPick({ kind: o.kind, id: o.id })} className="text-left px-3.5 py-2.5 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] text-[14px] text-[var(--color-text)] flex flex-col" data-testid={`routine-medi-opt-${o.id}`}>
+          <button key={o.key} type="button" onClick={() => onPick({ kind: o.kind, id: o.id })} className="text-left px-3.5 py-2.5 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] text-[14px] text-[var(--color-text)] flex flex-col hit44" data-testid={`routine-medi-opt-${o.id}`}>
             <span>{o.name}</span>
             {o.sub && <span className="text-[11.5px] text-[var(--color-text-faint)]">{o.sub}</span>}
           </button>

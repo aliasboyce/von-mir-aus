@@ -40,9 +40,13 @@
   --radius-full: 999px;
 
   /* ---- Shadow ---- */
-  --shadow-sm: 0 1px 2px rgba(44, 42, 34, 0.04), 0 1px 1px rgba(44, 42, 34, 0.03);
-  --shadow-md: 0 6px 20px rgba(44, 42, 34, 0.07);
-  --shadow-lg: 0 14px 40px rgba(44, 42, 34, 0.10);
+  /* Feinschliff F15: Schatten leicht in der Farbe der gewählten Palette getönt.
+     Rückgängig: die drei Zeilen durch die alten rgba(44, 42, 34, …)-Werte ersetzen:
+     sm = 0 1px 2px rgba(44,42,34,.04), 0 1px 1px rgba(44,42,34,.03) · md = 0 6px 20px rgba(44,42,34,.07) · lg = 0 14px 40px rgba(44,42,34,.10) */
+  --shadow-tint: color-mix(in srgb, var(--color-primary) 30%, #2C2A22);
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--shadow-tint) 5%, transparent), 0 1px 1px color-mix(in srgb, var(--shadow-tint) 4%, transparent);
+  --shadow-md: 0 6px 20px color-mix(in srgb, var(--shadow-tint) 9%, transparent);
+  --shadow-lg: 0 14px 40px color-mix(in srgb, var(--shadow-tint) 13%, transparent);
 
   /* ---- Spacing scale ---- */
   --space-1: 4px;

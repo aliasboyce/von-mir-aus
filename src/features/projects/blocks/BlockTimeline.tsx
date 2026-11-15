@@ -88,7 +88,7 @@ export function BlockTimeline({ block, project, L, lang, onChange }: BlockProps<
               <div className="flex items-center gap-1.5">
                 <input className="flex-1 min-w-0 bg-transparent outline-none text-[15px] py-1" style={{ textDecoration: m.done ? 'line-through' : 'none', opacity: m.done ? 0.65 : 1 }} value={m.title} placeholder={L('Meilenstein', 'Milestone')} onChange={(e) => patch(m.id, { title: e.target.value })} data-testid={`ms-title-${m.id}`} />
                 <input type="date" className="input !h-9 !py-0 !w-[8.6rem] text-[13px]" value={m.date ?? ''} onChange={(e) => patch(m.id, { date: e.target.value || undefined, ...(e.target.value ? {} : { remind: null }) })} aria-label={L('Datum', 'Date')} data-testid={`ms-date-${m.id}`} />
-                <button type="button" onClick={() => setOpenId(open ? null : m.id)} aria-expanded={open} aria-label={L('Details', 'Details')} className="w-8 h-8 shrink-0 flex items-center justify-center text-[var(--color-text-muted)]" data-testid={`ms-more-${m.id}`}>{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</button>
+                <button type="button" onClick={() => setOpenId(open ? null : m.id)} aria-expanded={open} aria-label={L('Details', 'Details')} className="hit44 w-8 h-8 shrink-0 flex items-center justify-center text-[var(--color-text-muted)]" data-testid={`ms-more-${m.id}`}>{open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</button>
               </div>
               {m.steps.length > 0 && <p className="text-[11.5px] text-[var(--color-text-faint)]">{L('Kleine Schritte', 'Small steps')}: {sd}/{m.steps.length}</p>}
               {open && (

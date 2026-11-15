@@ -19,7 +19,7 @@ export function WesenInfoButton({ info, className }: { info: { title: Bi; body: 
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`${en ? info.title.en : info.title.de} – ${t.common.help}`}
-        className={className ?? 'w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]'}
+        className={className ?? 'w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]'}
       >
         <Info size={18} />
       </button>

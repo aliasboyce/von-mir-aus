@@ -214,7 +214,7 @@ export function NodeStyleSheet({
       {tab === 'content' && (
         <div className="flex flex-col gap-3" data-testid="mm-content-sheet">
           {actions.editContent && node.shape !== 'appcard' && (
-            <button type="button" onClick={actions.editContent} className="self-start px-4 py-2 rounded-full text-[14px] text-white" style={activeBg} data-testid="mm-content-edit">
+            <button type="button" onClick={actions.editContent} className="self-start px-4 py-2 rounded-full text-[14px] text-white hit44" style={activeBg} data-testid="mm-content-edit">
               {node.shape === 'todo' ? L2('Aufgaben bearbeiten', 'Edit tasks') : node.shape === 'table' ? L2('Tabelle bearbeiten', 'Edit table') : L2('Einträge bearbeiten', 'Edit entries')}
             </button>
           )}
@@ -241,7 +241,7 @@ export function NodeStyleSheet({
             <>
               <p className="text-[13px] text-[var(--color-text-muted)]">{node.snap ? `${node.snap.emoji} ${node.snap.label}: ${node.snap.title}` : ''}</p>
               {actions.openRef && node.ref && (
-                <button type="button" onClick={actions.openRef} className="self-start px-4 py-2 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" data-testid="mm-ref-open">{L2('Original öffnen', 'Open the original')}</button>
+                <button type="button" onClick={actions.openRef} className="self-start px-4 py-2 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" data-testid="mm-ref-open">{L2('Original öffnen', 'Open the original')}</button>
               )}
               <Hint>{L2('Die Karte zeigt, was beim Einfügen drinstand. Ist das Original geändert, wird sie beim Öffnen der Mindmap aktualisiert; wurde es gelöscht, bleibt die Karte so stehen.', 'The card shows what it said when inserted. If the original changes it is refreshed when the map opens; if it was deleted the card stays as it was.')}</Hint>
             </>
@@ -361,7 +361,7 @@ export function NodeStyleSheet({
             <Cap>{L2('Buchstaben, Zahlen & Zeichen – groß und fett', 'Letters, numbers & signs – big and bold')}</Cap>
             <div className="flex flex-wrap gap-1">
               {[...LETTERS, ...DIGITS, ...SIGNS].map((g) => (
-                <button key={g} type="button" onClick={() => onChange({ symbol: g, font: node.font ?? 'display' })} className={`w-8 h-8 rounded-[var(--radius-md)] text-[16px] font-bold border ${node.symbol === g ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]' : 'border-[var(--color-border)] text-[var(--color-text)]'}`} style={{ fontFamily: 'Georgia, serif' }} data-testid={`mm-glyph-${g}`} aria-label={g}>
+                <button key={g} type="button" onClick={() => onChange({ symbol: g, font: node.font ?? 'display' })} className={`hit44 w-8 h-8 rounded-[var(--radius-md)] text-[16px] font-bold border ${node.symbol === g ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]' : 'border-[var(--color-border)] text-[var(--color-text)]'}`} style={{ fontFamily: 'Georgia, serif' }} data-testid={`mm-glyph-${g}`} aria-label={g}>
                   {g}
                 </button>
               ))}
@@ -385,7 +385,7 @@ export function NodeStyleSheet({
             )}
           </div>
           {node.symbol && (regular || node.shape === 'sticker') && (
-            <button type="button" className="self-start text-[13px] text-[var(--color-text-muted)] underline underline-offset-2" onClick={() => onChange({ symbol: undefined })} data-testid="mm-symbol-clear">
+            <button type="button" className="self-start text-[13px] text-[var(--color-text-muted)] underline underline-offset-2 hit44" onClick={() => onChange({ symbol: undefined })} data-testid="mm-symbol-clear">
               {T.noSymbol}
             </button>
           )}

@@ -65,7 +65,7 @@ export function CenterNodeEditModal({ open, config, onClose, onSave }: CenterNod
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
+              className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44"
             >
               <Upload size={14} /> {t.network.uploadPhoto}
             </button>
@@ -74,7 +74,7 @@ export function CenterNodeEditModal({ open, config, onClose, onSave }: CenterNod
               <button
                 type="button"
                 onClick={() => setDraft({ ...draft, photoDataUrl: undefined, photoScale: undefined, photoOffsetX: undefined, photoOffsetY: undefined })}
-                className="flex items-center gap-1.5 text-[13px] text-[var(--color-danger)]"
+                className="flex items-center gap-1.5 text-[13px] text-[var(--color-danger)] hit44"
               >
                 <X size={14} /> {t.network.removePhoto}
               </button>

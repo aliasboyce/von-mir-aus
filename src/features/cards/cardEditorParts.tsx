@@ -22,7 +22,7 @@ function OneRating({ value, onChange, label }: { value: Rating; onChange: (r: Ra
       <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{label}</p>
       <div className="flex flex-wrap gap-1.5 mb-2">
         {([null, 'star', 'bolt', 'heart'] as (RatingKind | null)[]).map((r) => (
-          <button key={String(r)} type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={chip(kind === r)} onClick={() => onChange(r ? { kind: r, value: value?.value || 3 } : undefined)}>
+          <button key={String(r)} type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={chip(kind === r)} onClick={() => onChange(r ? { kind: r, value: value?.value || 3 } : undefined)}>
             {r === null ? L('keine', 'none') : r === 'star' ? '★ Sterne' : r === 'bolt' ? '⚡ Energie' : '♥ Herzen'}
           </button>
         ))}
@@ -30,7 +30,7 @@ function OneRating({ value, onChange, label }: { value: Rating; onChange: (r: Ra
       {kind && (
         <div className="flex gap-1.5">
           {Array.from({ length: kind === 'bolt' ? 4 : 5 }).map((_, i) => (
-            <button key={i} type="button" onClick={() => onChange({ kind, value: i + 1 === value?.value ? 0 : i + 1 })} className="w-10 h-10 rounded-full text-[18px]" style={{ background: i < (value?.value ?? 0) ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)' }} aria-label={`${i + 1}`}>
+            <button key={i} type="button" onClick={() => onChange({ kind, value: i + 1 === value?.value ? 0 : i + 1 })} className="w-11 h-11 rounded-full text-[18px]" style={{ background: i < (value?.value ?? 0) ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)' }} aria-label={`${i + 1}`}>
               {kind === 'star' ? '★' : kind === 'bolt' ? '⚡' : '♥'}
             </button>
           ))}
@@ -61,7 +61,7 @@ export function CompanionStickerToggle({ value, onChange }: { value?: string; on
   return (
     <div className="mb-3">
       <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Begleiter-Sticker', 'Companion sticker')}</p>
-      <button type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={chip(on)} onClick={() => onChange(on ? undefined : being.id)} data-testid="card-companion-sticker">
+      <button type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={chip(on)} onClick={() => onChange(on ? undefined : being.id)} data-testid="card-companion-sticker">
         🌟 {on ? L(`${being.name} klebt drauf`, `${being.name} is on it`) : L(`${being.name} als Sticker aufkleben`, `Stick ${being.name} on`)}
       </button>
     </div>
@@ -86,7 +86,7 @@ export function DateEditor({ date, format, onDate, onFormat, formatOnly = false 
       {date && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {DATE_FORMATS.map((f) => (
-            <button key={f.id} type="button" className="px-3 py-1.5 rounded-full text-[12.5px]" style={chip((format ?? 'long') === f.id)} onClick={() => onFormat(f.id)} data-testid={`card-datefmt-${f.id}`}>
+            <button key={f.id} type="button" className="px-3 py-1.5 rounded-full text-[12.5px] hit44" style={chip((format ?? 'long') === f.id)} onClick={() => onFormat(f.id)} data-testid={`card-datefmt-${f.id}`}>
               {formatCardDate(date, lang, f.id)}
             </button>
           ))}

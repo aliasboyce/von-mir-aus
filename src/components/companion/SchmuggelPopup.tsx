@@ -97,7 +97,7 @@ export function SchmuggelPopup() {
               <button
                 onClick={() => { later([0.7, 1.3], true); setRunning(true); }}
                 data-testid="schmuggel-popup-los"
-                className="px-5 py-1.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+                className="px-5 py-1.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
               >
                 {en ? 'Go' : 'Los'}
               </button>

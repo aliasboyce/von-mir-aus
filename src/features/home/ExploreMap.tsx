@@ -65,7 +65,7 @@ export function ExtraGroups({ groups, color, pins, onTogglePin, titles }: { grou
                   aria-pressed={pins?.includes(item.titleKey) ?? false}
                   aria-label={pins?.includes(item.titleKey) ? 'Nicht mehr oben anpinnen' : 'Oben anpinnen'}
                   data-testid={`alltag-pin-${item.titleKey}`}
-                  className="absolute top-1.5 right-1.5 w-8 h-8 rounded-full flex items-center justify-center"
+                  className="absolute top-0 right-0 w-11 h-11 rounded-full flex items-center justify-center"
                   style={{ color: pins?.includes(item.titleKey) ? 'var(--color-primary)' : 'var(--color-text-faint)', background: pins?.includes(item.titleKey) ? 'var(--color-primary-soft)' : 'transparent' }}
                 >
                   <Pin size={15} fill={pins?.includes(item.titleKey) ? 'currentColor' : 'none'} />
@@ -138,7 +138,7 @@ export function ExploreMap() {
               key={j.id}
               type="button"
               onClick={() => scrollTo(j.id)}
-              className="rounded-full px-3.5 py-2 text-[13.5px] flex items-center gap-2 text-[var(--color-text)]"
+              className="rounded-full px-3.5 py-2 text-[13.5px] flex items-center gap-2 text-[var(--color-text)] hit44"
               style={{ background: `color-mix(in srgb, var(--color-surface) 85%, ${j.color} 12%)`, border: `1px solid ${j.color}55` }}
             >
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: j.color, opacity: 0.85 }} aria-hidden="true" />

@@ -63,7 +63,7 @@ export function ProjectAll({ api }: { api: ProjectApi }) {
             <ul className="flex flex-col gap-1">
               {steps.slice(0, 6).map((s) => (
                 <li key={s.id} className="flex items-center gap-2">
-                  <button type="button" onClick={() => update((c) => ({ ...c, steps: (c.steps ?? []).map((x) => (x.id === s.id ? { ...x, done: true, doneAt: new Date().toISOString() } : x)) }))} className="w-7 h-7 shrink-0 rounded-full border-2 flex items-center justify-center text-[12px]" style={{ borderColor: KIND_COLOR.steps }} aria-label={L('Geschafft', 'Done')} />
+                  <button type="button" onClick={() => update((c) => ({ ...c, steps: (c.steps ?? []).map((x) => (x.id === s.id ? { ...x, done: true, doneAt: new Date().toISOString() } : x)) }))} className="hit44 w-7 h-7 shrink-0 rounded-full border-2 flex items-center justify-center text-[12px]" style={{ borderColor: KIND_COLOR.steps }} aria-label={L('Geschafft', 'Done')} />
                   <span className="flex-1 min-w-0 text-[14.5px]">{s.text}</span>
                   {s.date && <span className="text-[11.5px] text-[var(--color-text-faint)] shrink-0">📅 {formatDate(s.date, lang, false)} {s.time ?? ''}</span>}
                 </li>
@@ -85,7 +85,7 @@ export function ProjectAll({ api }: { api: ProjectApi }) {
                   <span aria-hidden="true" className="text-[18px]">{meta.icon}</span>
                   <span className="text-[16.5px] truncate">{b.title || L(meta.de, meta.en)}</span>
                 </button>
-                <button type="button" onClick={() => go(`b/${b.id}`)} className="w-9 h-9 flex items-center justify-center text-[var(--color-text-faint)]" aria-label={L('Seite öffnen', 'Open page')} data-testid={`all-open-${b.kind}`}><ExternalLink size={15} /></button>
+                <button type="button" onClick={() => go(`b/${b.id}`)} className="w-11 h-11 flex items-center justify-center text-[var(--color-text-faint)]" aria-label={L('Seite öffnen', 'Open page')} data-testid={`all-open-${b.kind}`}><ExternalLink size={15} /></button>
               </div>
               {!shut && (
                 <div className="px-3 pb-3 pt-1">

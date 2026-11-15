@@ -37,7 +37,7 @@ export function QuickNote({ project, L, lang, onClose, onSaved }: { project: Pro
           <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('… oder gleich einsortieren als:', '… or sort it right away as:')}</p>
           <div className="flex flex-wrap gap-1.5">
             {ASSIGN_TARGETS.map((a) => (
-              <button key={a.id} type="button" disabled={!text.trim() || busy} onClick={() => toPlace(a.id)} className="px-3 py-1.5 rounded-full text-[13px] border border-[var(--color-border-strong)] text-[var(--color-text)] disabled:opacity-40" data-testid={`quicknote-to-${a.id}`}>{a.icon} {L(a.de, a.en)}</button>
+              <button key={a.id} type="button" disabled={!text.trim() || busy} onClick={() => toPlace(a.id)} className="px-3 py-1.5 rounded-full text-[13px] border border-[var(--color-border-strong)] text-[var(--color-text)] disabled:opacity-40 hit44" data-testid={`quicknote-to-${a.id}`}>{a.icon} {L(a.de, a.en)}</button>
             ))}
           </div>
         </div>

@@ -44,7 +44,7 @@ export function PostfachButton({ count, open, onToggle }: { count: number; open:
       onClick={onToggle}
       aria-label={t.postfach.open}
       aria-expanded={open}
-      className={`relative w-10 h-10 rounded-full flex items-center justify-center ${count > 0 ? 'pulse-glow text-[var(--color-notice)]' : 'text-[var(--color-text-muted)]'} hover:bg-[var(--color-surface-muted)]`}
+      className={`relative w-11 h-11 rounded-full flex items-center justify-center ${count > 0 ? 'pulse-glow text-[var(--color-notice)]' : 'text-[var(--color-text-muted)]'} hover:bg-[var(--color-surface-muted)]`}
     >
       <Mail size={20} />
       {count > 0 && (
@@ -98,18 +98,18 @@ export function PostfachPanel({ live }: { live: LiveEntry[] }) {
                   <p className="text-[13px] font-medium text-[var(--color-text)]">{e.title}</p>
                   {e.text && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed whitespace-pre-line">{e.text}</p>}
                   {e.actionLabel && e.actionTo && (
-                    <Link to={e.actionTo} className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5">
+                    <Link to={e.actionTo} className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5 hit44">
                       {e.actionLabel} →
                     </Link>
                   )}
                   {e.actionLabel && e.onAction && (
-                    <button onClick={e.onAction} className="text-[13px] text-[var(--color-primary)] block mt-1.5">
+                    <button onClick={e.onAction} className="text-[13px] text-[var(--color-primary)] block mt-1.5 hit44">
                       {e.actionLabel} →
                     </button>
                   )}
                 </div>
                 {e.onDismiss && (
-                  <button onClick={e.onDismiss} aria-label={t.postfach.markRead} className="p-1 text-[var(--color-text-faint)] flex-shrink-0">
+                  <button onClick={e.onDismiss} aria-label={t.postfach.markRead} className="p-1 text-[var(--color-text-faint)] flex-shrink-0 hit44">
                     <X size={16} />
                   </button>
                 )}
@@ -154,18 +154,18 @@ function MailRow({ item, unread = false }: { item: MailItem; unread?: boolean })
           {isFollowUpMail(item) && <FollowUpBody mail={item} />}
           {isReviewMail(item) && <ReviewMailBody mail={item} />}
           {item.actionKind === 'reload' && item.actionLabel && (
-            <button onClick={() => runMailAction(item)} className="text-[13px] text-[var(--color-primary)] block mt-1.5">
+            <button onClick={() => runMailAction(item)} className="text-[13px] text-[var(--color-primary)] block mt-1.5 hit44">
               {item.actionLabel} →
             </button>
           )}
           {item.actionKind === 'link' && item.actionTo && item.actionLabel && (
-            <Link to={item.actionTo} onClick={() => markMailRead(item.id)} className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5">
+            <Link to={item.actionTo} onClick={() => markMailRead(item.id)} className="text-[13px] text-[var(--color-primary)] inline-block mt-1.5 hit44">
               {item.actionLabel} →
             </Link>
           )}
         </div>
         {unread && (
-          <button onClick={() => markMailRead(item.id)} aria-label={t.postfach.markRead} className="p-1 text-[var(--color-text-faint)] flex-shrink-0">
+          <button onClick={() => markMailRead(item.id)} aria-label={t.postfach.markRead} className="p-1 text-[var(--color-text-faint)] flex-shrink-0 hit44">
             <X size={16} />
           </button>
         )}

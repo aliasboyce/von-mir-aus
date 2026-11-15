@@ -39,7 +39,7 @@ export function MoreMenu({ items, label, testId = 'more-menu', align = 'right', 
   };
   return (
     <>
-      <button type="button" onClick={(e) => toggle(e.currentTarget)} aria-label={aria} aria-expanded={open} aria-haspopup="menu" data-testid={testId} className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text)] hover:bg-[var(--color-surface-muted)] transition-colors">
+      <button type="button" onClick={(e) => toggle(e.currentTarget)} aria-label={aria} aria-expanded={open} aria-haspopup="menu" data-testid={testId} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text)] hover:bg-[var(--color-surface-muted)] transition-colors">
         <Ellipsis size={22} />
       </button>
       {open && createPortal(

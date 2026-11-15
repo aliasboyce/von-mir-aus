@@ -20,14 +20,14 @@ export function MemoWindow({ node, lang, onChange, top }: { node: MMNode; lang: 
   const [typing, setTyping] = useState(false);
   if (!open && !has) {
     return (
-      <button type="button" onClick={() => { setOpen(true); setTyping(true); }} className="absolute right-3 z-10 inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[12.5px] bg-[var(--color-surface)] shadow-[var(--shadow-sm)] text-[var(--color-text-muted)]" style={{ top }} data-testid="mm-memo-open">
+      <button type="button" onClick={() => { setOpen(true); setTyping(true); }} className="absolute right-3 z-10 inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[12.5px] bg-[var(--color-surface)] shadow-[var(--shadow-sm)] text-[var(--color-text-muted)] hit44" style={{ top }} data-testid="mm-memo-open">
         <NotebookPen size={15} /> {L('Merknotiz', 'Side note')}
       </button>
     );
   }
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="absolute right-3 z-10 inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[12.5px] bg-[var(--color-surface)] shadow-[var(--shadow-sm)] text-[var(--color-text)]" style={{ top }} data-testid="mm-memo-open">
+      <button type="button" onClick={() => setOpen(true)} className="absolute right-3 z-10 inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[12.5px] bg-[var(--color-surface)] shadow-[var(--shadow-sm)] text-[var(--color-text)] hit44" style={{ top }} data-testid="mm-memo-open">
         <NotebookPen size={15} style={{ color: '#e8a83d' }} /> {L('Merknotiz', 'Side note')}
       </button>
     );
@@ -37,7 +37,7 @@ export function MemoWindow({ node, lang, onChange, top }: { node: MMNode; lang: 
       <div className="flex items-center gap-1.5">
         <NotebookPen size={15} style={{ color: '#e8a83d' }} />
         <span className="text-[13px] font-medium text-[var(--color-text)] flex-1">{L('Merknotiz', 'Side note')}</span>
-        <button type="button" onClick={() => setOpen(false)} className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Einklappen', 'Collapse')} data-testid="mm-memo-close"><ChevronDown size={16} /></button>
+        <button type="button" onClick={() => setOpen(false)} className="hit44 w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Einklappen', 'Collapse')} data-testid="mm-memo-close"><ChevronDown size={16} /></button>
       </div>
       <textarea
         autoFocus={typing}
@@ -182,7 +182,7 @@ export function LayersPanel({
     <div data-testid="mm-layers">
       <div className="flex items-center gap-2 mb-2">
         <p className="text-[14px] font-medium text-[var(--color-text)] flex-1">{L('Ebenen', 'Layers')}</p>
-        <button type="button" onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Schließen', 'Close')} data-testid="mm-layers-close"><X size={16} /></button>
+        <button type="button" onClick={onClose} className="hit44 w-8 h-8 rounded-full flex items-center justify-center text-[var(--color-text-muted)]" aria-label={L('Schließen', 'Close')} data-testid="mm-layers-close"><X size={16} /></button>
       </div>
       <p className="text-[12px] text-[var(--color-text-muted)] mb-2 leading-snug">
         {L('Normalerweise liegt alles auf einer Ebene. Erst wenn Dinge übereinander liegen, zählt die Reihenfolge: oben in der Liste = ganz vorn. Zieh an den Punkten oder nimm die Pfeile.', 'Normally everything is on one level. Order only matters when things lie on top of each other: top of the list = in front. Drag the handles or use the arrows.')}
@@ -222,8 +222,8 @@ export function LayersPanel({
                     </span>
                   </button>
                   {n.lock && <Lock size={13} className="text-[var(--color-text-faint)]" aria-label={L('fixiert', 'fixed')} />}
-                  <button type="button" onClick={() => step(g, i, -1)} disabled={i === 0} className="w-8 h-8 rounded-full flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-muted)] disabled:opacity-30" aria-label={L('Nach vorn', 'Forward')} data-testid={`mm-layer-up`}><ArrowUp size={14} /></button>
-                  <button type="button" onClick={() => step(g, i, 1)} disabled={i === g.length - 1} className="w-8 h-8 rounded-full flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-muted)] disabled:opacity-30" aria-label={L('Nach hinten', 'Backward')} data-testid={`mm-layer-down`}><ArrowDown size={14} /></button>
+                  <button type="button" onClick={() => step(g, i, -1)} disabled={i === 0} className="hit44 w-8 h-8 rounded-full flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-muted)] disabled:opacity-30" aria-label={L('Nach vorn', 'Forward')} data-testid={`mm-layer-up`}><ArrowUp size={14} /></button>
+                  <button type="button" onClick={() => step(g, i, 1)} disabled={i === g.length - 1} className="hit44 w-8 h-8 rounded-full flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-muted)] disabled:opacity-30" aria-label={L('Nach hinten', 'Backward')} data-testid={`mm-layer-down`}><ArrowDown size={14} /></button>
                 </li>
               );
             })}
@@ -241,7 +241,7 @@ export function LayersPanel({
                   <span className="w-7 h-7 rounded-md flex items-center justify-center text-[15px]" style={{ background: `${n.color}33`, border: `1.5px solid ${n.color}` }} aria-hidden="true">{iconOf(n)}</span>
                   <span className="text-[13px] text-[var(--color-text)] truncate">{labelOf(n, lang)}</span>
                 </button>
-                <button type="button" onClick={() => onToggleLock(n.id)} className="px-3 py-1.5 rounded-full text-[12.5px] border border-[var(--color-border-strong)] text-[var(--color-text)] inline-flex items-center gap-1" data-testid="mm-unlock"><Unlock size={13} /> {L('Lösen', 'Release')}</button>
+                <button type="button" onClick={() => onToggleLock(n.id)} className="px-3 py-1.5 rounded-full text-[12.5px] border border-[var(--color-border-strong)] text-[var(--color-text)] inline-flex items-center gap-1 hit44" data-testid="mm-unlock"><Unlock size={13} /> {L('Lösen', 'Release')}</button>
               </div>
             ))}
           </div>
@@ -267,7 +267,7 @@ export function SlipsOnMap({ mapId, lang, top }: { mapId: string; lang: 'de' | '
   const openCount = list.filter((s) => !s.done).length;
   return (
     <div className="absolute left-3 z-30" style={{ top }} data-testid="mm-slips">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[12.5px] shadow-[var(--shadow-sm)] border border-[#00000014]" style={{ background: '#fff3a8', color: '#4a4636' }} data-testid="mm-slips-btn">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-[12.5px] shadow-[var(--shadow-sm)] border border-[#00000014] hit44" style={{ background: '#fff3a8', color: '#4a4636' }} data-testid="mm-slips-btn">
         🗒️ {lang === 'en' ? `${openCount} slip${openCount === 1 ? '' : 's'} here` : `${openCount} Zettel hier`}
       </button>
       {open && (

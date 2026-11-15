@@ -31,7 +31,7 @@ export function ZonePicker({ selected, onChange }: { selected: string[]; onChang
               key={b.id}
               type="button"
               onClick={() => toggle(b.id)}
-              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-full)] px-3 py-1.5 text-[13px] font-medium transition-colors duration-200 border"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-full)] px-3 py-1.5 text-[13px] font-medium transition-colors duration-200 border hit44"
               style={isSelected ? { background: b.color, borderColor: b.color, color: '#fff' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
             >
               {zoneT.label}

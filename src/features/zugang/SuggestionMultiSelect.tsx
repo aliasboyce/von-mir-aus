@@ -75,7 +75,7 @@ export function SuggestionMultiSelect({
           <button
             key={s}
             onClick={() => onToggle(s)}
-            className="px-3.5 py-2 rounded-full text-[14px]"
+            className="px-3.5 py-2 rounded-full text-[14px] hit44"
             style={
               color
                 ? {
@@ -105,7 +105,7 @@ export function SuggestionMultiSelect({
               onChange={(e) => setEditText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitEdit()}
             />
-            <button onClick={submitEdit} aria-label={t.common.save} className="p-1.5 text-[var(--color-primary)]">
+            <button onClick={submitEdit} aria-label={t.common.save} className="p-1.5 text-[var(--color-primary)] hit44">
               <Check size={15} />
             </button>
           </div>
@@ -153,7 +153,7 @@ export function SuggestionMultiSelect({
         ) : (
           <button
             onClick={() => setAdding(true)}
-            className="flex items-center gap-1 px-3.5 py-2 rounded-full text-[14px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]"
+            className="flex items-center gap-1 px-3.5 py-2 rounded-full text-[14px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44"
           >
             <Plus size={13} /> {t.zugang.ownSuggestionCta}
           </button>

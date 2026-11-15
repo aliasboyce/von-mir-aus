@@ -142,7 +142,7 @@ export function ResourceTimerView({ contextLabel, onClose, onNaturalComplete }: 
       <button
         onClick={requestClose}
         aria-label={t.common.close}
-        className="absolute top-5 right-5 w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+        className="absolute top-5 right-5 w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
         style={{ top: 'max(20px, env(safe-area-inset-top))' }}
       >
         <X size={20} />
@@ -155,11 +155,11 @@ export function ResourceTimerView({ contextLabel, onClose, onNaturalComplete }: 
           <div className="flex flex-col gap-2">
             <button
               onClick={() => setConfirmingCancel(false)}
-              className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+              className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
             >
               {t.bridges.timerStayHere}
             </button>
-            <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] text-[var(--color-text-muted)]">
+            <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] text-[var(--color-text-muted)] hit44">
               {t.bridges.timerEndNow}
             </button>
           </div>
@@ -181,7 +181,7 @@ export function ResourceTimerView({ contextLabel, onClose, onNaturalComplete }: 
                   <button
                     key={min}
                     onClick={() => start(min)}
-                    className="px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]"
+                    className="px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] hit44"
                   >
                     {formatDurationLabel(min, t)}
                   </button>
@@ -189,7 +189,7 @@ export function ResourceTimerView({ contextLabel, onClose, onNaturalComplete }: 
               </div>
               <button
                 onClick={startStopwatch}
-                className="mt-3 px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+                className="mt-3 px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-primary-soft)] text-[var(--color-primary)] hit44"
               >
                 {t.bridges.timerStopwatchCta}
               </button>
@@ -209,7 +209,7 @@ export function ResourceTimerView({ contextLabel, onClose, onNaturalComplete }: 
               {durationMin === STOPWATCH_SENTINEL && (
                 <button
                   onClick={completeStopwatch}
-                  className="mt-5 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+                  className="mt-5 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
                 >
                   {t.bridges.timerStopwatchDone}
                 </button>
@@ -223,13 +223,13 @@ export function ResourceTimerView({ contextLabel, onClose, onNaturalComplete }: 
                 {onNaturalComplete && (
                   <button
                     onClick={() => onNaturalComplete(durationMin === STOPWATCH_SENTINEL ? Math.max(1, Math.round(remaining / 60)) : durationMin)}
-                    className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+                    className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
                   >
                     <NotebookPen size={14} />
                     {t.bridges.timerAddToDiary}
                   </button>
                 )}
-                <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] text-[var(--color-text-muted)]">
+                <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] text-[var(--color-text-muted)] hit44">
                   {t.common.close}
                 </button>
               </div>

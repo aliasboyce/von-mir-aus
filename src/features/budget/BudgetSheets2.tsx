@@ -11,7 +11,7 @@ function ColorRow({ value, onChange, L }: { value: string; onChange: (c: string)
       <span className="block text-[12.5px] text-[var(--color-text-muted)] mb-1">{L('Farbe', 'Colour')}</span>
       <div className="flex gap-2 flex-wrap">
         {SWATCHES.map((c) => (
-          <button key={c} type="button" onClick={() => onChange(c)} className="w-9 h-9 rounded-full" style={{ background: c, border: '1.5px solid rgba(0,0,0,0.15)', outline: value === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={c} />
+          <button key={c} type="button" onClick={() => onChange(c)} className="w-11 h-11 rounded-full" style={{ background: c, border: '1.5px solid rgba(0,0,0,0.15)', outline: value === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={c} />
         ))}
         <label className="relative w-9 h-9 rounded-full overflow-hidden cursor-pointer" style={{ background: 'conic-gradient(#e8a83d,#7fb069,#6aa8c9,#9a7bc4,#d9778a,#e8a83d)' }} title={L('Eigene Farbe', 'Own colour')}>
           <input type="color" value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#6aa8c9'} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" aria-label={L('Eigene Farbe', 'Own colour')} />

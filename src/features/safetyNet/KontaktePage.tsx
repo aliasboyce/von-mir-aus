@@ -74,7 +74,7 @@ export function KontaktePage() {
                     onClick={() => toggleImportant(entry)}
                     aria-pressed={!!entry.isImportantContact}
                     aria-label={t.network.markImportant}
-                    className="p-2 rounded-full text-[var(--color-accent-sun)] hover:bg-[var(--color-surface-muted)]"
+                    className="p-2 rounded-full text-[var(--color-accent-sun)] hover:bg-[var(--color-surface-muted)] hit44"
                   >
                     <Star size={16} className={entry.isImportantContact ? 'fill-current' : ''} />
                   </button>

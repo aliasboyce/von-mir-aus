@@ -188,7 +188,7 @@ function NewPackageModal({
 
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-full text-[13px] self-start"
+          className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-full text-[13px] self-start hit44"
           style={{ border: '1.5px solid var(--color-border)', color: 'var(--color-text-muted)' }}
         >
           <Camera size={14} /> {t.medPackages.addPhotoCta}

@@ -20,7 +20,7 @@ export function NeedsMultiPicker({ selected, onChange }: { selected: NeedDirecti
               type="button"
               aria-pressed={on}
               onClick={() => onChange(on ? selected.filter((x) => x !== n) : [...selected, n])}
-              className="rounded-full px-3 py-1.5 text-[12.5px] border"
+              className="rounded-full px-3 py-1.5 text-[12.5px] border hit44"
               style={on ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
             >
               {NEED_META[n].icon} {NEED_META[n].label(t)}

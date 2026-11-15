@@ -42,7 +42,7 @@ export function DiaryCategoryStyleModal({ open, onClose, categoryLabel, current,
               <button
                 key={f}
                 onClick={() => setFont(f)}
-                className="px-3 py-1.5 rounded-full text-[13px]"
+                className="px-3 py-1.5 rounded-full text-[13px] hit44"
                 style={{
                   fontFamily: DIARY_FONT_META[f].family,
                   background: font === f ? 'var(--color-primary)' : 'var(--color-surface-muted)',
@@ -63,7 +63,7 @@ export function DiaryCategoryStyleModal({ open, onClose, categoryLabel, current,
                 key={c}
                 onClick={() => setColor(c)}
                 aria-label={c}
-                className="w-8 h-8 rounded-full"
+                className="hit44 w-8 h-8 rounded-full"
                 style={{ background: c, outline: color === c ? '2.5px solid var(--color-primary)' : '1px solid var(--color-border)', outlineOffset: 2 }}
               />
             ))}

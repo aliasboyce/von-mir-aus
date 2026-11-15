@@ -84,7 +84,7 @@ export function TemplatePickerModal({ open, onClose, onPick }: TemplatePickerMod
                     </button>
                     {!template.isBuiltin && (
                       <>
-                        <button onClick={() => startEditing(template)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)]">
+                        <button onClick={() => startEditing(template)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)] hit44">
                           <Pencil size={14} />
                         </button>
                         <button
@@ -93,7 +93,7 @@ export function TemplatePickerModal({ open, onClose, onPick }: TemplatePickerMod
                             bump();
                           }}
                           aria-label={t.common.delete}
-                          className="p-1.5 text-[var(--color-danger)]"
+                          className="p-1.5 text-[var(--color-danger)] hit44"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -110,7 +110,7 @@ export function TemplatePickerModal({ open, onClose, onPick }: TemplatePickerMod
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <button onClick={() => setEditing(null)} className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] -mt-2 w-fit">
+          <button onClick={() => setEditing(null)} className="flex items-center gap-1 text-[13px] text-[var(--color-primary)] -mt-2 w-fit hit44">
             <ChevronLeft size={14} /> {t.diaryTemplates.pickerTitle}
           </button>
           <label className="flex flex-col gap-1.5">
@@ -132,7 +132,7 @@ export function TemplatePickerModal({ open, onClose, onPick }: TemplatePickerMod
                   type="button"
                   aria-pressed={editing.phase === ph}
                   onClick={() => setEditing({ ...editing, phase: ph })}
-                  className="rounded-full px-3.5 py-1.5 text-[13px] border"
+                  className="rounded-full px-3.5 py-1.5 text-[13px] border hit44"
                   style={editing.phase === ph ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
                 >
                   {ph === 'vorausschauend' ? t.diaryTemplates.phaseForward : t.diaryTemplates.phaseBackward}

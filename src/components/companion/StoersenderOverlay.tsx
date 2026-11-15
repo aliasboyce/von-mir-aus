@@ -70,7 +70,7 @@ export function StoersenderOverlay({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-[240] bg-[var(--color-bg)] flex flex-col items-center px-6 py-14 overflow-y-auto animate-in no-print" role="dialog" aria-modal="true" aria-label={en ? INFO_STOERSENDER.title.en : INFO_STOERSENDER.title.de}>
       <div className="absolute flex gap-2" style={{ top: 'max(20px, env(safe-area-inset-top))', right: 20 }}>
         <WesenInfoButton info={INFO_STOERSENDER} />
-        <button onClick={onClose} aria-label={t.common.close} className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center">
+        <button onClick={onClose} aria-label={t.common.close} className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center">
           <X size={20} />
         </button>
       </div>
@@ -118,7 +118,7 @@ export function StoersenderOverlay({ onClose }: { onClose: () => void }) {
                 </span>
               </button>
             ))}
-            <button type="button" onClick={() => choose(0)} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]" data-testid="stoersender-level-0">
+            <button type="button" onClick={() => choose(0)} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] hit44" data-testid="stoersender-level-0">
               {en ? 'No idea – surprise me' : 'Keine Ahnung – überrasch mich'}
             </button>
             <button onClick={() => setDeclined(true)} className="text-[13px] text-[var(--color-text-faint)] underline mt-1">
@@ -129,7 +129,7 @@ export function StoersenderOverlay({ onClose }: { onClose: () => void }) {
       ) : declined ? (
         <div className="text-center animate-in">
           <p className="text-[19px] text-[var(--color-text)] leading-relaxed max-w-[290px] mb-6">{en ? 'Okay. Then it is enough that you heard it. I am still here.' : 'Okay. Dann reicht es, dass du es gehört hast. Ich bin trotzdem da.'}</p>
-          <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">{t.common.close}</button>
+          <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44">{t.common.close}</button>
         </div>
       ) : (
         <>
@@ -139,7 +139,7 @@ export function StoersenderOverlay({ onClose }: { onClose: () => void }) {
           {level !== 0 && (
             <div className="flex gap-1.5 mb-5" role="group" aria-label={en ? 'Effort' : 'Aufwand'}>
               {LEVELS.map((l) => (
-                <button key={l.lv} type="button" onClick={() => choose(l.lv)} aria-pressed={level === l.lv} className="px-3 py-1.5 rounded-full text-[12.5px]" style={{ background: level === l.lv ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: level === l.lv ? 'var(--color-surface)' : 'var(--color-text-muted)' }} data-testid={`stoersender-chip-${l.lv}`}>
+                <button key={l.lv} type="button" onClick={() => choose(l.lv)} aria-pressed={level === l.lv} className="px-3 py-1.5 rounded-full text-[12.5px] hit44" style={{ background: level === l.lv ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: level === l.lv ? 'var(--color-surface)' : 'var(--color-text-muted)' }} data-testid={`stoersender-chip-${l.lv}`}>
                   {l.icon} {en ? l.en : l.de}
                 </button>
               ))}

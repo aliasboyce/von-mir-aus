@@ -156,7 +156,7 @@ export function NetworkEntryForm({
             <button
               type="button"
               onClick={saveNewCategory}
-              className="p-2.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0"
+              className="p-2.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0 hit44"
               aria-label={t.common.add}
             >
               <Plus size={16} />
@@ -199,7 +199,7 @@ export function NetworkEntryForm({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
+              className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44"
             >
               <Upload size={14} /> {t.network.uploadPhoto}
             </button>
@@ -208,7 +208,7 @@ export function NetworkEntryForm({
               <button
                 type="button"
                 onClick={() => onChange({ ...draft, photoDataUrl: undefined, photoScale: undefined, photoOffsetX: undefined, photoOffsetY: undefined })}
-                className="flex items-center gap-1.5 text-[13px] text-[var(--color-danger)]"
+                className="flex items-center gap-1.5 text-[13px] text-[var(--color-danger)] hit44"
               >
                 <X size={14} /> {t.network.removePhoto}
               </button>
@@ -308,13 +308,13 @@ export function NetworkEntryForm({
                 setNewHelpText('');
                 setAddingHelp(false);
               }}
-              className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0"
+              className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] flex-shrink-0 hit44"
             >
               <Plus size={15} />
             </button>
           </div>
         ) : (
-          <button type="button" onClick={() => setAddingHelp(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-2">
+          <button type="button" onClick={() => setAddingHelp(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-2 hit44">
             <Plus size={14} /> {t.network.helpsWithOwnCta}
           </button>
         )}

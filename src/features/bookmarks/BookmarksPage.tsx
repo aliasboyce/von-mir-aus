@@ -210,21 +210,21 @@ export function BookmarksPage() {
                   <button
                     onClick={() => shareBookmarkLink(bm)}
                     aria-label={t.resources.shareLink}
-                    className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+                    className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"
                   >
                     <Link2 size={14} />
                   </button>
                   <button
                     onClick={() => setEditing(bm)}
                     aria-label={t.common.edit}
-                    className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+                    className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"
                   >
                     <Pencil size={14} />
                   </button>
                   <button
                     onClick={() => remove(bm.id)}
                     aria-label={t.common.delete}
-                    className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]"
+                    className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hit44"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -328,14 +328,14 @@ export function BookmarksPage() {
                   <button
                     onClick={() => startRename(c.id, c.label)}
                     aria-label={t.common.edit}
-                    className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+                    className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"
                   >
                     <Pencil size={14} />
                   </button>
                   <button
                     onClick={() => removeCategory(c.id)}
                     aria-label={t.common.delete}
-                    className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]"
+                    className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hit44"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -345,7 +345,7 @@ export function BookmarksPage() {
           ))}
         </div>
         {!addingCategory ? (
-          <button onClick={() => setAddingCategory(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+          <button onClick={() => setAddingCategory(true)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44">
             <Plus size={14} /> {t.bookmarks.newCategory}
           </button>
         ) : (
@@ -358,7 +358,7 @@ export function BookmarksPage() {
               onChange={(e) => setNewCategoryName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addCategory()}
             />
-            <button onClick={addCategory} className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)]">
+            <button onClick={addCategory} className="p-2 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] hit44">
               <Plus size={15} />
             </button>
           </div>

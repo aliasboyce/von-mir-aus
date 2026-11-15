@@ -366,10 +366,10 @@ export function ParkboxPage() {
         <h1 className="text-[24px] mb-3 leading-tight">{T.title}</h1>
 
         <div className="grid grid-cols-2 gap-1 p-1 rounded-full mb-3" style={{ background: 'var(--color-surface-muted)' }} role="tablist" aria-label={T.title}>
-          <button type="button" role="tab" aria-selected={section === 'park'} onClick={() => setSection('park')} className="rounded-full px-3 py-2.5 text-[15px] transition" style={section === 'park' ? { background: 'var(--color-surface)', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: 'var(--color-text)' } : { color: 'var(--color-text-muted)' }} data-testid="section-park">
+          <button type="button" role="tab" aria-selected={section === 'park'} onClick={() => setSection('park')} className="rounded-full px-3 py-2.5 text-[15px] transition hit44" style={section === 'park' ? { background: 'var(--color-surface)', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: 'var(--color-text)' } : { color: 'var(--color-text-muted)' }} data-testid="section-park">
             <span aria-hidden="true">📦 </span>{T.tabPark}
           </button>
-          <button type="button" role="tab" aria-selected={section === 'wait'} onClick={() => setSection('wait')} className="rounded-full px-3 py-2.5 text-[15px] transition" style={section === 'wait' ? { background: 'var(--color-surface)', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: 'var(--color-text)' } : { color: 'var(--color-text-muted)' }} data-testid="section-wait">
+          <button type="button" role="tab" aria-selected={section === 'wait'} onClick={() => setSection('wait')} className="rounded-full px-3 py-2.5 text-[15px] transition hit44" style={section === 'wait' ? { background: 'var(--color-surface)', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: 'var(--color-text)' } : { color: 'var(--color-text-muted)' }} data-testid="section-wait">
             <span aria-hidden="true">🪑 </span>{T.tabWait}
           </button>
         </div>
@@ -413,7 +413,7 @@ export function ParkboxPage() {
           </div>
           <div className="flex gap-1.5 flex-wrap mt-3" role="group" aria-label={T.levelsHint}>
             {SLIP_LEVELS.map((l) => (
-              <button key={l.id} type="button" aria-pressed={level === l.id} onClick={() => setLevel(l.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] border" style={level === l.id ? { background: 'var(--color-primary)', color: 'var(--color-surface)', borderColor: 'transparent' } : { background: 'var(--color-surface)', color: 'var(--color-text-muted)', borderColor: 'var(--color-border)' }} data-testid={`park-prio-${l.id}`}>
+              <button key={l.id} type="button" aria-pressed={level === l.id} onClick={() => setLevel(l.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] border hit44" style={level === l.id ? { background: 'var(--color-primary)', color: 'var(--color-surface)', borderColor: 'transparent' } : { background: 'var(--color-surface)', color: 'var(--color-text-muted)', borderColor: 'var(--color-border)' }} data-testid={`park-prio-${l.id}`}>
                 <span className="w-3 h-3 rounded-full border border-black/25" style={{ background: l.bg }} aria-hidden="true" />{lang === 'en' ? l.en : l.de}
               </button>
             ))}
@@ -454,7 +454,7 @@ export function ParkboxPage() {
                   <p className="text-[15px] leading-[28px] whitespace-pre-line">{n.text}</p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-2">
                     {tab === 'open' && SLIP_LEVELS.map((l) => (
-                      <button key={l.id} type="button" aria-pressed={lv.id === l.id} aria-label={lang === 'en' ? l.en : l.de} title={lang === 'en' ? l.en : l.de} onClick={() => updateNote(n.id, { level: l.id, priority: l.priority })} className="w-7 h-7 rounded-full flex items-center justify-center" data-testid={`park-note-level-${l.id}`}>
+                      <button key={l.id} type="button" aria-pressed={lv.id === l.id} aria-label={lang === 'en' ? l.en : l.de} title={lang === 'en' ? l.en : l.de} onClick={() => updateNote(n.id, { level: l.id, priority: l.priority })} className="hit44 w-7 h-7 rounded-full flex items-center justify-center" data-testid={`park-note-level-${l.id}`}>
                         <span className="block w-5 h-5 rounded-full" style={{ background: l.bg, border: lv.id === l.id ? `3px solid ${lv.ink}` : '1.5px solid rgba(0,0,0,0.35)', boxShadow: lv.id === l.id ? 'none' : '0 0 0 1px rgba(255,255,255,0.5)' }} />
                       </button>
                     ))}

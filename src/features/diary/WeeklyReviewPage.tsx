@@ -200,7 +200,7 @@ export function WeeklyReviewPage() {
               <button
                 onClick={exportPdf}
                 aria-label={t.weeklyReview.exportPdf}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+                className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
               >
                 <FileDown size={17} />
               </button>
@@ -216,7 +216,7 @@ export function WeeklyReviewPage() {
           <button
             onClick={() => setDayMode(true)}
             data-testid="review-tab-day"
-            className="px-4 py-2 rounded-full text-[13px]"
+            className="px-4 py-2 rounded-full text-[13px] hit44"
             style={{
               background: dayMode ? 'var(--color-primary)' : 'var(--color-surface-muted)',
               color: dayMode ? 'var(--color-surface)' : 'var(--color-text-muted)',
@@ -226,7 +226,7 @@ export function WeeklyReviewPage() {
           </button>
           <button
             onClick={() => { setDayMode(false); setPeriod('week'); }}
-            className="px-4 py-2 rounded-full text-[13px]"
+            className="px-4 py-2 rounded-full text-[13px] hit44"
             style={{
               background: !dayMode && period === 'week' ? 'var(--color-primary)' : 'var(--color-surface-muted)',
               color: !dayMode && period === 'week' ? 'var(--color-surface)' : 'var(--color-text-muted)',
@@ -236,7 +236,7 @@ export function WeeklyReviewPage() {
           </button>
           <button
             onClick={() => { setDayMode(false); setPeriod('month'); }}
-            className="px-4 py-2 rounded-full text-[13px]"
+            className="px-4 py-2 rounded-full text-[13px] hit44"
             style={{
               background: !dayMode && period === 'month' ? 'var(--color-primary)' : 'var(--color-surface-muted)',
               color: !dayMode && period === 'month' ? 'var(--color-surface)' : 'var(--color-text-muted)',

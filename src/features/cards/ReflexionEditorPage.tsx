@@ -40,7 +40,7 @@ function PickMax({ options, selected, max, onChange, label }: { options: string[
               type="button"
               onClick={() => onChange(on ? selected.filter((x) => x !== o) : [...selected, o].slice(-max))}
               aria-pressed={on}
-              className="px-3 py-1.5 rounded-full text-[13px]"
+              className="px-3 py-1.5 rounded-full text-[13px] hit44"
               style={{ background: on ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: on ? 'var(--color-surface)' : 'var(--color-text)' }}
             >
               {o}
@@ -162,7 +162,7 @@ export function ReflexionEditorPage() {
   const stepper = (val: number, set: (n: number) => void, max: number, glyph: string) => (
     <div className="flex gap-1.5">
       {Array.from({ length: max }).map((_, i) => (
-        <button key={i} type="button" onClick={() => set(val === i + 1 ? 0 : i + 1)} className="w-10 h-10 rounded-full text-[18px]" style={{ background: i < val ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)' }} aria-label={`${i + 1}`}>
+        <button key={i} type="button" onClick={() => set(val === i + 1 ? 0 : i + 1)} className="w-11 h-11 rounded-full text-[18px]" style={{ background: i < val ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)' }} aria-label={`${i + 1}`}>
           {glyph}
         </button>
       ))}
@@ -193,7 +193,7 @@ export function ReflexionEditorPage() {
           <p className="text-[13px] font-medium mb-1">{L('Das habe ich genutzt', 'What I used')}</p>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {used.map((u) => (
-              <button key={u} type="button" onClick={() => setUsed(used.filter((x) => x !== u))} className="px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-primary-soft)] text-[var(--color-text)]" aria-label={`${L('Entfernen', 'Remove')}: ${u}`}>
+              <button key={u} type="button" onClick={() => setUsed(used.filter((x) => x !== u))} className="px-3 py-1.5 rounded-full text-[13px] bg-[var(--color-primary-soft)] text-[var(--color-text)] hit44" aria-label={`${L('Entfernen', 'Remove')}: ${u}`}>
                 {u} ✕
               </button>
             ))}
@@ -239,10 +239,10 @@ export function ReflexionEditorPage() {
         <p className="text-[13px] font-medium mb-1">{L('Gestaltung', 'Design')}</p>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {BACKGROUNDS.map((c) => (
-            <button key={c} type="button" onClick={() => setBackground(c)} className="w-9 h-9 rounded-full" style={{ background: c, border: '2px solid rgba(0,0,0,0.15)', outline: background === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} aria-label={c} />
+            <button key={c} type="button" onClick={() => setBackground(c)} className="w-11 h-11 rounded-full" style={{ background: c, border: '2px solid rgba(0,0,0,0.15)', outline: background === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} aria-label={c} />
           ))}
           {PALETTE_COLORS.slice(0, 10).map((c) => (
-            <button key={c} type="button" onClick={() => setBackground(c)} className="w-9 h-9 rounded-full" style={{ background: c, outline: background === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} aria-label={c} />
+            <button key={c} type="button" onClick={() => setBackground(c)} className="w-11 h-11 rounded-full" style={{ background: c, outline: background === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 1 }} aria-label={c} />
           ))}
         </div>
         <div className="flex gap-2 items-center mb-3 flex-wrap">
@@ -257,7 +257,7 @@ export function ReflexionEditorPage() {
         <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L('Limitiert (Folie / Holo / Glitzer) – wandert zu den Specialcards', 'Limited (foil / holo / glitter) – goes to the special cards')}</p>
         <div className="flex flex-wrap gap-1.5 mb-6">
           {RARITIES.map((r) => (
-            <button key={r.id} type="button" className="px-3 py-1.5 rounded-full text-[13px]" style={{ background: rarity === r.id ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: rarity === r.id ? 'var(--color-surface)' : 'var(--color-text)' }} onClick={() => setRar(r.id)}>
+            <button key={r.id} type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={{ background: rarity === r.id ? 'var(--color-primary)' : 'var(--color-surface-muted)', color: rarity === r.id ? 'var(--color-surface)' : 'var(--color-text)' }} onClick={() => setRar(r.id)}>
               {r.de}
             </button>
           ))}

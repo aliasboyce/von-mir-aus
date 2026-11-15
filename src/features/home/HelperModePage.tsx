@@ -33,7 +33,7 @@ export function HelperModePage() {
       <button
         onClick={() => navigate('/')}
         aria-label={t.common.back}
-        className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)] mb-2"
+        className="w-11 h-11 -ml-2 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)] mb-2"
       >
         <ChevronLeft size={22} />
       </button>

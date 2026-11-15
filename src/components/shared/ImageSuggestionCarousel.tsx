@@ -49,7 +49,7 @@ export function ImageSuggestionCarousel({ images, selected, onSelect, ariaLabel,
           type="button"
           onClick={() => scrollBy(-160)}
           aria-label="←"
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hit44 w-7 h-7 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]"
         >
           <ChevronLeft size={15} />
         </button>
@@ -82,7 +82,7 @@ export function ImageSuggestionCarousel({ images, selected, onSelect, ariaLabel,
           type="button"
           onClick={() => scrollBy(160)}
           aria-label="→"
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hit44 w-7 h-7 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]"
         >
           <ChevronRight size={15} />
         </button>

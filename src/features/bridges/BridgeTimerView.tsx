@@ -225,7 +225,7 @@ export function BridgeTimerView({ contextLabel, stepTitle, stepText, onClose, on
       <button
         onClick={requestClose}
         aria-label={t.common.close}
-        className="absolute top-5 right-5 w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
+        className="absolute top-5 right-5 w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center"
         style={{ top: 'max(20px, env(safe-area-inset-top))' }}
       >
         <X size={20} />
@@ -238,11 +238,11 @@ export function BridgeTimerView({ contextLabel, stepTitle, stepText, onClose, on
           <div className="flex flex-col gap-2">
             <button
               onClick={() => setConfirmingCancel(false)}
-              className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+              className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
             >
               {t.bridges.timerStayHere}
             </button>
-            <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] text-[var(--color-text-muted)]">
+            <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] text-[var(--color-text-muted)] hit44">
               {t.bridges.timerEndNow}
             </button>
           </div>
@@ -287,7 +287,7 @@ export function BridgeTimerView({ contextLabel, stepTitle, stepText, onClose, on
                   <button
                     key={min}
                     onClick={() => start(min)}
-                    className="px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)]"
+                    className="px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-surface-muted)] text-[var(--color-text)] hit44"
                   >
                     {formatDurationLabel(min, t)}
                   </button>
@@ -295,7 +295,7 @@ export function BridgeTimerView({ contextLabel, stepTitle, stepText, onClose, on
               </div>
               <button
                 onClick={startStopwatch}
-                className="mt-3 px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-primary-soft)] text-[var(--color-primary)]"
+                className="mt-3 px-4 py-2.5 rounded-full text-[14px] bg-[var(--color-primary-soft)] text-[var(--color-primary)] hit44"
               >
                 {t.bridges.timerStopwatchCta}
               </button>
@@ -318,7 +318,7 @@ export function BridgeTimerView({ contextLabel, stepTitle, stepText, onClose, on
               {durationMin === STOPWATCH_SENTINEL && (
                 <button
                   onClick={completeStopwatch}
-                  className="mt-5 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+                  className="mt-5 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
                 >
                   {t.bridges.timerStopwatchDone}
                 </button>
@@ -338,7 +338,7 @@ export function BridgeTimerView({ contextLabel, stepTitle, stepText, onClose, on
                   style={{ border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', resize: 'vertical' }}
                 />
               ) : (
-                <button onClick={() => setNoteOpen(true)} className="mt-5 flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)] mx-auto">
+                <button onClick={() => setNoteOpen(true)} className="mt-5 flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)] mx-auto hit44">
                   <NotebookPen size={14} />
                   {t.bridges.timerAddNoteCta}
                 </button>
@@ -352,13 +352,13 @@ export function BridgeTimerView({ contextLabel, stepTitle, stepText, onClose, on
                 {onNaturalComplete && (
                   <button
                     onClick={() => onNaturalComplete(durationMin)}
-                    className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]"
+                    className="flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44"
                   >
                     <NotebookPen size={14} />
                     {t.bridges.timerAddToDiary}
                   </button>
                 )}
-                <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] text-[var(--color-text-muted)]">
+                <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] text-[var(--color-text-muted)] hit44">
                   {t.common.close}
                 </button>
               </div>

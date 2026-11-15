@@ -149,11 +149,11 @@ export function AppointmentFormModal({ open, appointment, defaults, onClose, onS
           <div className="flex flex-col gap-1.5">
             <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.calendar.categoryLabel}</span>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => setCategoryId(undefined)} className="rounded-full px-3 py-1.5 text-[13px] border" style={!categoryId ? { background: 'var(--color-text-muted)', color: 'var(--color-surface)', borderColor: 'var(--color-text-muted)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
+              <button type="button" onClick={() => setCategoryId(undefined)} className="rounded-full px-3 py-1.5 text-[13px] border hit44" style={!categoryId ? { background: 'var(--color-text-muted)', color: 'var(--color-surface)', borderColor: 'var(--color-text-muted)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
                 {t.calendar.noCategory}
               </button>
               {categories.map((c) => (
-                <button key={c.id} type="button" onClick={() => setCategoryId(c.id)} className="rounded-full px-3 py-1.5 text-[13px] border" style={categoryId === c.id ? { background: c.color, borderColor: c.color, color: '#fff' } : { borderColor: c.color, color: c.color }}>
+                <button key={c.id} type="button" onClick={() => setCategoryId(c.id)} className="rounded-full px-3 py-1.5 text-[13px] border hit44" style={categoryId === c.id ? { background: c.color, borderColor: c.color, color: '#fff' } : { borderColor: c.color, color: c.color }}>
                   {c.label}
                 </button>
               ))}
@@ -164,11 +164,11 @@ export function AppointmentFormModal({ open, appointment, defaults, onClose, onS
             <div className="flex flex-col gap-1.5">
               <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.calendar.personLabel}</span>
               <div className="flex flex-col gap-1.5">
-                <button type="button" onClick={() => setPersonId(undefined)} className="text-left rounded-[var(--radius-md)] px-3 py-2 text-[13px] border" style={!personId ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-soft)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
+                <button type="button" onClick={() => setPersonId(undefined)} className="text-left rounded-[var(--radius-md)] px-3 py-2 text-[13px] border hit44" style={!personId ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-soft)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}>
                   {t.calendar.noPerson}
                 </button>
                 {people.map((p) => (
-                  <button key={p.id} type="button" onClick={() => setPersonId(p.id)} className="text-left rounded-[var(--radius-md)] px-3 py-2 border flex items-center gap-2" style={personId === p.id ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-soft)' } : { borderColor: 'var(--color-border)' }}>
+                  <button key={p.id} type="button" onClick={() => setPersonId(p.id)} className="text-left rounded-[var(--radius-md)] px-3 py-2 border flex items-center gap-2 hit44" style={personId === p.id ? { borderColor: 'var(--color-primary)', background: 'var(--color-primary-soft)' } : { borderColor: 'var(--color-border)' }}>
                     <PersonAvatar entry={p} size={30} />
                     <span className="min-w-0">
                       <span className="block text-[13.5px] text-[var(--color-text)] truncate">{p.name}</span>

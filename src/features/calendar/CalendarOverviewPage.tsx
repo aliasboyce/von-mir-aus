@@ -55,7 +55,7 @@ export function CalendarOverviewPage() {
       <div className="px-5 pb-12">
         <h1 className="text-[24px] mb-1">{t.calendar.overviewTitle}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-5">{t.calendar.overviewSubtitle}</p>
-        <Link to="/kalender" className="text-[13px] text-[var(--color-primary)] block mb-5">
+        <Link to="/kalender" className="text-[13px] text-[var(--color-primary)] block mb-5 hit44">
           ← {t.calendar.title}
         </Link>
 

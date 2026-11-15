@@ -360,11 +360,11 @@ export function CompanionContentPage() {
                           frequency: (line as CustomCompanionLine).frequency,
                         })
                       }
-                      className="flex items-center gap-1 text-[12px] text-[var(--color-primary)]"
+                      className="flex items-center gap-1 text-[12px] text-[var(--color-primary)] hit44"
                     >
                       <Pencil size={12} /> {t.common.edit}
                     </button>
-                    <button onClick={() => deleteCustom(line.id)} className="flex items-center gap-1 text-[12px] text-[var(--color-danger)]">
+                    <button onClick={() => deleteCustom(line.id)} className="flex items-center gap-1 text-[12px] text-[var(--color-danger)] hit44">
                       <Trash2 size={12} /> {t.common.delete}
                     </button>
                   </div>
@@ -543,7 +543,7 @@ function AblenkenTab() {
                   setDistractionActive(item.text, true);
                   bump();
                 }}
-                className="text-[12px] text-[var(--color-primary)] flex-shrink-0"
+                className="text-[12px] text-[var(--color-primary)] flex-shrink-0 hit44"
               >
                 {t.companionContent.showAgainCta}
               </button>
@@ -552,7 +552,7 @@ function AblenkenTab() {
         </div>
       )}
 
-      <button onClick={() => setBrowseOpen((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-3">
+      <button onClick={() => setBrowseOpen((v) => !v)} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-3 hit44">
         <Search size={14} />
         {browseOpen ? t.companionContent.hideBrowseAll : t.companionContent.showBrowseAll}
       </button>
@@ -675,7 +675,7 @@ function OrientierungTab() {
                     }}
                     disabled={middleIdx === 0}
                     aria-label={t.common.moveUp}
-                    className="p-1 text-[var(--color-text-muted)] disabled:opacity-30"
+                    className="p-1 text-[var(--color-text-muted)] disabled:opacity-30 hit44"
                   >
                     <ChevronUp size={15} />
                   </button>
@@ -686,7 +686,7 @@ function OrientierungTab() {
                     }}
                     disabled={middleIdx === middleArr.length - 1}
                     aria-label={t.common.moveDown}
-                    className="p-1 text-[var(--color-text-muted)] disabled:opacity-30"
+                    className="p-1 text-[var(--color-text-muted)] disabled:opacity-30 hit44"
                   >
                     <ChevronDown size={15} />
                   </button>
@@ -724,7 +724,7 @@ function OrientierungTab() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setEditing({ id: step.id, text: step.text, hasInput: step.hasInput, source: step.source })}
-                    className="flex items-center gap-1 text-[12px] text-[var(--color-primary)]"
+                    className="flex items-center gap-1 text-[12px] text-[var(--color-primary)] hit44"
                   >
                     <Pencil size={12} /> {t.common.edit}
                   </button>
@@ -733,7 +733,7 @@ function OrientierungTab() {
                       removeCustomGroundingStep(step.id);
                       bump();
                     }}
-                    className="flex items-center gap-1 text-[12px] text-[var(--color-danger)]"
+                    className="flex items-center gap-1 text-[12px] text-[var(--color-danger)] hit44"
                   >
                     <Trash2 size={12} /> {t.common.delete}
                   </button>
@@ -745,7 +745,7 @@ function OrientierungTab() {
                     }}
                     disabled={i === 0}
                     aria-label={t.common.moveUp}
-                    className="p-1 text-[var(--color-text-muted)] disabled:opacity-30"
+                    className="p-1 text-[var(--color-text-muted)] disabled:opacity-30 hit44"
                   >
                     <ChevronUp size={15} />
                   </button>
@@ -756,7 +756,7 @@ function OrientierungTab() {
                     }}
                     disabled={i === arr.length - 1}
                     aria-label={t.common.moveDown}
-                    className="p-1 text-[var(--color-text-muted)] disabled:opacity-30"
+                    className="p-1 text-[var(--color-text-muted)] disabled:opacity-30 hit44"
                   >
                     <ChevronDown size={15} />
                   </button>

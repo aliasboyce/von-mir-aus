@@ -109,7 +109,7 @@ export function AppTourWatch({ onFinish }: { onFinish: () => void }) {
             </div>
             <div className="flex items-center justify-between gap-2 mb-0.5">
               <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">{L.step} {index + 1} {L.of} {total} · {L.watching}</p>
-              <button type="button" onClick={onFinish} aria-label={L.close} className="flex items-center gap-1 text-[12px] text-[var(--color-text-faint)]" data-testid="tour-watch-close"><X size={14} /> {L.close}</button>
+              <button type="button" onClick={onFinish} aria-label={L.close} className="flex items-center gap-1 text-[12px] text-[var(--color-text-faint)] hit44" data-testid="tour-watch-close"><X size={14} /> {L.close}</button>
             </div>
             <p className="text-[15px] font-medium text-[var(--color-text)]" data-testid="tour-watch-title">{tx!.title}</p>
             <div className="max-h-[26vh] overflow-y-auto mt-1">

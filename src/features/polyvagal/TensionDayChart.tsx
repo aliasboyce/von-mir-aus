@@ -1,5 +1,6 @@
 import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
 import { useChartZoom } from '../mediLog/useChartZoom';
 import type { TensionEntry } from '../../data/types';
 import { tensionColorFor } from './TensionScale';
@@ -23,6 +24,7 @@ const DAY_MINUTES = 24 * 60;
  */
 export function TensionDayChart({ entries, expanded = false, zoomable = false, onPointTap }: TensionDayChartProps) {
   const t = useT();
+  const { settings } = useSettings();
   const [zoomState, zoomHandlers] = useChartZoom();
 
   const width = expanded ? 640 : 320;
@@ -135,6 +137,11 @@ export function TensionDayChart({ entries, expanded = false, zoomable = false, o
             {t.tension.emptyChart}
           </text>
         )}
+        {points.length === 0 && (
+          <text x={width / 2} y={height / 2 + 16} textAnchor="middle" fontSize="10" fill="var(--color-text-faint)">
+            {settings.language === 'en' ? 'A check-in sets the first point.' : 'Ein Check-in setzt den ersten Punkt.'}
+          </text>
+        )}
       </svg>
 
       {zoomable && (
@@ -150,7 +157,7 @@ export function TensionDayChart({ entries, expanded = false, zoomable = false, o
           <button
             onClick={zoomHandlers.zoomIn}
             aria-label={t.mediLog.zoomIn}
-            className="w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
+            className="hit44 w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
           >
             <ZoomIn size={14} />
           </button>
@@ -158,7 +165,7 @@ export function TensionDayChart({ entries, expanded = false, zoomable = false, o
             <button
               onClick={zoomHandlers.reset}
               aria-label={t.mediLog.zoomReset}
-              className="w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
+              className="hit44 w-7 h-7 rounded-full flex items-center justify-center bg-[var(--color-surface-muted)] text-[var(--color-text-muted)]"
             >
               <RotateCcw size={13} />
             </button>

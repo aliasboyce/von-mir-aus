@@ -145,7 +145,7 @@ export function FollowUpBody({ mail }: { mail: MailItem }) {
                   type="button"
                   onClick={() => setWaitChoice(waitChoice === k ? null : k)}
                   aria-pressed={waitChoice === k}
-                  className="text-left rounded-[var(--radius-md)] px-3.5 py-2.5 text-[13.5px] border"
+                  className="text-left rounded-[var(--radius-md)] px-3.5 py-2.5 text-[13.5px] border hit44"
                   style={waitChoice === k ? { background: 'var(--color-primary-soft)', borderColor: 'var(--color-primary)', color: 'var(--color-text)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
                 >
                   {k === 'next'
@@ -183,7 +183,7 @@ export function FollowUpBody({ mail }: { mail: MailItem }) {
           <textarea className="input w-full" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={finishAll} className="rounded-full px-6 py-2 text-[14px] text-[var(--color-surface)]" style={{ background: 'var(--color-primary)' }}>
+          <button onClick={finishAll} className="rounded-full px-6 py-2 text-[14px] text-[var(--color-surface)] hit44" style={{ background: 'var(--color-primary)' }}>
             {t.calendar.followUpDoneCta}
           </button>
           {done && <span className="text-[12.5px] text-[var(--color-primary)]">{done}</span>}
@@ -197,7 +197,7 @@ export function FollowUpBody({ mail }: { mail: MailItem }) {
       <div className="mt-1.5">
         <textarea className="input w-full" rows={3} value={reflection} onChange={(e) => setReflection(e.target.value)} placeholder={t.calendar.followUp1Placeholder} />
         <div className="flex items-center gap-3 mt-2">
-          <button onClick={saveReflection} disabled={!reflection.trim()} className="rounded-full px-4 py-1.5 text-[13px] text-[var(--color-surface)] disabled:opacity-40" style={{ background: 'var(--color-primary)' }}>
+          <button onClick={saveReflection} disabled={!reflection.trim()} className="rounded-full px-4 py-1.5 text-[13px] text-[var(--color-surface)] disabled:opacity-40 hit44" style={{ background: 'var(--color-primary)' }}>
             {t.calendar.followUpSave}
           </button>
           {done && <span className="text-[12.5px] text-[var(--color-primary)]">{done}</span>}
@@ -217,10 +217,10 @@ export function FollowUpBody({ mail }: { mail: MailItem }) {
         <input type="time" className="input" style={{ width: 'auto' }} value={time} onChange={(e) => setTime(e.target.value)} />
       </div>
       <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-        <button onClick={createNext} disabled={!date} className="rounded-full px-4 py-1.5 text-[13px] text-[var(--color-surface)] disabled:opacity-40" style={{ background: 'var(--color-primary)' }}>
+        <button onClick={createNext} disabled={!date} className="rounded-full px-4 py-1.5 text-[13px] text-[var(--color-surface)] disabled:opacity-40 hit44" style={{ background: 'var(--color-primary)' }}>
           {t.calendar.followUp2Create}
         </button>
-        <button onClick={saveNote} disabled={!note.trim()} className="rounded-full px-4 py-1.5 text-[13px] border disabled:opacity-40" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
+        <button onClick={saveNote} disabled={!note.trim()} className="rounded-full px-4 py-1.5 text-[13px] border disabled:opacity-40 hit44" style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}>
           {t.calendar.followUp2NoteSave}
         </button>
       </div>

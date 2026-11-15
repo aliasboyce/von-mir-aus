@@ -140,7 +140,7 @@ export function ReviewInsightsBlock({ initialDays = 7 }: { initialDays?: 7 | 30 
             aria-selected={days === n}
             data-testid={`insights-tab-${n}`}
             onClick={() => setDays(n)}
-            className="px-3.5 py-1.5 rounded-full text-[13px]"
+            className="px-3.5 py-1.5 rounded-full text-[13px] hit44"
             style={{
               background: days === n ? 'var(--color-primary)' : 'var(--color-surface-muted)',
               color: days === n ? 'var(--color-surface)' : 'var(--color-text-muted)',

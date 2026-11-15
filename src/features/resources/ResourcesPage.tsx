@@ -477,7 +477,7 @@ export function ResourcesPage() {
                 <div className="flex flex-col gap-1.5 mb-2">
                   <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-faint)]">{t.resources.skillkettenTileTitle}</p>
                   {zoneKetten.map((k) => (
-                    <Link key={k.id} to={`/entdecken/ressourcen/skillketten/${k.id}`} className="flex items-center gap-2 px-3 py-2.5 rounded-[var(--radius-md)]" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+                    <Link key={k.id} to={`/entdecken/ressourcen/skillketten/${k.id}`} className="flex items-center gap-2 px-3 py-2.5 rounded-[var(--radius-md)] hit44" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
                       <GitBranch size={16} style={{ color: zoneBand.color }} />
                       <span className="text-[13.5px] text-[var(--color-text)] flex-1">{k.title}</span>
                       <span aria-hidden="true" style={{ color: zoneBand.color }}>→</span>
@@ -498,14 +498,14 @@ export function ResourcesPage() {
           {!typeScope && (
             <button
               onClick={() => setShowInfo(true)}
-              className="text-[12px] text-[var(--color-primary)] underline underline-offset-2 block mb-2"
+              className="text-[12px] text-[var(--color-primary)] underline underline-offset-2 block mb-2 hit44"
             >
               {t.bridges.whatsTheDifference}
             </button>
           )}
 
         {!typeScope && (
-          <button onClick={() => setShowDefinition((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block">
+          <button onClick={() => setShowDefinition((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-4 block hit44">
             {showDefinition ? t.resources.hideDefinitionCta : t.resources.showDefinitionCta}
           </button>
         )}
@@ -570,7 +570,7 @@ export function ResourcesPage() {
         {typeScope !== 'skills' && (
           <button
             onClick={() => setDiscoverOpen(true)}
-            className="flex items-center gap-2 text-[13px] text-[var(--color-primary)] mb-5"
+            className="flex items-center gap-2 text-[13px] text-[var(--color-primary)] mb-5 hit44"
           >
             <Compass size={15} />
             {typeScope === 'orte' ? (settings.language === 'en' ? 'Discover places' : 'Orte entdecken') : typeScope === 'aktivitaeten' ? (settings.language === 'en' ? 'Discover activities' : 'Aktivitäten entdecken') : typeScope === 'hilfsmittel' ? (settings.language === 'en' ? 'Discover aids' : 'Hilfsmittel entdecken') : t.resources.discoverCta}
@@ -837,7 +837,7 @@ export function ResourcesPage() {
                         }}
                         aria-pressed={resource.favorite}
                         aria-label={t.common.favorite}
-                        className="p-1.5 -ml-1.5 rounded-full text-[var(--color-accent-clay)] hover:bg-[var(--color-surface-muted)]"
+                        className="p-1.5 -ml-1.5 rounded-full text-[var(--color-accent-clay)] hover:bg-[var(--color-surface-muted)] hit44"
                       >
                         <Heart size={15} className={resource.favorite ? 'fill-current' : ''} />
                       </button>
@@ -859,7 +859,7 @@ export function ResourcesPage() {
                           shareResourceLink(resource);
                         }}
                         aria-label={t.resources.shareLink}
-                        className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+                        className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"
                       >
                         <Share2 size={14} />
                       </button>
@@ -871,7 +871,7 @@ export function ResourcesPage() {
                           openEdit(resource);
                         }}
                         aria-label={t.common.edit}
-                        className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)]"
+                        className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"
                       >
                         <Pencil size={14} />
                       </button>
@@ -881,7 +881,7 @@ export function ResourcesPage() {
                           remove(resource.id);
                         }}
                         aria-label={t.common.delete}
-                        className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)]"
+                        className="p-1.5 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hit44"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -960,14 +960,14 @@ export function ResourcesPage() {
                 <button
                   onClick={() => setImageSuggestions(suggestedImageOptions(editing.title, editing.category))}
                   type="button"
-                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
+                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44"
                 >
                   <RefreshCw size={13} /> {t.resources.moreSuggestions}
                 </button>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]"
+                  className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44"
                 >
                   <Upload size={14} /> {t.resources.uploadOwnImage}
                 </button>

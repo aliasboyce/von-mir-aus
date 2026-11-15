@@ -317,7 +317,7 @@ export function SafetyNetPage() {
           style={{ border: '1.5px dashed var(--color-border-strong)', background: 'var(--color-surface-muted)' }}
         >
           <p data-hint className="mb-2">{EX.hint}</p>
-          <button type="button" onClick={deleteAllExamples} className="text-[13px] text-[var(--color-danger)] underline underline-offset-2" data-testid="network-delete-examples">
+          <button type="button" onClick={deleteAllExamples} className="text-[13px] text-[var(--color-danger)] underline underline-offset-2 hit44" data-testid="network-delete-examples">
             {EX.deleteAll} ({exampleCount})
           </button>
         </div>
@@ -332,7 +332,7 @@ export function SafetyNetPage() {
       {connectingFromId && (
         <div className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] bg-[var(--color-primary-soft)] px-4 py-3 mb-4">
           <p className="text-[13px] text-[var(--color-text)]">{t.network.connectingHint}</p>
-          <button onClick={() => setConnectingFromId(null)} className="text-[13px] text-[var(--color-primary)] flex-shrink-0">
+          <button onClick={() => setConnectingFromId(null)} className="text-[13px] text-[var(--color-primary)] flex-shrink-0 hit44">
             {t.common.cancel}
           </button>
         </div>
@@ -360,7 +360,7 @@ export function SafetyNetPage() {
             <button
               onClick={() => setFullscreen(true)}
               aria-label={t.network.expand}
-              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-[var(--color-surface)]/90 backdrop-blur shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]"
+              className="absolute top-3 right-3 w-11 h-11 rounded-full bg-[var(--color-surface)]/90 backdrop-blur shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)]"
             >
               <Maximize2 size={16} />
             </button>

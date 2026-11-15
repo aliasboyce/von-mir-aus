@@ -54,7 +54,7 @@ export function NetworkBackgroundPicker({ open, onClose, onChange }: NetworkBack
       >
         <div className="flex items-center justify-between mb-4">
           <p className="text-[15px] font-medium text-[var(--color-text)]">{t.network.backgroundPickerTitle}</p>
-          <button onClick={onClose} aria-label={t.common.close} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)]">
+          <button onClick={onClose} aria-label={t.common.close} className="hit44 w-8 h-8 rounded-full flex items-center justify-center hover:bg-[var(--color-surface-muted)]">
             <X size={16} />
           </button>
         </div>
@@ -101,7 +101,7 @@ export function NetworkBackgroundPicker({ open, onClose, onChange }: NetworkBack
         <p className="text-[12px] text-[var(--color-text-faint)] mb-2">{t.network.backgroundImageLabel}</p>
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-full text-[13px]"
+          className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-full text-[13px] hit44"
           style={{ border: '1.5px solid var(--color-border)', color: 'var(--color-text-muted)' }}
         >
           <Upload size={14} />

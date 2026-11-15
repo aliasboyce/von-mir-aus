@@ -15,7 +15,7 @@ export function SearchButton({ className }: { className?: string }) {
       data-testid="search-btn"
       className={
         className ??
-        'w-9 h-9 rounded-full flex items-center justify-center text-[var(--color-text-faint)] hover:bg-[var(--color-surface-muted)] transition-colors'
+        'w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-faint)] hover:bg-[var(--color-surface-muted)] transition-colors'
       }
     >
       <Search size={19} />

@@ -28,7 +28,7 @@ function PickChip({ selected, onClick, children }: { selected: boolean; onClick:
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className="px-3 py-2 rounded-full text-[13px] leading-tight"
+      className="px-3 py-2 rounded-full text-[13px] leading-tight hit44"
       style={{
         background: selected ? 'var(--color-primary)' : 'var(--color-surface-muted)',
         color: selected ? 'var(--color-surface)' : 'var(--color-text)',
@@ -255,7 +255,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
               <p className="text-[12px] text-[var(--color-text-faint)] mb-1.5">{b.stepIdeas}</p>
               <div className="flex flex-wrap gap-1.5">
                 {ideas.map((idea) => (
-                  <button key={idea} type="button" onClick={() => applyIdea(idea)} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12.5px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] text-left">
+                  <button key={idea} type="button" onClick={() => applyIdea(idea)} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12.5px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] text-left hit44">
                     <Plus size={11} className="flex-shrink-0" /> {idea}
                   </button>
                 ))}
@@ -269,7 +269,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
                   <span className="w-7 h-7 rounded-full bg-[var(--color-surface-muted)] flex items-center justify-center text-[13px] text-[var(--color-text-muted)] flex-shrink-0">{i + 1}</span>
                   <input className="input" placeholder={b.levelTitlePlaceholder} value={level.title} onChange={(e) => updateStep(i, { title: e.target.value })} />
                   {draft.levels.length > 1 && (
-                    <button type="button" onClick={() => removeStep(i)} aria-label={t.common.delete} className="text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 p-1 text-[18px] leading-none">
+                    <button type="button" onClick={() => removeStep(i)} aria-label={t.common.delete} className="text-[var(--color-text-faint)] hover:text-[var(--color-danger)] flex-shrink-0 p-1 text-[18px] leading-none hit44">
                       ×
                     </button>
                   )}
@@ -340,7 +340,7 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
                   }}
                 />
               ) : (
-                <button type="button" onClick={() => setAddingObstacle(true)} className="flex items-center gap-1 px-3 py-2 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]">
+                <button type="button" onClick={() => setAddingObstacle(true)} className="flex items-center gap-1 px-3 py-2 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44">
                   <Plus size={12} /> {t.zugang.ownSuggestionCta}
                 </button>
               )}
@@ -359,10 +359,10 @@ export function BridgeFormModal({ open, bridge, onClose, onSave, title }: Bridge
           <div className="flex flex-col gap-1.5">
             <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{b.imageLabel}</span>
             <ImageSuggestionCarousel images={imageSuggestions} selected={draft.image} onSelect={(url) => setDraft({ ...draft, image: url })} ariaLabel={t.resources.pickThisImage} />
-            <button type="button" onClick={() => setImageSuggestions(suggestedImageOptions(draft.title, draft.category))} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)]">
+            <button type="button" onClick={() => setImageSuggestions(suggestedImageOptions(draft.title, draft.category))} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] hit44">
               <RefreshCw size={13} /> {t.resources.moreSuggestions}
             </button>
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-1">
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mt-1 hit44">
               <Upload size={14} /> {t.resources.uploadOwnImage}
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />

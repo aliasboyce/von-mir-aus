@@ -26,7 +26,7 @@ export function BlockTasks({ block, project, L, onChange }: BlockProps<TasksBloc
             onClick={() => patch(t.id, { status: t.status === 'done' ? 'open' : 'done' })}
             aria-pressed={t.status === 'done'}
             aria-label={L('Abhaken', 'Tick off')}
-            className="w-7 h-7 shrink-0 rounded-md border-2 flex items-center justify-center text-[15px]"
+            className="hit44 w-7 h-7 shrink-0 rounded-md border-2 flex items-center justify-center text-[15px]"
             style={{ borderColor: 'var(--color-primary)', background: t.status === 'done' ? 'var(--color-primary)' : 'transparent', color: '#fff' }}
             data-testid={`task-check-${t.id}`}
           >
@@ -39,8 +39,8 @@ export function BlockTasks({ block, project, L, onChange }: BlockProps<TasksBloc
             onChange={(e) => patch(t.id, { text: e.target.value })}
             aria-label={L('Aufgabe', 'Task')}
           />
-          <button type="button" onClick={() => patch(t.id, { status: NEXT[t.status] })} className="text-[11.5px] px-2 py-1 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text-muted)] shrink-0" data-testid={`task-status-${t.id}`}>{statusText(t.status, L)}</button>
-          <button type="button" onClick={() => setOpenId(open ? null : t.id)} aria-expanded={open} aria-label={L('Details', 'Details')} className="w-8 h-8 shrink-0 flex items-center justify-center text-[var(--color-text-muted)]" data-testid={`task-more-${t.id}`}>
+          <button type="button" onClick={() => patch(t.id, { status: NEXT[t.status] })} className="text-[11.5px] px-2 py-1 rounded-full border border-[var(--color-border-strong)] text-[var(--color-text-muted)] shrink-0 hit44" data-testid={`task-status-${t.id}`}>{statusText(t.status, L)}</button>
+          <button type="button" onClick={() => setOpenId(open ? null : t.id)} aria-expanded={open} aria-label={L('Details', 'Details')} className="hit44 w-8 h-8 shrink-0 flex items-center justify-center text-[var(--color-text-muted)]" data-testid={`task-more-${t.id}`}>
             {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </button>
         </div>
@@ -100,7 +100,7 @@ export function BlockChecklist({ block, project, L, onChange }: BlockProps<Check
       <ul className="flex flex-col gap-1.5">
         {block.items.map((t) => (
           <li key={t.id} className="flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] px-2 py-1" data-testid={`check-${t.id}`}>
-            <button type="button" onClick={() => patch(t.id, { done: !t.done })} aria-pressed={t.done} aria-label={L('Abhaken', 'Tick off')} className="w-7 h-7 shrink-0 rounded-md border-2 flex items-center justify-center text-[15px]" style={{ borderColor: 'var(--color-primary)', background: t.done ? 'var(--color-primary)' : 'transparent', color: '#fff' }} data-testid={`check-box-${t.id}`}>{t.done ? '✓' : ''}</button>
+            <button type="button" onClick={() => patch(t.id, { done: !t.done })} aria-pressed={t.done} aria-label={L('Abhaken', 'Tick off')} className="hit44 w-7 h-7 shrink-0 rounded-md border-2 flex items-center justify-center text-[15px]" style={{ borderColor: 'var(--color-primary)', background: t.done ? 'var(--color-primary)' : 'transparent', color: '#fff' }} data-testid={`check-box-${t.id}`}>{t.done ? '✓' : ''}</button>
             <input className="flex-1 min-w-0 bg-transparent outline-none text-[14.5px] py-1.5" style={{ textDecoration: t.done ? 'line-through' : 'none', opacity: t.done ? 0.6 : 1 }} value={t.text} onChange={(e) => patch(t.id, { text: e.target.value })} aria-label={L('Eintrag', 'Item')} />
             <PersonSelect project={project} value={t.who} onChange={(v) => patch(t.id, { who: v })} L={L} label={L('Wer bringt’s?', 'Who brings it?')} />
             <DelBtn onClick={() => onChange({ ...block, items: block.items.filter((x) => x.id !== t.id) })} L={L} />

@@ -14,14 +14,14 @@ export function EmojiPicker({ value, onChange, label }: { value: string; onChang
       {label && <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{label}</p>}
       <div className="flex gap-1 mb-2 overflow-x-auto pb-1" role="tablist">
         {EMOJI_GROUPS.map((x, i) => (
-          <button key={x.id} type="button" role="tab" aria-selected={i === gi} onClick={() => setGi(i)} className="flex-shrink-0 px-2.5 py-1 rounded-full text-[12px] whitespace-nowrap" style={{ background: i === gi ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', color: 'var(--color-text)', outline: i === gi ? '1.5px solid var(--color-primary)' : 'none' }} data-testid={`emoji-tab-${x.id}`}>
+          <button key={x.id} type="button" role="tab" aria-selected={i === gi} onClick={() => setGi(i)} className="flex-shrink-0 px-2.5 py-1 rounded-full text-[12px] whitespace-nowrap hit44" style={{ background: i === gi ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', color: 'var(--color-text)', outline: i === gi ? '1.5px solid var(--color-primary)' : 'none' }} data-testid={`emoji-tab-${x.id}`}>
             {x.icon} {en ? x.labelEn : x.label}
           </button>
         ))}
       </div>
       <div className="flex flex-wrap gap-1.5">
         {g.items.map((e, i) => (
-          <button key={e + i} type="button" onClick={() => onChange(e)} className="w-9 h-9 rounded-full text-[18px] flex items-center justify-center" style={{ background: value === e ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', outline: value === e ? '2px solid var(--color-primary)' : 'none' }} aria-label={e}>
+          <button key={e + i} type="button" onClick={() => onChange(e)} className="w-11 h-11 rounded-full text-[18px] flex items-center justify-center" style={{ background: value === e ? 'var(--color-primary-soft)' : 'var(--color-surface-muted)', outline: value === e ? '2px solid var(--color-primary)' : 'none' }} aria-label={e}>
             {e}
           </button>
         ))}
@@ -40,7 +40,7 @@ export function ColorPicker({ value, onChange, label, colors = PALETTE_COLORS }:
       {label && <p className="text-[12px] text-[var(--color-text-faint)] mb-1">{label}</p>}
       <div className="flex flex-wrap gap-2 items-center">
         {colors.map((c) => (
-          <button key={c} type="button" onClick={() => onChange(c)} className="w-7 h-7 rounded-full" style={{ background: c, outline: value === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={c} />
+          <button key={c} type="button" onClick={() => onChange(c)} className="hit44 w-7 h-7 rounded-full" style={{ background: c, outline: value === c ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={c} />
         ))}
         <label className="relative w-7 h-7 rounded-full flex items-center justify-center text-[13px] cursor-pointer overflow-hidden" style={{ background: custom ? value : 'conic-gradient(#e8a83d, #6fbf73, #4a8f9e, #9a7bc4, #d9778a, #e8a83d)', outline: custom ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} title={en ? 'Own colour' : 'Eigene Farbe'}>
           <input type="color" value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#6fbf73'} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" aria-label={en ? 'Own colour' : 'Eigene Farbe'} data-testid="color-custom" />

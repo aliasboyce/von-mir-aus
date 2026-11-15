@@ -145,7 +145,7 @@ export function ProjectsPage() {
               {nd && <span className="block text-[12px] text-[var(--color-primary)] truncate">{formatDate(nd.date, lang, false)} · {nd.label}</span>}
             </span>
           </button>
-          <button type="button" onClick={() => setActionFor(p.id)} aria-label={L('Mehr', 'More')} className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-muted)] shrink-0" data-testid={`project-actions-${p.id}`}>
+          <button type="button" onClick={() => setActionFor(p.id)} aria-label={L('Mehr', 'More')} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] shrink-0" data-testid={`project-actions-${p.id}`}>
             <Ellipsis size={18} />
           </button>
         </div>
@@ -218,7 +218,7 @@ export function ProjectsPage() {
                         <span className="block text-[12px] text-[var(--color-text-muted)]">🎉 {L('Geschafft', 'Done')}{p.closedAt ? ` · ${new Date(p.closedAt).toLocaleDateString(lang === 'en' ? 'en-US' : 'de-DE')}` : ''} · {L('Rückblick ansehen', 'see looking back')}</span>
                       </span>
                     </button>
-                    <button type="button" onClick={() => setActionFor(p.id)} aria-label={L('Mehr', 'More')} className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--color-text-muted)] shrink-0" data-testid={`project-actions-${p.id}`}><Ellipsis size={18} /></button>
+                    <button type="button" onClick={() => setActionFor(p.id)} aria-label={L('Mehr', 'More')} className="w-11 h-11 rounded-full flex items-center justify-center text-[var(--color-text-muted)] shrink-0" data-testid={`project-actions-${p.id}`}><Ellipsis size={18} /></button>
                   </li>
                 ))}
               </ul>
@@ -237,7 +237,7 @@ export function ProjectsPage() {
               {archived.map((p) => (
                 <div key={p.id} className="flex items-center gap-3 rounded-[var(--radius-lg)] bg-[var(--color-surface-muted)] pr-2 overflow-hidden">
                   <button type="button" onClick={() => navigate(`/entdecken/projekte/${p.id}`)} className="flex-1 min-w-0 text-left px-4 py-3 text-[14.5px] truncate">{emojiOf(p)} {p.title}</button>
-                  <button type="button" onClick={() => restore(p)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] border border-[var(--color-border-strong)] shrink-0" data-testid={`project-restore-${p.id}`}>
+                  <button type="button" onClick={() => restore(p)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] border border-[var(--color-border-strong)] shrink-0 hit44" data-testid={`project-restore-${p.id}`}>
                     <RotateCcw size={13} /> {L('Zurückholen', 'Restore')}
                   </button>
                   <button type="button" onClick={() => remove(p)} className="text-[12.5px] px-2 py-1 text-[var(--color-danger)] shrink-0">{L('Löschen', 'Delete')}</button>
@@ -285,7 +285,7 @@ export function ProjectsPage() {
           <div className="flex flex-col gap-3" data-testid="project-move-sheet">
             <button type="button" onClick={() => moveTo(mv)} className="text-left rounded-[var(--radius-md)] px-4 py-3 bg-[var(--color-surface-muted)] text-[14.5px]" data-testid="project-move-top">{L('Lose in die Liste (kein Ordner)', 'Loose in the list (no folder)')}</button>
             {folderNames.map((f) => (
-              <button key={f} type="button" onClick={() => moveTo(mv, f)} className="text-left rounded-[var(--radius-md)] px-4 py-2.5 border border-[var(--color-border-strong)] text-[14.5px] flex items-center gap-2" data-testid={`project-move-folder-${f}`}>
+              <button key={f} type="button" onClick={() => moveTo(mv, f)} className="text-left rounded-[var(--radius-md)] px-4 py-2.5 border border-[var(--color-border-strong)] text-[14.5px] flex items-center gap-2 hit44" data-testid={`project-move-folder-${f}`}>
                 <Folder size={15} className="text-[var(--color-primary)]" /> {f}
               </button>
             ))}

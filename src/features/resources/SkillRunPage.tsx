@@ -244,7 +244,7 @@ export function SkillRunPage() {
                     <button
                       key={b.id}
                       onClick={() => setBefore(ZONE_REPRESENTATIVE_VALUE[b.id])}
-                      className="rounded-full px-3 py-1 text-[12px] border"
+                      className="rounded-full px-3 py-1 text-[12px] border hit44"
                       style={{ borderColor: b.color, color: b.color }}
                     >
                       {t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones].label}
@@ -289,7 +289,7 @@ export function SkillRunPage() {
                     <button
                       key={b.id}
                       onClick={() => setBefore(ZONE_REPRESENTATIVE_VALUE[b.id])}
-                      className="rounded-full px-3 py-1 text-[12px] border"
+                      className="rounded-full px-3 py-1 text-[12px] border hit44"
                       style={beforeZoneId === b.id ? { background: b.color, borderColor: b.color, color: '#fff' } : { borderColor: b.color, color: b.color }}
                     >
                       {t.polyvagal.arousalZones[b.labelKey as keyof typeof t.polyvagal.arousalZones].label}
@@ -313,7 +313,7 @@ export function SkillRunPage() {
                   <button
                     key={key}
                     onClick={() => setHelped(helped === key ? undefined : key)}
-                    className="rounded-full px-4 py-2 text-[13px] border"
+                    className="rounded-full px-4 py-2 text-[13px] border hit44"
                     style={helped === key ? { background: 'var(--color-primary)', borderColor: 'var(--color-primary)', color: 'var(--color-surface)' } : { borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
                   >
                     {label}

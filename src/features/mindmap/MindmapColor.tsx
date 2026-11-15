@@ -101,7 +101,7 @@ export function ColorField({
                   </span>
                 ))}
                 {cur && !own.includes(cur) && (
-                  <button type="button" onClick={() => toggleOwnColor(cur)} className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]" data-testid={`${testId}-own-add`}>
+                  <button type="button" onClick={() => toggleOwnColor(cur)} className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44" data-testid={`${testId}-own-add`}>
                     <Plus size={12} /> <span className="w-3.5 h-3.5 rounded-full inline-block" style={{ background: cur, border: '1px solid rgba(0,0,0,0.2)' }} /> {L('merken', 'save')}
                   </button>
                 )}
@@ -123,7 +123,7 @@ export function ColorField({
       )}
       <div className={row} data-testid={`${testId}-row`}>
         {onNone && (
-          <button type="button" onClick={onNone} className="w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[13px]" style={{ background: 'var(--color-surface)', border: '1.5px dashed var(--color-text-faint)', color: 'var(--color-text-muted)', outline: none ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={noneLabel ?? L('Ohne', 'None')} title={noneLabel ?? L('Ohne', 'None')}>
+          <button type="button" onClick={onNone} className="hit44 w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[13px]" style={{ background: 'var(--color-surface)', border: '1.5px dashed var(--color-text-faint)', color: 'var(--color-text-muted)', outline: none ? '3px solid var(--color-text)' : 'none', outlineOffset: 2 }} aria-label={noneLabel ?? L('Ohne', 'None')} title={noneLabel ?? L('Ohne', 'None')}>
             ⌀
           </button>
         )}
@@ -134,7 +134,7 @@ export function ColorField({
           <input type="color" value={cur ?? '#6aa08a'} onChange={(e) => pick(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer" aria-label={L('Eigene Farbe', 'Own colour')} data-testid={`${testId}-custom`} />
         </label>
         {Eye && (
-          <button type="button" onClick={() => void pipette()} className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center border border-[var(--color-border-strong)] text-[var(--color-text-muted)]" title={L('Pipette: Farbe vom Bildschirm', 'Pipette: pick a colour from the screen')} aria-label={L('Pipette', 'Pipette')} data-testid={`${testId}-pipette`}>
+          <button type="button" onClick={() => void pipette()} className="shrink-0 hit44 w-7 h-7 rounded-full flex items-center justify-center border border-[var(--color-border-strong)] text-[var(--color-text-muted)]" title={L('Pipette: Farbe vom Bildschirm', 'Pipette: pick a colour from the screen')} aria-label={L('Pipette', 'Pipette')} data-testid={`${testId}-pipette`}>
             <Pipette size={14} />
           </button>
         )}
@@ -205,7 +205,7 @@ export function PhotoColorModal({ lang, onClose, onPick }: { lang: 'de' | 'en'; 
             <input type="file" accept="image/*" className="hidden" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} data-testid="mm-photo-color-file" />
           </label>
           {mapPhotos.slice(0, 6).map((u, i) => (
-            <button key={i} type="button" onClick={() => setSrc(u)} className="w-10 h-10 rounded-[var(--radius-md)] bg-cover bg-center border border-[var(--color-border)]" style={{ backgroundImage: `url(${u})`, outline: src === u ? '2px solid var(--color-primary)' : 'none' }} aria-label={L('Foto von der Mindmap', 'Photo from the map')} />
+            <button key={i} type="button" onClick={() => setSrc(u)} className="w-11 h-11 rounded-[var(--radius-md)] bg-cover bg-center border border-[var(--color-border)]" style={{ backgroundImage: `url(${u})`, outline: src === u ? '2px solid var(--color-primary)' : 'none' }} aria-label={L('Foto von der Mindmap', 'Photo from the map')} />
           ))}
         </div>
         {src ? (
@@ -217,7 +217,7 @@ export function PhotoColorModal({ lang, onClose, onPick }: { lang: 'de' | 'en'; 
         <div className="flex items-center gap-3">
           <span className="w-10 h-10 rounded-full" style={{ background: col ?? 'transparent', border: '1.5px solid rgba(0,0,0,0.2)' }} data-testid="mm-photo-color-preview" />
           <span className="text-[13px] text-[var(--color-text-muted)]">{col ?? L('noch keine Farbe', 'no colour yet')}</span>
-          <button type="button" disabled={!col} onClick={() => col && onPick(col)} className="ml-auto px-4 py-2 rounded-full text-[14px] text-white disabled:opacity-40" style={activeBg} data-testid="mm-photo-color-take">{L('Diese Farbe nehmen', 'Use this colour')}</button>
+          <button type="button" disabled={!col} onClick={() => col && onPick(col)} className="ml-auto px-4 py-2 rounded-full text-[14px] text-white disabled:opacity-40 hit44" style={activeBg} data-testid="mm-photo-color-take">{L('Diese Farbe nehmen', 'Use this colour')}</button>
         </div>
       </div>
     </Modal>
@@ -299,16 +299,16 @@ export function PaletteModal({ lang, onClose, startColor }: { lang: 'de' | 'en';
           </div>
         </div>
         {mapColors.length > 0 && (
-          <button type="button" onClick={() => setColors((cs) => [...new Set([...cs, ...mapColors])].slice(0, 24))} className="self-start text-[13px] underline underline-offset-2 text-[var(--color-primary)]" data-testid="mm-palette-from-map">
+          <button type="button" onClick={() => setColors((cs) => [...new Set([...cs, ...mapColors])].slice(0, 24))} className="self-start text-[13px] underline underline-offset-2 text-[var(--color-primary)] hit44" data-testid="mm-palette-from-map">
             {L('Farben dieser Mindmap übernehmen', 'Take the colours of this mind map')}
           </button>
         )}
         <div className="flex gap-2 flex-wrap items-center">
-          <button type="button" onClick={save} className="px-5 py-2.5 rounded-full text-[14px] text-white" style={activeBg} data-testid="mm-palette-save">{editId ? L('Änderungen speichern', 'Save changes') : L('Palette speichern', 'Save palette')}</button>
-          <button type="button" onClick={() => startNew()} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" data-testid="mm-palette-new">{L('Neu', 'New')}</button>
-          <button type="button" onClick={() => startNew(active)} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)]" data-testid="mm-palette-copy">{L('Aktuelle kopieren', 'Copy current')}</button>
+          <button type="button" onClick={save} className="px-5 py-2.5 rounded-full text-[14px] text-white hit44" style={activeBg} data-testid="mm-palette-save">{editId ? L('Änderungen speichern', 'Save changes') : L('Palette speichern', 'Save palette')}</button>
+          <button type="button" onClick={() => startNew()} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" data-testid="mm-palette-new">{L('Neu', 'New')}</button>
+          <button type="button" onClick={() => startNew(active)} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-text)] hit44" data-testid="mm-palette-copy">{L('Aktuelle kopieren', 'Copy current')}</button>
           {editId && (
-            <button type="button" onClick={() => { deletePalette(editId); startNew(); setMsg(L('Palette gelöscht.', 'Palette deleted.')); }} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-danger)] inline-flex items-center gap-1" data-testid="mm-palette-delete"><Trash2 size={14} /> {L('Löschen', 'Delete')}</button>
+            <button type="button" onClick={() => { deletePalette(editId); startNew(); setMsg(L('Palette gelöscht.', 'Palette deleted.')); }} className="px-4 py-2.5 rounded-full text-[14px] border border-[var(--color-border-strong)] text-[var(--color-danger)] inline-flex items-center gap-1 hit44" data-testid="mm-palette-delete"><Trash2 size={14} /> {L('Löschen', 'Delete')}</button>
           )}
         </div>
         {msg && <p className="text-[13px]" style={{ color: 'var(--color-primary)' }} role="status" data-testid="mm-palette-msg">{msg}</p>}

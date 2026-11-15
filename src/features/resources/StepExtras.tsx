@@ -89,7 +89,7 @@ export function StepExtrasEditor({
 
   return (
     <div>
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)]">
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex items-center gap-1.5 text-[12.5px] text-[var(--color-primary)] hit44">
         <Plus size={14} /> {withSkills ? f.stepAddBridge : f.stepAdd}
       </button>
       {open && (
@@ -104,7 +104,7 @@ export function StepExtrasEditor({
                     key={sg.id}
                     type="button"
                     onClick={() => set(keyForKind(sg.kind), [...(v[keyForKind(sg.kind)] ?? []), sg.id])}
-                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12.5px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]"
+                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12.5px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44"
                   >
                     <Plus size={11} /> {sg.title}
                   </button>

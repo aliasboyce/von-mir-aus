@@ -134,7 +134,7 @@ export function ZugangBranch({
       <div className="flex rounded-full p-1 mb-4" style={{ background: 'var(--color-surface-muted)' }} role="group" aria-label={b.scopeLabel} data-testid="regulate-scope">
         {([['zone', zoneLabel ? b.scopeZone.replace('{zone}', zoneLabel) : b.scopeFit], ['all', b.scopeAll]] as const).map(([k, label]) => (
           <button key={k} type="button" onClick={() => setScope(k)} aria-pressed={scope === k} data-testid={`regulate-scope-${k}`}
-            className="flex-1 rounded-full px-3 py-2 text-[13px] leading-tight"
+            className="flex-1 rounded-full px-3 py-2 text-[13px] leading-tight hit44"
             style={{ background: scope === k ? 'var(--color-surface)' : 'transparent', color: 'var(--color-text)', boxShadow: scope === k ? 'var(--shadow-sm)' : 'none' }}>
             {label}
           </button>
@@ -154,7 +154,7 @@ export function ZugangBranch({
       {empty ? (
         <div className="rounded-[var(--radius-lg)] p-3.5 mb-4" style={{ background: 'var(--color-surface-muted)' }}>
           {isFitFilterActive(rows.filter) ? <FitEmpty hiddenUnmarked={hidden} /> : <p className="text-[13.5px] text-[var(--color-text)] mb-1">{t.fit.noResults}</p>}
-          <Link to="/sicherheit" className="inline-block mt-2 text-[12.5px] text-[var(--color-primary)] underline underline-offset-2">{b.noneSafety}</Link>
+          <Link to="/sicherheit" className="inline-block mt-2 text-[12.5px] text-[var(--color-primary)] underline underline-offset-2 hit44">{b.noneSafety}</Link>
         </div>
       ) : (
         groups

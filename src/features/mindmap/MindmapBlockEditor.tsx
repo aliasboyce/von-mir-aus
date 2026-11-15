@@ -31,7 +31,7 @@ export function MindmapBlockEditor({ node, onPatch, onClose, lang }: { node: MMN
           {node.shape === 'todo' && <TodoEdit node={node} onPatch={onPatch} L={L} />}
           {node.shape === 'table' && <TableEdit node={node} onPatch={onPatch} L={L} />}
           {node.shape === 'proscons' && <ProsConsEdit node={node} onPatch={onPatch} L={L} />}
-          <button type="button" onClick={onClose} className="self-end px-5 py-2.5 rounded-full text-[14px] text-white" style={{ background: 'var(--color-primary)' }} data-testid="mm-block-done">{L('Fertig', 'Done')}</button>
+          <button type="button" onClick={onClose} className="self-end px-5 py-2.5 rounded-full text-[14px] text-white hit44" style={{ background: 'var(--color-primary)' }} data-testid="mm-block-done">{L('Fertig', 'Done')}</button>
         </div>
       )}
     </Modal>
@@ -65,7 +65,7 @@ function TodoEdit({ node, onPatch, L }: { node: MMNode; onPatch: (p: Partial<MMN
           <button type="button" className={miniBtn} onClick={() => set(items.filter((x) => x.id !== it.id))} aria-label={L('Entfernen', 'Remove')} data-testid={`mm-todo-del-${i}`}><Trash2 size={14} /></button>
         </div>
       ))}
-      <button type="button" onClick={() => set([...items, { id: createId('ti'), t: '' }])} className="self-start inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid="mm-todo-add"><Plus size={15} /> {L('Aufgabe hinzufügen', 'Add a task')}</button>
+      <button type="button" onClick={() => set([...items, { id: createId('ti'), t: '' }])} className="self-start inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)] hit44" data-testid="mm-todo-add"><Plus size={15} /> {L('Aufgabe hinzufügen', 'Add a task')}</button>
       <p className="text-[11.5px] text-[var(--color-text-faint)]">{L('Auf der Mindmap tippst du einfach auf den Kreis, um etwas abzuhaken.', 'On the map just tap the circle to tick something off.')}</p>
     </div>
   );
@@ -111,7 +111,7 @@ function TableEdit({ node, onPatch, L }: { node: MMNode; onPatch: (p: Partial<MM
         </div>
       </div>
       <div className="flex gap-3 flex-wrap">
-        <button type="button" onClick={() => set([...full, Array.from({ length: cols }, () => '')])} className="inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid="mm-row-add"><Plus size={15} /> {L('Zeile am Ende', 'Row at end')}</button>
+        <button type="button" onClick={() => set([...full, Array.from({ length: cols }, () => '')])} className="inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)] hit44" data-testid="mm-row-add"><Plus size={15} /> {L('Zeile am Ende', 'Row at end')}</button>
         <button type="button" onClick={() => cols < 8 && set(full.map((row) => [...row, '']))} className="inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid="mm-col-add"><Plus size={15} /> {L('Spalte am Ende', 'Column at end')}</button>
       </div>
     </div>
@@ -131,7 +131,7 @@ function ProsConsEdit({ node, onPatch, L }: { node: MMNode; onPatch: (p: Partial
             <button type="button" className={miniBtn} onClick={() => set(list.filter((_, j) => j !== i))} aria-label={L('Entfernen', 'Remove')}><Trash2 size={14} /></button>
           </div>
         ))}
-        <button type="button" onClick={() => set([...list, ''])} className="self-start inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid={`mm-${key}-add`}><Plus size={15} /> {L('Hinzufügen', 'Add')}</button>
+        <button type="button" onClick={() => set([...list, ''])} className="self-start inline-flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)] hit44" data-testid={`mm-${key}-add`}><Plus size={15} /> {L('Hinzufügen', 'Add')}</button>
       </div>
     );
   };

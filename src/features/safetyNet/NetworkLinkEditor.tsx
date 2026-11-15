@@ -163,7 +163,7 @@ export function NetworkLinkEditor({
                     <span className="w-2.5 h-2.5 rounded-full" style={{ background: c.color, outline: active ? '2px solid #fff' : 'none' }} />
                     {c.name}
                   </button>
-                  <button type="button" onClick={() => setEditing(editing === c.id ? null : c.id)} aria-label={`${L.edit}: ${c.name}`} className="ml-1 w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-text-faint)]">
+                  <button type="button" onClick={() => setEditing(editing === c.id ? null : c.id)} aria-label={`${L.edit}: ${c.name}`} className="ml-1 hit44 w-7 h-7 rounded-full flex items-center justify-center text-[var(--color-text-faint)]">
                     <Pencil size={13} />
                   </button>
                 </span>
@@ -194,7 +194,7 @@ export function NetworkLinkEditor({
                 />
                 <button
                   type="button"
-                  className="self-start flex items-center gap-1.5 text-[13px] text-[var(--color-danger)]"
+                  className="self-start flex items-center gap-1.5 text-[13px] text-[var(--color-danger)] hit44"
                   onClick={() => {
                     if (!window.confirm(L.removeKindConfirm)) return;
                     linkCategoriesRepo.remove(c.id);
@@ -220,7 +220,7 @@ export function NetworkLinkEditor({
               <p className="text-[11.5px] text-[var(--color-text-faint)] mb-1">{L.suggestions}</p>
               <div className="flex flex-wrap gap-2">
                 {suggestions.map((s) => (
-                  <button key={s} type="button" onClick={() => createKind(s)} className="px-3 py-1.5 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)]" data-testid={`link-suggest-${s}`}>
+                  <button key={s} type="button" onClick={() => createKind(s)} className="px-3 py-1.5 rounded-full text-[13px] border border-dashed border-[var(--color-border-strong)] text-[var(--color-text-muted)] hit44" data-testid={`link-suggest-${s}`}>
                     + {s}
                   </button>
                 ))}
@@ -229,7 +229,7 @@ export function NetworkLinkEditor({
           )}
 
           {!adding ? (
-            <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)]" data-testid="link-kind-new">
+            <button type="button" onClick={() => setAdding(true)} className="flex items-center gap-1.5 text-[13.5px] text-[var(--color-primary)] hit44" data-testid="link-kind-new">
               <Plus size={15} /> {L.newKind}
             </button>
           ) : (
@@ -242,7 +242,7 @@ export function NetworkLinkEditor({
                 className="w-full rounded-[var(--radius-md)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-[14px] outline-none"
               />
               <ColorPicker label={L.ownColor} value={newColor || nextColor()} onChange={setNewColor} />
-              <button type="button" onClick={() => createKind(newName, newColor || undefined)} className="self-start flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] text-white" style={{ background: 'var(--color-primary)' }} data-testid="link-kind-create">
+              <button type="button" onClick={() => createKind(newName, newColor || undefined)} className="self-start flex items-center gap-1.5 px-4 py-2 rounded-full text-[13.5px] text-white hit44" style={{ background: 'var(--color-primary)' }} data-testid="link-kind-create">
                 <Check size={14} /> {L.create}
               </button>
             </div>
@@ -265,7 +265,7 @@ export function NetworkLinkEditor({
           {kind === 'free' ? (
             <button
               type="button"
-              className="self-start flex items-center gap-1.5 text-[13px] text-[var(--color-danger)]"
+              className="self-start flex items-center gap-1.5 text-[13px] text-[var(--color-danger)] hit44"
               onClick={() => {
                 if (!window.confirm(L.removeLineConfirm)) return;
                 onRemove(a, b);
@@ -279,7 +279,7 @@ export function NetworkLinkEditor({
           ) : (
             <button
               type="button"
-              className="self-start flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)]"
+              className="self-start flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)] hit44"
               onClick={() => {
                 onDetach(childId);
                 linkMetaStore.remove(a, b);

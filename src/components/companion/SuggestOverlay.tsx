@@ -89,7 +89,7 @@ export function SuggestOverlay({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-[240] bg-[var(--color-bg)] flex flex-col items-center px-6 py-14 overflow-y-auto animate-in no-print" role="dialog" aria-modal="true" aria-label={en ? INFO_SUGGEST.title.en : INFO_SUGGEST.title.de} data-testid="suggest-overlay">
       <div className="absolute flex gap-2" style={{ top: 'max(20px, env(safe-area-inset-top))', right: 20 }}>
         <WesenInfoButton info={INFO_SUGGEST} />
-        <button onClick={onClose} aria-label={t.common.close} className="w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center">
+        <button onClick={onClose} aria-label={t.common.close} className="w-11 h-11 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center">
           <X size={20} />
         </button>
       </div>
@@ -100,7 +100,7 @@ export function SuggestOverlay({ onClose }: { onClose: () => void }) {
       {declined ? (
         <div className="text-center animate-in" data-testid="suggest-declined">
           <p className="text-[19px] text-[var(--color-text)] leading-relaxed max-w-[290px] mb-6">{en ? 'That is okay. Nothing has to fit right now. I am still here.' : 'Das ist in Ordnung. Es muss gerade nichts passen. Ich bin trotzdem da.'}</p>
-          <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)]">{t.common.close}</button>
+          <button onClick={onClose} className="px-5 py-2.5 rounded-full text-[14px] bg-[var(--color-primary)] text-[var(--color-surface)] hit44">{t.common.close}</button>
         </div>
       ) : (
         <>

@@ -42,7 +42,7 @@ export function FeelingsReferencePage() {
         <h1 className="text-[24px] mb-1">{t.feelingsRef.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-5 leading-relaxed">{t.feelingsRef.subtitle}</p>
 
-        <button onClick={() => setShowExplainers((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-6 block">
+        <button onClick={() => setShowExplainers((v) => !v)} className="text-[12px] text-[var(--color-primary)] mb-6 block hit44">
           {showExplainers ? t.feelingsRef.hideExplainerCta : t.feelingsRef.showExplainerCta}
         </button>
         {showExplainers && (
@@ -78,7 +78,7 @@ export function FeelingsReferencePage() {
           <FeelingsWheel openId={openId} onSelect={(id) => setOpenId(openId === id ? null : id)} colorVersion={colorVersion} />
           <button
             onClick={() => setShowColorEditor(true)}
-            className="flex items-center gap-1.5 text-[12px] text-[var(--color-primary)] mx-auto mt-3"
+            className="flex items-center gap-1.5 text-[12px] text-[var(--color-primary)] mx-auto mt-3 hit44"
           >
             <Palette size={13} /> {t.feelingsRef.customizeColorsCta}
           </button>

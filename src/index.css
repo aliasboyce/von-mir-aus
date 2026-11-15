@@ -28,6 +28,10 @@ html, body, #root {
    */
   touch-action: pan-x pan-y;
 }
+/* Feinschliff F3: nur wenn die Person Zoomen erlaubt (Einstellungen). Rückgängig: Block löschen. */
+html[data-allow-zoom='true'], html[data-allow-zoom='true'] body, html[data-allow-zoom='true'] #root {
+  touch-action: manipulation;
+}
 
 /* iOS Safari's address bar can grow/shrink, which historically caused
  * fixed-bottom elements (bottom nav, "Nur jetzt" modal buttons) to be
@@ -387,6 +391,10 @@ button {
 .page-transition {
   animation: page-transition-in 0.8s var(--ease-soft) both;
 }
+/* Feinschliff F13: die vier Hauptseiten wechseln etwas flinker (0,45 s), tiefe Seiten bleiben bei 0,8 s */
+.page-transition--tab {
+  animation-duration: 0.45s;
+}
 
 /* Press feedback used across cards, chips, and rows app-wide */
 .press-feedback {
@@ -615,6 +623,11 @@ button {
 [data-simple='true'] main {
   zoom: 1.12;
 }
+/* Feinschliff F9: Textgröße (wirkt auf den Hauptbereich, zusammen mit „Einfach“ multipliziert) */
+[data-text-size='large'] main { zoom: 1.1; }
+[data-text-size='xlarge'] main { zoom: 1.22; }
+[data-simple='true'][data-text-size='large'] main { zoom: 1.232; }
+[data-simple='true'][data-text-size='xlarge'] main { zoom: 1.366; }
 
 [data-reduce-motion='true'] * {
   animation-duration: 0.01ms !important;
@@ -1049,4 +1062,18 @@ button {
 }
 @media (prefers-reduced-motion: reduce) {
   [data-testid='card-flip'] * { animation: none !important; transition-duration: 0.01ms !important; }
+}
+
+/* ── Feinschliff F1/F2: größere Tippflächen ohne Layout-Änderung ──
+   .hit44 vergrößert nur die Berührungsfläche (unsichtbar, ≥44 px hoch),
+   das Aussehen und der Abstand bleiben gleich. Rückgängig: Klasse entfernen. */
+@layer components {
+.hit44 { position: relative; }
+.hit44::after {
+  content: '';
+  position: absolute;
+  left: -10px; right: -10px;
+  top: 50%; transform: translateY(-50%);
+  height: max(100%, 44px);
+}
 }
