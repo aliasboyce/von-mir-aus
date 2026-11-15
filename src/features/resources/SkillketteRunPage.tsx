@@ -163,7 +163,7 @@ export function SkillketteRunPage() {
     };
     skillUsesRepo.save(use);
     const iso = end.toISOString();
-    polyvagalRepo.save({ id: createId('pv'), createdAt: iso, zone: polyvagalZoneForValue(after), tensionValue: after, afterSkillTitle: chainLabel });
+    polyvagalRepo.save({ id: createId('pv'), createdAt: iso, zone: polyvagalZoneForValue(after), tensionValue: after, afterSkillTitle: chainLabel, note: note.trim() || undefined });
     tensionRepo.save({ id: createId('tension'), createdAt: iso, value: after });
     setSaved(use);
     setPhase('done');

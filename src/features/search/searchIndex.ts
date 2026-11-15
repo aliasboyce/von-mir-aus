@@ -47,6 +47,8 @@ const id = (item: Record<string, unknown>) => String(item.id ?? '');
 
 const SOURCES: DataSource[] = [
   { key: 'mindmaps', emoji: '🗺️', de: 'Mindmap', en: 'Mind map', to: (i) => `/entdecken/mindmap/${id(i)}` },
+  { key: 'scrapbooks', emoji: '📖', de: 'Scrapbook', en: 'Scrapbook', to: (i) => `/scrapbook/${id(i)}` },
+  { key: 'scrapbook-pages', emoji: '📖', de: 'Scrapbook-Seite', en: 'Scrapbook page', to: (i) => `/scrapbook/${String(i.bookId ?? '')}/seite/${id(i)}` },
   { key: 'projects', emoji: '🧩', de: 'Projekt', en: 'Project', to: (i) => `/entdecken/projekte/${id(i)}` },
   {
     key: 'diary-entries',

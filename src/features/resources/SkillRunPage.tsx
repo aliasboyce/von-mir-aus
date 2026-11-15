@@ -157,7 +157,7 @@ export function SkillRunPage() {
     // The value measured at the end is also a real check-in, so the
     // day curve shows the point AFTER the skill (labelled with it).
     const nowIso = end.toISOString();
-    polyvagalRepo.save({ id: createId('pv'), createdAt: nowIso, zone: polyvagalZoneForValue(after), tensionValue: after, afterSkillTitle: skill.title });
+    polyvagalRepo.save({ id: createId('pv'), createdAt: nowIso, zone: polyvagalZoneForValue(after), tensionValue: after, afterSkillTitle: skill.title, note: note.trim() || undefined });
     tensionRepo.save({ id: createId('tension'), createdAt: nowIso, value: after });
     setSaved(use);
     setStage('done');

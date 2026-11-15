@@ -8,6 +8,8 @@ import { networkRepo } from '../safetyNet/networkRepo';
 import { EmergencyCard } from './EmergencyCard';
 import { PlanShareSheet } from '../safetyPlan/PlanShareSheet';
 import { useL } from '../projects/useL';
+import { RucksackPlayer } from '../safetyPlan/RucksackPlayer';
+import { getRucksackList } from '../safetyPlan/rucksackStore';
 
 /**
  * Deliberately the opposite of every other page in this app visually:
@@ -36,10 +38,12 @@ export function CrisisModePage() {
   const [groundingOpen, setGroundingOpen] = useState(false);
   const [view, setView] = useState<'main' | 'plan' | 'network'>('main');
   const [shareOpen, setShareOpen] = useState(false);
+  const [rucksackOpen, setRucksackOpen] = useState(false);
   const { L } = useL();
 
   const rawPlan = safetyPlansRepo.getAll()[0];
   // marked examples are suggestions, not the person's own plan
+  const rucksack = getRucksackList();
   const plan = rawPlan ? { ...rawPlan, warningSignals: rawPlan.warningSignals.filter((w) => !w.example), helpItems: rawPlan.helpItems.filter((h) => !h.example) } : rawPlan;
   const contacts = networkRepo.getAll().filter((c) => c.category === 'person' && !c.isExample);
 
@@ -47,6 +51,19 @@ export function CrisisModePage() {
     return (
       <div className="min-h-screen flex flex-col px-6 py-8 bg-white">
         <BackHeader onBack={() => setView('main')} label={t.crisisMode.safetyPlanCta} />
+        {rucksack && rucksack.items.length > 0 && (
+          <button
+            onClick={() => setRucksackOpen(true)}
+            className="flex items-center gap-3 px-5 py-4 rounded-[12px] border-2 border-black text-black text-[17px] font-medium text-left mt-3 hover:bg-black/5"
+            data-testid="crisis-rucksack"
+          >
+            <span className="text-[26px]" aria-hidden="true">🎒</span>
+            <span className="flex-1 min-w-0">
+              <span className="block">{L('Notfallrucksack durchgehen', 'Go through the emergency backpack')}</span>
+              <span className="block text-[13px] font-normal text-black/65">{L('Punkt für Punkt – danach geht es hier weiter.', 'One item at a time – then you are back here.')}</span>
+            </span>
+          </button>
+        )}
         {!plan || (plan.warningSignals.length === 0 && plan.helpItems.length === 0) ? (
           <p className="text-[15px] text-black/70 leading-relaxed mt-4">{t.crisisMode.noPlanYet}</p>
         ) : (
@@ -88,6 +105,7 @@ export function CrisisModePage() {
           {t.crisisMode.openFullPlanLink}
         </Link>
         {rawPlan && <PlanShareSheet plan={rawPlan} open={shareOpen} onClose={() => setShareOpen(false)} />}
+        {rucksackOpen && <RucksackPlayer onClose={() => setRucksackOpen(false)} />}
       </div>
     );
   }

@@ -51,6 +51,22 @@ Erledigt wird hier abgehakt ([x]).
 - Meldungstext am Anfang + gesamte Anleitung nochmal ueberpruefen
 - 'Animation reduzieren' ueberarbeiten (Blaetter dort ganz schnell)
 
+## 🔴 Fuer spaeter vorgemerkt
+- **ME/CFS-freundlich machen** (Wunsch 15.11.2026, "noch fuer spaeter merken"): App spaeter gezielt auf ME/CFS-Bedarfe pruefen — z. B. extrem wenig Reize/Text, Energie-/Pacing-Rahmen (Kostenfilter vorhanden), Aktionen in kleinen Schritten, nichts, das Ueberanstrengung erzwingt, Ruhe-Modus ohne Bewegung/Ton, kurze Eingaben, Sprach-/Foto-Notiz statt langem Tippen. Noch NICHT begonnen.
+
+## 🟢 Erledigt (15.11.2026 — Scrapbook, Monatsuebersicht, Tagebuch-Verbindung)
+- [x] Scrapbook (/scrapbook): Buecher mit Einbaenden, aufgeschlagenes Buch (2 A4-Seiten), 3D-Umblaettern + Sound, Seiten-Editor auf Basis des Mindmap-Canvas (Papier/Vintage, Vorlagen, Datum, Foto-Formen/Tesa, Hintergrund entfernen, Sticker + Layouts merken, Seiten ordnen/kopieren, A4-PDF je Seite/Doppelseite/Buch).
+- [x] Monatsuebersicht /scrapbook/monat (Tagebuch + Scrapbook, Filter), Links im Tagebuch, Entdecken-Karte, Uebersicht, Suche.
+- [x] Tagebuch: verbundene Mindmap als Vorschaubild im Eintrag; Eintrag -> Scrapbook-Seite.
+- Grenzen: Hintergrund entfernen nur bei einfarbigem Hintergrund (keine KI); kein freies Ausschneiden (nur Formen); Doppelseite auf dem Handy klein (Tippen zoomt); Editor-Leiste noch aus der Mindmap uebernommen.
+
+## 🟢 Erledigt (15.11.2026 — Klarheit, Kurve, Krisenplan)
+- [x] Startseite: eine Karte "Was brauche ich heute?" (Picker), "Zustand & Zugang" unter Kurz einchecken, Begleiter-Sprechblase ueberdeckt Symbole nicht mehr.
+- [x] Einchecken: Wetter ueberspringen -> Kurve; freiwillige Notiz je Wert; Werte idempotent (90 s); Tageskurve gross, Werteliste mit Zeit/Notiz, Wert loeschen/Notiz aendern; gleiche Liste in Meine Entwicklung.
+- [x] Zugangskanaele: Erklaerung + Beispiele je Kanal. Sammelalbum: Synonym an Kartennamen (kindLabel), MemoryFamily-Erklaerung (Tagebuch/Scrapbook/Sammelalbum).
+- [x] Krisenmodus-Plan: Taste "Notfallrucksack durchgehen" (RucksackPlayer, danach zurueck). Doppelt-Hinweis (duplicates.ts) in Listen, Parkbox, Wortschatz.
+- Grenzen: Rucksack im Krisenplan als grosse Taste, nicht automatisch Vollbild; Doppelt-Hinweis nur dort; Einstellung homeWay ist ungenutzt.
+
 ## 🔴 Noch offen / Fehler
 _(aktuell keine bekannten offenen Fehler — wird laufend gepflegt)_
 

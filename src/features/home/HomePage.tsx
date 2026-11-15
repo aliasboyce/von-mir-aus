@@ -377,6 +377,15 @@ export function HomePage() {
             )}
           </Card>
         </Link>
+        <Link to="/zugang" className="block mt-2" data-testid="home-zugang">
+          <Card interactive padding="md" className="flex items-center gap-3">
+            <span className="text-[22px]" aria-hidden="true">🧭</span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[16px] text-[var(--color-text)]">{isEn ? 'State & access' : 'Zustand & Zugang'}</span>
+              <span className="block text-[12.5px] text-[var(--color-text-faint)] mt-0.5">{isEn ? 'The longer check-in: what works right now?' : 'Das ausführlichere Einchecken: was geht gerade?'}</span>
+            </span>
+          </Card>
+        </Link>
         <Link to="/entdecken/tageskurve" data-testid="home-to-curve" className="flex items-center justify-center gap-1.5 mt-1 mx-auto w-fit px-3 min-h-[44px] text-[13.5px] text-[var(--color-primary)]">
           {isEn ? 'To the curve' : 'Zur Kurve'} <span aria-hidden="true">→</span>
         </Link>
@@ -400,7 +409,7 @@ export function HomePage() {
         </Link>
       ) : (
         <>
-      <HomeWays isEn={isEn} onOpenGrounding={() => setGroundingOpen(true)} onIntent={!lean ? () => setShowIntentPicker(true) : undefined} />
+      <HomeWays isEn={isEn} onIntent={() => setShowIntentPicker(true)} />
         </>
       )}
 
@@ -495,7 +504,5 @@ function HomeTip() {
   const [id] = useState(() => nextTip(settings.hintsOnce !== false)?.id ?? null);
   // never while the first introduction or the guided tour is still running
   if (!settings.introSeen || settings.tourActive || !settings.companionChosen) return null;
-  // solange „Was brauchst du heute?“ noch offen ist, gehört die Aufmerksamkeit dieser Frage
-  if (settings.homeWay === undefined) return null;
   return id ? <HintCard hintId={id} delayMs={4000} /> : null;
 }

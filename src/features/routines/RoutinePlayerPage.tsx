@@ -18,6 +18,7 @@ import { gardenRepo } from '../garden/gardenRepo';
 import { RoutineCard3D } from './RoutineCard3D';
 import { MediaEmbed, OwnMediaView } from './MediaEmbed';
 import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
+import { CheckInNote } from '../polyvagal/CheckInNote';
 import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { polyvagalZoneForValue, bandForValue } from '../polyvagal/arousalBands';
@@ -127,6 +128,7 @@ function Player({ routine, energy }: { routine: Routine; energy?: EnergyLevel })
   // optional: right after the routine, the current tension can be entered (and is easy to wave away)
   const [tStage, setTStage] = useState<'ask' | 'slider' | 'saved' | 'no'>('ask');
   const [tVal, setTVal] = useState(40);
+  const [tNote, setTNote] = useState('');
 
   // ----- timer (starts by itself when the card appears) -----
   const [remainingMs, setRemainingMs] = useState<number | null>(card.timerSec ? card.timerSec * 1000 : null);
@@ -231,7 +233,7 @@ function Player({ routine, energy }: { routine: Routine; energy?: EnergyLevel })
     const nowIso = new Date().toISOString();
     const band = bandForValue(tVal);
     routineRunsRepo.save({ ...finished.run, tensionAfter: tVal, stateAfter: band.id });
-    polyvagalRepo.save({ id: createId('pv'), createdAt: nowIso, zone: polyvagalZoneForValue(tVal), tensionValue: tVal, afterRoutineTitle: routine.title });
+    polyvagalRepo.save({ id: createId('pv'), createdAt: nowIso, zone: polyvagalZoneForValue(tVal), tensionValue: tVal, afterRoutineTitle: routine.title, note: tNote.trim() || undefined });
     tensionRepo.save({ id: createId('tension'), createdAt: nowIso, value: tVal });
     setTStage('saved');
   }
@@ -646,6 +648,7 @@ function Player({ routine, energy }: { routine: Routine; energy?: EnergyLevel })
             <h2 className="text-[19px]">{lang === 'en' ? 'How tense are you right now?' : 'Wie angespannt bist du gerade?'}</h2>
             <p className="text-[13px] text-[var(--color-text-muted)]">{lang === 'en' ? 'Just move the slider. There is no right or wrong.' : 'Schieb einfach den Regler. Es gibt kein Richtig oder Falsch.'}</p>
             <NervousSystemLadderSlider onSelect={() => undefined} value={tVal} onValueChange={setTVal} hideSupportLinks />
+            <CheckInNote value={tNote} onChange={setTNote} />
             <div className="flex gap-2 mt-2">
               <Button variant="ghost" onClick={() => setTStage('no')} data-testid="routine-tension-cancel">{lang === 'en' ? 'Skip' : 'Lieber nicht'}</Button>
               <Button fullWidth onClick={saveTension} data-testid="routine-tension-save">{lang === 'en' ? 'Save' : 'Eintragen'}</Button>

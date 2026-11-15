@@ -76,7 +76,7 @@ export function BottomNav() {
     { to: '/', label: t.nav.home, icon: Home, end: true, also: ['/zugang', '/bruecken', '/inneres-wetter'] },
     { to: '/sicherheit', label: t.nav.safety, icon: Shield, end: false },
     { to: '/alltag', label: t.nav.everyday, icon: CalendarDays, end: false, also: ['/kalender', '/parkbox'] },
-    { to: '/entdecken', label: t.nav.explore, icon: Compass, end: false, also: ['/sicherheit/tagebuch'] },
+    { to: '/entdecken', label: t.nav.explore, icon: Compass, end: false, also: ['/sicherheit/tagebuch', '/scrapbook'] },
   ];
 
   const nurJetztItems = [

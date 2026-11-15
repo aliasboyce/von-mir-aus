@@ -75,6 +75,9 @@ import { ListsPage } from './features/lists/ListsPage';
 import { ListDetailPage } from './features/lists/ListDetailPage';
 import { MindmapListPage } from './features/mindmap/MindmapListPage';
 import { MindmapEditorPage } from './features/mindmap/MindmapEditorPage';
+import { ScrapbookShelfPage } from './features/scrapbook/ScrapbookShelfPage';
+import { MonthOverviewPage } from './features/scrapbook/MonthOverviewPage';
+import { ScrapbookBookPage } from './features/scrapbook/ScrapbookBookPage';
 import { ProjectsPage } from './features/projects/ProjectsPage';
 import { ProjectPage } from './features/projects/ProjectPage';
 import { MindmapImportPage } from './features/mindmap/MindmapImportPage';
@@ -166,6 +169,10 @@ function App() {
                 <Route path="/entdecken/mindmap" element={<MindmapListPage />} />
                 <Route path="/entdecken/mindmap/importieren" element={<MindmapImportPage />} />
                 <Route path="/entdecken/mindmap/:id" element={<MindmapEditorPage />} />
+                <Route path="/scrapbook" element={<ScrapbookShelfPage />} />
+                <Route path="/scrapbook/monat" element={<MonthOverviewPage />} />
+                <Route path="/scrapbook/:bookId" element={<ScrapbookBookPage />} />
+                <Route path="/scrapbook/:bookId/seite/:id" element={<MindmapEditorPage pageMode />} />
                 <Route path="/listen" element={<ListsPage />} />
                 <Route path="/listen/:id" element={<ListDetailPage />} />
                 <Route path="/budget" element={<BudgetPage />} />

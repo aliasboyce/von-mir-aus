@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { DuplicateHint } from '../../components/shared/DuplicateHint';
+import { findSimilar } from '../../services/duplicates';
 import { isFavorite, toggleFavorite, useFavoriteEntries } from '../../services/favorites';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Archive, ArrowDown, ArrowUp, CalendarPlus, Check, Pencil, RotateCcw, Star, Trash2, X } from 'lucide-react';
@@ -414,6 +416,7 @@ export function ParkboxPage() {
                   style={{ color: 'inherit' }}
                   data-testid="park-input"
                 />
+                <DuplicateHint found={findSimilar(text, notes.filter((n) => !n.archived).map((n) => ({ text: n.text })))?.text} where={lang === 'en' ? 'in the box' : 'in der Box'} />
               </div>
             )}
           </div>

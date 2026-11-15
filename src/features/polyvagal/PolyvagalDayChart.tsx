@@ -14,6 +14,8 @@ interface PolyvagalDayChartProps {
   /** "Auf jeden Punkt antworten koennen"-Auftrag — lets the expanded
    * chart open a reflection prompt for whichever check-in was tapped. */
   onPointClick?: (checkIn: PolyvagalCheckIn) => void;
+  /** größer und höher (Tageskurve-Seite) */
+  large?: boolean;
 }
 
 const PAD_TOP = 16;
@@ -39,15 +41,15 @@ function yForCheckIn(c: PolyvagalCheckIn, padTop: number, height: number): numbe
   return padTop + (visualPositionForValue(raw) / 100) * (height - padTop - PAD_BOTTOM);
 }
 
-export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', onPointClick }: PolyvagalDayChartProps) {
+export function PolyvagalDayChart({ checkIns, expanded = false, period = 'day', onPointClick, large = false }: PolyvagalDayChartProps) {
   const t = useT();
   const { settings } = useSettings();
   // "Alte 5-Grenzen-Kalibrierung archivieren"-Fund — same as the
   // ladder slider: always AROUSAL_BANDS now, the old calibration
   // boundaries would be meaningless against the new wrapping scale.
   const calibratedBands = AROUSAL_BANDS;
-  const width = expanded ? 640 : 320;
-  const height = expanded ? 320 : 180;
+  const width = expanded ? 640 : large ? 350 : 320;
+  const height = expanded ? 320 : large ? 290 : 180;
   const padX = expanded ? 118 : 66;
   const padTop = expanded ? 28 : PAD_TOP;
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';

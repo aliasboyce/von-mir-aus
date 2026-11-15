@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { PageStar } from '../../components/ui/PageStar';
 import { bandForValue } from '../polyvagal/arousalBands';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -12,7 +12,8 @@ import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
 import { weatherRepo } from './weatherRepo';
 import { WEATHER_META, NEED_META, NEED_ORDER } from './weatherMeta';
-import { polyvagalRepo, todaysCheckIns } from '../polyvagal/polyvagalRepo';
+import { polyvagalRepo, todaysCheckIns, setCheckInNote } from '../polyvagal/polyvagalRepo';
+import { CheckInNote } from '../polyvagal/CheckInNote';
 import { NervousSystemLadderSlider } from '../polyvagal/NervousSystemLadderSlider';
 import { ArousalModelExplainer } from '../polyvagal/ArousalModelExplainer';
 import { tensionRepo } from '../polyvagal/tensionRepo';
@@ -102,13 +103,44 @@ export function InnerWeatherPage() {
       setStep('need');
       return;
     }
+    // ohne Wetter (übersprungen) führt „zurück“ zur Wetterauswahl
+    if (step === 'zone' && !condition) {
+      setStep('select');
+      return;
+    }
     const idx = STEP_ORDER.indexOf(step);
     if (idx > 0) setStep(STEP_ORDER[idx - 1]);
   }
 
+  // wer die Auswahl innerhalb von 90 Sekunden ändert, ändert den Wert – es entsteht kein zweiter Eintrag
+  const lastSaved = useRef<{ pv: string; tension: string; at: number } | null>(null);
+  const [noteDraft, setNoteDraft] = useState('');
+  const [noteFor, setNoteFor] = useState<string | null>(null);
+
+  function changeNote(v: string) {
+    setNoteDraft(v);
+    if (noteFor) setCheckInNote(noteFor, v);
+  }
+
   function chooseZone(zone: PolyvagalZone, survivalState?: ZugangSurvivalState) {
-    polyvagalRepo.save({ id: createId('pv'), createdAt: new Date().toISOString(), zone, survivalState, tensionValue });
-    tensionRepo.save({ id: createId('tension'), createdAt: new Date().toISOString(), value: tensionValue });
+    const nowMs = Date.now();
+    const nowIso = new Date(nowMs).toISOString();
+    const prev = lastSaved.current;
+    if (prev && nowMs - prev.at < 90_000 && polyvagalRepo.getById(prev.pv)) {
+      const old = polyvagalRepo.getById(prev.pv)!;
+      polyvagalRepo.save({ ...old, zone, survivalState, tensionValue });
+      const tr = tensionRepo.getById(prev.tension);
+      if (tr) tensionRepo.save({ ...tr, value: tensionValue, survivalState });
+      lastSaved.current = { ...prev, at: nowMs };
+    } else {
+      const pvId = createId('pv');
+      const tId = createId('tension');
+      polyvagalRepo.save({ id: pvId, createdAt: nowIso, zone, survivalState, tensionValue });
+      tensionRepo.save({ id: tId, createdAt: nowIso, value: tensionValue, survivalState });
+      lastSaved.current = { pv: pvId, tension: tId, at: nowMs };
+      setNoteFor(pvId);
+      setNoteDraft('');
+    }
     // "Nicht sofort weiterspringen"-Auftrag — this used to auto-advance
     // to the 'need' step 450ms after tapping an F-tag, with no way to
     // stay and look around. Now it only marks the pick (for the visible
@@ -205,10 +237,11 @@ export function InnerWeatherPage() {
             <PageStar />
             <HelpButton helpKey="checkin" />
             <button
-              onClick={() => navigate('/')}
-              className="text-[14px] text-[var(--color-text-faint)]"
+              onClick={() => (step === 'select' ? setStep('zone') : navigate('/'))}
+              className="text-[14px] text-[var(--color-text-faint)] min-h-[44px] px-1"
+              data-testid="checkin-skip"
             >
-              {t.common.skip}
+              {step === 'select' ? (en ? 'Skip weather' : 'Wetter überspringen') : t.common.skip}
             </button>
           </div>
         )}
@@ -219,6 +252,9 @@ export function InnerWeatherPage() {
           <h1 className="text-[24px] mb-1 text-center">{t.weather.title}</h1>
           <p className="text-[14px] text-[var(--color-text-muted)] mb-6 text-center">{t.weather.subtitle}</p>
           <WeatherWheel onSelect={chooseCondition} />
+          <button type="button" onClick={() => setStep('zone')} className="block mx-auto mt-4 min-h-[44px] px-4 text-[14px] text-[var(--color-primary)]" data-testid="checkin-skip-weather">
+            {en ? 'Skip the weather – straight to the curve →' : 'Wetter überspringen – weiter zur Kurve →'}
+          </button>
         </div>
       )}
 
@@ -286,6 +322,7 @@ export function InnerWeatherPage() {
             value={tensionValue}
             onValueChange={setTensionValue}
           />
+          {justPickedState && <CheckInNote key={noteFor ?? 'n'} value={noteDraft} onChange={changeNote} />}
           {justPickedState && (
             <button
               onClick={advanceFromZone}
@@ -301,14 +338,14 @@ export function InnerWeatherPage() {
         </div>
       )}
 
-      {step === 'need' && condition && (
+      {step === 'need' && (
         <div className="animate-in flex-1">
           <div className="flex flex-col items-center mb-6">
             <div
               className="w-24 h-24 rounded-full flex items-center justify-center bg-[var(--color-primary)] text-[var(--color-surface)] text-[36px] mb-3"
               aria-hidden="true"
             >
-              {WEATHER_META[condition].emoji}
+              {condition ? WEATHER_META[condition].emoji : '🧭'}
             </div>
             <h1 className="text-[22px] text-center">{t.weather.needTitle}</h1>
             <p className="text-[14px] text-[var(--color-text-muted)] text-center mt-1 max-w-[280px]">
@@ -390,10 +427,10 @@ export function InnerWeatherPage() {
         </div>
       )}
 
-      {step === 'done' && condition && (
+      {step === 'done' && (
         <div className="animate-in flex-1 flex flex-col items-center justify-center text-center gap-6 py-10">
           <span className="text-[56px]" aria-hidden="true">
-            {WEATHER_META[condition].emoji}
+            {condition ? WEATHER_META[condition].emoji : '🧭'}
           </span>
           <div>
             <h1 className="text-[22px] mb-2">{t.weather.doneTitle}</h1>

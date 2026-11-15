@@ -248,6 +248,9 @@
   transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
+.companion-tip:not(.companion-tip--hero) { pointer-events: none; } /* die schwebende Sprechblase blockiert nichts darunter – nur ihre Knöpfe sind antippbar */
+.companion-tip:not(.companion-tip--hero) button { pointer-events: auto; }
+
 .companion-tip--leaving {
   opacity: 0;
   transform: translateY(4px);

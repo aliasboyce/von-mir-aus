@@ -1,3 +1,5 @@
+import { DuplicateHint } from '../shared/DuplicateHint';
+import { findSimilar } from '../../services/duplicates';
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, ChevronLeft } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
@@ -154,6 +156,7 @@ export function VocabManageModal({ open, onClose }: VocabManageModalProps) {
             <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.vocab.frontLabel}</span>
             <textarea autoFocus className="input" rows={2} value={editingCard.front} onChange={(e) => setEditingCard({ ...editingCard, front: e.target.value })} />
           </label>
+          <DuplicateHint found={findSimilar(editingCard.front, vocabCardsRepo.getAll().filter((c) => c.id !== (editingCard as { id?: string }).id).map((c) => ({ text: c.front })))?.text} />
           <label className="flex flex-col gap-1.5">
             <span className="text-[13px] font-medium text-[var(--color-text-muted)]">{t.vocab.backLabel}</span>
             <textarea className="input" rows={2} value={editingCard.back} onChange={(e) => setEditingCard({ ...editingCard, back: e.target.value })} />

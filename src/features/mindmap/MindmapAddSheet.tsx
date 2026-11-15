@@ -7,10 +7,11 @@ import { FRAME_VARIANTS, NOTE_VARIANTS, SHAPES, type MMNode } from './mindmapMod
 import { ShapeThumb } from './MindmapPanels';
 import { REF_KINDS, listRefs, refLabel } from './appRefs';
 import type { RefKind } from './mindmapBlocks';
+import type { SavedSticker } from '../scrapbook/scrapModel';
 import { defaultGrid } from './mindmapBlocks';
 import { fmt, type MindmapExtraTexts } from './mindmapExtraTexts';
 
-type View = 'main' | 'emoji' | 'glyphs' | { refs: RefKind };
+type View = 'main' | 'emoji' | 'glyphs' | 'date' | 'stickers' | { refs: RefKind };
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ'.split('');
 const DIGITS = '0123456789'.split('');
@@ -51,6 +52,8 @@ export interface AddSheetProps {
   clipCount: number;
   onPasteClip: () => void;
   pasting: boolean;
+  /** Scrapbook-Seite: Datum, „Meine Sticker“ */
+  scrap?: { stickers: SavedSticker[]; onSticker: (s: SavedSticker) => void; onDeleteSticker: (id: string) => void };
 }
 
 /** "What do you want to add?" – the kind of element is chosen first, so nothing appears at random */
@@ -72,7 +75,7 @@ export function MindmapAddSheet(p: AddSheetProps) {
   const refKind = typeof view === 'object' ? view.refs : null;
   const refs = useMemo(() => (refKind && p.open ? listRefs(refKind, lang) : []), [refKind, lang, p.open]);
   const shown = refs.filter((r) => !q.trim() || `${r.snap.title} ${r.snap.sub ?? ''}`.toLowerCase().includes(q.trim().toLowerCase())).slice(0, 80);
-  const title = view === 'main' ? L('Was möchtest du hinzufügen?', 'What do you want to add?') : view === 'emoji' ? L('Symbol wählen', 'Choose a symbol') : view === 'glyphs' ? L('Buchstabe, Zahl, Zeichen', 'Letter, number, sign') : refLabel(view.refs, lang);
+  const title = view === 'date' ? L('Datum einfügen', 'Insert a date') : view === 'stickers' ? L('Meine Sticker', 'My stickers') : view === 'main' ? L('Was möchtest du hinzufügen?', 'What do you want to add?') : view === 'emoji' ? L('Symbol wählen', 'Choose a symbol') : view === 'glyphs' ? L('Buchstabe, Zahl, Zeichen', 'Letter, number, sign') : refLabel(view.refs, lang);
 
   return (
     <Modal open={p.open} onClose={close} title={title}>
@@ -82,6 +85,20 @@ export function MindmapAddSheet(p: AddSheetProps) {
           <button type="button" onClick={() => { setView('main'); setQ(''); }} className="self-start inline-flex items-center gap-1 text-[13.5px] text-[var(--color-primary)] hit44" data-testid="mm-add-back">
             <ChevronLeft size={16} /> {L('Zurück zur Auswahl', 'Back to the choice')}
           </button>
+        )}
+
+        {view === 'date' && <DateView L={L} lang={lang} onPlace={place} />}
+
+        {view === 'stickers' && p.scrap && (
+          <div className="flex flex-col gap-2" data-testid="mm-add-mystickers">
+            {p.scrap.stickers.length === 0 && <p className="text-[13px] text-[var(--color-text-faint)]">{L('Noch keine eigenen Sticker. Wähle auf einer Seite etwas aus (zum Beispiel ein Foto mit Text) und tippe auf „Als Sticker merken“.', 'No stickers of your own yet. Select something on a page and tap “Keep as sticker”.')}</p>}
+            {p.scrap.stickers.map((st) => (
+              <div key={st.id} className="flex items-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-border)] px-3 py-2">
+                <button type="button" className="flex-1 text-left text-[14px] text-[var(--color-text)]" onClick={() => p.scrap?.onSticker(st)} data-testid="mm-mysticker">{st.name} <span className="text-[12px] text-[var(--color-text-faint)]">· {st.nodes.length} {L('Teil(e)', 'piece(s)')}</span></button>
+                <button type="button" onClick={() => p.scrap?.onDeleteSticker(st.id)} aria-label={L('Sticker löschen', 'Delete sticker')} className="w-9 h-9 rounded-full text-[var(--color-danger)]">✕</button>
+              </div>
+            ))}
+          </div>
         )}
 
         {view === 'emoji' && <EmojiPicker value="" onChange={(e) => place({ shape: 'sticker', symbol: e, size: 2 })} />}
@@ -124,6 +141,15 @@ export function MindmapAddSheet(p: AddSheetProps) {
             )}
             {p.clipCount > 0 && (
               <Tile icon={<Copy size={20} />} label={X.insertClip} sub={fmt(X.insertClipSub, { n: p.clipCount })} onClick={() => { close(); p.onPasteClip(); }} testId="mm-insert-clip" />
+            )}
+
+            {p.scrap && (
+              <Section title={L('Scrapbook', 'Scrapbook')}>
+                <div className="grid grid-cols-2 gap-2">
+                  <Tile icon={<span className="text-[18px] leading-none">📅</span>} label={L('Datum', 'Date')} sub={L('Stempel, Etikett oder Handschrift', 'stamp, label or handwriting')} onClick={() => setView('date')} testId="mm-insert-date" />
+                  <Tile icon={<span className="text-[18px] leading-none">⭐</span>} label={L('Meine Sticker', 'My stickers')} sub={`${p.scrap.stickers.length} ${L('gespeichert', 'saved')}`} onClick={() => setView('stickers')} testId="mm-insert-mystickers" />
+                </div>
+              </Section>
             )}
 
             <Section title={L('Grundlagen', 'Basics')}>
@@ -220,3 +246,24 @@ export function MindmapAddSheet(p: AddSheetProps) {
   );
 }
 
+
+
+/** Datum als Stempel, Etikett (Tesa) oder Handschrift */
+function DateView({ L, lang, onPlace }: { L: (de: string, en: string) => string; lang: 'de' | 'en'; onPlace: (patch: Partial<MMNode>) => void }) {
+  const [v, setV] = useState(() => new Date().toISOString().slice(0, 10));
+  const d = new Date(`${v}T12:00:00`);
+  const loc = lang === 'en' ? 'en-GB' : 'de-DE';
+  const long = d.toLocaleDateString(loc, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const short = d.toLocaleDateString(loc, { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+  const num = d.toLocaleDateString(loc, { day: '2-digit', month: '2-digit', year: '2-digit' });
+  return (
+    <div className="flex flex-col gap-3" data-testid="mm-add-date">
+      <input type="date" className="input" value={v} onChange={(e) => setV(e.target.value || v)} data-testid="mm-date-input" />
+      <div className="grid grid-cols-1 gap-2">
+        <Tile icon={<span className="text-[18px] leading-none">🟥</span>} label={short} sub={L('Stempel', 'Stamp')} onClick={() => onPlace({ shape: 'rect', text: short, font: 'typewriter', look: 'outline', color: '#9c3b3b', tc: '#9c3b3b', bc: '#9c3b3b', border: 'double', sw: 3, rot: -4, size: 3, round: false })} testId="mm-date-stamp" />
+        <Tile icon={<span className="text-[18px] leading-none">🏷️</span>} label={num} sub={L('Etikett mit Tesa', 'Taped label')} onClick={() => onPlace({ shape: 'note', text: num, variant: 'tape', color: '#f2d27a', look: 'soft', rot: 3, size: 3, font: 'typewriter', round: false })} testId="mm-date-label" />
+        <Tile icon={<span className="text-[18px] leading-none">✍️</span>} label={long} sub={L('Handschrift', 'Handwriting')} onClick={() => onPlace({ shape: 'plain', text: long, font: 'hand', size: 3, look: 'soft' })} testId="mm-date-hand" />
+      </div>
+    </div>
+  );
+}

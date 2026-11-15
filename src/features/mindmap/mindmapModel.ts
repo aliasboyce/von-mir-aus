@@ -18,7 +18,7 @@ export type MMBgKind = 'plain' | 'dots' | 'dotsL' | 'grid' | 'graph' | 'lines' |
 export type MMBorder = 'solid' | 'dashed' | 'dotted' | 'double' | 'sketch' | 'thick' | 'none';
 export type MMAnim = 'none' | 'spin' | 'spinback' | 'swing' | 'pulse' | 'bounce' | 'wiggle' | 'float' | 'blink' | 'orbit' | 'jelly' | 'shake';
 export type MMPen = 'pen' | 'pencil' | 'marker' | 'water';
-export type MMImgStyle = 'polaroid' | 'plain' | 'round' | 'rounded';
+export type MMImgStyle = 'polaroid' | 'plain' | 'round' | 'rounded' | 'tape';
 export type MMFont = 'sans' | 'serif' | 'hand' | 'marker' | 'mono' | 'round' | 'display' | 'script' | 'typewriter';
 
 export interface MMNode {
@@ -70,6 +70,8 @@ export interface MMNode {
   /** doodle: id from the catalogue */
   doodle?: string;
   imgStyle?: MMImgStyle;
+  /** Foto in eine Form ausgeschnitten (Herz, Stern, Wolke …) */
+  imgShape?: MMShape;
   /** link to another mind map (shown as a small live preview) */
   mapId?: string;
   /** rounded corners: true = rounded, false = angular, unset = how the shape always looked */
@@ -140,7 +142,7 @@ export interface MindMap {
   title: string;
   createdAt: string;
   updatedAt: string;
-  bg: { kind: MMBgKind; tone: string; /** own photo behind the map (data URL, stays on this device) */ img?: string; /** how much of the page colour lies over the photo, 0–0.8 (higher = calmer photo) */ imgDim?: number };
+  bg: { kind: MMBgKind; tone: string; /** Scrapbook page: vintage look (aged edges, grain) */ aged?: boolean; /** own photo behind the map (data URL, stays on this device) */ img?: string; /** how much of the page colour lies over the photo, 0–0.8 (higher = calmer photo) */ imgDim?: number };
   nodes: MMNode[];
   edges: MMEdge[];
   view?: { scale: number; tx: number; ty: number };
@@ -150,6 +152,10 @@ export interface MindMap {
   folder?: string;
   archived?: boolean;
   archivedAt?: string;
+  /** Scrapbook: this map is a PAGE (A4) of a book – such maps live in their own storage and never show up in the mind map list */
+  bookId?: string;
+  /** Scrapbook page: the day it belongs to (YYYY-MM-DD) – for the month overview */
+  day?: string;
 }
 
 export const mindmapRepo = createRepository<MindMap>('mindmaps');
@@ -356,7 +362,7 @@ export function nodeStyle(n: MMNode, bg: string): NodeStyle {
 function baseStyle(n: MMNode, bg: string): NodeStyle {
   const dark = luminance(bg) < 0.25;
   if (BLOCK_SHAPES.has(n.shape)) return { fill: dark ? '#2b3138' : '#ffffff', stroke: n.color, text: dark ? '#f1ede4' : '#26231f', strokeWidth: n.sw ?? 2 };
-  if (n.shape === 'image') return { fill: n.imgStyle && n.imgStyle !== 'polaroid' ? 'none' : '#ffffff', stroke: '#e6dfd0', text: n.imgStyle && n.imgStyle !== 'polaroid' ? (dark ? '#f1ede4' : '#26231f') : '#3a362d', strokeWidth: 1 };
+  if (n.shape === 'image') return { fill: n.imgShape || (n.imgStyle && n.imgStyle !== 'polaroid' && n.imgStyle !== 'tape') ? 'none' : '#ffffff', stroke: '#e6dfd0', text: n.imgShape || (n.imgStyle && n.imgStyle !== 'polaroid' && n.imgStyle !== 'tape') ? (dark ? '#f1ede4' : '#26231f') : '#3a362d', strokeWidth: 1 };
   if (n.shape === 'draw') return { fill: 'none', stroke: n.color, text: n.color, strokeWidth: n.sw ?? 3 };
   if (n.shape === 'doodle') {
     const fill = n.look === 'solid' ? n.color : n.look === 'soft' ? mixHex(n.color, dark ? '#23282e' : '#ffffff', dark ? 0.6 : 0.8) : 'none';
@@ -413,8 +419,8 @@ export function strokeBox(pts: number[] | undefined): { minX: number; minY: numb
 export const penWidth = (n: Pick<MMNode, 'sw' | 'pen'>) => (n.sw ?? 3) * (n.pen === 'marker' ? 3.2 : n.pen === 'water' ? 1.8 : 1);
 
 /** white frame around a photo (only the polaroid style has one) */
-export const imgBorder = (n: Pick<MMNode, 'imgStyle'>) => (!n.imgStyle || n.imgStyle === 'polaroid' ? 7 : 0);
-export const imgRatio = (n: Pick<MMNode, 'ar' | 'imgStyle'>) => (n.imgStyle === 'round' ? 1 : Math.min(2.6, Math.max(0.4, n.ar ?? 1)));
+export const imgBorder = (n: Pick<MMNode, 'imgStyle' | 'imgShape'>) => (n.imgShape ? 0 : !n.imgStyle || n.imgStyle === 'polaroid' ? 7 : n.imgStyle === 'tape' ? 6 : 0);
+export const imgRatio = (n: Pick<MMNode, 'ar' | 'imgStyle' | 'imgShape'>) => (n.imgStyle === 'round' || n.imgShape ? 1 : Math.min(2.6, Math.max(0.4, n.ar ?? 1)));
 
 /** shapes that can be pulled wider / taller on one side (the others have their own free size or keep their proportions) */
 export const STRETCHABLE = (n: MMNode) => !['draw', 'doodle', 'image', 'sticker', 'maplink', 'frame'].includes(n.shape) && !BLOCK_SHAPES.has(n.shape);
@@ -996,7 +1002,8 @@ export function validatePayload(x: unknown): SharedMapPayload | null {
       pts: Array.isArray(r.pts) && r.pts.length <= 4000 && r.pts.every((v) => typeof v === 'number' && Number.isFinite(v) && Math.abs(v) < 1e5) ? (r.pts as number[]).map((v) => Math.round(v * 10) / 10) : undefined,
       pen: oneOf(r.pen, PENS.map((x) => x.id)),
       doodle: typeof r.doodle === 'string' && doodleIds.has(r.doodle) ? r.doodle : undefined,
-      imgStyle: oneOf(r.imgStyle, ['polaroid', 'plain', 'round', 'rounded'] as const),
+      imgStyle: oneOf(r.imgStyle, ['polaroid', 'plain', 'round', 'rounded', 'tape'] as const),
+      imgShape: oneOf(r.imgShape, ['circle', 'heart', 'star', 'cloud', 'hexagon', 'diamond', 'triangle', 'octagon', 'bubble', 'pentagon'] as const),
       round: typeof r.round === 'boolean' ? r.round : undefined,
       fc: colorOpt(r.fc),
       bc: colorOpt(r.bc),

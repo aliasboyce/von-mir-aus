@@ -46,7 +46,8 @@ import { PROTECTION_TO_NEEDS_DE } from './protectionToNeeds';
 import { findSimilarPastEntry } from './zugangPatterns';
 import { AccessGapModal } from './AccessGapModal';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';
-import { polyvagalRepo } from '../polyvagal/polyvagalRepo';
+import { polyvagalRepo, setCheckInNote } from '../polyvagal/polyvagalRepo';
+import { CheckInNote } from '../polyvagal/CheckInNote';
 import { tensionRepo } from '../polyvagal/tensionRepo';
 import { gardenRepo } from '../garden/gardenRepo';
 import { useSettings } from '../../state/SettingsContext';
@@ -244,12 +245,35 @@ export function ZugangPage() {
   }
 
   const [noState, setNoState] = useState(false);
+  // wer die Auswahl innerhalb von 90 Sekunden ändert, ändert den Wert – kein zweiter Eintrag; die Notiz hängt an diesem Wert
+  const lastCheck = useRef<{ pv: string; tension: string; at: number } | null>(null);
+  const [checkNote, setCheckNote] = useState('');
+  function saveCheck(zone: PolyvagalZone, state?: ZugangSurvivalState) {
+    const nowMs = Date.now();
+    const prev = lastCheck.current;
+    if (prev && nowMs - prev.at < 90_000 && polyvagalRepo.getById(prev.pv)) {
+      polyvagalRepo.save({ ...polyvagalRepo.getById(prev.pv)!, zone, survivalState: state, tensionValue });
+      const tr = tensionRepo.getById(prev.tension);
+      if (tr) tensionRepo.save({ ...tr, value: tensionValue, survivalState: state });
+      lastCheck.current = { ...prev, at: nowMs };
+      return;
+    }
+    const at = new Date(nowMs).toISOString();
+    const pv = createId('pv');
+    const tn = createId('tension');
+    polyvagalRepo.save({ id: pv, createdAt: at, zone, survivalState: state, tensionValue });
+    tensionRepo.save({ id: tn, createdAt: at, value: tensionValue, survivalState: state });
+    lastCheck.current = { pv, tension: tn, at: nowMs };
+    setCheckNote('');
+  }
+  function changeCheckNote(v: string) {
+    setCheckNote(v);
+    if (lastCheck.current) setCheckInNote(lastCheck.current.pv, v);
+  }
   function chooseNoState(zone: PolyvagalZone) {
     setSurvivalState(null);
     setNoState(true);
-    const at = new Date().toISOString();
-    polyvagalRepo.save({ id: createId('pv'), createdAt: at, zone, tensionValue });
-    tensionRepo.save({ id: createId('tension'), createdAt: at, value: tensionValue });
+    saveCheck(zone);
   }
   function chooseSurvivalState(state: ZugangSurvivalState) {
     setNoState(false);
@@ -261,8 +285,7 @@ export function ZugangPage() {
     // the ladder's own raw value (set in the same interaction, see the
     // NervousSystemLadderSlider above), so it's included here too
     // instead of leaving this particular PolyvagalCheckIn without one.
-    polyvagalRepo.save({ id: createId('pv'), createdAt: new Date().toISOString(), zone: SURVIVAL_TO_POLYVAGAL_ZONE[state], survivalState: state, tensionValue });
-    tensionRepo.save({ id: createId('tension'), createdAt: new Date().toISOString(), value: tensionValue, survivalState: state });
+    saveCheck(SURVIVAL_TO_POLYVAGAL_ZONE[state], state);
   }
 
   function offerGardenIfRelevant(strategies: string[]) {
@@ -683,6 +706,7 @@ export function ZugangPage() {
               value={tensionValue}
               onValueChange={setTensionValue}
             />
+            {(survivalState || noState) && <CheckInNote value={checkNote} onChange={changeCheckNote} />}
             <Link to="/entdecken/nervensystem" className="text-[12px] text-[var(--color-primary)] block mt-4 hit44">
               {t.zugang.nervousSystemRefLink}
             </Link>

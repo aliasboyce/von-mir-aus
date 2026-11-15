@@ -2,12 +2,14 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { PageStar } from '../../components/ui/PageStar';
 import { deleteVersionsOf, saveVersion, versionsOf, type MapVersion } from './mindmapVersions';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, ChevronLeft, CornerDownRight, Copy, CopyPlus, Ellipsis, MoreHorizontal, ExternalLink, FileDown, FolderTree, History, Image as ImageIcon, Layers, ListChecks, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload, ChevronUp, ChevronRight, PanelBottom, PanelLeft } from 'lucide-react';
+import { LayoutTemplate, Star, Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, ChevronLeft, CornerDownRight, Copy, CopyPlus, Ellipsis, MoreHorizontal, ExternalLink, FileDown, FolderTree, History, Image as ImageIcon, Layers, ListChecks, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload, ChevronUp, ChevronRight, PanelBottom, PanelLeft } from 'lucide-react';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { useCamera } from '../../components/canvas/useCamera';
 import { useSettings } from '../../state/SettingsContext';
 import { useRegisterExternalModalOpen, useRegisterModalOpen } from '../../state/ModalStackContext';
 import { Modal } from '../../components/ui/Modal';
+import { PaperLayer } from '../scrapbook/ScrapPageView';
+import { PAGE_BOUNDS, PAPERS, scrapPagesRepo, scrapStickersRepo, scrapLayoutsRepo, removePage, spreadOfPage, addPage as addScrapPage, bookById, type SavedSticker } from '../scrapbook/scrapModel';
 import { goBack } from '../../services/navigation';
 import { triggerPrint } from '../../services/printSupport';
 import { playSound } from '../../services/sounds';
@@ -66,6 +68,8 @@ import { refreshSnaps, routeOfRef } from './appRefs';
 import { DoodlePickerModal, MapPickModal, NameModal, PenBar, type PenState } from './MindmapTools';
 import { MindmapPrintView } from './MindmapPrintView';
 import { mindmapPrintImages, mindmapSnapshotPng } from './mindmapSnapshot';
+import { deliverPdf, safeFilename } from '../../services/pdf/pdfShare';
+import { buildScrapPdf, scrapPagePng } from '../scrapbook/scrapPdf';
 import { deliverImage, stamp } from '../../services/snapshot';
 import { mindmapTexts } from './mindmapTexts';
 import { fmt, xt } from './mindmapExtraTexts';
@@ -96,23 +100,23 @@ const rotPt = (n: { x: number; y: number; rot?: number }, lx: number, ly: number
 };
 const hasText = (n: MMNode) => n.shape !== 'draw' && !isBlock(n) && (n.shape !== 'doodle' || !!doodleOf(n.doodle).text);
 
-export function MindmapEditorPage() {
+export function MindmapEditorPage({ pageMode = false }: { pageMode?: boolean }) {
   const { id } = useParams();
   const T0 = mindmapTexts(useSettings().settings.language);
-  const initial = useMemo(() => (id ? mindmapRepo.getById(id) : undefined), [id]);
+  const initial = useMemo(() => (id ? (pageMode ? scrapPagesRepo : mindmapRepo).getById(id) : undefined), [id, pageMode]);
   const navigate = useNavigate();
   if (!initial) {
     return (
       <div className="px-5 py-10 text-center">
         <p className="text-[15px] text-[var(--color-text-muted)] mb-4">{T0.notFound}</p>
-        <button type="button" className="text-[var(--color-primary)] underline" onClick={() => navigate('/entdecken/mindmap', { replace: true })}>{T0.toList}</button>
+        <button type="button" className="text-[var(--color-primary)] underline" onClick={() => navigate(pageMode ? '/scrapbook' : '/entdecken/mindmap', { replace: true })}>{pageMode ? 'Zum Regal' : T0.toList}</button>
       </div>
     );
   }
-  return <Editor key={initial.id} initial={initial} />;
+  return <Editor key={initial.id} initial={initial} pageMode={pageMode} />;
 }
 
-function Editor({ initial }: { initial: MindMap }) {
+function Editor({ initial, pageMode }: { initial: MindMap; pageMode: boolean }) {
   const { settings } = useSettings();
   const lang = settings.language === 'en' ? 'en' : 'de';
   const T = mindmapTexts(lang);
@@ -121,6 +125,14 @@ function Editor({ initial }: { initial: MindMap }) {
   /** opened from a diary entry → one tap leads back to exactly that entry */
   const fromDiary = (useLocation().state as { fromDiary?: string } | null)?.fromDiary;
   const backToDiary = () => navigate(`/sicherheit/tagebuch?entry=${fromDiary}`, { replace: true });
+  /** Scrapbook-Seite: Speicher der Seiten + zurück ins aufgeschlagene Buch (auf die Doppelseite dieser Seite) */
+  const repo = pageMode ? scrapPagesRepo : mindmapRepo;
+  const backToBook = () => {
+    const b = bookById(initial.bookId);
+    const idx = b ? b.pageIds.indexOf(initial.id) : -1;
+    navigate(b ? `/scrapbook/${b.id}?s=${idx >= 0 ? spreadOfPage(idx) : 0}` : '/scrapbook', { replace: true });
+  };
+  const leave = () => { if (pageMode) backToBook(); else if (fromDiary) backToDiary(); else goBack(navigate, '/entdecken/mindmap'); };
   useRegisterModalOpen(true);
   useRegisterExternalModalOpen(true);
 
@@ -240,19 +252,40 @@ function Editor({ initial }: { initial: MindMap }) {
   useEffect(() => {
     if (camStarted.current || !box.w) return;
     camStarted.current = true;
+    if (pageMode) { cam.fit(PAGE_BOUNDS, 18); return; }
     if (initial.view) return;
     if (initial.nodes.length) cam.fit(mapBounds(initial), 56);
     else cam.setView({ scale: 1, tx: box.w / 2, ty: box.h / 2 - 40 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [box.w]);
 
+  // ---- mit zwei Fingern rauszoomen = zurück (Scrapbook-Seite → Buch, Mindmap aus dem Tagebuch → Eintrag) ----
+  const outRef = useRef<{ start: number } | null>(null);
+  useEffect(() => {
+    if (!(pageMode || fromDiary) || !box.w) return;
+    const b = pageMode ? PAGE_BOUNDS : mapBounds(mapRef.current);
+    const fit = Math.min((box.w - 56) / Math.max(1, b.maxX - b.minX), (box.h - 56) / Math.max(1, b.maxY - b.minY));
+    const limit = Math.max(fit * 0.58, 0.14);
+    if (cam.gesturing) {
+      if (!outRef.current) outRef.current = { start: cam.view.scale };
+      return;
+    }
+    const g = outRef.current;
+    outRef.current = null;
+    if (g && g.start >= limit * 1.02 && cam.view.scale < limit) {
+      flush();
+      leave();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cam.gesturing]);
+
   // ---- persistence ----
   const flush = useCallback(() => {
     window.clearTimeout(saveTimer.current);
     const m = mapRef.current;
     if (goneRef.current) return;
-    mindmapRepo.save({ ...m, updatedAt: new Date().toISOString(), view: camRef.current?.view });
-  }, []);
+    repo.save({ ...m, updatedAt: new Date().toISOString(), view: camRef.current?.view });
+  }, [repo]);
   const scheduleSave = useCallback(() => {
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(flush, 350);
@@ -359,7 +392,7 @@ function Editor({ initial }: { initial: MindMap }) {
     window.setTimeout(() => setToast((t) => (t === msg ? '' : t)), 2600);
   };
   const feedback = (kind: 'select' | 'settle' | 'close') => {
-    playSound(kind, settings);
+    playSound(pageMode && kind === 'select' ? 'stick' : kind, settings);
     triggerHaptic(kind === 'close' ? 'tap' : kind, settings);
   };
   const spark = (x: number, y: number) => {
@@ -591,6 +624,40 @@ function Editor({ initial }: { initial: MindMap }) {
     feedback('select');
     say(fmt(X.pasted, { n: inst.nodes.length }));
   }
+  /** Scrapbook: Auswahl als „Sticker“ merken (mit Foto, Text, Tesa … zusammen) und später wieder einfügen */
+  const [myStickers, setMyStickers] = useState<SavedSticker[]>(() => (pageMode ? scrapStickersRepo.getAll() : []));
+  function saveAsSticker() {
+    if (!selIds.length) return;
+    const part = copyOf(mapRef.current, selIds);
+    const b = selectionBounds(part.nodes);
+    const cx = (b.minX + b.maxX) / 2;
+    const cy = (b.minY + b.maxY) / 2;
+    const first = part.nodes.find((n) => n.text.trim());
+    const name = (first?.text.trim().split('\n')[0].slice(0, 28)) || (lang === 'en' ? `Sticker ${myStickers.length + 1}` : `Sticker ${myStickers.length + 1}`);
+    const st: SavedSticker = { id: createId('scs'), name, nodes: part.nodes.map((n) => ({ ...n, x: Math.round(n.x - cx), y: Math.round(n.y - cy), grp: n.grp })), w: b.maxX - b.minX, h: b.maxY - b.minY, createdAt: new Date().toISOString() };
+    scrapStickersRepo.save(st);
+    setMyStickers(scrapStickersRepo.getAll());
+    feedback('select');
+    say(lang === 'en' ? 'Kept – you find it under Add → Scrapbook → My stickers.' : 'Gemerkt – du findest ihn unter Hinzufügen → Scrapbook → Meine Sticker.');
+  }
+  function insertSticker(st: SavedSticker) {
+    const centre = viewCentre();
+    const inst = instantiate({ nodes: st.nodes, edges: [] }, { dx: centre.x, dy: centre.y });
+    commit((m) => ({ ...m, nodes: [...m.nodes, ...inst.nodes] }));
+    inst.nodes.forEach((n) => markPop(n.id));
+    spark(centre.x, centre.y);
+    setSel({ kind: 'node', id: inst.nodes[0].id });
+    setExtra(inst.nodes.slice(1).map((n) => n.id));
+    setInsertOpen(false);
+    feedback('select');
+  }
+  /** Scrapbook: diese Seite als Layout (Vorlage) merken – ohne die Fotos, damit sie wiederverwendbar ist */
+  function saveAsLayout() {
+    const m = mapRef.current;
+    const keep = m.nodes.filter((n) => !(n.shape === 'image' && n.img));
+    scrapLayoutsRepo.save({ id: createId('scl'), name: m.title || (lang === 'en' ? 'My layout' : 'Mein Layout'), nodes: JSON.parse(JSON.stringify(keep)), bg: { kind: m.bg.kind, tone: m.bg.tone, aged: m.bg.aged }, createdAt: new Date().toISOString() });
+    say(lang === 'en' ? 'Layout kept (without the photos). Choose it when you add a new page.' : 'Layout gemerkt (ohne die Fotos). Du kannst es beim Anlegen einer neuen Seite wählen.');
+  }
   function duplicateSelected() {
     if (!selIds.length) return;
     const part = copyOf(mapRef.current, selIds);
@@ -781,6 +848,7 @@ function Editor({ initial }: { initial: MindMap }) {
     clearSelection();
     setTextEdit(null);
     setStyleOpen(false);
+    if (pageMode) playSound('peel', settings);
     feedback('close');
     if (!silent) say(T.removed);
   }
@@ -894,7 +962,25 @@ function Editor({ initial }: { initial: MindMap }) {
       navigate(`/entdecken/mindmap/${n.mapId}`);
     } else say(X.mapMissing);
   }
-  const parentMap = map.parentId ? mindmapRepo.getById(map.parentId) : undefined;
+  const parentMap = map.parentId && !pageMode ? mindmapRepo.getById(map.parentId) : undefined;
+  /** Scrapbook: Seite doppeln (direkt dahinter) / löschen */
+  function duplicatePage() {
+    flush();
+    const b = bookById(mapRef.current.bookId);
+    if (!b) return;
+    const at = b.pageIds.indexOf(mapRef.current.id) + 1;
+    const copy = addScrapPage(b, { at, nodes: mapRef.current.nodes });
+    scrapPagesRepo.save({ ...copy, bg: { ...mapRef.current.bg }, day: mapRef.current.day, title: mapRef.current.title });
+    say(lang === 'en' ? 'Page copied – it sits right behind this one.' : 'Seite kopiert – sie liegt direkt dahinter.');
+  }
+  function deletePage() {
+    if (!window.confirm(lang === 'en' ? 'Delete this page for good?' : 'Diese Seite endgültig löschen?')) return;
+    window.clearTimeout(saveTimer.current);
+    const b = bookById(mapRef.current.bookId);
+    goneRef.current = true;
+    if (b) removePage(b, mapRef.current.id);
+    backToBook();
+  }
   function archiveMap() {
     flush();
     mindmapRepo.save({ ...mapRef.current, updatedAt: new Date().toISOString(), view: camRef.current?.view, archived: true, archivedAt: new Date().toISOString() });
@@ -1402,6 +1488,13 @@ function Editor({ initial }: { initial: MindMap }) {
   const [snapMsg, setSnapMsg] = useState<string | null>(null);
   async function print() {
     flush();
+    if (pageMode) {
+      // eine Scrapbook-Seite = eine A4-Seite
+      const { bytes, failed } = await buildScrapPdf([mapRef.current]);
+      const r = await deliverPdf(bytes, safeFilename(mapRef.current.title || 'scrapbook-seite', 'scrapbook'), mapRef.current.title || 'Scrapbook');
+      if (r === 'failed' || failed) say(lang === 'en' ? 'The PDF could not be saved.' : 'Das PDF konnte nicht gespeichert werden.');
+      return;
+    }
     // the drawings become real pictures first, so they are on the page for sure
     let imgs: Awaited<ReturnType<typeof mindmapPrintImages>> | undefined;
     try {
@@ -1418,7 +1511,7 @@ function Editor({ initial }: { initial: MindMap }) {
   async function takeSnapshot() {
     flush();
     setMenuOpen(false);
-    const blob = await mindmapSnapshotPng(mapRef.current);
+    const blob = pageMode ? await scrapPagePng(mapRef.current) : await mindmapSnapshotPng(mapRef.current);
     let msg: string;
     if (!blob) msg = lang === 'en' ? 'The picture could not be made on this device.' : 'Das Bild ließ sich auf diesem Gerät nicht erstellen.';
     else {
@@ -1490,7 +1583,7 @@ function Editor({ initial }: { initial: MindMap }) {
   const ctlBtn = 'w-10 h-10 rounded-full bg-[var(--color-surface)] shadow-[var(--shadow-sm)] flex items-center justify-center text-[var(--color-text-muted)] disabled:opacity-40';
   const barBtn = (active = false) =>
     `flex flex-col items-center justify-center gap-0.5 min-w-[58px] py-2 px-2 rounded-[var(--radius-md)] text-[11.5px] shrink-0 ${active ? 'text-[var(--color-primary)] bg-[var(--color-primary-soft)]' : 'text-[var(--color-text-muted)]'}`;
-  const fitAll = () => cam.fit(mapBounds(mapRef.current), 56);
+  const fitAll = () => (pageMode ? cam.fit(PAGE_BOUNDS, 18) : cam.fit(mapBounds(mapRef.current), 56));
   const actions: StyleActions = {
     layer: layerSelected,
     rotateBy: rotateBySelected,
@@ -1528,7 +1621,7 @@ function Editor({ initial }: { initial: MindMap }) {
     <>
                 {!sel && tool !== 'multi' && (
                   <>
-                    <button type="button" onClick={addNode} className={barBtn()} data-testid="mm-add-node"><Plus size={20} />{T.addNode}</button>
+                    {!pageMode && <button type="button" onClick={addNode} className={barBtn()} data-testid="mm-add-node"><Plus size={20} />{T.addNode}</button>}
                     <button type="button" onClick={addFreeText} className={barBtn()} data-testid="mm-add-text"><Type size={19} />{X.addText}</button>
                     <button type="button" onClick={addNote} className={barBtn()} data-testid="mm-add-note"><StickyNote size={19} />{T.addNote}</button>
                     {clipNow && clipNow.nodes.length > 0 && (
@@ -1536,7 +1629,7 @@ function Editor({ initial }: { initial: MindMap }) {
                     )}
                     <button type="button" onClick={() => openAdd()} className={barBtn()} data-testid="mm-add-more"><ListChecks size={19} />{lang === 'en' ? 'Add …' : 'Hinzufügen …'}</button>
                     <button type="button" onClick={() => { setTool('multi'); setConnectFrom(null); }} className={barBtn()} data-testid="mm-multi"><BoxSelect size={19} />{X.multi}</button>
-                    <button type="button" onClick={() => { setTool(tool === 'connect' ? 'select' : 'connect'); setConnectFrom(null); }} className={barBtn(tool === 'connect')} data-testid="mm-connect"><Spline size={19} />{T.connect}</button>
+                    {!pageMode && <button type="button" onClick={() => { setTool(tool === 'connect' ? 'select' : 'connect'); setConnectFrom(null); }} className={barBtn(tool === 'connect')} data-testid="mm-connect"><Spline size={19} />{T.connect}</button>}
                     {moreBtnBar()}
                   </>
                 )}
@@ -1557,9 +1650,10 @@ function Editor({ initial }: { initial: MindMap }) {
                     <button type="button" onClick={() => { setStyleOpen((v) => !v); setLayersOpen(false); setQuickOpen(false); }} className={barBtn(styleOpen)} data-testid="mm-style"><Palette size={19} />{T.style}</button>
                     {selNode.shape === 'appcard' && <button type="button" onClick={() => openRef(selNode)} className={barBtn()} data-testid="mm-ref-open-btn"><ExternalLink size={19} />{lang === 'en' ? 'Open original' : 'Original öffnen'}</button>}
                     {selNode.shape === 'maplink' && <button type="button" onClick={() => openLinked(selNode)} className={barBtn()} data-testid="mm-open-map"><ExternalLink size={19} />{X.openMap}</button>}
-                    {selNode.shape !== 'frame' && selNode.shape !== 'draw' && <button type="button" onClick={() => addChild(selNode)} className={barBtn()} data-testid="mm-add-child"><CornerDownRight size={19} />{T.child}</button>}
+                    {!pageMode && selNode.shape !== 'frame' && selNode.shape !== 'draw' && <button type="button" onClick={() => addChild(selNode)} className={barBtn()} data-testid="mm-add-child"><CornerDownRight size={19} />{T.child}</button>}
                     {selNode.shape !== 'draw' && <button type="button" onClick={() => { setTool('connect'); setConnectFrom(selNode.id); }} className={barBtn()} data-testid="mm-connect-from"><Spline size={19} />{T.connect}</button>}
                     {moreBtnBar()}
+                    {pageMode && <button type="button" onClick={saveAsSticker} className={barBtn()} data-testid="mm-save-sticker"><Star size={19} />{lang === 'en' ? 'Keep as sticker' : 'Als Sticker merken'}</button>}
                     <button type="button" onClick={() => removeSelected()} className={`${barBtn()} !text-[var(--color-danger)]`} data-testid="mm-remove"><Trash2 size={18} />{T.remove}</button>
                   </>
                 )}
@@ -1587,8 +1681,8 @@ function Editor({ initial }: { initial: MindMap }) {
   return (
     <MapColorsContext.Provider value={mapColors}>
     <MapPhotosContext.Provider value={mapPhotos}>
-      <div className={`fixed inset-0 z-[150] no-print select-none ${animOn ? '' : 'mm-paused'}`} style={{ background: bgCss(map.bg.tone) }} data-has-bgimg={map.bg.img ? 'true' : undefined} data-testid="mindmap-editor" data-tool={tool} data-anim={animate ? 'on' : 'off'}>
-        {map.bg.img && (
+      <div className={`fixed inset-0 z-[150] no-print select-none ${animOn ? '' : 'mm-paused'}`} style={pageMode ? { background: 'radial-gradient(ellipse at 50% 30%, #8a7152 0%, #6a5439 60%, #4c3b28 100%)' } : { background: bgCss(map.bg.tone) }} data-has-bgimg={map.bg.img && !pageMode ? 'true' : undefined} data-pagemode={pageMode ? 'true' : undefined} data-testid="mindmap-editor" data-tool={tool} data-anim={animate ? 'on' : 'off'}>
+        {map.bg.img && !pageMode && (
           <>
             <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: `url(${map.bg.img})`, backgroundSize: 'cover', backgroundPosition: 'center' }} data-testid="mm-bgimg" />
             {(map.bg.imgDim ?? 0) > 0 && <div className="absolute inset-0 pointer-events-none" style={{ background: bgColor(map.bg.tone), opacity: map.bg.imgDim }} />}
@@ -1600,7 +1694,15 @@ function Editor({ initial }: { initial: MindMap }) {
             <SceneProvider uid={uid} resolveMap={resolveMap}>
               <SceneDefs uid={uid} />
               <g transform={`translate(${view.tx},${view.ty}) scale(${view.scale})`}>
-                {!map.bg.img && <BackgroundPattern kind={map.bg.kind} dark={dark} uid={uid} />}
+                {pageMode ? (
+                  <>
+                    <rect x={PAGE_BOUNDS.minX + 6} y={PAGE_BOUNDS.minY + 10} width={PAGE_BOUNDS.maxX - PAGE_BOUNDS.minX} height={PAGE_BOUNDS.maxY - PAGE_BOUNDS.minY} fill="rgba(20,12,4,.38)" filter={`url(#${uid}-pshadow)`} />
+                    <defs><filter id={`${uid}-pshadow`} x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="9" /></filter></defs>
+                    <PaperLayer bg={map.bg} uid={uid} />
+                  </>
+                ) : (
+                  !map.bg.img && <BackgroundPattern kind={map.bg.kind} dark={dark} uid={uid} />
+                )}
                 <g style={{ pointerEvents: drawing ? 'none' : undefined }}>
                   {items.map((it) => {
                     if (it.kind === 'edge') {
@@ -1745,15 +1847,15 @@ function Editor({ initial }: { initial: MindMap }) {
           </button>
         )}
 
-        <SlipsOnMap mapId={map.id} lang={lang} top={`calc(max(10px, env(safe-area-inset-top)) + ${fromDiary ? 100 : 54}px)`} />
+        {!pageMode && <SlipsOnMap mapId={map.id} lang={lang} top={`calc(max(10px, env(safe-area-inset-top)) + ${fromDiary ? 100 : 54}px)`} />}
 
         {/* top bar */}
         <div className="absolute left-0 right-0 top-0 flex items-center gap-2 px-3" style={{ paddingTop: 'max(10px, env(safe-area-inset-top))' }}>
-          <button type="button" onClick={() => { flush(); if (fromDiary) backToDiary(); else goBack(navigate, '/entdecken/mindmap'); }} aria-label={fromDiary ? (lang === 'en' ? 'Back to the diary entry' : 'Zurück zum Tagebucheintrag') : T.back} className={ctlBtn} data-testid="mm-back"><ChevronLeft size={20} /></button>
+          <button type="button" onClick={() => { flush(); leave(); }} aria-label={pageMode ? (lang === 'en' ? 'Back to the book' : 'Zurück ins Buch') : fromDiary ? (lang === 'en' ? 'Back to the diary entry' : 'Zurück zum Tagebucheintrag') : T.back} className={ctlBtn} data-testid="mm-back"><ChevronLeft size={20} /></button>
           <input
             value={map.title}
             onChange={(e) => commit((m) => ({ ...m, title: e.target.value }), 'title')}
-            placeholder={T.titlePh}
+            placeholder={pageMode ? (lang === 'en' ? 'Page title (optional)' : 'Titel der Seite (optional)') : T.titlePh}
             aria-label={T.titlePh}
             data-testid="mm-title"
             className="flex-1 min-w-0 h-10 rounded-full px-4 text-[15px] outline-none bg-[var(--color-surface)] shadow-[var(--shadow-sm)] text-[var(--color-text)]"
@@ -1783,9 +1885,10 @@ function Editor({ initial }: { initial: MindMap }) {
               { id: 'pdf', icon: <FileDown size={16} />, label: T.pdf, run: () => void print() },
               { id: 'share', icon: <Share2 size={16} />, label: T.share, run: () => void shareLink() },
               { id: 'file', icon: <Download size={16} />, label: T.shareFile, run: () => void shareFile() },
-              { id: 'dup', icon: <Copy size={16} />, label: T.duplicateMap, run: duplicateMap },
-              { id: 'archive', icon: <Archive size={16} />, label: X.menuArchive, run: archiveMap },
-              { id: 'del', icon: <Trash2 size={16} />, label: T.deleteMap, run: deleteMap, danger: true },
+              ...(pageMode ? [{ id: 'layout', icon: <LayoutTemplate size={16} />, label: lang === 'en' ? 'Keep page as a layout' : 'Seite als Layout merken', run: saveAsLayout }] : []),
+              { id: 'dup', icon: <Copy size={16} />, label: pageMode ? (lang === 'en' ? 'Copy this page' : 'Seite kopieren') : T.duplicateMap, run: pageMode ? duplicatePage : duplicateMap },
+              ...(pageMode ? [] : [{ id: 'archive', icon: <Archive size={16} />, label: X.menuArchive, run: archiveMap }]),
+              { id: 'del', icon: <Trash2 size={16} />, label: pageMode ? (lang === 'en' ? 'Delete this page' : 'Seite löschen') : T.deleteMap, run: pageMode ? deletePage : deleteMap, danger: true },
             ].map((it) => (
               <button key={it.id} type="button" onClick={() => { setMenuOpen(false); it.run(); }} className={`w-full flex items-center gap-3 px-4 py-2.5 text-[14px] text-left ${'danger' in it && it.danger ? 'text-[var(--color-danger)]' : 'text-[var(--color-text)]'}`} data-testid={`mm-menu-${it.id}`}>
                 {it.icon}
@@ -1845,7 +1948,7 @@ function Editor({ initial }: { initial: MindMap }) {
             {drawing ? (pen.erase ? X.eraseHint : X.penHint) : X.multiHint}
           </p>
         )}
-        {selNode && !multiSel && !drawing && !textEdit && !layersOpen && (
+        {!pageMode && selNode && !multiSel && !drawing && !textEdit && !layersOpen && (
           <MemoWindow key={selNode.id} node={selNode} lang={lang} top="calc(max(10px, env(safe-area-inset-top)) + 214px)" onChange={(memo) => patchNode(selNode.id, { memo }, `memo:${selNode.id}`)} />
         )}
         {toast && <p className="absolute left-1/2 -translate-x-1/2 bottom-28 text-[13px] px-4 py-2 rounded-full bg-[var(--color-text)] text-[var(--color-bg)] shadow-[var(--shadow-md)] z-10" role="status">{toast}</p>}
@@ -1961,6 +2064,7 @@ function Editor({ initial }: { initial: MindMap }) {
         clipCount={clipNow?.nodes.length ?? 0}
         onPasteClip={() => pasteClip()}
         pasting={pasting}
+        scrap={pageMode ? { stickers: myStickers, onSticker: insertSticker, onDeleteSticker: (id) => { scrapStickersRepo.remove(id); setMyStickers(scrapStickersRepo.getAll()); } } : undefined}
       />
       <MindmapBlockEditor node={blockEdit ? byId.get(blockEdit) : undefined} lang={lang} onClose={() => setBlockEdit(null)} onPatch={(patch) => blockEdit && patchNode(blockEdit, patch, `block:${blockEdit}`)} />
       <VersionsModal
@@ -2008,6 +2112,22 @@ function Editor({ initial }: { initial: MindMap }) {
       <input ref={bgPhotoInput} type="file" accept="image/*" className="hidden" data-testid="mm-bgimg-input" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void resizeImageFile(f, 1600, 0.78).then((url) => commit((m) => ({ ...m, bg: { ...m.bg, img: url, imgDim: m.bg.imgDim ?? 0.35 } }))).catch(() => {}); }} />
       <Modal open={bgOpen} onClose={() => setBgOpen(false)} title={T.background}>
         <div className="flex flex-col gap-4" data-testid="mm-bg-modal">
+          {pageMode && (
+            <div>
+              <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{lang === 'en' ? 'Paper' : 'Papier'}</p>
+              <div className="flex gap-2 flex-wrap" data-testid="mm-papers">
+                {PAPERS.map((pp) => (
+                  <button key={pp.id} type="button" onClick={() => commit((m) => ({ ...m, bg: { ...m.bg, kind: pp.kind, tone: pp.tone, aged: pp.aged, img: undefined } }))} className="px-4 py-2 rounded-full text-[13.5px] border border-[var(--color-border-strong)] text-[var(--color-text)]" data-testid={`mm-paper-${pp.id}`}>
+                    {lang === 'en' ? pp.en : pp.de}
+                  </button>
+                ))}
+              </div>
+              <label className="flex items-center gap-2.5 mt-3 text-[14px] text-[var(--color-text)]">
+                <input type="checkbox" checked={!!map.bg.aged} onChange={(e) => commit((m) => ({ ...m, bg: { ...m.bg, aged: e.target.checked } }))} data-testid="mm-aged" />
+                {lang === 'en' ? 'Vintage look (aged edges, grain)' : 'Vintage-Look (gealterte Ränder, Körnung)'}
+              </label>
+            </div>
+          )}
           <div>
             <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{X.bgPattern}</p>
             <div className="flex gap-2 flex-wrap">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { createPortal } from 'react-dom';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -13,12 +13,14 @@ import { ChartPrintView } from './ChartPrintView';
 import { exportCurvePdf } from '../reviews/curvePdf';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
-import { polyvagalRepo, todaysCheckIns, checkInsInLastDays } from './polyvagalRepo';
+import { polyvagalRepo, todaysCheckIns, checkInsInLastDays, setCheckInNote } from './polyvagalRepo';
 import { NervousSystemLadder } from './NervousSystemLadder';
 import { NervousSystemLadderSlider } from './NervousSystemLadderSlider';
 import { ArousalModelExplainer } from './ArousalModelExplainer';
 import { ReflectionModal } from './ReflectionModal';
 import { PolyvagalDayChart } from './PolyvagalDayChart';
+import { CheckInNote } from './CheckInNote';
+import { CheckInRows } from './CheckInRows';
 import { describeDay } from './describeDay';
 import { tensionRepo } from './tensionRepo';
 import { diaryRepo } from '../diary/diaryRepo';
@@ -119,23 +121,51 @@ export function PolyvagalPage() {
   const [justSaved, setJustSaved] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [savedToDiary, setSavedToDiary] = useState(false);
+  const [showAllRows, setShowAllRows] = useState(false);
   const [openSection, setOpenSection] = useState<ExplainerSection | null>(null);
 
   const dayDescription = describeDay(checkIns, t);
 
-  function logZone(zone: PolyvagalZone, survivalState?: ZugangSurvivalState) {
-    const now = new Date().toISOString();
-    polyvagalRepo.save({ id: createId('pv'), createdAt: now, zone, survivalState, tensionValue });
-    // "Status-Niveau/Anspannung vereinen"-Auftrag — the separate "Meine
-    // Spannung" section (its own add-entry flow + two extra charts) is
-    // gone, but DailyReview still reads tensionRepo for its own daily
-    // summary — this keeps that fed from the one unified slider
-    // instead of a second, now-removed manual entry point.
-    tensionRepo.save({ id: createId('tension'), createdAt: now, value: tensionValue, survivalState });
+  // wer innerhalb von 90 Sekunden die Auswahl ändert, ändert den Wert – es entsteht kein zweiter Eintrag
+  const lastSaved = useRef<{ pv: string; tension: string; at: number } | null>(null);
+  const [noteDraft, setNoteDraft] = useState('');
+  const [lastId, setLastId] = useState<string | null>(null);
+
+  function refresh() {
     setCheckIns(todaysCheckIns());
+  }
+
+  function logZone(zone: PolyvagalZone, survivalState?: ZugangSurvivalState) {
+    const nowMs = Date.now();
+    const now = new Date(nowMs).toISOString();
+    const prev = lastSaved.current;
+    const reuse = prev && nowMs - prev.at < 90_000 && polyvagalRepo.getById(prev.pv);
+    if (reuse && prev) {
+      const old = polyvagalRepo.getById(prev.pv)!;
+      polyvagalRepo.save({ ...old, zone, survivalState, tensionValue });
+      const t = tensionRepo.getById(prev.tension);
+      if (t) tensionRepo.save({ ...t, value: tensionValue, survivalState });
+      lastSaved.current = { ...prev, at: nowMs };
+    } else {
+      const pvId = createId('pv');
+      const tId = createId('tension');
+      polyvagalRepo.save({ id: pvId, createdAt: now, zone, survivalState, tensionValue });
+      // „Status-Niveau/Anspannung vereinen“: DailyReview liest weiterhin tensionRepo – gespeist aus dem einen Regler
+      tensionRepo.save({ id: tId, createdAt: now, value: tensionValue, survivalState });
+      lastSaved.current = { pv: pvId, tension: tId, at: nowMs };
+      setLastId(pvId);
+      setNoteDraft('');
+    }
+    refresh();
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 1800);
     say(pickLine({ page: '/entdecken/tageskurve', trigger: 'tageskurve' }), { joy: true });
+  }
+
+  function changeNote(v: string) {
+    setNoteDraft(v);
+    if (lastId) setCheckInNote(lastId, v);
+    refresh();
   }
 
   function saveCurveToDiary() {
@@ -159,47 +189,9 @@ export function PolyvagalPage() {
         <h1 className="text-[24px] mb-1">{t.polyvagal.title}</h1>
         <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.polyvagal.subtitle}</p>
 
-        {/* ================= Interactive state ladder + check-in ================= */}
-        <Card padding="lg" className="mb-3">
-          <p className="text-[14px] text-[var(--color-text)] mt-1 mb-4 text-center">{t.polyvagal.quickPrompt}</p>
-
-          {/* "Status-Niveau/Anspannung vereinen"-Auftrag — the ladder's
-           * own raw 0-100 value now IS tensionValue directly (passed
-           * in/out below), instead of asking a separate "how tense are
-           * you" question with its own independent number right above
-           * this. One slider, one number, everywhere it's asked. */}
-          <ArousalModelExplainer />
-          <NervousSystemLadderSlider
-            onSelect={logZone}
-            selectedState={checkIns[checkIns.length - 1]?.survivalState}
-            value={tensionValue}
-            onValueChange={setTensionValue}
-          />
-
-          {justSaved && (
-            <p className="text-[12px] text-[var(--color-primary)] text-center mt-4 animate-in">{t.polyvagal.saved}</p>
-          )}
-
-          <button
-            onClick={() => setShowLadderDetail((v) => !v)}
-            className="text-[12px] text-[var(--color-primary)] mt-4 mx-auto block hit44"
-          >
-            {showLadderDetail ? t.polyvagal.hideLadderDetailCta : t.polyvagal.showLadderDetailCta}
-          </button>
-          {showLadderDetail && (
-            <div className="mt-3 animate-in">
-              <NervousSystemLadder selected={checkIns[checkIns.length - 1]?.zone} expanded={expandedZoneParam} onExpandedChange={setExpandedZoneParam} />
-            </div>
-          )}
-        </Card>
-
-        <Link to="/entdecken/nervensystem" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-6 hit44">
-          🧠 {t.polyvagal.nervensystemPageLink}
-        </Link>
-
-        <Card padding="md" className="mb-6">
-          <ReminderControl compact />
-        </Card>
+        <Button fullWidth onClick={() => document.getElementById('eintragen')?.scrollIntoView({ behavior: settings.reduceMotion ? 'auto' : 'smooth', block: 'start' })} className="mb-5" data-testid="curve-enter-btn">
+          {settings.language === 'en' ? 'Enter a value now ↓' : 'Jetzt einen Wert eintragen ↓'}
+        </Button>
 
         <div className="flex items-center justify-between mb-3">
           <div className="flex gap-1.5">
@@ -225,13 +217,72 @@ export function PolyvagalPage() {
             <Maximize2 size={15} />
           </button>
         </div>
-        <Card padding="lg" className="mb-3">
-          <PolyvagalDayChart checkIns={chartCheckIns} period={chartPeriod} />
+        <Card padding="md" className="mb-4" data-testid="curve-chart">
+          <PolyvagalDayChart checkIns={chartCheckIns} period={chartPeriod} large />
         </Card>
+
+        {chartCheckIns.length > 0 && (
+          <div className="mb-5" data-testid="curve-values">
+            <p className="text-[13px] text-[var(--color-text-muted)] mb-2">{settings.language === 'en' ? 'Your values, with time and notes' : 'Deine Werte – mit Uhrzeit und Notiz'}</p>
+            <CheckInRows checkIns={chartPeriod === 'day' ? chartCheckIns : [...chartCheckIns].sort((x, y) => y.createdAt.localeCompare(x.createdAt)).slice(0, showAllRows ? 500 : 8)} showDate={chartPeriod !== 'day'} onChanged={refresh} />
+            {chartPeriod !== 'day' && chartCheckIns.length > 8 && (
+              <button type="button" onClick={() => setShowAllRows((v) => !v)} className="block mx-auto mt-2 min-h-[44px] px-3 text-[13px] text-[var(--color-primary)]">
+                {showAllRows ? (settings.language === 'en' ? 'Show fewer' : 'Weniger zeigen') : (settings.language === 'en' ? `Show all ${chartCheckIns.length}` : `Alle ${chartCheckIns.length} zeigen`)}
+              </button>
+            )}
+          </div>
+        )}
+        {chartCheckIns.length === 0 && (
+          <p className="text-[13.5px] text-[var(--color-text-muted)] text-center mb-5">{settings.language === 'en' ? 'No value yet in this period – the first one is just below.' : 'In diesem Zeitraum ist noch kein Wert – der erste lässt sich gleich unten eintragen.'}</p>
+        )}
 
         <Card className="mb-6">
           <p className="text-[14px] text-[var(--color-text)] leading-relaxed">{dayDescription}</p>
         </Card>
+
+        {/* ================= Interactive state ladder + check-in ================= */}
+        <Card padding="lg" className="mb-6" id="eintragen" data-testid="curve-enter">
+          <p className="text-[14px] text-[var(--color-text)] mt-1 mb-4 text-center">{t.polyvagal.quickPrompt}</p>
+
+          {/* "Status-Niveau/Anspannung vereinen"-Auftrag — the ladder's
+           * own raw 0-100 value now IS tensionValue directly (passed
+           * in/out below), instead of asking a separate "how tense are
+           * you" question with its own independent number right above
+           * this. One slider, one number, everywhere it's asked. */}
+          <ArousalModelExplainer />
+          <NervousSystemLadderSlider
+            onSelect={logZone}
+            selectedState={checkIns[checkIns.length - 1]?.survivalState}
+            value={tensionValue}
+            onValueChange={setTensionValue}
+          />
+
+          {justSaved && (
+            <p className="text-[12px] text-[var(--color-primary)] text-center mt-4 animate-in">{t.polyvagal.saved}</p>
+          )}
+          {lastId && polyvagalRepo.getById(lastId) && <CheckInNote key={lastId} value={noteDraft} onChange={changeNote} autoOpen />}
+
+          <button
+            onClick={() => setShowLadderDetail((v) => !v)}
+            className="text-[12px] text-[var(--color-primary)] mt-4 mx-auto block hit44"
+          >
+            {showLadderDetail ? t.polyvagal.hideLadderDetailCta : t.polyvagal.showLadderDetailCta}
+          </button>
+          {showLadderDetail && (
+            <div className="mt-3 animate-in">
+              <NervousSystemLadder selected={checkIns[checkIns.length - 1]?.zone} expanded={expandedZoneParam} onExpandedChange={setExpandedZoneParam} />
+            </div>
+          )}
+        </Card>
+
+        <Link to="/entdecken/nervensystem" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] mb-6 hit44">
+          🧠 {t.polyvagal.nervensystemPageLink}
+        </Link>
+
+        <Card padding="md" className="mb-6">
+          <ReminderControl compact />
+        </Card>
+
 
         <Button
           fullWidth

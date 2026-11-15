@@ -4,7 +4,7 @@ import { PALETTE_COLORS } from '../../content/emojiGroups';
 import { useL } from '../projects/useL';
 import { colorForKind, getPrefs, isFixedKindColor, patchPrefs } from './cardStore';
 import { COVER_COLORS, COVER_STYLES, getAlbumCover, patchAlbumCover, resetAlbumCover } from './albumCover';
-import { KIND_META, KIND_ORDER, type CardKind } from './cardTypes';
+import { KIND_META, kindLabel, KIND_ORDER, type CardKind } from './cardTypes';
 
 /** Farben der Kartenarten, Ton, Rückseiten beim Drucken. Die Farben gelten nur für das Album. */
 export function CardSettingsModal({ onClose }: { onClose: () => void }) {
@@ -34,7 +34,7 @@ export function CardSettingsModal({ onClose }: { onClose: () => void }) {
                 <button type="button" onClick={() => !isFixedKindColor(k) && setOpen(open === k ? null : k)} className="w-full flex items-center gap-3 px-3 py-2 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] text-left" aria-expanded={open === k}>
                   <span className="w-7 h-7 rounded-full flex-shrink-0" style={{ background: color, border: '2px solid rgba(0,0,0,0.12)' }} />
                   <span className="flex-1 text-[14px]">
-                    {KIND_META[k].emoji} {lang === 'en' ? KIND_META[k].en : KIND_META[k].de}
+                    {KIND_META[k].emoji} {kindLabel(k, lang === 'en' ? 'en' : 'de')}
                   </span>
                   {isFixedKindColor(k)
                     ? <span className="text-[11px] text-[var(--color-text-faint)]">{L('🔒 fest', '🔒 fixed')}</span>

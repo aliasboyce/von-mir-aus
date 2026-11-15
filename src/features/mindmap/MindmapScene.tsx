@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, type CSSProperties, type ReactNode,
 import { approxTextWidth } from '../../components/canvas/svgText';
 import { doodleOf } from './doodles';
 import { AppCardBody, ProsConsBody, TableBody, TodoBody } from './MindmapBlocksView';
-import { blobPath, bracketsPath, folderPath, isRoundShape, tornPath } from './mindmapShapes';
+import { blobPath, bracketsPath, folderPath, isRoundShape, shapePath as shapePathOf, tornPath } from './mindmapShapes';
 import { headShape, headsOf } from './mindmapRoutes';
 import {
   bgColor,
@@ -434,9 +434,15 @@ function ImageBody({ node, L, clipId }: { node: MMNode; L: ReturnType<typeof lay
   return (
     <>
       <clipPath id={`mmclip-${clipId}`}>
-        <rect x={x} y={y} width={w} height={h} rx={r} />
+        {node.imgShape ? <path d={shapePathOf(node.imgShape, w, h)} transform={`translate(${x + w / 2},${y + h / 2})`} /> : <rect x={x} y={y} width={w} height={h} rx={r} />}
       </clipPath>
       <image href={node.img} x={x} y={y} width={w} height={h} preserveAspectRatio="xMidYMid slice" clipPath={`url(#mmclip-${clipId})`} style={{ pointerEvents: 'none' }} />
+      {node.imgStyle === 'tape' && !node.imgShape && (
+        <g style={{ pointerEvents: 'none' }}>
+          <rect x={-L.w / 2 - 10} y={-L.h / 2 - 7} width={46} height={17} fill="#f3e3a8" fillOpacity={0.82} stroke="#e0cf8f" strokeWidth={0.6} transform={`rotate(-38 ${-L.w / 2 + 12} ${-L.h / 2 + 2})`} />
+          <rect x={L.w / 2 - 36} y={L.h / 2 - 10} width={46} height={17} fill="#f3e3a8" fillOpacity={0.82} stroke="#e0cf8f" strokeWidth={0.6} transform={`rotate(-38 ${L.w / 2 - 13} ${L.h / 2 - 1})`} />
+        </g>
+      )}
       <rect x={-L.w / 2} y={-L.h / 2} width={L.w} height={L.h} fill="transparent" />
     </>
   );

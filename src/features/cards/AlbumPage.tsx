@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Settings2, Printer, Moon, Star, Sparkles } from 'lucide-react';
+import { MemoryFamily } from '../../components/shared/MemoryFamily';
 import { TopBar } from '../../components/navigation/TopBar';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
@@ -15,7 +16,7 @@ import { ShareCardModal } from './ShareCardModal';
 import { downloadCardsPdf } from './cardPdf';
 import { playPageTurn, playSparkle, setAppSounds } from './cardSounds';
 import { CARD_H, CARD_W } from './cardRender';
-import { KIND_META, KIND_ORDER, type CardModel } from './cardTypes';
+import { KIND_META, kindLabel, KIND_ORDER, type CardModel } from './cardTypes';
 
 type Chapter = { id: string; label: string; color: string; emoji: string; count: number; test: (c: CardModel) => boolean };
 
@@ -50,7 +51,7 @@ export function AlbumPage() {
       const n = cards.filter((c) => c.kind === k).length;
       if (n === 0) return;
       const color = cards.find((c) => c.kind === k)?.color ?? KIND_META[k].defaultColor;
-      list.push({ id: k, label: lang === 'en' ? KIND_META[k].en : KIND_META[k].de, color, emoji: KIND_META[k].emoji, count: n, test: (c) => c.kind === k });
+      list.push({ id: k, label: kindLabel(k, lang === 'en' ? 'en' : 'de'), color, emoji: KIND_META[k].emoji, count: n, test: (c) => c.kind === k });
     });
     cats.forEach((cat) => {
       const n = cards.filter((c) => c.kind === 'eigen' && c.categoryId === cat.id).length;
@@ -104,7 +105,8 @@ export function AlbumPage() {
           </button>
         </div>
 
-        <div className="flex gap-2 mt-3 mb-3 flex-wrap">
+        <div className="mt-3"><MemoryFamily current="sammelalbum" /></div>
+        <div className="flex gap-2 mb-3 flex-wrap">
           <Link to="/sammelalbum/neu" className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full text-[13.5px] bg-[var(--color-primary)] text-[var(--color-surface)]" data-testid="album-new">
             <Plus size={15} /> {L('Neue Karte', 'New card')}
           </Link>

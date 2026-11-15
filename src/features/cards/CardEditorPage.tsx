@@ -12,7 +12,7 @@ import { formatCardDate } from './cardDate';
 import { CompanionStickerToggle, DateEditor, FitHint, RatingsEditor, type Rating } from './cardEditorParts';
 import { deleteOwnMedia } from '../../services/mediaStore';
 import { createId } from '../../services/storage/repository';
-import { KIND_META, type CardKind, type FrameStyle, type OwnCard, type Rarity } from './cardTypes';
+import { KIND_META, kindLabel, type CardKind, type FrameStyle, type OwnCard, type Rarity } from './cardTypes';
 
 const FRAMES: { id: FrameStyle; de: string; en: string; emoji: string }[] = [
   { id: 'standard', de: 'Klassisch', en: 'Classic', emoji: '🃏' },
@@ -194,7 +194,7 @@ export function CardEditorPage() {
             </button>
             {PICKABLE.map((k) => (
               <button key={k} type="button" className="px-3 py-1.5 rounded-full text-[13px] hit44" style={chip(kind === k)} onClick={() => { setKind(k); setCategoryId(undefined); }}>
-                {KIND_META[k].emoji} {lang === 'en' ? KIND_META[k].en : KIND_META[k].de}
+                {KIND_META[k].emoji} {kindLabel(k, lang === 'en' ? 'en' : 'de')}
               </button>
             ))}
             {cats.map((c) => (

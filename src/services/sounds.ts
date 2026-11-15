@@ -12,7 +12,7 @@ import type { UserSettings } from '../data/types';
  * pass, saving a bridge) keep a very soft sine underneath for a touch
  * of warmth, but quieter and slower than a notification chime.
  */
-type SoundKind = 'click' | 'select' | 'settle' | 'menu' | 'close' | 'complete' | 'cancelFlow' | 'sparkle' | 'coin' | 'coinOut';
+type SoundKind = 'click' | 'select' | 'settle' | 'menu' | 'close' | 'complete' | 'cancelFlow' | 'sparkle' | 'coin' | 'coinOut' | 'page' | 'stick' | 'peel';
 
 let ctx: AudioContext | null = null;
 function getContext(): AudioContext | null {
@@ -114,6 +114,94 @@ function scheduleClick(audioCtx: AudioContext) {
   source.stop(now + 0.06);
 }
 
+
+/** Scrapbook: Seite umblättern – ein weiches Papier-Rauschen, das erst auf- und dann abschwillt, am Ende ein leises „Tick“. */
+function schedulePage(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  const src = audioCtx.createBufferSource();
+  src.buffer = getNoiseBuffer(audioCtx);
+  const bp = audioCtx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.Q.value = 0.7;
+  bp.frequency.setValueAtTime(900, now);
+  bp.frequency.exponentialRampToValueAtTime(3200, now + 0.22);
+  bp.frequency.exponentialRampToValueAtTime(1500, now + 0.42);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(0.11, now + 0.12);
+  g.gain.exponentialRampToValueAtTime(0.05, now + 0.3);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 0.46);
+  src.connect(bp);
+  bp.connect(g);
+  g.connect(audioCtx.destination);
+  src.start(now);
+  src.stop(now + 0.5);
+  // Landung: ein trockenes, kurzes Tick
+  const tick = audioCtx.createBufferSource();
+  tick.buffer = getNoiseBuffer(audioCtx);
+  const lp = audioCtx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 1600;
+  const tg = audioCtx.createGain();
+  tg.gain.setValueAtTime(0.0001, now + 0.4);
+  tg.gain.exponentialRampToValueAtTime(0.06, now + 0.405);
+  tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+  tick.connect(lp);
+  lp.connect(tg);
+  tg.connect(audioCtx.destination);
+  tick.start(now + 0.4);
+  tick.stop(now + 0.5);
+}
+
+/** Scrapbook: etwas aufkleben – ein warmes, kurzes „Patsch“ (weicher Ton, fällt ab) plus ein feines Klebe-Knistern. */
+function scheduleStick(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(520, now);
+  osc.frequency.exponentialRampToValueAtTime(380, now + 0.08);
+  g.gain.setValueAtTime(0, now);
+  g.gain.linearRampToValueAtTime(0.085, now + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
+  osc.connect(g);
+  g.connect(audioCtx.destination);
+  osc.start(now);
+  osc.stop(now + 0.13);
+  const src = audioCtx.createBufferSource();
+  src.buffer = getNoiseBuffer(audioCtx);
+  const hp = audioCtx.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 2500;
+  const ng = audioCtx.createGain();
+  ng.gain.setValueAtTime(0.03, now);
+  ng.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
+  src.connect(hp);
+  hp.connect(ng);
+  ng.connect(audioCtx.destination);
+  src.start(now);
+  src.stop(now + 0.07);
+}
+
+/** Scrapbook: etwas abziehen / entfernen – ein kurzes, hohes „Frrt“ nach unten. */
+function schedulePeel(audioCtx: AudioContext) {
+  const now = audioCtx.currentTime;
+  const src = audioCtx.createBufferSource();
+  src.buffer = getNoiseBuffer(audioCtx);
+  const bp = audioCtx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.Q.value = 1.2;
+  bp.frequency.setValueAtTime(4200, now);
+  bp.frequency.exponentialRampToValueAtTime(1400, now + 0.16);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.06, now);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+  src.connect(bp);
+  bp.connect(g);
+  g.connect(audioCtx.destination);
+  src.start(now);
+  src.stop(now + 0.2);
+}
 
 /** Main-menu tone: the original from the sound workshop – a pure sine, 180 Hz, soft 15 ms attack, gone after 90 ms.
  * Deep, dull, light. (Once chosen by ear on 10.11.; the other variants were removed.) */
@@ -427,6 +515,9 @@ export function playSound(kind: SoundKind, settings: Pick<UserSettings, 'soundsE
       else if (kind === 'sparkle') scheduleSparkle(audioCtx);
       else if (kind === 'coin') scheduleCoin(audioCtx);
       else if (kind === 'coinOut') scheduleCoinOut(audioCtx);
+      else if (kind === 'page') schedulePage(audioCtx);
+      else if (kind === 'stick') scheduleStick(audioCtx);
+      else if (kind === 'peel') schedulePeel(audioCtx);
       else scheduleComplete(audioCtx); // 'settle' — same as 'complete', see below
     } catch {
       // Sound is a pure nice-to-have — never let it break the actual

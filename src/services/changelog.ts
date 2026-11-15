@@ -16,6 +16,46 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-klarheit-kurve',
+    date: '2026',
+    items: [
+      'Startseite ruhiger: nur noch eine Karte „Was brauche ich heute?“ – ein Tipp, dann öffnen sich die Wege. Die Begleiter-Sprechblasen überdecken die Symbole (Kalender, Medi-Log, Schnellzugang …) nicht mehr. „Zustand & Zugang“ steht jetzt direkt unter „Kurz einchecken“.',
+      'Einchecken: Das innere Wetter lässt sich überspringen – du kommst trotzdem zur Kurve. Zu jedem Wert kannst du eine kurze Notiz schreiben (immer freiwillig). Egal welchen Weg du danach nimmst (Skills, Bedürfnisse …): Der Wert landet in der Tageskurve.',
+      'Tageskurve: größer und weiter oben, mit Liste aller Werte (Uhrzeit, Zustand, Notiz). Ein versehentlicher Wert lässt sich dort löschen oder die Notiz ändern. Dieselbe Liste steht in „Meine Entwicklung“.',
+      'Zugangskanäle: Zu jedem Kanal gibt es eine kurze Erklärung mit Beispielen – wie sich „verfügbar“ und „nicht verfügbar“ anfühlen kann.',
+      'Sammelalbum: Bei den Karten steht jetzt immer das Synonym dabei (z. B. Ausrüstung = Hilfsmittel). Eine kurze Erklärung „Wozu ist das gut?“ verbindet Sammelalbum, Tagebuch und Scrapbook.',
+      'Krisenmodus: Im Plan gibt es eine große Taste „Notfallrucksack durchgehen“ – Punkt für Punkt, danach bist du wieder im Plan.',
+      'Leiser Hinweis, wenn ein Wort oder eine Notiz in Listen, Parkbox oder Wortschatz schon (fast) so da ist. Hinzufügen geht trotzdem.',
+    ],
+    itemsEn: [
+      'Calmer start page: just one card “What do I need today?” – one tap, then the ways open. The companion’s speech bubbles no longer cover the icons (calendar, med log, quick access …). “State & access” now sits directly below “Quick check-in”.',
+      'Check-in: you can skip the inner weather and still get to the curve. You can add a short note to every value (always optional). Whatever path you take afterwards (skills, needs …): the value is saved to the daily curve.',
+      'Daily curve: bigger and further up, with a list of all values (time, state, note). An accidental value can be deleted there, or its note changed. The same list is in “My development”.',
+      'Access channels: every channel has a short explanation with examples – what “available” and “not available” can feel like.',
+      'Collection album: cards now always show the synonym (e.g. equipment = aids). A short “What is this good for?” ties the album, diary and scrapbook together.',
+      'Crisis mode: the plan has a big “Go through the emergency backpack” button – item by item, then you are back in the plan.',
+      'A quiet hint when a word or note already exists (nearly) in lists, parkbox or vocabulary. You can still add it.',
+    ],
+  },
+  {
+    id: '2026-11-scrapbook',
+    date: '2026',
+    items: [
+      'Neu: Scrapbook – Bücher mit Einband, die du wie ein echtes Buch aufschlägst: zwei A4-Seiten nebeneinander, Umblättern mit Wischen oder Pfeilen (mit leisem Blättergeräusch). Tippe auf eine Seite, um sie ganz zu bearbeiten.',
+      'Seiten gestalten: Vorlagen (Collage, Tagebuchseite, Polaroids …), Papier (liniert, kariert, Pergament, Fotoalbum schwarz …), Datum als Stempel, Etikett oder Handschrift, Fotos mit Rahmen, Tesa oder in Formen (Herz, Stern, Wolke …) ausgeschnitten, Hintergrund entfernen bei einfachen Fotos, Stifte, Sticker, Dinge aus der App.',
+      'Eigene Sticker und Layouts lassen sich merken und später wieder einsetzen. Seiten lassen sich ordnen, kopieren und als A4-PDF speichern – eine Seite, eine Doppelseite oder das ganze Buch.',
+      'Monatsübersicht für Tagebuch und Scrapbook: alle Tage eines Monats mit ihren Fotos, ein Tipp öffnet den Eintrag.',
+      'Tagebuch: verbundene Mindmaps sind direkt als kleines Bild im Eintrag zu sehen. Tippen öffnet sie, mit zwei Fingern herauszoomen bringt dich zurück zum Eintrag. Ein Eintrag lässt sich mit einem Tipp als Scrapbook-Seite weitergestalten.',
+    ],
+    itemsEn: [
+      'New: Scrapbook – books with covers that you open like a real book: two A4 pages side by side, flip with a swipe or arrows (with a soft page sound). Tap a page to edit it in full.',
+      'Design pages: templates (collage, diary page, polaroids …), paper (lined, squared, parchment, black photo album …), date as stamp, label or handwriting, photos with frames, tape or cut into shapes (heart, star, cloud …), background removal for simple photos, pens, stickers, things from the app.',
+      'Keep your own stickers and layouts and use them again later. Pages can be ordered, copied and saved as A4 PDF – one page, a spread or the whole book.',
+      'Month overview for diary and scrapbook: every day of a month with its photos, one tap opens the entry.',
+      'Diary: connected mind maps now show as a small picture right in the entry. Tap to open, zoom out with two fingers to return to the entry. One tap turns an entry into a scrapbook page you can keep designing.',
+    ],
+  },
+  {
     id: '2026-11-medi-favoriten',
     date: '2026',
     items: [

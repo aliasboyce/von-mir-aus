@@ -1225,6 +1225,8 @@ export interface PolyvagalCheckIn {
    * and answerable later, never required to save a check-in. */
   reflectionTrigger?: string;
   reflectionWhatHelped?: string;
+  /** kurze Notiz direkt beim Eintragen (z. B. „Kopfschmerzen“) – wird mit dem Wert gespeichert und in der Kurve gezeigt */
+  note?: string;
 }
 
 /**

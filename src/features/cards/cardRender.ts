@@ -1,6 +1,6 @@
 import { ownMediaUrl } from '../../services/mediaStore';
 import { companionPortrait, portraitNow } from './companionPortrait';
-import { KIND_META, type CardModel, type FrameStyle, type RatingKind } from './cardTypes';
+import { KIND_META, kindLabel as kindLabelFull, type CardModel, type FrameStyle, type RatingKind } from './cardTypes';
 
 /**
  * Zeichnet eine Sammelkarte auf ein Canvas. Eine einzige Zeichenroutine für Bildschirm UND Druck –
@@ -596,7 +596,7 @@ function drawFront(ctx: CanvasRenderingContext2D, card: CardModel, img: HTMLImag
   const lang = opts.lang;
   const paper = card.background ?? (frame === 'scrapbook' ? '#f3e7cf' : '#fffaf0');
   const ink = inkOn(paper);
-  const kindLabel = (card.categoryLabel ?? (lang === 'en' ? KIND_META[card.kind].en : KIND_META[card.kind].de)).toUpperCase();
+  const kindLabel = (card.categoryLabel ?? kindLabelFull(card.kind, lang === 'en' ? 'en' : 'de')).toUpperCase();
 
   // Karte (außen)
   ctx.clearRect(0, 0, CARD_W, CARD_H);
@@ -716,7 +716,7 @@ function drawFront(ctx: CanvasRenderingContext2D, card: CardModel, img: HTMLImag
   // Art-Schild + Untertitel
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
-  ctx.font = `800 23px ${family}`;
+  ctx.font = `800 ${kindLabel.length > 18 ? 19 : 23}px ${family}`;
   const kw = ctx.measureText(kindLabel).width + 34;
   ctx.fillStyle = darken(color, 0.12);
   rr(ctx, 64, y, kw, 40, 20);
@@ -821,7 +821,7 @@ function drawBack(ctx: CanvasRenderingContext2D, card: CardModel, opts: DrawOpts
   ctx.fillText('von mir aus', cx, cy + 230);
   ctx.font = '700 24px "Nunito","Segoe UI",system-ui,sans-serif';
   ctx.globalAlpha = 0.85;
-  ctx.fillText((card.categoryLabel ?? (opts.lang === 'en' ? KIND_META[card.kind].en : KIND_META[card.kind].de)).toUpperCase(), cx, cy + 285);
+  ctx.fillText((card.categoryLabel ?? kindLabelFull(card.kind, opts.lang === 'en' ? 'en' : 'de')).toUpperCase(), cx, cy + 285);
   ctx.globalAlpha = 1;
 }
 

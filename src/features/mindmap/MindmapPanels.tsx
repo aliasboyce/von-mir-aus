@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ArrowLeftRight, Lock, Trash2, Unlock, Users, Waves } from 'lucide-react';
 import { EmojiPicker } from '../../components/shared/SymbolColorPicker';
 import { ColorField } from './MindmapColor';
@@ -6,6 +7,7 @@ import { HEADS, ROUTES, headShape, headsOf, type MMHead } from './mindmapRoutes'
 import { ROUNDABLE, isRoundShape } from './mindmapShapes';
 import { DOODLES, DOODLE_GROUPS, doodleOf } from './doodles';
 import type { MindmapTexts } from './mindmapTexts';
+import { removeBackground } from './bgRemove';
 import type { MindmapExtraTexts } from './mindmapExtraTexts';
 
 const chip = (active: boolean) =>
@@ -106,6 +108,8 @@ export function NodeStyleSheet({
   reduceMotion?: boolean;
 }) {
   const L2 = (de: string, en: string) => (lang === 'en' ? en : de);
+  const [bgBusy, setBgBusy] = useState(false);
+  const [bgMsg, setBgMsg] = useState('');
   const names: Record<StyleTab, string> = { shape: T.shape, color: T.color, symbol: T.symbol, size: T.size, text: X.tabText, border: node.shape === 'draw' ? X.tabLine : X.tabBorder, arrange: X.tabArrange, motion: X.tabMotion, photo: X.tabPhoto, content: L2('Inhalt', 'Content') };
   const tabs = tabsFor(node);
   if (!tabs.includes(tab)) tab = tabs[0];
@@ -345,12 +349,45 @@ export function NodeStyleSheet({
       )}
 
       {tab === 'photo' && (
-        <div className="flex gap-2 flex-wrap" data-testid="mm-photo-style">
-          {([['polaroid', X.photoPolaroid], ['plain', X.photoPlain], ['round', X.photoRound], ['rounded', X.photoRounded]] as [MMImgStyle, string][]).map(([id, label]) => (
-            <button key={id} type="button" onClick={() => onChange({ imgStyle: id })} className={chip((node.imgStyle ?? 'polaroid') === id)} style={(node.imgStyle ?? 'polaroid') === id ? activeBg : undefined} data-testid={`mm-imgstyle-${id}`}>
-              {label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-2 flex-wrap" data-testid="mm-photo-style">
+            {([['polaroid', X.photoPolaroid], ['plain', X.photoPlain], ['round', X.photoRound], ['rounded', X.photoRounded], ['tape', L2('Mit Tesa', 'Taped')]] as [MMImgStyle, string][]).map(([id, label]) => (
+              <button key={id} type="button" onClick={() => onChange({ imgStyle: id, imgShape: undefined })} className={chip(!node.imgShape && (node.imgStyle ?? 'polaroid') === id)} style={!node.imgShape && (node.imgStyle ?? 'polaroid') === id ? activeBg : undefined} data-testid={`mm-imgstyle-${id}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div>
+            <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L2('Aus dem Foto ausschneiden', 'Cut out a shape')}</p>
+            <div className="flex gap-2 flex-wrap" data-testid="mm-photo-shapes">
+              {([['heart', '❤️', L2('Herz', 'Heart')], ['star', '⭐', L2('Stern', 'Star')], ['cloud', '☁️', L2('Wolke', 'Cloud')], ['circle', '⚪', L2('Kreis', 'Circle')], ['hexagon', '⬡', L2('Sechseck', 'Hexagon')], ['diamond', '◆', L2('Raute', 'Diamond')], ['triangle', '▲', L2('Dreieck', 'Triangle')], ['bubble', '💬', L2('Sprechblase', 'Bubble')]] as [MMShape, string, string][]).map(([id, em, label]) => (
+                <button key={id} type="button" onClick={() => onChange({ imgShape: id, imgStyle: 'plain' })} className={chip(node.imgShape === id)} style={node.imgShape === id ? activeBg : undefined} data-testid={`mm-imgshape-${id}`}>
+                  {em} {label}
+                </button>
+              ))}
+              {node.imgShape && <button type="button" onClick={() => onChange({ imgShape: undefined })} className={chip(false)} data-testid="mm-imgshape-none">{L2('Keine Form', 'No shape')}</button>}
+            </div>
+          </div>
+          {node.img && (
+            <div data-testid="mm-bgremove">
+              <p className="text-[12.5px] text-[var(--color-text-muted)] mb-1.5">{L2('Hintergrund entfernen', 'Remove background')}</p>
+              <div className="flex gap-2 flex-wrap">
+                {([[28, L2('Wenig', 'A little')], [48, L2('Mittel', 'Medium')], [72, L2('Viel', 'A lot')]] as [number, string][]).map(([tol, label]) => (
+                  <button key={tol} type="button" disabled={bgBusy} onClick={async () => {
+                    setBgBusy(true); setBgMsg('');
+                    const r = await removeBackground(node.img as string, tol);
+                    setBgBusy(false);
+                    if (r.url) { onChange({ img: r.url, imgStyle: 'plain', imgShape: undefined, border: 'none' }); setBgMsg(L2(`Fertig – ${r.removedPct} % entfernt. Mit „Rückgängig“ kommt es zurück.`, `Done – ${r.removedPct}% removed. “Undo” brings it back.`)); }
+                    else setBgMsg(r.reason === 'busy' ? L2('Der Hintergrund ist zu unruhig – das geht nur bei einfarbigen Hintergründen (Papier, Wand, Himmel).', 'The background is too busy – this only works on plain backgrounds (paper, wall, sky).') : r.reason === 'nothing' ? L2('Da war kaum Hintergrund zu finden. Probier „Viel“.', 'Hardly any background found. Try “A lot”.') : L2('Das hat nicht geklappt.', 'That did not work.'));
+                  }} className={chip(false)} data-testid={`mm-bgremove-${tol}`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {bgMsg && <p className="text-[12.5px] text-[var(--color-text-muted)] mt-1.5" role="status" data-testid="mm-bgremove-msg">{bgMsg}</p>}
+              <p className="text-[11.5px] text-[var(--color-text-faint)] mt-1.5">{L2('Einfache Methode ohne KI: gut bei ruhigem, einfarbigem Hintergrund.', 'Simple method without AI: works well on a calm, plain background.')}</p>
+            </div>
+          )}
         </div>
       )}
 

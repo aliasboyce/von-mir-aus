@@ -12,6 +12,7 @@ import { availableChannels, toggleMissingChannel, type ChannelLevel, type Channe
 import { ACCESS_CHANNEL_META, ACCESS_CHANNEL_ORDER } from './accessChannels';
 import { ZONE_ACCESSIBILITY } from './zoneAccessibility';
 import { ChannelNet } from './ChannelNet';
+import { CHANNEL_EXAMPLES } from './channelExamples';
 import { channelSnapshotsRepo, newSnapshot, recentTension, type ChannelSnapshot } from './channelSnapshots';
 import { AROUSAL_BANDS, bandForValue } from '../polyvagal/arousalBands';
 
@@ -46,6 +47,8 @@ export function ZugangskanaelePage() {
   const [compareId, setCompareId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [fine, setFine] = useState(false);
+  const [focus, setFocus] = useState<(typeof ACCESS_CHANNEL_ORDER)[number] | null>(null);
+  const [allExamples, setAllExamples] = useState(false);
 
   const tension = recentTension();
   const band = tension === null ? null : bandForValue(tension);
@@ -63,6 +66,7 @@ export function ZugangskanaelePage() {
   }
 
   function toggleMissing(c: (typeof ACCESS_CHANNEL_ORDER)[number]) {
+    setFocus(c);
     setFilter({ levels: toggleMissingChannel(filter.levels, c, ACCESS_CHANNEL_ORDER) });
     setJustSaved(false);
   }
@@ -162,6 +166,18 @@ export function ZugangskanaelePage() {
               );
             })}
           </div>
+          {focus && (
+            <div className="mt-3 rounded-[var(--radius-md)] p-3 animate-in" style={{ background: 'var(--color-surface-muted)' }} data-testid="zk-explain">
+              <p className="text-[13.5px] text-[var(--color-text)] mb-1.5">{ACCESS_CHANNEL_META[focus].label(t)}</p>
+              <p className="text-[12.5px] text-[var(--color-text)] leading-snug mb-1"><span className="text-[var(--color-primary)]">{lang === 'en' ? 'Available: ' : 'Vorhanden: '}</span>{CHANNEL_EXAMPLES[focus][lang].there}</p>
+              <p className="text-[12.5px] text-[var(--color-text-muted)] leading-snug"><span className="text-[var(--color-text)]">{lang === 'en' ? 'Missing: ' : 'Fehlt: '}</span>{CHANNEL_EXAMPLES[focus][lang].missing}</p>
+            </div>
+          )}
+          {!focus && (
+            <p className="text-[12.5px] text-[var(--color-text-muted)] mt-3 leading-snug" data-testid="zk-explain-hint">
+              {lang === 'en' ? 'Tap a channel to see what “available” or “missing” can feel like.' : 'Tippe einen Kanal an – dann siehst du, wie sich „vorhanden“ oder „fehlt“ anfühlen kann.'}
+            </p>
+          )}
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[12.5px]">
             <button type="button" onClick={nothingMissing} data-testid="zk-nothing-missing" className="text-[var(--color-primary)]">
               {lang === 'en' ? 'Nothing is missing right now' : 'Gerade fehlt nichts'}
@@ -171,6 +187,25 @@ export function ZugangskanaelePage() {
             </button>
           </div>
         </Card>
+
+        <button type="button" onClick={() => setAllExamples((v) => !v)} aria-expanded={allExamples} className="mb-4 min-h-[44px] text-[13px] text-[var(--color-primary)] underline underline-offset-2" data-testid="zk-all-examples">
+          {allExamples ? (lang === 'en' ? 'Hide the examples' : 'Beispiele ausblenden') : (lang === 'en' ? 'What is meant? Examples for every channel' : 'Was ist gemeint? Beispiele zu jedem Kanal')}
+        </button>
+        {allExamples && (
+          <div className="flex flex-col gap-2 mb-5 animate-in">
+            <p className="text-[12.5px] text-[var(--color-text-muted)] leading-snug">{lang === 'en' ? 'It is always about right now – not whether you can do something in general. “Available” means: I could reach it in this moment.' : 'Gemeint ist immer das Jetzt – nicht, ob du etwas grundsätzlich kannst. „Vorhanden“ heißt: In diesem Moment komme ich da ran.'}</p>
+            {ACCESS_CHANNEL_ORDER.map((c) => {
+              const meta = ACCESS_CHANNEL_META[c];
+              return (
+                <Card key={c} padding="none" className="p-3">
+                  <div className="flex items-center gap-2 text-[14px] text-[var(--color-text)] mb-1"><meta.icon size={15} className="text-[var(--color-primary)]" />{meta.label(t)}</div>
+                  <p className="text-[12.5px] text-[var(--color-text)] leading-snug mb-0.5"><span className="text-[var(--color-primary)]">{lang === 'en' ? 'Available: ' : 'Vorhanden: '}</span>{CHANNEL_EXAMPLES[c][lang].there}</p>
+                  <p className="text-[12.5px] text-[var(--color-text-muted)] leading-snug"><span className="text-[var(--color-text)]">{lang === 'en' ? 'Missing: ' : 'Fehlt: '}</span>{CHANNEL_EXAMPLES[c][lang].missing}</p>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
         {(fine || Object.values(levels).includes(1)) && (
         <div className="flex flex-col gap-2.5 mb-4">

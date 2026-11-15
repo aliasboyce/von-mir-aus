@@ -1,5 +1,6 @@
 import { createRepository } from '../../services/storage/repository';
 import type { PolyvagalCheckIn } from '../../data/types';
+import { tensionRepo } from './tensionRepo';
 
 export const polyvagalRepo = createRepository<PolyvagalCheckIn>('polyvagal-checkins');
 
@@ -20,4 +21,24 @@ export function checkInsInLastDays(days: number): PolyvagalCheckIn[] {
     .getAll()
     .filter((c) => new Date(c.createdAt).getTime() >= cutoff)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+/** Notiz eines Eintrags ändern (leer = Notiz entfernen) */
+export function setCheckInNote(id: string, note: string) {
+  const c = polyvagalRepo.getById(id);
+  if (!c) return;
+  const clean = note.trim().slice(0, 400);
+  polyvagalRepo.save({ ...c, note: clean || undefined });
+}
+
+/** Einen Wert löschen (z. B. aus Versehen eingetragen) – samt dem Spannungswert, der beim selben Eintragen gespeichert wurde. */
+export function deleteCheckIn(id: string) {
+  const c = polyvagalRepo.getById(id);
+  if (!c) return;
+  const at = new Date(c.createdAt).getTime();
+  tensionRepo
+    .getAll()
+    .filter((e) => Math.abs(new Date(e.createdAt).getTime() - at) < 3000 && (c.tensionValue === undefined || e.value === c.tensionValue))
+    .forEach((e) => tensionRepo.remove(e.id));
+  polyvagalRepo.remove(id);
 }

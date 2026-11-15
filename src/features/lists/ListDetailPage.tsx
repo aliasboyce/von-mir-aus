@@ -1,3 +1,5 @@
+import { DuplicateHint } from '../../components/shared/DuplicateHint';
+import { findSimilar } from '../../services/duplicates';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { X, Archive, ArchiveRestore, Check, Copy, Eye, EyeOff, Pencil, Pin, PinOff, Plus, RotateCcw, StickyNote } from 'lucide-react';
@@ -135,6 +137,7 @@ export function ListDetailPage() {
             <Plus size={22} />
           </button>
         </form>
+        <div className="-mt-2 mb-3"><DuplicateHint found={findSimilar(fresh, list.items)?.text} where={L('in dieser Liste', 'in this list')} /></div>
 
         <ul className="flex flex-col gap-1.5" data-testid="list-items">
           {shown.map((i) => (

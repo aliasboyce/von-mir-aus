@@ -5,7 +5,7 @@ import { buildReviewPdf, buildDiaryEntriesPdf } from '../reviews/reviewPdf';
 import { gatherReviewDays } from '../reviews/reviewData';
 import { localDayKey } from '../../services/groupByDay';
 import { MoreMenu } from '../../components/ui/MoreMenu';
-import { Plus, Search, Trash2, X, Tag, Type, FileDown, FileText, Mail, Image as ImageIcon, Network, Lock } from 'lucide-react';
+import { Plus, Search, Trash2, X, Tag, Type, FileDown, FileText, Mail, Image as ImageIcon, Network, Lock, CalendarDays, BookOpen } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { RichTextEditor } from '../../components/shared/RichTextEditor';
 import { RichText } from '../../components/shared/RichText';
@@ -21,6 +21,9 @@ import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { TopBar } from '../../components/navigation/TopBar';
+import { MemoryFamily } from '../../components/shared/MemoryFamily';
+import { DiaryMapCard } from './DiaryMapCard';
+import { scrapPageFromDiary } from '../scrapbook/diaryToScrap';
 import { useT } from '../../i18n';
 import { useCompanionSay } from '../../state/CompanionSpeechContext';
 import { pickLine } from '../../components/companion/companionRegistry';
@@ -411,7 +414,12 @@ export function DiaryPage() {
           <Chip selected={view === 'letters'} onClick={() => setView('letters')} icon={<Mail size={14} />}>
             {t.diary.viewLetters}
           </Chip>
+          <Link to="/scrapbook/monat?quelle=tagebuch" className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[var(--color-border-strong)] text-[14px] text-[var(--color-text)] hit44" data-testid="diary-month-link">
+            <CalendarDays size={14} /> {langEn ? 'Month' : 'Monat'}
+          </Link>
         </div>
+
+        <MemoryFamily current="tagebuch" />
 
         <div className={fontPickerOpen ? 'mb-5' : ''}>
           {fontPickerOpen && (
@@ -544,16 +552,18 @@ export function DiaryPage() {
                       const m = mindmapRepo.getById(id);
                       if (!m) return null;
                       return (
-                        <span key={id} className="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[13px]" data-testid="diary-draft-map">
-                          <button type="button" onClick={() => openMap(id, editingId ?? undefined)} className="inline-flex items-center gap-1" data-testid="diary-draft-map-open"><Network size={13} /> {m.title || (langEn ? 'Mind map' : 'Mindmap')}</button>
-                          <button type="button" onClick={() => setDraftMaps(draftMaps.filter((x) => x !== id))} aria-label={langEn ? 'Disconnect' : 'Lösen'} className="w-6 h-6 flex items-center justify-center"><X size={13} /></button>
-                        </span>
+                        <DiaryMapCard key={id} map={m} testId="diary-draft-map" openTestId="diary-draft-map-open" onOpen={() => openMap(id, editingId ?? undefined)} onDetach={() => setDraftMaps(draftMaps.filter((x) => x !== id))} detachLabel={langEn ? 'Disconnect' : 'Lösen'} />
                       );
                     })}
                     <button type="button" onClick={() => setMapPickerOpen(true)} className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] py-1.5" data-testid="diary-connect-map">
                       <Network size={15} /> {draftMaps.length ? (langEn ? 'Connect another' : 'Weitere verbinden') : langEn ? 'Connect a mind map' : 'Eine Mindmap verbinden'}
                     </button>
                   </div>
+                  {editingId && (
+                    <button type="button" onClick={async () => { const e = diaryRepo.getById(editingId); if (!e) return; persistDraft(); const r = await scrapPageFromDiary(diaryRepo.getById(editingId) ?? e, langEn ? 'en' : 'de'); navigate(`/scrapbook/${r.bookId}/seite/${r.pageId}`); }} className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] py-1.5 mt-1" data-testid="diary-to-scrapbook">
+                      <BookOpen size={15} /> {langEn ? 'Design as a scrapbook page' : 'Als Scrapbook-Seite gestalten'}
+                    </button>
+                  )}
                 </div>
 
                 {/* "Das Einzige, wo man entscheidet, ob es in den Rueckblick
@@ -707,21 +717,7 @@ export function DiaryPage() {
                         {entry.mindmapIds.map((mid) => {
                           const m = mindmapRepo.getById(mid);
                           if (!m) return null;
-                          return (
-                            <button
-                              key={mid}
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openMap(mid, entry.id);
-                              }}
-                              data-no-tap-feedback
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] text-[13px] hit44"
-                              data-testid="diary-entry-map"
-                            >
-                              <Network size={13} /> {m.title || (langEn ? 'Mind map' : 'Mindmap')}
-                            </button>
-                          );
+                          return <DiaryMapCard key={mid} map={m} onOpen={() => openMap(mid, entry.id)} />;
                         })}
                       </div>
                     )}

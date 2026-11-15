@@ -25,7 +25,7 @@ export const KIND_ORDER: CardKind[] = ['person', 'faehigkeit', 'aktion', 'ausrue
 
 export const KIND_META: Record<CardKind, { de: string; en: string; emoji: string; defaultColor: string }> = {
   person: { de: 'Held:in', en: 'Hero', emoji: '🦸', defaultColor: '#5E8A5A' },
-  faehigkeit: { de: 'Fähigkeit (Skill)', en: 'Skill (ability)', emoji: '✨', defaultColor: '#D9926E' },
+  faehigkeit: { de: 'Fähigkeit', en: 'Skill', emoji: '✨', defaultColor: '#D9926E' },
   aktion: { de: 'Aktion', en: 'Action', emoji: '🎯', defaultColor: '#C77D9B' },
   ausruestung: { de: 'Ausrüstung', en: 'Gear', emoji: '🧰', defaultColor: '#E8C27E' },
   ort: { de: 'Ort', en: 'Place', emoji: '🗺️', defaultColor: '#8FB6CE' },
@@ -152,3 +152,28 @@ export interface CardPrefs {
 }
 
 export const DEFAULT_PREFS: CardPrefs = { colors: {}, rarity: {}, favorites: [], hidden: [], sound: true };
+
+/**
+ * Wie dieselbe Sache im Rest der App heißt – damit auf den Karten nie rätselhafte Wörter stehen.
+ * Beispiel: Auf der Karte „Ausrüstung“ steht immer dabei, dass es dasselbe ist wie ein „Hilfsmittel“.
+ */
+export const KIND_SYNONYM: Partial<Record<CardKind, { de: string; en: string }>> = {
+  person: { de: 'Person', en: 'Person' },
+  faehigkeit: { de: 'Skill', en: 'Ability' },
+  aktion: { de: 'Aktivität', en: 'Activity' },
+  ausruestung: { de: 'Hilfsmittel', en: 'Aid' },
+  training: { de: 'Routine / Garten', en: 'Routine / garden' },
+  wissen: { de: 'Lesezeichen', en: 'Bookmark' },
+  ereignis: { de: 'Termin', en: 'Appointment' },
+  begleiter: { de: 'Wesen', en: 'Companion' },
+  notfall: { de: 'Notfallplan', en: 'Emergency plan' },
+  reflexion: { de: 'Tagesrückblick', en: 'Day review' },
+};
+
+/** Name der Kartenart mit dem Namen, den sie sonst in der App trägt: „Ausrüstung = Hilfsmittel“. */
+export function kindLabel(kind: CardKind, lang: 'de' | 'en'): string {
+  const m = KIND_META[kind];
+  const name = lang === 'en' ? m.en : m.de;
+  const syn = KIND_SYNONYM[kind]?.[lang];
+  return syn && syn !== name ? `${name} = ${syn}` : name;
+}

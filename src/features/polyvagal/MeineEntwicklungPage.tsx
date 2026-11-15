@@ -14,6 +14,7 @@ import { POLYVAGAL_ZONE_META, POLYVAGAL_ZONE_ORDER } from './polyvagalMeta';
 import { getDailyNote, saveDailyNote } from './dailyNotesRepo';
 import { describeDay } from './describeDay';
 import { MiniCurve } from './MiniCurve';
+import { CheckInRows } from './CheckInRows';
 import { PolyvagalDayChart } from './PolyvagalDayChart';
 import { ChartPrintView } from './ChartPrintView';
 import { DailyReviewsPrintView } from './DailyReviewsPrintView';
@@ -57,7 +58,8 @@ export function MeineEntwicklungPage() {
   const t = useT();
   const { settings } = useSettings();
   const locale = settings.language === 'de' ? 'de-DE' : 'en-US';
-  const [all] = useState<PolyvagalCheckIn[]>(() => polyvagalRepo.getAll());
+  const [all, setAll] = useState<PolyvagalCheckIn[]>(() => polyvagalRepo.getAll());
+  const [openDays, setOpenDays] = useState<Set<string>>(new Set());
   const [notesVersion, setNotesVersion] = useState(0);
   // "Alles auf die eine Seite 'Meine Entwicklung', nach Tag/Woche/
   // Monat, alles mit PDF"-Auftrag — the chart + its period tabs,
@@ -232,6 +234,10 @@ export function MeineEntwicklungPage() {
                   <p className="text-[13px] text-[var(--color-text)] leading-relaxed mb-3">
                     {describeDay(entries, t)}
                   </p>
+                  <button type="button" onClick={() => setOpenDays((o) => { const n = new Set(o); if (n.has(day)) n.delete(day); else n.add(day); return n; })} aria-expanded={openDays.has(day)} className="min-h-[44px] text-[13px] text-[var(--color-primary)] mb-1" data-testid="dev-day-values">
+                    {openDays.has(day) ? (settings.language === 'en' ? 'Hide values' : 'Werte ausblenden') : (settings.language === 'en' ? `Show values with notes (${entries.length})` : `Werte mit Uhrzeit und Notiz (${entries.length})`)}
+                  </button>
+                  {openDays.has(day) && <div className="mb-3"><CheckInRows checkIns={entries} onChanged={() => setAll(polyvagalRepo.getAll())} /></div>}
                   <textarea
                     className="input"
                     rows={2}
