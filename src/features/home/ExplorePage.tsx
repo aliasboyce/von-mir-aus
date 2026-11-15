@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PageStar } from '../../components/ui/PageStar';
 import { Gift, BookA, Layers } from 'lucide-react';
 import { SearchButton } from '../../components/navigation/SearchButton';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -26,6 +27,7 @@ export function ExplorePage() {
         <h1 className="text-[24px]">{t.nav.explore}</h1>
         <div className="flex items-center gap-1">
           <SearchButton />
+          <PageStar />
           <HelpButton helpKey="entdecken" />
         </div>
       </div>

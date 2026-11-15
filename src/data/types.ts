@@ -842,6 +842,8 @@ export interface SavedMedication {
   /** hex color, used consistently for this medication across all charts */
   color: string;
   createdAt: string;
+  /** optionales Foto der Verpackung (verkleinert), zeigt sich in Medikamenten-Liste, Eintrag und Packungen */
+  photoDataUrl?: string;
 }
 
 /**
@@ -984,6 +986,8 @@ export interface UserSettings {
   scopeChosen?: boolean;
   /** "Einfach"-Darstellung: bigger surfaces, fewer choices and hints */
   simple?: boolean;
+  /** Schnellzugriff-Kiesel neben dem Wesen auf der Startseite (Standard: an) */
+  homeShelf?: boolean;
   /** Feinschliff F3: Zwei-Finger-Zoom erlauben (Standard: aus) */
   allowZoom?: boolean;
   /** Feinschliff F9: Textgröße (Standard: normal) */

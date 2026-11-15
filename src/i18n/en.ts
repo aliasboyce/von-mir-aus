@@ -2371,8 +2371,8 @@ const en: TranslationDictionary = {
   },
   favorites: {
     title: 'Favorites',
-    subtitle: 'Your most important things in one place — resources, bridges, and contacts you\'ve starred.',
-    empty: "Nothing starred yet. You can mark resources, bridges, and contacts with a star.",
+    subtitle: 'Your most important things in one place — everything you starred, sorted by type.',
+    empty: "Nothing starred yet. You can star almost anything in the app with the ☆ at the top right (or on the entry) — whole pages, lists, projects, medications, resources, contacts …",
     resourcesTitle: 'Resources',
     bridgesTitle: 'Bridges',
     contactsTitle: 'Important contacts',

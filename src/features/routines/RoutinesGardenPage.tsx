@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FavStar } from '../../components/ui/FavStar';
 import { Link, useNavigate } from 'react-router-dom';
 import { CalendarPlus, ChevronDown, ChevronUp, History, Info, Pencil, Play, Plus, Trash2 } from 'lucide-react';
 import { MoreMenu } from '../../components/ui/MoreMenu';
@@ -143,6 +144,7 @@ export function RoutinesGardenPage() {
                   <div className="flex items-center gap-2 mt-3">
                     <Button size="sm" icon={<Play size={14} />} onClick={() => navigate(`/entdecken/routinen/${r.id}/start`)} data-testid={`routine-start-${r.id}`}>{rt.start}</Button>
                     <div className="flex-1" />
+                    <FavStar kind="routine" id={r.id} size={17} className="!w-9 !h-9" testId={`routine-fav-${r.id}`} />
                     <button type="button" onClick={() => setHistoryId(historyId === r.id ? null : r.id)} aria-label={rt.history} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"><History size={16} /></button>
                     <button type="button" onClick={() => navigate(`/entdecken/routinen/${r.id}/bearbeiten`)} aria-label={rt.edit} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44" data-testid={`routine-edit-${r.id}`}><Pencil size={16} /></button>
                     <button type="button" onClick={() => remove(r)} aria-label={rt.remove} className="p-2 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hit44"><Trash2 size={16} /></button>

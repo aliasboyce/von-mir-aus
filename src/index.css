@@ -1077,3 +1077,33 @@ button {
   height: max(100%, 44px);
 }
 }
+
+/* ── Schnellzugriff am Wesen (HomeShelf): leise schwebende Kiesel, passen sich jeder Palette an ── */
+.home-shelf { position: absolute; inset: 0; pointer-events: none; }
+.home-shelf__item {
+  pointer-events: auto;
+  position: absolute;
+  width: 46px; height: 46px;
+  border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  color: color-mix(in srgb, var(--color-text) 48%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+  backdrop-filter: blur(2px);
+  transition: color .3s var(--ease-soft), background .3s var(--ease-soft), transform .3s var(--ease-soft);
+  animation: home-shelf-float 7s ease-in-out infinite;
+}
+.home-shelf__item:hover, .home-shelf__item:focus-visible, .home-shelf__item:active {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+}
+.home-shelf__item--l0 { left: 0;    top: 4%; }
+.home-shelf__item--l1 { left: 34px; top: 56%; }
+.home-shelf__item--r0 { right: 0;   top: 4%; }
+.home-shelf__item--r1 { right: 34px; top: 56%; }
+@keyframes home-shelf-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) { .home-shelf__item { animation: none; } }
+[data-reduce-motion='true'] .home-shelf__item { animation: none; }

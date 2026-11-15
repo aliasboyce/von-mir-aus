@@ -1,4 +1,5 @@
 import { Users, ShieldCheck, Library, LifeBuoy, HeartHandshake } from 'lucide-react';
+import { PageStar } from '../../components/ui/PageStar';
 import { useSettings } from '../../state/SettingsContext';
 import { scopeOf } from '../../services/scope';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -23,7 +24,8 @@ export function SafetyHubPage() {
     <div className="px-5 pt-8 pb-6 animate-in">
       <div className="flex items-start justify-between mb-1">
         <h1 className="text-[24px]">{t.nav.safety}</h1>
-        <HelpButton helpKey="sicherheit" />
+        <span className="flex items-center"><PageStar />
+        <HelpButton helpKey="sicherheit" /></span>
       </div>
       <p className="text-[14px] text-[var(--color-text-muted)] mb-6">{t.safetyHub.subtitle}</p>
 

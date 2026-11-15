@@ -1,4 +1,5 @@
 import { completionMoment } from '../../services/completionMoment';
+import { PageStar } from '../../components/ui/PageStar';
 import { useEffect, useRef, useState } from 'react';
 import { HintCard } from '../../components/hints/HintCard';
 import { goBack as goBackSafe } from '../../services/navigation';
@@ -507,6 +508,7 @@ export function ZugangPage() {
         </button>
         {!saved && (
           <div className="flex items-center gap-1">
+            <PageStar />
             <HelpButton helpKey="zugang" />
             <button onClick={() => navigate('/')} className="text-[14px] text-[var(--color-text-faint)]">
               {t.common.cancel}

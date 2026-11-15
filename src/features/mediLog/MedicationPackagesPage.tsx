@@ -1,4 +1,5 @@
 import { useMemo, useState, useRef } from 'react';
+import { FavStar } from '../../components/ui/FavStar';
 import { goBack } from '../../services/navigation';
 import { useNavigate } from 'react-router-dom';
 import { Plus, X, Camera, AlertTriangle } from 'lucide-react';
@@ -63,8 +64,8 @@ export function MedicationPackagesPage() {
               return (
                 <Card key={pkg.id} onClick={() => setHistoryPkg(pkg)} className="cursor-pointer">
                   <div className="flex items-center gap-3">
-                    {pkg.photoDataUrl ? (
-                      <img src={pkg.photoDataUrl} alt="" className="w-12 h-12 rounded-[var(--radius-md)] object-cover flex-shrink-0" />
+                    {(pkg.photoDataUrl ?? medications.find((m) => m.id === pkg.medicationId)?.photoDataUrl) ? (
+                      <img src={(pkg.photoDataUrl ?? medications.find((m) => m.id === pkg.medicationId)?.photoDataUrl) as string} alt="" className="w-12 h-12 rounded-[var(--radius-md)] object-cover flex-shrink-0" />
                     ) : (
                       <div className="w-12 h-12 rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] flex-shrink-0" />
                     )}
@@ -80,6 +81,7 @@ export function MedicationPackagesPage() {
                         </p>
                       )}
                     </div>
+                    <FavStar kind="package" id={pkg.id} testId="package-fav" />
                   </div>
                 </Card>
               );

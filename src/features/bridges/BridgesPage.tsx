@@ -1,4 +1,5 @@
 import { SearchButton } from '../../components/navigation/SearchButton';
+import { PageStar } from '../../components/ui/PageStar';
 import { useEffect, useMemo, useState } from 'react';
 import { FitFilterPanel } from '../../components/shared/FitFilterPanel';
 import { FitEmpty } from '../../components/shared/FitEmpty';
@@ -158,6 +159,7 @@ export function BridgesPage() {
         </div>
         <div className="flex items-center gap-3">
           <SearchButton />
+          <PageStar />
           <HelpButton helpKey="bruecken" />
           <MoreMenu testId="bridges-menu" items={[
             { id: 'discover', label: t.bridges.discoverCta, icon: <Compass size={17} />, onClick: () => setDiscoverOpen(true) },

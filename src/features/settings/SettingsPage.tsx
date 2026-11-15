@@ -501,6 +501,15 @@ export function SettingsPage() {
           </div>
         </Card>
 
+        <Card className="mb-6" padding="md" data-testid="home-shelf-card">
+          <ToggleRow
+            label={settings.language === 'en' ? 'Quick access beside the companion' : 'Schnellzugriff neben dem Wesen'}
+            checked={settings.homeShelf !== false}
+            onChange={(v) => updateSettings({ homeShelf: v })}
+          />
+          <p className="text-[12px] text-[var(--color-text-faint)] mt-1.5">{settings.language === 'en' ? 'Four quiet symbols on the home page: calendar, park box, medication log, favourites.' : 'Vier leise Symbole auf der Startseite: Kalender, Parkbox, Medi-Log, Favoriten.'}</p>
+        </Card>
+
         {/* Feinschliff F9 + F3: Textgröße und Zoom */}
         <Card className="mb-6" padding="md" data-testid="text-size-card">
           <p className="text-[14px] font-medium text-[var(--color-text)] mb-2">{settings.language === 'en' ? 'Text size' : 'Textgröße'}</p>

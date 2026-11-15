@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent as RPE } from 'react';
+import { PageStar } from '../../components/ui/PageStar';
 import { deleteVersionsOf, saveVersion, versionsOf, type MapVersion } from './mindmapVersions';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Archive, BoxSelect, Camera, Check, ChevronDown, ClipboardPaste, ChevronLeft, CornerDownRight, Copy, CopyPlus, Ellipsis, MoreHorizontal, ExternalLink, FileDown, FolderTree, History, Image as ImageIcon, Layers, ListChecks, Link2, Maximize, Minus, Palette, PenLine, Play, Pause, Plus, Redo2, Scissors, Share2, SquareDashed, StickyNote, Spline, Trash2, Type, Undo2, Download, Users, Upload, ChevronUp, ChevronRight, PanelBottom, PanelLeft } from 'lucide-react';
@@ -1757,6 +1758,7 @@ function Editor({ initial }: { initial: MindMap }) {
             data-testid="mm-title"
             className="flex-1 min-w-0 h-10 rounded-full px-4 text-[15px] outline-none bg-[var(--color-surface)] shadow-[var(--shadow-sm)] text-[var(--color-text)]"
           />
+          <PageStar className="!w-10 !h-10 bg-[var(--color-surface)] shadow-[var(--shadow-sm)] hover:!bg-[var(--color-surface)]" />
           <button type="button" onClick={undo} disabled={!hist.current.past.length} aria-label={T.undo} className={ctlBtn} data-testid="mm-undo"><Undo2 size={17} /></button>
           <button type="button" onClick={redo} disabled={!hist.current.future.length} aria-label={T.redo} className={ctlBtn} data-testid="mm-redo"><Redo2 size={17} /></button>
           <button type="button" onClick={() => void takeSnapshot()} aria-label={lang === 'en' ? 'Save snapshot' : 'Momentaufnahme speichern'} title={lang === 'en' ? 'Save snapshot' : 'Momentaufnahme speichern'} className={ctlBtn} data-testid="mm-snapshot"><Camera size={17} /></button>

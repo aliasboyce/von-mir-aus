@@ -27,6 +27,7 @@ import { RecurringConfirmationPrompt } from './RecurringConfirmationPrompt';
 import { recurringMedicationsRepo, doseForDate } from './recurringMedicationsRepo';
 import { pendingRecurringInstances, type PendingInstance } from './recurringPending';
 import { MedicationManagerModal } from './MedicationManagerModal';
+import { medicationPackagesRepo } from './medicationPackagesRepo';
 import { savedMedicationsRepo, MEDICATION_COLOR_PALETTE } from './savedMedicationsRepo';
 import { createId } from '../../services/storage/repository';
 import { diaryRepo } from '../diary/diaryRepo';
@@ -408,14 +409,55 @@ export function MediLogPage() {
         <p className="text-[14px] text-[var(--color-text-muted)] mb-1">{t.mediLog.subtitle}</p>
         <p className="text-[12px] text-[var(--color-text-faint)] mb-4">{t.mediLog.subtitleSecondary}</p>
 
-        <Button fullWidth icon={<Plus size={17} />} onClick={openNew} className="mb-5">
-          {t.mediLog.addNew}
-        </Button>
-        <button type="button" onClick={() => setRangeEntryOpen(true)} data-testid="medilog-range-open"
-          className="w-full -mt-3 mb-5 py-2.5 min-h-[44px] rounded-[var(--radius-md)] flex items-center justify-center gap-2 text-[14px] text-[var(--color-primary)] bg-[var(--color-primary-soft)]">
-          <CalendarRange size={16} />
-          {settings.language === 'en' ? 'Enter several days at once' : 'Mehrere Tage auf einmal nachtragen'}
-        </button>
+        {/* Reihenfolge klar: ① Medikamente anlegen → ② Packungen (freiwillig) → ③ Eintrag */}
+        {(() => {
+          const en = settings.language === 'en';
+          const noMeds = savedMeds.length === 0;
+          const pkgCount = medicationPackagesRepo.getAll().length;
+          const stepBox = 'flex items-center gap-3 w-full text-left rounded-[var(--radius-lg)] px-4 py-3 min-h-[56px]';
+          return (
+            <div className="mb-5 flex flex-col gap-2" data-testid="medilog-steps">
+              <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-faint)]">{en ? 'In this order' : 'In dieser Reihenfolge'}</p>
+              <button type="button" onClick={() => setManagingMedications(true)} data-testid="medilog-step-meds" className={stepBox}
+                style={{ background: noMeds ? 'var(--color-primary)' : 'var(--color-surface)', color: noMeds ? 'var(--color-surface)' : 'var(--color-text)', border: noMeds ? 'none' : '1px solid var(--color-border)' }}>
+                <span className="w-7 h-7 rounded-full flex items-center justify-center text-[13px] flex-shrink-0" style={{ background: noMeds ? 'rgba(255,255,255,.22)' : 'var(--color-primary-soft)', color: noMeds ? 'inherit' : 'var(--color-primary)' }}>1</span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[15px] font-medium">{en ? 'Add your medications' : 'Medikamente anlegen'}</span>
+                  <span className="block text-[12.5px] opacity-80">
+                    {noMeds
+                      ? (en ? 'Start here – then you only pick them when logging.' : 'Hier fängst du an – danach wählst du sie beim Eintrag nur noch aus.')
+                      : (en ? `${savedMeds.length} saved · tap to add or change` : `${savedMeds.length} angelegt · antippen zum Ändern oder Ergänzen`)}
+                  </span>
+                </span>
+                <Settings2 size={18} className="flex-shrink-0 opacity-80" />
+              </button>
+              <button type="button" onClick={() => navigate('/entdecken/medi-log/packungen')} data-testid="medilog-step-packages" className={stepBox}
+                style={{ background: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}>
+                <span className="w-7 h-7 rounded-full flex items-center justify-center text-[13px] flex-shrink-0" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-primary)' }}>2</span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-[15px] font-medium">{en ? 'Packages (optional)' : 'Packungen (freiwillig)'}</span>
+                  <span className="block text-[12.5px] text-[var(--color-text-faint)]">
+                    {pkgCount > 0 ? (en ? `${pkgCount} package(s) · see what is left` : `${pkgCount} Packung(en) · siehst, wie viel noch da ist`) : (en ? 'With a photo of the box and what is left.' : 'Mit Foto der Schachtel und was noch übrig ist.')}
+                  </span>
+                </span>
+                <Package size={18} className="flex-shrink-0 text-[var(--color-text-muted)]" />
+              </button>
+              <Button fullWidth icon={<Plus size={17} />} onClick={openNew} variant={noMeds ? 'secondary' : 'primary'} data-testid="medilog-step-entry">
+                <span className="mr-1 opacity-80">3</span> {t.mediLog.addNew}
+              </Button>
+              {noMeds && (
+                <p className="text-[12.5px] text-[var(--color-text-faint)] leading-relaxed" data-testid="medilog-order-hint">
+                  {en ? 'Tip: if you add your medication first, an entry takes two taps and everything stays together (charts, packages).' : 'Tipp: Wenn du dein Medikament zuerst anlegst, dauert ein Eintrag nur zwei Tipps – und alles bleibt zusammen (Verlauf, Packungen).'}
+                </p>
+              )}
+              <button type="button" onClick={() => setRangeEntryOpen(true)} data-testid="medilog-range-open"
+                className="w-full py-2.5 min-h-[44px] rounded-[var(--radius-md)] flex items-center justify-center gap-2 text-[14px] text-[var(--color-primary)] bg-[var(--color-primary-soft)]">
+                <CalendarRange size={16} />
+                {en ? 'Enter several days at once' : 'Mehrere Tage auf einmal nachtragen'}
+              </button>
+            </div>
+          );
+        })()}
 
         <RecurringConfirmationPrompt pending={pending} onAnswer={handleRecurringAnswer} />
 
@@ -665,6 +707,15 @@ export function MediLogPage() {
               save();
             }}
           >
+            {savedMeds.length === 0 && (
+              <div className="rounded-[var(--radius-md)] p-3 text-[13px] leading-relaxed" style={{ background: 'var(--color-primary-soft)', color: 'var(--color-text)' }} data-testid="entry-no-meds">
+                {settings.language === 'en' ? 'You have not saved a medication yet. Add it first and it stays together with charts and packages.' : 'Du hast noch kein Medikament angelegt. Leg es zuerst an – dann bleibt es mit Verlauf und Packungen zusammen.'}
+                <button type="button" className="block mt-1.5 text-[var(--color-primary)] underline underline-offset-2 hit44" data-testid="entry-create-med"
+                  onClick={() => { setEditing(null); setManagingMedications(true); }}>
+                  {settings.language === 'en' ? 'Add a medication first' : 'Erst Medikament anlegen'}
+                </button>
+              </div>
+            )}
             {savedMeds.length > 0 && (
               <div>
                 <span className="text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5 block">
@@ -682,10 +733,14 @@ export function MediLogPage() {
                         color: editing.medicationId === m.id ? '#fff' : 'var(--color-text)',
                       }}
                     >
-                      <span
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ background: editing.medicationId === m.id ? '#fff' : m.color }}
-                      />
+                      {m.photoDataUrl ? (
+                        <img src={m.photoDataUrl} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <span
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ background: editing.medicationId === m.id ? '#fff' : m.color }}
+                        />
+                      )}
                       {m.name}
                     </button>
                   ))}

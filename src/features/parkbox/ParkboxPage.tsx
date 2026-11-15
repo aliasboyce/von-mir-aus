@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { isFavorite, toggleFavorite, useFavoriteEntries } from '../../services/favorites';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Archive, ArrowDown, ArrowUp, CalendarPlus, Check, Pencil, RotateCcw, Trash2, X } from 'lucide-react';
+import { Archive, ArrowDown, ArrowUp, CalendarPlus, Check, Pencil, RotateCcw, Star, Trash2, X } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
+import { MoreMenu } from '../../components/ui/MoreMenu';
 import { Button } from '../../components/ui/Button';
 import { useSettings } from '../../state/SettingsContext';
 import { createId } from '../../services/storage/repository';
@@ -156,6 +158,7 @@ export function ParkboxPage() {
   const { settings } = useSettings();
   const T = TXT[settings.language === 'en' ? 'en' : 'de'];
   const lang = settings.language === 'en' ? 'en' : 'de';
+  useFavoriteEntries(); // Menü-Beschriftung "Favorit" aktuell halten
   const locale = settings.language === 'en' ? 'en-GB' : 'de-DE';
 
   const [notes, setNotes] = useState<ParkNote[]>(() => parkNotesRepo.getAll());
@@ -313,12 +316,21 @@ export function ParkboxPage() {
   function renderWait(w: WaitItem, index: number) {
     const a = apptOf(w);
     return (
-      <li key={w.id} className="rounded-[var(--radius-lg)] p-3.5 relative" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderLeft: '5px solid #5f8fb0' }} data-testid="wait-item">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#5f8fb01f] text-[#3f6f90]" aria-hidden="true">🪑 {T.place(index + 1)}</span>
-          <span className="text-[11.5px] text-[var(--color-text-faint)]">{T.kinds[w.kind]}</span>
+      <li key={w.id} className="relative pl-12" data-testid="wait-item">
+        <span className="absolute left-0 top-3 w-9 h-9 rounded-full flex items-center justify-center text-[15px] font-medium text-white" style={{ background: '#4a7794', boxShadow: '0 0 0 4px color-mix(in srgb, #5f8fb0 11%, var(--color-bg))' }} aria-label={T.place(index + 1)}>{index + 1}</span>
+        <div className="rounded-[6px] p-3.5" style={{ background: 'var(--color-surface)', border: '1px solid #5f8fb055' }}>
+        <div className="flex items-start gap-1">
+          <div className="flex-1 min-w-0">
+            <span className="text-[11.5px] text-[#4a7794] uppercase tracking-wide">{T.kinds[w.kind]}</span>
+            <p className="text-[15px] text-[var(--color-text)] leading-snug mt-0.5">{w.title}</p>
+          </div>
+          <MoreMenu testId="wait-menu" items={[
+            { id: 'slot', label: a ? T.changeSlot : T.assign, icon: <CalendarPlus size={16} />, onClick: () => openSlot(w) },
+            ...(a ? [{ id: 'unassign', label: T.unassign, icon: <RotateCcw size={16} />, onClick: () => unassign(w) }] : []),
+            ...(!a ? [{ id: 'up', label: T.up, icon: <ArrowUp size={16} />, divider: true, onClick: () => move(w.id, -1) }, { id: 'down', label: T.down, icon: <ArrowDown size={16} />, onClick: () => move(w.id, 1) }] : []),
+            { id: 'del', label: T.del, icon: <Trash2 size={16} />, danger: true, divider: true, onClick: () => removeWait(w.id) },
+          ]} />
         </div>
-        <p className="text-[15px] text-[var(--color-text)] leading-snug">{w.title}</p>
         {w.need && <p className="text-[12.5px] text-[var(--color-text-muted)] mt-0.5">💛 {w.need}</p>}
         {a && (
           <p className="text-[12.5px] mt-1.5" style={{ color: '#3f6f90' }} data-testid="wait-slot">
@@ -344,15 +356,11 @@ export function ParkboxPage() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-1.5 mt-2.5">
-            {!a && <button type="button" className={`${smallBtn} !bg-[#5f8fb0] !text-white !border-transparent`} onClick={() => setAssignWait(w)} data-testid="wait-assign-sheet">{T.assignTo} →</button>}
-            <button type="button" className={smallBtn} onClick={() => openSlot(w)} data-testid="wait-assign"><CalendarPlus size={13} /> {a ? T.changeSlot : T.assign}</button>
-            {a && <button type="button" className={smallBtn} onClick={() => unassign(w)}><RotateCcw size={13} /> {T.unassign}</button>}
-            {!a && <button type="button" className={smallBtn} onClick={() => move(w.id, -1)} aria-label={T.up}><ArrowUp size={13} /></button>}
-            {!a && <button type="button" className={smallBtn} onClick={() => move(w.id, 1)} aria-label={T.down}><ArrowDown size={13} /></button>}
-            <button type="button" className={smallBtn} onClick={() => removeWait(w.id)} aria-label={T.del}><Trash2 size={13} /></button>
+          <div className="mt-2.5">
+            {!a && <button type="button" className={`${smallBtn} !bg-[#4a7794] !text-white !border-transparent`} onClick={() => setAssignWait(w)} data-testid="wait-assign-sheet">{T.assignTo} →</button>}
           </div>
         )}
+      </div>
       </li>
     );
   }
@@ -366,25 +374,23 @@ export function ParkboxPage() {
         <h1 className="text-[24px] mb-3 leading-tight">{T.title}</h1>
 
         <div className="grid grid-cols-2 gap-1 p-1 rounded-full mb-3" style={{ background: 'var(--color-surface-muted)' }} role="tablist" aria-label={T.title}>
-          <button type="button" role="tab" aria-selected={section === 'park'} onClick={() => setSection('park')} className="rounded-full px-3 py-2.5 text-[15px] transition hit44" style={section === 'park' ? { background: 'var(--color-surface)', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: 'var(--color-text)' } : { color: 'var(--color-text-muted)' }} data-testid="section-park">
+          <button type="button" role="tab" aria-selected={section === 'park'} onClick={() => setSection('park')} className="rounded-full px-3 py-2.5 text-[15px] transition hit44" style={section === 'park' ? { background: '#f3e3a8', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: '#3d3a2e' } : { color: 'var(--color-text-muted)' }} data-testid="section-park">
             <span aria-hidden="true">📦 </span>{T.tabPark}
           </button>
-          <button type="button" role="tab" aria-selected={section === 'wait'} onClick={() => setSection('wait')} className="rounded-full px-3 py-2.5 text-[15px] transition hit44" style={section === 'wait' ? { background: 'var(--color-surface)', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: 'var(--color-text)' } : { color: 'var(--color-text-muted)' }} data-testid="section-wait">
+          <button type="button" role="tab" aria-selected={section === 'wait'} onClick={() => setSection('wait')} className="rounded-full px-3 py-2.5 text-[15px] transition hit44" style={section === 'wait' ? { background: '#5f8fb0', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: '#fff' } : { color: 'var(--color-text-muted)' }} data-testid="section-wait">
             <span aria-hidden="true">🪑 </span>{T.tabWait}
           </button>
         </div>
+        <p className="text-[12.5px] text-[var(--color-text-faint)] mb-4" data-testid="park-sub">{section === 'park' ? T.tabParkSub : T.tabWaitSub}</p>
         <details className="mb-4 text-[13px] text-[var(--color-text-muted)]" data-testid="park-differ">
-          <summary className="cursor-pointer select-none text-[12.5px] text-[var(--color-text-faint)]">{T.info}</summary>
-          <p className="mt-2 leading-relaxed">{T.intro}</p>
+          <summary className="cursor-pointer select-none text-[12.5px] text-[var(--color-text-faint)] min-h-[32px]">{T.info}</summary>
+          <p className="mt-2 leading-relaxed">{section === 'park' ? T.parkExplain : T.waitExplain}</p>
           <p className="mt-2 leading-relaxed">{T.differ}</p>
         </details>
 
         {section === 'park' && (
         <div data-testid="park-section">
-        <details className="mb-4 text-[13px] text-[var(--color-text-muted)]" data-testid="park-explain">
-          <summary className="cursor-pointer select-none text-[12.5px] text-[var(--color-text-faint)]">{T.parkExplainTitle}</summary>
-          <p className="mt-2 leading-relaxed">{T.parkExplain}</p>
-        </details>
+        
         {/* writing + box */}
         <div className="relative">
           <div ref={paperRef} className="relative z-10">
@@ -411,12 +417,13 @@ export function ParkboxPage() {
               </div>
             )}
           </div>
-          <div className="flex gap-1.5 flex-wrap mt-3" role="group" aria-label={T.levelsHint}>
+          <div className="flex items-center gap-1 mt-3" role="group" aria-label={T.levelsHint} data-testid="park-levels">
             {SLIP_LEVELS.map((l) => (
-              <button key={l.id} type="button" aria-pressed={level === l.id} onClick={() => setLevel(l.id)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12.5px] border hit44" style={level === l.id ? { background: 'var(--color-primary)', color: 'var(--color-surface)', borderColor: 'transparent' } : { background: 'var(--color-surface)', color: 'var(--color-text-muted)', borderColor: 'var(--color-border)' }} data-testid={`park-prio-${l.id}`}>
-                <span className="w-3 h-3 rounded-full border border-black/25" style={{ background: l.bg }} aria-hidden="true" />{lang === 'en' ? l.en : l.de}
+              <button key={l.id} type="button" aria-pressed={level === l.id} aria-label={lang === 'en' ? l.en : l.de} title={lang === 'en' ? l.en : l.de} onClick={() => setLevel(l.id)} className="w-11 h-11 rounded-full flex items-center justify-center">
+                <span className="block w-6 h-6 rounded-full" style={{ background: l.bg, border: level === l.id ? '3px solid var(--color-text)' : '1.5px solid rgba(0,0,0,0.3)' }} />
               </button>
             ))}
+            <span className="text-[12.5px] text-[var(--color-text-muted)] ml-1">{lang === 'en' ? levelInfo(level).en : levelInfo(level).de}</span>
           </div>
           <div className="flex justify-end mt-3 mb-2">
             <Button size="sm" onClick={putInBox} disabled={!text.trim() || !!flying} data-testid="park-put">{T.put}</Button>
@@ -451,34 +458,34 @@ export function ParkboxPage() {
                 </>
               ) : (
                 <>
-                  <p className="text-[15px] leading-[28px] whitespace-pre-line">{n.text}</p>
-                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                    {tab === 'open' && SLIP_LEVELS.map((l) => (
-                      <button key={l.id} type="button" aria-pressed={lv.id === l.id} aria-label={lang === 'en' ? l.en : l.de} title={lang === 'en' ? l.en : l.de} onClick={() => updateNote(n.id, { level: l.id, priority: l.priority })} className="hit44 w-7 h-7 rounded-full flex items-center justify-center" data-testid={`park-note-level-${l.id}`}>
-                        <span className="block w-5 h-5 rounded-full" style={{ background: l.bg, border: lv.id === l.id ? `3px solid ${lv.ink}` : '1.5px solid rgba(0,0,0,0.35)', boxShadow: lv.id === l.id ? 'none' : '0 0 0 1px rgba(255,255,255,0.5)' }} />
-                      </button>
-                    ))}
-                    <span className="text-[11.5px] opacity-80 ml-1">{lang === 'en' ? lv.en : lv.de}</span>
+                  <div className="flex items-start gap-1">
+                    <p className="flex-1 text-[15px] leading-[28px] whitespace-pre-line">{n.text}</p>
+                    <MoreMenu testId="park-note-menu" items={[
+                      { id: 'edit', label: T.edit, icon: <Pencil size={16} />, onClick: () => { setEditId(n.id); setEditText(n.text); } },
+                      { id: 'fav', label: isFavorite('park', n.id) ? (lang === 'en' ? 'Remove favourite' : 'Favorit entfernen') : (lang === 'en' ? 'Mark as favourite' : 'Als Favorit markieren'), icon: <Star size={16} />, onClick: () => toggleFavorite('park', n.id) },
+                      ...(tab === 'open' ? SLIP_LEVELS.map((l, k) => ({ id: `lv-${l.id}`, label: lang === 'en' ? l.en : l.de, hint: k === 0 ? (lang === 'en' ? 'Colour = how urgent' : 'Farbe = wie eilig') : undefined, checked: lv.id === l.id, divider: k === 0, icon: <span className="block w-4 h-4 rounded-full border border-black/30" style={{ background: l.bg }} />, onClick: () => updateNote(n.id, { level: l.id, priority: l.priority }) })) : []),
+                      tab === 'open'
+                        ? { id: 'archive', label: T.toArchive, icon: <Archive size={16} />, divider: true, onClick: () => updateNote(n.id, { archived: true }) }
+                        : { id: 'unarchive', label: T.back, icon: <RotateCcw size={16} />, divider: true, onClick: () => updateNote(n.id, { archived: false }) },
+                      { id: 'towait', label: T.toWait, icon: <span aria-hidden="true">🪑</span>, onClick: () => noteToWaiting(n) },
+                      { id: 'del', label: T.del, icon: <Trash2 size={16} />, danger: true, divider: true, onClick: () => setDelId(n.id) },
+                    ]} />
                   </div>
-                  {n.deliverAt && !n.archived && <p className="text-[12px] mt-1 opacity-90" data-testid="park-flies">✉️ {T.flies} {formatDeliver(n.deliverAt, settings.language === 'en' ? 'en' : 'de')}</p>}
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {tab === 'open' && <button type="button" className={`${smallBtn} !bg-[#3d3a2e] !text-white !border-transparent`} onClick={() => setAssignNote(n)} data-testid="park-assign">{T.assignTo} →</button>}
-                    <button type="button" className={smallBtn} onClick={() => { setEditId(n.id); setEditText(n.text); }} data-testid="park-edit"><Pencil size={13} /> {T.edit}</button>
-                    {tab === 'open' ? (
-                      <button type="button" className={smallBtn} onClick={() => updateNote(n.id, { archived: true })} data-testid="park-archive"><Archive size={13} /> {T.toArchive}</button>
-                    ) : (
-                      <button type="button" className={smallBtn} onClick={() => updateNote(n.id, { archived: false })} data-testid="park-unarchive"><RotateCcw size={13} /> {T.back}</button>
-                    )}
-                    <button type="button" className={smallBtn} onClick={() => noteToWaiting(n)} data-testid="park-to-wait">🪑 {T.toWait}</button>
-                    {delId === n.id ? (
-                      <>
-                        <button type="button" className={`${smallBtn} !text-[var(--color-danger)]`} onClick={() => removeNote(n.id)} data-testid="park-del-sure"><Trash2 size={13} /> {T.delSure}</button>
-                        <button type="button" className={smallBtn} onClick={() => setDelId(null)} aria-label={T.cancel}><X size={13} /></button>
-                      </>
-                    ) : (
-                      <button type="button" className={smallBtn} onClick={() => setDelId(n.id)} data-testid="park-del"><Trash2 size={13} /> {T.del}</button>
-                    )}
+                  <div className="flex flex-wrap items-center gap-2 -mt-1">
+                    <span className="inline-flex items-center gap-1.5 text-[11.5px] opacity-80"><span className="w-2.5 h-2.5 rounded-full border border-black/30" style={{ background: lv.bg }} aria-hidden="true" />{lang === 'en' ? lv.en : lv.de}</span>
+                    {n.deliverAt && !n.archived && <span className="text-[12px] opacity-90" data-testid="park-flies">✉️ {T.flies} {formatDeliver(n.deliverAt, settings.language === 'en' ? 'en' : 'de')}</span>}
                   </div>
+                  {tab === 'open' && (
+                    <div className="mt-2">
+                      <button type="button" className={`${smallBtn} !bg-[#3d3a2e] !text-white !border-transparent`} onClick={() => setAssignNote(n)} data-testid="park-assign">{T.assignTo} →</button>
+                    </div>
+                  )}
+                  {delId === n.id && (
+                    <div className="flex gap-2 mt-2">
+                      <button type="button" className={`${smallBtn} !text-[var(--color-danger)]`} onClick={() => removeNote(n.id)} data-testid="park-del-sure"><Trash2 size={13} /> {T.delSure}</button>
+                      <button type="button" className={smallBtn} onClick={() => setDelId(null)} aria-label={T.cancel}><X size={13} /> {T.cancel}</button>
+                    </div>
+                  )}
                 </>
               )}
             </li>
@@ -512,19 +519,20 @@ export function ParkboxPage() {
 
         {/* Wartezimmer */}
         {section === 'wait' && (
-        <section data-testid="waiting-room">
-          <div className="rounded-[var(--radius-xl)] p-4 mb-4" style={{ background: 'linear-gradient(180deg, #e3eef6 0%, #f3ede1 100%)', border: '1px solid #5f8fb033' }}>
-            <div className="flex items-center justify-center gap-3 text-[26px] mb-1" aria-hidden="true">🪑 🪴 🕰️ 🪴 🪑</div>
-            <div className="h-1.5 rounded-full mb-3" style={{ background: '#c9b48f66' }} aria-hidden="true" />
-            <h2 className="text-[20px] mb-1">{T.waitTitle}</h2>
-            <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed"><strong>{T.waitExplainTitle}</strong> {T.waitExplain}</p>
+        <section data-testid="waiting-room" className="rounded-[10px] p-3.5 -mx-1" style={{ background: 'color-mix(in srgb, #5f8fb0 11%, var(--color-bg))', border: '1px solid #5f8fb044' }}>
+          <div className="rounded-[6px] px-4 py-3 mb-4 flex items-center justify-between gap-3" style={{ background: '#35566e', color: '#fff' }} data-testid="waiting-board">
+            <div>
+              <h2 className="text-[19px] leading-tight text-white">{T.waitTitle}</h2>
+              <p className="text-[12.5px] opacity-80">{lang === 'en' ? `${waiting.length} waiting · ${scheduled.length} with a time` : `${waiting.length} warten · ${scheduled.length} mit Termin`}</p>
+            </div>
+            <span className="text-[26px]" aria-hidden="true">🪑</span>
           </div>
 
-          <div className="rounded-[var(--radius-lg)] p-3.5 mb-4 flex flex-col gap-2.5" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}>
+          <div className="rounded-[6px] p-3.5 mb-4 flex flex-col gap-2.5" style={{ background: 'var(--color-surface)', border: '1px solid #5f8fb055' }}>
             <input value={wTitle} onChange={(e) => setWTitle(e.target.value)} placeholder={T.waitPlaceholder} className="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5 text-[15px]" data-testid="wait-input" />
             <div className="flex gap-1.5 flex-wrap">
               {(Object.keys(T.kinds) as WaitKind[]).map((k) => (
-                <button key={k} type="button" aria-pressed={wKind === k} onClick={() => setWKind(k)} className={`px-3 py-1.5 rounded-full text-[12.5px] border ${wKind === k ? 'bg-[#5f8fb0] text-white border-transparent' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)]'}`} data-testid={`wait-kind-${k}`}>
+                <button key={k} type="button" aria-pressed={wKind === k} onClick={() => setWKind(k)} className={`px-3 py-1.5 rounded-full text-[12.5px] border ${wKind === k ? 'bg-[#4a7794] text-white border-transparent' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)]'}`} data-testid={`wait-kind-${k}`}>
                   {T.kinds[k]}
                 </button>
               ))}
@@ -537,13 +545,13 @@ export function ParkboxPage() {
           {waiting.length > 0 && (
             <>
               <h3 className="text-[13px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{T.waitingNow} · {waiting.length}</h3>
-              <ul className="flex flex-col gap-2.5 mb-5">{waiting.map((w, i) => renderWait(w, i))}</ul>
+              <ul className="flex flex-col gap-3 mb-5 relative" style={{ ['--rail' as string]: '#5f8fb066' }}>{waiting.map((w, i) => renderWait(w, i))}</ul>
             </>
           )}
           {scheduled.length > 0 && (
             <>
               <h3 className="text-[13px] uppercase tracking-wide text-[var(--color-text-faint)] mb-2">{T.scheduled} · {scheduled.length}</h3>
-              <ul className="flex flex-col gap-2.5 mb-3">{scheduled.map((w, i) => renderWait(w, i))}</ul>
+              <ul className="flex flex-col gap-3 mb-3">{scheduled.map((w, i) => renderWait(w, i))}</ul>
               <Link to="/kalender" className="text-[13.5px] text-[var(--color-primary)] underline underline-offset-2">{T.openCalendar} →</Link>
             </>
           )}

@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
+import { PageStar } from '../../components/ui/PageStar';
 import { bandForValue } from '../polyvagal/arousalBands';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { useNavigate, Link } from 'react-router-dom';
@@ -201,6 +202,7 @@ export function InnerWeatherPage() {
         )}
         {step !== 'done' && (
           <div className="flex items-center gap-1">
+            <PageStar />
             <HelpButton helpKey="checkin" />
             <button
               onClick={() => navigate('/')}

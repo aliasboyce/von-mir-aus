@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FavStar } from '../../components/ui/FavStar';
 import { Mail } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { useT } from '../../i18n';
@@ -83,7 +84,8 @@ export function LettersList({ showPendingList = false, onChanged }: LettersListP
                 {g.list.map((l) => {
                   const label = labelOf(l);
                   return (
-                    <button key={l.id} onClick={() => setOpenId(l.id)} className="text-left w-full">
+                    <div key={l.id} className="flex items-center gap-1">
+                    <button onClick={() => setOpenId(l.id)} className="text-left flex-1 min-w-0">
                       <Card interactive className="flex items-start gap-3">
                         <Mail size={18} className="text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
@@ -92,6 +94,8 @@ export function LettersList({ showPendingList = false, onChanged }: LettersListP
                         </div>
                       </Card>
                     </button>
+                    <FavStar kind="letter" id={l.id} testId="letter-fav" />
+                    </div>
                   );
                 })}
               </div>

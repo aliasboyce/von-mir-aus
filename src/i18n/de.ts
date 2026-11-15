@@ -2374,8 +2374,8 @@ const de = {
   },
   favorites: {
     title: 'Favoriten',
-    subtitle: 'Deine wichtigsten Dinge an einem Ort — Ressourcen, Brücken und Kontakte, die du markiert hast.',
-    empty: 'Noch nichts markiert. Ressourcen, Brücken und Kontakte kannst du mit einem Stern versehen.',
+    subtitle: 'Deine wichtigsten Dinge an einem Ort — alles, was du mit dem Stern markiert hast, nach Art sortiert.',
+    empty: 'Noch nichts markiert. Fast alles in der App kannst du mit dem Stern ☆ oben rechts (oder am Eintrag) als Favorit merken — ganze Seiten, Listen, Projekte, Medikamente, Ressourcen, Kontakte …',
     resourcesTitle: 'Ressourcen',
     bridgesTitle: 'Brücken',
     contactsTitle: 'Wichtige Kontakte',

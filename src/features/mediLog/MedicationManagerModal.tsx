@@ -1,5 +1,8 @@
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, Check, Pipette } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { FavStar } from '../../components/ui/FavStar';
+import { Plus, Pencil, Trash2, Check, Pipette, Camera } from 'lucide-react';
+import { resizeImageFile } from '../../services/imageResize';
+import { useSettings } from '../../state/SettingsContext';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { useT } from '../../i18n';
@@ -18,6 +21,17 @@ export function MedicationManagerModal({ open, onClose, onChange, onAddAsRecurri
   const t = useT();
   const [medications, setMedications] = useState<SavedMedication[]>(() => savedMedicationsRepo.getAll());
   const [editing, setEditing] = useState<SavedMedication | null>(null);
+  const { settings } = useSettings();
+  const en = settings.language === 'en';
+  const photoInput = useRef<HTMLInputElement>(null);
+  function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    resizeImageFile(file, 700)
+      .then((url) => setEditing((cur) => (cur ? { ...cur, photoDataUrl: url } : cur)))
+      .catch(() => undefined);
+  }
 
   function refresh() {
     const list = savedMedicationsRepo.getAll();
@@ -128,6 +142,24 @@ export function MedicationManagerModal({ open, onClose, onChange, onAddAsRecurri
             </div>
             <p className="text-[11px] text-[var(--color-text-faint)] mt-1.5">{t.mediLog.customColorHint}</p>
           </div>
+          {/* Foto der Verpackung (freiwillig) */}
+          <div data-testid="med-photo-block">
+            <span className="text-[13px] font-medium text-[var(--color-text-muted)] mb-1.5 block">{en ? 'Photo of the package (optional)' : 'Foto der Verpackung (freiwillig)'}</span>
+            <div className="flex items-center gap-3">
+              {editing.photoDataUrl && <img src={editing.photoDataUrl} alt="" className="w-20 h-20 rounded-[var(--radius-md)] object-cover" data-testid="med-photo-preview" />}
+              <div className="flex flex-col gap-1">
+                <button type="button" onClick={() => photoInput.current?.click()} data-testid="med-photo-add" className="flex items-center gap-1.5 text-[13px] text-[var(--color-primary)] self-start hit44">
+                  <Camera size={14} /> {editing.photoDataUrl ? (en ? 'Choose another photo' : 'Anderes Foto') : (en ? 'Add a photo' : 'Foto hinzufügen')}
+                </button>
+                {editing.photoDataUrl && (
+                  <button type="button" onClick={() => setEditing({ ...editing, photoDataUrl: undefined })} className="flex items-center gap-1.5 text-[13px] text-[var(--color-text-muted)] self-start hit44">
+                    <Trash2 size={13} /> {en ? 'Remove photo' : 'Foto entfernen'}
+                  </button>
+                )}
+              </div>
+            </div>
+            <input ref={photoInput} type="file" accept="image/*" className="hidden" onChange={pickPhoto} data-testid="med-photo-input" />
+          </div>
           {onAddAsRecurring && medications.some((m) => m.id === editing.id) && (
             <button
               onClick={() => onAddAsRecurring(editing)}
@@ -156,7 +188,11 @@ export function MedicationManagerModal({ open, onClose, onChange, onAddAsRecurri
             <div className="flex flex-col gap-2">
               {medications.map((m) => (
                 <div key={m.id} className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--color-border)] p-3">
-                  <span className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: m.color }} />
+                  {m.photoDataUrl ? (
+                    <img src={m.photoDataUrl} alt="" className="w-10 h-10 rounded-[var(--radius-md)] object-cover flex-shrink-0" style={{ outline: `2px solid ${m.color}`, outlineOffset: 1 }} />
+                  ) : (
+                    <span className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: m.color }} />
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] text-[var(--color-text)]">{m.name}</p>
                     {m.typicalDoseValue != null && (
@@ -165,6 +201,7 @@ export function MedicationManagerModal({ open, onClose, onChange, onAddAsRecurri
                       </p>
                     )}
                   </div>
+                  <FavStar kind="medication" id={m.id} size={16} className="!w-8 !h-8 hit44" testId="med-fav" />
                   <button onClick={() => setEditing(m)} aria-label={t.common.edit} className="p-1.5 text-[var(--color-text-muted)] hit44">
                     <Pencil size={14} />
                   </button>

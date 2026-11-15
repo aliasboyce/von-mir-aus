@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PageStar } from '../../components/ui/PageStar';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { useT } from '../../i18n';
 import { useSettings } from '../../state/SettingsContext';
@@ -13,7 +14,9 @@ const pinStore = createKeyValueStore<string[]>('alltag-pins', []);
 export function AlltagPage() {
   const t = useT();
   const en = useSettings().settings.language === 'en';
-  const groups = ADDON_GROUPS.filter((g) => EVERYDAY_GROUP_KEYS.includes(g.labelKey));
+  // Reihenfolge: Struktur, Alltag, Schreiben (Tagebuch · Brief an mich · Lesezeichen), Ordnen
+  const ORDER = ['struktur', 'alltag', 'schreiben', 'ordnen'];
+  const groups = ADDON_GROUPS.filter((g) => [...EVERYDAY_GROUP_KEYS, 'schreiben'].includes(g.labelKey)).sort((x, y) => ORDER.indexOf(x.labelKey) - ORDER.indexOf(y.labelKey));
   const [pins, setPins] = useState<string[]>(() => { const v = pinStore.get(); return Array.isArray(v) ? v : []; });
   function togglePin(key: string) {
     const next = pins.includes(key) ? pins.filter((k) => k !== key) : [...pins, key];
@@ -31,11 +34,12 @@ export function AlltagPage() {
         <h1 className="text-[24px]">{t.nav.everyday}</h1>
         <div className="flex items-center gap-1">
           <SearchButton />
+          <PageStar />
           <HelpButton helpKey="entdecken" />
         </div>
       </div>
       <p className="text-[13.5px] text-[var(--color-text-muted)] leading-relaxed mb-5">
-        {en ? 'The practical things in your day: appointments, medication, parking box, lists. All of this is also in Explore.' : 'Das Praktische im Tag: Termine, Medikamente, Parkbox, Listen. Alles hier findest du auch unter Entdecken.'}
+        {en ? 'The practical things in your day: appointments, medication, parking box, lists, diary. All of this is also in Explore.' : 'Das Praktische im Tag: Termine, Medikamente, Parkbox, Listen, Tagebuch. Alles hier findest du auch unter Entdecken.'}
       </p>
       <p className="text-[12.5px] text-[var(--color-text-faint)] mb-4">{en ? 'Tap the pin on a page to keep it at the top.' : 'Mit der Stecknadel an einer Seite hältst du sie oben fest.'}</p>
       <ExtraGroups groups={shownGroups} color={EVERYDAY_COLOR_VALUE} pins={pins} onTogglePin={togglePin} titles={titles} />

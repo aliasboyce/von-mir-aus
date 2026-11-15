@@ -16,6 +16,24 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-medi-favoriten',
+    date: '2026',
+    items: [
+      'Medi-Log: erst Medikament und Packung anlegen, dann der Eintrag – die Schritte ①②③ stehen jetzt in dieser Reihenfolge oben. Dazu: Foto der Verpackung bei Medikament und Packung.',
+      'Alltag zeigt jetzt auch Tagebuch, Brief an mich und Lesezeichen.',
+      'Parkbox ruhiger und übersichtlicher (Menü „⋯“ am Zettel), das Wartezimmer sieht deutlich anders aus.',
+      'Startseite: ein leiser Schnellzugriff neben dem Wesen (Kalender, Parkbox, Medi-Log, Favoriten) – in den Einstellungen abschaltbar.',
+      'Favoriten: fast alles lässt sich mit dem Stern ☆ merken – jede Seite (Stern oben rechts), Listen, Projekte, Mindmaps, Routinen, Skillketten, Medikamente, Packungen, Briefe, Lesezeichen, Parkbox-Zettel. Die Favoritenseite zeigt alles nach Art sortiert.',
+    ],
+    itemsEn: [
+      'Medi-Log: create the medication and package first, then the entry – steps ①②③ now come in that order at the top. Plus a photo of the packaging for medications and packages.',
+      'Everyday now also shows Diary, Letter to myself and Bookmarks.',
+      'Parkbox calmer and clearer (“⋯” menu on each note); the waiting room looks clearly different.',
+      'Home: a quiet shortcut next to your companion (calendar, parkbox, medi log, favourites) – can be switched off in settings.',
+      'Favourites: almost everything can be starred ☆ – every page (star at the top right), lists, projects, mind maps, routines, skill chains, medications, packages, letters, bookmarks, parkbox notes. The favourites page shows it all sorted by type.',
+    ],
+  },
+  {
     id: '2026-feinschliff',
     date: '2026',
     items: [

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { FavStar } from '../../components/ui/FavStar';
 import { shareOrCopy } from '../../services/shareOrCopy';
 import { buildShareText } from '../../services/sharedLinks';
 import { HelpButton } from '../../components/navigation/HelpButton';
@@ -207,6 +208,7 @@ export function BookmarksPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-1 flex-shrink-0">
+                  <FavStar kind="bookmark" id={bm.id} size={16} className="!w-8 !h-8 hit44" testId="bookmark-fav" />
                   <button
                     onClick={() => shareBookmarkLink(bm)}
                     aria-label={t.resources.shareLink}

@@ -720,3 +720,7 @@ Nicht gefunden trotz gruendlicher Pruefung mit mehreren Datenszenarien: der geme
 ## Feinschliff 15.11.2026 (F1–F15, einzeln rückgängig machbar)
 Übersicht und Undo-Anleitung: `docs/FEINSCHLIFF.md`. Erledigt: F1/F2 Tippflächen, F3 Zoom-Einstellung, F4 Statusleistenfarbe, F5 App-Kurzbefehle, F6 Rückgängig nach Löschen, F7 Ton/Vibration im Start, F8 Orientierung in leeren Auswertungen, F9 Textgröße, F10 Seitentitel, F11 maskable Icons, F12 iPhone-Startbild, F13 flinkerer Hauptseitenwechsel, F14 Geschafft-Signal, F15 getönte Schatten.
 Offen/Prüfen am echten Handy: F4, F5, F12 (nur installiert sichtbar); Dichte der unsichtbaren Tippflächen (F2) in engen Reihen.
+
+## 15.11.2026 – Medi-Log, Alltag, Parkbox, Schnellzugriff, Favoriten
+Erledigt: Medi-Log-Reihenfolge ①②③ + Verpackungsfoto; Tagebuch/Brief/Lesezeichen in Alltag; Parkbox beruhigt, Wartezimmer eigenes Design; Startseiten-Regal (`HomeShelf`, Einstellung `homeShelf`); Favoriten: gemeinsamer Speicher `services/favorites.ts` (Key `favorites-items`), Stern `FavStar`/`PageStar`, Favoritenseite nach Art sortiert.
+Offen/Prüfen: Zugang-Seite hat den Seiten-Stern erst nach dem Startbildschirm; Tagebucheinträge einzeln nicht favorisierbar (nur die Seite, wegen Sperre); echte Handy-Prüfung des Regals auf kleinen Displays.

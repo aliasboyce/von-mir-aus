@@ -1,7 +1,9 @@
 import { ChevronLeft } from 'lucide-react';
 import { SearchButton } from './SearchButton';
 import { goBack } from '../../services/navigation';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { FavStar } from '../ui/FavStar';
+import { classifyPath } from '../../services/favorites';
 import type { ReactNode } from 'react';
 import { useT } from '../../i18n';
 
@@ -14,6 +16,8 @@ interface TopBarProps {
 export function TopBar({ onBack, action, transparent = false }: TopBarProps) {
   const navigate = useNavigate();
   const t = useT();
+  const loc = useLocation();
+  const fav = classifyPath(loc.pathname);
 
   return (
     <div
@@ -31,6 +35,19 @@ export function TopBar({ onBack, action, transparent = false }: TopBarProps) {
       </button>
       <div className="flex items-center gap-1">
         {action}
+        {fav !== 'none' && fav !== 'native' && (
+          <FavStar
+            kind={fav.kind}
+            id={fav.id}
+            testId="topbar-fav"
+            size={19}
+            getExtra={() => {
+              const h = document.querySelector('main h1, main h2');
+              const txt = (h?.textContent ?? '').replace(/\s+/g, ' ').trim().slice(0, 60);
+              return { path: `${loc.pathname}${loc.search}`, title: txt || undefined };
+            }}
+          />
+        )}
         <SearchButton />
       </div>
     </div>

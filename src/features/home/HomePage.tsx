@@ -18,6 +18,7 @@ import { dueUnopenedLetters, markLetterOpened, pendingLetterStore } from '../bri
 import type { LetterToSelf } from '../briefAnMich/lettersRepo';
 import { LetterEnvelope } from '../briefAnMich/LetterEnvelope';
 import { CompanionDock } from '../../components/companion/CompanionDock';
+import { HomeShelf } from './HomeShelf';
 import { AboutVonMirAusModal } from '../../components/shared/AboutVonMirAusModal';
 import { ABOUT_VON_MIR_AUS_TEXT } from '../../content/aboutContent';
 import { AchievementSection } from './AchievementSection';
@@ -357,8 +358,9 @@ export function HomePage() {
         </div>
       )}
 
-      <div className="flex flex-col items-center mb-5">
+      <div className="flex flex-col items-center mb-5 relative">
         <CompanionDock variant="hero" />
+        {!lean && settings.homeShelf !== false && <HomeShelf isEn={isEn} />}
       </div>
 
       {/* Check-In: the single clear "start here" */}
