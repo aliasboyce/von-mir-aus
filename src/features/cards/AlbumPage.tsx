@@ -17,6 +17,7 @@ import { downloadCardsPdf } from './cardPdf';
 import { playPageTurn, playSparkle, setAppSounds } from './cardSounds';
 import { CARD_H, CARD_W } from './cardRender';
 import { KIND_META, kindLabel, KIND_ORDER, type CardModel } from './cardTypes';
+import { ChevronDown } from 'lucide-react';
 
 type Chapter = { id: string; label: string; color: string; emoji: string; count: number; test: (c: CardModel) => boolean };
 
@@ -106,6 +107,7 @@ export function AlbumPage() {
         </div>
 
         <div className="mt-3"><MemoryFamily current="sammelalbum" /></div>
+        <AlbumIntro L={L} chapterId={chapterId} />
         <div className="flex gap-2 mb-3 flex-wrap">
           <Link to="/sammelalbum/neu" className="flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-full text-[13.5px] bg-[var(--color-primary)] text-[var(--color-surface)]" data-testid="album-new">
             <Plus size={15} /> {L('Neue Karte', 'New card')}
@@ -474,6 +476,39 @@ function Cover({ chapter, count, total, lang, height, cover }: { chapter: Chapte
         <p className="text-[15px] mt-5 italic" style={{ ...goldText, fontFamily: 'var(--font-display, Georgia, serif)', letterSpacing: 1 }}>von mir aus</p>
         <p className="text-[11.5px] mt-5" style={{ color: 'rgba(240,215,160,0.75)' }}>{lang === 'en' ? 'Swipe to turn the page →' : 'Zum Blättern wischen →'}</p>
       </div>
+    </div>
+  );
+}
+
+const CHAPTER_HELP: Record<string, { de: string; en: string }> = {
+  koerper: { de: 'Körperkarten: jede Körperwahrnehmung, die es in der App gibt (z. B. „Herzklopfen“, „schwere Glieder“), mit einer offenen Beschreibung, was sie bedeuten kann. Die Farbe zeigt die Zone.', en: 'Body cards: every body sensation in the app (e.g. “racing heart”), with an open description of what it can mean. The colour shows the zone.' },
+  gefuehl: { de: 'Gefühlskarten: zuerst die Gefühlsfamilien (z. B. Angst), dann jedes Gefühlswort einzeln (z. B. „ängstlich“) mit Beschreibung.', en: 'Feeling cards: first the feeling families (e.g. fear), then each feeling word on its own, with a description.' },
+  wert: { de: 'Wertekarten: alle Werte aus dem Wertekompass mit „Woran ich es merke“. Hast du dort etwas Eigenes notiert, steht es auf der Rückseite.', en: 'Value cards: all values from the values compass with “how I notice it”. Anything you wrote there appears on the back.' },
+  beduerfnis: { de: 'Bedürfniskarten: jedes Bedürfnis aus dem Bedürfniskompass einzeln, mit einer kurzen Erklärung.', en: 'Need cards: every need from the needs compass, each with a short explanation.' },
+  zugang: { de: 'Zugangskanalkarten: die zehn Wege, auf denen du dich gerade erreichen kannst, mit Beispielen für „da“ und „fehlt gerade“.', en: 'Access channel cards: the ten ways you can reach yourself right now, with examples of “there” and “missing right now”.' },
+};
+
+function AlbumIntro({ L, chapterId }: { L: (de: string, en: string) => string; chapterId: string }) {
+  const [open, setOpen] = useState(false);
+  const help = CHAPTER_HELP[chapterId];
+  return (
+    <div className="mb-3">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex items-center gap-1.5 min-h-[44px] text-[13.5px] text-[var(--color-primary)]" data-testid="album-intro-toggle">
+        {L('Was ist hier drin?', 'What is in here?')}
+        <ChevronDown size={15} className={open ? 'rotate-180' : ''} />
+      </button>
+      {help && <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed mb-1" data-testid="album-chapter-help">{L(help.de, help.en)}</p>}
+      {open && (
+        <div className="text-[13px] text-[var(--color-text-muted)] leading-relaxed rounded-[var(--radius-md)] bg-[var(--color-surface-muted)] p-3.5" data-testid="album-intro">
+          <p className="mb-2">{L('Das Album sammelt alles, was es in deiner App gibt, als Karten. Es verändert nichts – es liest nur mit.', 'The album gathers everything in your app as cards. It changes nothing – it only reads along.')}</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>{L('Deine Dinge: Menschen (Held:innen), Skills, Hilfsmittel, Orte, Aktivitäten, Routinen, Lesezeichen, Termine, Begleiter, Notfallpläne.', 'Your things: people, skills, aids, places, activities, routines, bookmarks, appointments, companions, emergency plans.')}</li>
+            <li>{L('Fertige Wort-Karten: Körperwahrnehmung, Gefühle, Werte, Bedürfnisse und Zugangskanäle – jeder Begriff einzeln mit Beschreibung, zum Nachschlagen und Wiedererkennen.', 'Ready-made word cards: body sensations, feelings, values, needs and access channels – every term on its own with a description, for looking up and recognising.')}</li>
+            <li>{L('Selbst gemacht: eigene Karten und Tageskarten.', 'Made by you: own cards and day cards.')}</li>
+          </ul>
+          <p className="mt-2">{L('Tippe eine Karte an: sie dreht sich und zeigt die Beschreibung. Wort-Karten kannst du unter Zahnrad (Farben & Ton) ausblenden.', 'Tap a card: it flips and shows the description. You can hide the word cards under the gear (colours & sound).')}</p>
+        </div>
+      )}
     </div>
   );
 }

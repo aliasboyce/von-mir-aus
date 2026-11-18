@@ -1,7 +1,7 @@
 import { HintCard } from '../../components/hints/HintCard';
 import { HomeWays } from './HomeWays';
 import { nextTip } from '../../services/hintCards';
-import { NurJetztHome } from '../nurJetzt/NurJetztHome';
+import { StillnessMode } from '../nurJetzt/StillnessMode';
 import { scopeOf } from '../../services/scope';
 import { ScopePicker } from '../scope/ScopePicker';
 import { Modal } from '../../components/ui/Modal';
@@ -198,7 +198,7 @@ export function HomePage() {
   const postfachCount = liveEntries.length + unreadMail.length;
 
   // "Nur jetzt": the whole start page shrinks to a few large doors
-  if (settings.nurJetztMode) return <NurJetztHome />;
+  if (settings.nurJetztMode) return <StillnessMode />;
 
   // One calm notice at a time (the rest waits in the Postfach) — a start page that shows
   // five pulsing cards at once overwhelms exactly the people it is for.
@@ -339,10 +339,16 @@ export function HomePage() {
       </div>
 
       {/* always within reach, small and calm */}
-      <Link to="/krisenmodus" className={`${chip} mb-4`}>
-        <LifeBuoy size={15} />
-        {t.crisisMode.homeCta}
-      </Link>
+      <div className="flex gap-2 mb-4">
+        <Link to="/krisenmodus" className={`${chip} flex-1`}>
+          <LifeBuoy size={15} />
+          {t.crisisMode.homeCta}
+        </Link>
+        <button type="button" onClick={() => updateSettings({ nurJetztMode: true })} className={`${chip} flex-1`} data-testid="home-nurjetzt">
+          <Compass size={15} />
+          {isEn ? 'Only now' : 'Nur jetzt'}
+        </button>
+      </div>
 
       {postfachOpen && <PostfachPanel live={liveEntries} />}
 
@@ -429,14 +435,7 @@ export function HomePage() {
 
       {!lean && <AchievementSection />}
 
-      {showMore && scope !== 'core' && (<button
-        onClick={() => setShowNurJetztExplainer(true)}
-        className="flex items-center justify-center gap-2 mx-auto mt-4 min-h-[44px] text-[12.5px] text-[var(--color-text-faint)] underline underline-offset-2"
-        data-testid="nurjetzt-entry"
-      >
-        <Compass size={13} className="flex-shrink-0" />
-        {t.home.nurJetztEntryCta}
-      </button>)}
+
 
       {scope !== 'all' && (
         <button type="button" onClick={() => setShowScopeModal(true)} className="block mx-auto mt-5 text-[13px] text-[var(--color-primary)] underline underline-offset-2 hit44" data-testid="home-show-more">

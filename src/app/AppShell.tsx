@@ -377,7 +377,7 @@ export function AppShell() {
        * only needs to hide for the hero/tour cases, not for its own
        * child overlays opening.
        */}
-      {!hideCompanionDock && (
+      {!hideCompanionDock && !(settings.nurJetztMode && location.pathname === "/") && (
         <div className="no-print">
           <CompanionDock bottomOffset={hideNav ? 16 : 92} />
         </div>

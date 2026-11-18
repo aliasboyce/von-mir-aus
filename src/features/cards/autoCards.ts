@@ -18,6 +18,7 @@ import type { TranslationDictionary } from '../../i18n/de';
 import type { UserSettings } from '../../data/types';
 import { assignNumbers, cardCategoriesRepo, colorForKind, getPrefs, ownCardsRepo, reflexionCardsRepo } from './cardStore';
 import { KIND_META, type CardKind, type CardModel } from './cardTypes';
+import { buildWordDrafts } from './wordCards';
 
 export interface BuildCtx {
   t: TranslationDictionary;
@@ -312,7 +313,7 @@ export function buildAllCards(ctx: BuildCtx): CardModel[] {
     rawOwnRarity[d.key] = reflexionCardsRepo.getById(id)?.rarity ?? 'normal';
   });
 
-  const all = [...drafts, ...ownDrafts, ...refl];
+  const all = [...drafts, ...ownDrafts, ...refl, ...(prefs.hideWordCards ? [] : buildWordDrafts(ctx))];
   const nums = assignNumbers(all.map((d) => ({ key: d.key, createdAt: d.createdAt })));
   return all
     .filter((d) => !prefs.hidden.includes(d.key))

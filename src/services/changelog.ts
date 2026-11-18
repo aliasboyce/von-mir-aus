@@ -16,6 +16,28 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-stillstand-nonverbal',
+    date: '2026',
+    items: [
+      'Krisenmodus: Der Sicherheitsplan zeigt jetzt alles – Warnzeichen, Hilfen, Skills, Brücken, Routinen, Kontakte und deine persönlichen Angaben. Ressourcen, Brücken und Routinen lassen sich direkt dort starten (Schritt für Schritt), ohne den Krisenmodus zu verlassen.',
+      'Neu: „Nur jetzt“ als Knopf neben dem Krisenmodus. Der ganze Bildschirm zeigt nur einen ruhigen Satz; ein Tipp zeigt den nächsten, oder er wechselt langsam von selbst. Kein Abhaken, keine Belohnung, keine Warnung. Ab und zu die Tür „Jetzt einchecken und diesen Modus verlassen“ – oder „Noch bleiben“.',
+      'Sicherheitsplan: „Schnell Hilfe holen“ heißt jetzt „Nonverbale Kommunikation“ – mit Status-Weitergabe (vorformulierte Nachrichten per WhatsApp, SMS oder Teilen; die App bereitet vor, du tippst auf Senden) und eigenen Kommunikationskarten (Vollbild mit Schrift, Symbol und Farbe; gehören auch in Plan und Notfallrucksack). Beides geht auch im Krisenmodus („Ohne Sprechen“).',
+      'Routinen lassen sich verschicken und in der App der anderen Person übernehmen (Fotos, Medikamente und Verknüpfungen reisen nie mit). Routinen können auch in Sicherheitsplänen verknüpft werden.',
+      'Sammelalbum: Beschreibung „Was ist hier drin?“ und fertige Karten für Körperwahrnehmungen, Gefühle, Werte, Bedürfnisse und Zugangskanäle – jeder Begriff einzeln mit Beschreibung. Ausblendbar unter dem Zahnrad.',
+      'Parkbox: „Dabei brauche ich Unterstützung“ hängt den Zettel an eine Person, bis du ihn „loslöst“. Bei „Wohin damit?“ kannst du mehrere Ziele gleichzeitig wählen. Zettel können ein Foto tragen und sichtbar gelöscht werden; das Drei-Punkte-Menü passt jetzt immer auf den Bildschirm. Parkbox, Wartezimmer und Tagebuch sind als „Notizen“ nebeneinander erreichbar.',
+      'Tagebuch: neue Vorlage „Protokoll (Uhrzeiten)“ – wann gegessen, getrunken, Medikamente, Helfer:innen da, geruht.',
+    ],
+    itemsEn: [
+      'Crisis mode: the safety plan now shows everything – warning signs, helps, skills, bridges, routines, contacts and your personal details. Resources, bridges and routines can be started right there (step by step) without leaving crisis mode.',
+      'New: “Only now” as a button next to crisis mode. The whole screen shows just one calm sentence; a tap shows the next, or it changes slowly by itself. No ticking off, no rewards, no warnings. Now and then a door: “Check in now and leave this mode” – or “Stay a little longer”.',
+      'Safety plan: “Get help quickly” is now “Non-verbal communication” – with status sharing (pre-written messages via WhatsApp, SMS or share; the app prepares, you tap send) and your own communication cards (full screen with text, symbol and colour; also part of the plan and emergency backpack). Both work in crisis mode too (“Without speaking”).',
+      'Routines can be sent and taken over in someone else’s app (photos, medication and links never travel along). Routines can also be linked in safety plans.',
+      'Collection album: description “What is in here?” and ready-made cards for body sensations, feelings, values, needs and access channels – every term on its own with a description. Can be hidden under the gear.',
+      'Park box: “I need support with this” pins the slip to a person until you “release” it. “Where does it go?” lets you choose several places at once. Slips can carry a photo and be deleted visibly; the three-dot menu now always fits the screen. Park box, waiting room and diary are reachable side by side as “Notes”.',
+      'Diary: new template “Log (times)” – when I ate, drank, took medication, helpers were here, rested.',
+    ],
+  },
+  {
     id: '2026-11-klarheit-kurve',
     date: '2026',
     items: [

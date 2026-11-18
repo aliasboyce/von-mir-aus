@@ -3,6 +3,7 @@ import { appointmentsRepo } from '../calendar/calendarRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { mindmapRepo } from '../mindmap/mindmapModel';
 import { notifySlipsChanged } from './slipDelivery';
+import { deleteOwnMedia } from '../../services/mediaStore';
 import { parkNotesRepo, waitItemsRepo, type ParkNote, type SlipOrigin, type SlipTarget, type WaitItem } from './parkboxRepo';
 
 const tilt = () => Math.round((Math.random() * 6 - 3) * 10) / 10;
@@ -13,17 +14,17 @@ export function newSlip(text: string, origin: SlipOrigin = 'park', extra: Partia
   return { id: createId('park'), text, priority: 2, archived: false, paper: 0, tilt: tilt(), origin, createdAt: now, updatedAt: now, ...extra };
 }
 
-/** Pin an existing slip to an appointment, a person or a mind map. */
-export function attachNote(n: ParkNote, kind: SlipTarget, id: string): ParkNote {
-  const next: ParkNote = { ...n, attach: { kind, id }, projectId: undefined, origin: n.origin ?? (n.projectId ? 'project' : 'park'), archived: false, done: false, doneAt: undefined, deliverAt: undefined, deliveredAt: undefined, updatedAt: new Date().toISOString() };
+/** Pin an existing slip to an appointment, a person or a mind map. `support` = „Dabei brauche ich Unterstützung“. */
+export function attachNote(n: ParkNote, kind: SlipTarget, id: string, support = false): ParkNote {
+  const next: ParkNote = { ...n, attach: { kind, id }, support: support || undefined, projectId: undefined, origin: n.origin ?? (n.projectId ? 'project' : 'park'), archived: false, done: false, doneAt: undefined, deliverAt: undefined, deliveredAt: undefined, updatedAt: new Date().toISOString() };
   parkNotesRepo.save(next);
   notifySlipsChanged();
   return next;
 }
 
 /** A waiting-room item becomes a (blue) slip pinned somewhere; the item itself leaves the waiting room. */
-export function attachWaitItem(w: WaitItem, kind: SlipTarget, id: string): ParkNote {
-  const slip = newSlip(w.title, 'wait', { attach: { kind, id }, waitSnapshot: { title: w.title, kind: w.kind, need: w.need, note: w.note } });
+export function attachWaitItem(w: WaitItem, kind: SlipTarget, id: string, support = false): ParkNote {
+  const slip = newSlip(w.title, 'wait', { attach: { kind, id }, support: support || undefined, waitSnapshot: { title: w.title, kind: w.kind, need: w.need, note: w.note } });
   parkNotesRepo.save(slip);
   waitItemsRepo.remove(w.id);
   notifySlipsChanged();
@@ -45,7 +46,7 @@ export function toggleSlipDone(id: string): void {
 export function slipToPark(id: string): void {
   const n = parkNotesRepo.getById(id);
   if (!n) return;
-  parkNotesRepo.save({ ...n, attach: undefined, projectId: undefined, origin: 'park', done: false, doneAt: undefined, archived: false, waitSnapshot: undefined, updatedAt: new Date().toISOString() });
+  parkNotesRepo.save({ ...n, attach: undefined, support: undefined, projectId: undefined, origin: 'park', done: false, doneAt: undefined, archived: false, waitSnapshot: undefined, updatedAt: new Date().toISOString() });
   notifySlipsChanged();
 }
 
@@ -61,6 +62,8 @@ export function slipToWait(id: string): void {
 }
 
 export function removeSlip(id: string): void {
+  const mid = parkNotesRepo.getById(id)?.mediaId;
+  if (mid) void deleteOwnMedia(mid);
   parkNotesRepo.remove(id);
   notifySlipsChanged();
 }

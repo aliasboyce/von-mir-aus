@@ -5,6 +5,11 @@ const DE = {
   exampleDelete: 'Beispiel löschen',
   exampleKeep: 'Als meinen übernehmen',
   exampleDeleteAll: 'Alle Beispiele löschen',
+  routines: 'Meine Routinen',
+  routinesEmpty: 'Noch keine Routine verknüpft.',
+  nonverbalTitle: 'Nonverbale Kommunikation',
+  nonverbalSub: 'Wenn Sprechen gerade nicht geht: Status senden oder Karten zeigen.',
+  commCardsInPlan: 'Kommunikationskarten',
 
   personalTitle: 'Meine Angaben (freiwillig)',
   personalSub: 'Alles ist optional. Im PDF erscheint nur, was du ausfüllst und für dieses PDF auswählst.',
@@ -82,6 +87,11 @@ const EN: typeof DE = {
   exampleDelete: 'Delete example',
   exampleKeep: 'Keep as mine',
   exampleDeleteAll: 'Delete all examples',
+  routines: 'My routines',
+  routinesEmpty: 'No routine linked yet.',
+  nonverbalTitle: 'Non-verbal communication',
+  nonverbalSub: 'When speaking is not possible right now: send a status or show cards.',
+  commCardsInPlan: 'Communication cards',
 
   personalTitle: 'My details (optional)',
   personalSub: 'Everything is optional. The PDF only shows what you fill in and choose for this PDF.',

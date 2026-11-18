@@ -6,7 +6,6 @@ import { Phone, Plus, X, Share2, Palette, ChevronDown, ChevronUp, MessageCircleH
 import { Card } from '../../components/ui/Card';
 import { Chip } from '../../components/ui/Chip';
 import { Button } from '../../components/ui/Button';
-import { QuickHelpModal } from './QuickHelpModal';
 import { TopBar } from '../../components/navigation/TopBar';
 import { InlineCompanionNote } from '../../components/companion/InlineCompanionNote';
 import { pickLimitExplanation } from '../../components/companion/companionLines';
@@ -18,6 +17,7 @@ import { TierColorEditor } from './TierColorEditor';
 import { PersonalInfoCard } from './PersonalInfoCard';
 import { ClinicWishesCard } from './ClinicWishesCard';
 import { RucksackCard } from './RucksackCard';
+import { CommCardsShortcut } from '../nonverbal/CommCardsShortcut';
 import { PlanShareSheet } from './PlanShareSheet';
 import { planTexts } from './planTexts';
 import { useT } from '../../i18n';
@@ -37,6 +37,7 @@ import { createId } from '../../services/storage/repository';
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
+import { routinesRepo } from '../routines/routinesRepo';
 import type { SafetyPlan, WarningTier } from '../../data/types';
 
 seedSafetyPlansIfEmpty();
@@ -75,7 +76,6 @@ export function SafetyPlanPage() {
   const T = planTexts(lang);
   const [showMoreContacts, setShowMoreContacts] = useState(false);
   const [openContactNumber, setOpenContactNumber] = useState<string | null>(null);
-  const [quickHelpOpen, setQuickHelpOpen] = useState(false);
   const [plans, setPlans] = useState<SafetyPlan[]>(() =>
     safetyPlansRepo.getAll().map(normalizePlan).map((p) => {
       const withExamples = ensureExamples(p, lang);
@@ -101,6 +101,7 @@ export function SafetyPlanPage() {
   // from anything on this page itself.
   const allResources = useMemo(() => resourcesRepo.getAll(), []);
   const allBridges = useMemo(() => bridgesRepo.getAll(), []);
+  const allRoutines = useMemo(() => routinesRepo.getAll(), []);
   const allContacts = useMemo(() => networkRepo.getAll().filter((e) => e.category === 'person'), []);
 
   function persist(next: SafetyPlan) {
@@ -153,7 +154,7 @@ export function SafetyPlanPage() {
     persist({ ...plan, helpItems: plan.helpItems.filter((h) => h.id !== id) });
   }
 
-  function updateLinked(tier: WarningTier, kind: 'resourceIds' | 'bridgeIds' | 'contactIds', ids: string[]) {
+  function updateLinked(tier: WarningTier, kind: 'resourceIds' | 'bridgeIds' | 'contactIds' | 'routineIds', ids: string[]) {
     if (!plan) return;
     persist({
       ...plan,
@@ -278,6 +279,7 @@ export function SafetyPlanPage() {
         <PersonalInfoCard />
         <ClinicWishesCard />
         <RucksackCard />
+        <div className="mb-5"><CommCardsShortcut /></div>
 
         {hasExamples && (
           <div className="rounded-[var(--radius-md)] px-3.5 py-3 mb-5 flex flex-col gap-2" style={{ border: '1.5px dashed var(--color-border-strong)' }} data-testid="examples-hint">
@@ -292,10 +294,11 @@ export function SafetyPlanPage() {
           fullWidth
           variant="secondary"
           icon={<MessageCircleHeart size={17} />}
-          onClick={() => setQuickHelpOpen(true)}
+          onClick={() => navigate('/sicherheit/nonverbal')}
           className="mb-6"
+          data-testid="plan-nonverbal"
         >
-          {t.safetyPlan.quickHelpTitle}
+          {T.nonverbalTitle}
         </Button>
 
         <div className="mb-6">
@@ -494,6 +497,14 @@ export function SafetyPlanPage() {
                   emptyHint={t.safetyPlan.linkedBridgesEmpty}
                 />
                 <LinkedItemsPicker
+                  title={T.routines}
+                  linkedIds={linked.routineIds ?? []}
+                  allItems={allRoutines.map((r) => ({ id: r.id, title: `${r.emoji} ${r.title}`, subtitle: `${r.cards.length} ${settings.language === 'en' ? 'steps' : 'Schritte'}` }))}
+                  onChange={(ids) => updateLinked(tier, 'routineIds', ids)}
+                  onOpenItem={(id) => navigate(`/entdecken/routinen/${id}/start`)}
+                  emptyHint={T.routinesEmpty}
+                />
+                <LinkedItemsPicker
                   title={t.safetyPlan.linkedContacts}
                   linkedIds={linked.contactIds}
                   allItems={allContacts.map((c) => ({ id: c.id, title: c.name, subtitle: c.role }))}
@@ -578,7 +589,6 @@ export function SafetyPlanPage() {
         onChange={() => setTierColors(tierColorsStore.getAll())}
       />
 
-      <QuickHelpModal open={quickHelpOpen} onClose={() => setQuickHelpOpen(false)} />
     </div>
   );
 }

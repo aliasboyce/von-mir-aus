@@ -15,13 +15,18 @@ export type CardKind =
   | 'begleiter'
   | 'notfall'
   | 'reflexion'
+  | 'koerper'
+  | 'gefuehl'
+  | 'wert'
+  | 'beduerfnis'
+  | 'zugang'
   | 'eigen';
 
 export type Rarity = 'normal' | 'foil' | 'holo' | 'glitter';
 export type FrameStyle = 'standard' | 'polaroid' | 'scrapbook' | 'sticker';
 export type RatingKind = 'star' | 'bolt' | 'heart';
 
-export const KIND_ORDER: CardKind[] = ['person', 'faehigkeit', 'aktion', 'ausruestung', 'ort', 'training', 'wissen', 'ereignis', 'begleiter', 'notfall', 'reflexion', 'eigen'];
+export const KIND_ORDER: CardKind[] = ['person', 'faehigkeit', 'aktion', 'ausruestung', 'ort', 'training', 'wissen', 'ereignis', 'begleiter', 'notfall', 'reflexion', 'koerper', 'gefuehl', 'wert', 'beduerfnis', 'zugang', 'eigen'];
 
 export const KIND_META: Record<CardKind, { de: string; en: string; emoji: string; defaultColor: string }> = {
   person: { de: 'Held:in', en: 'Hero', emoji: '🦸', defaultColor: '#5E8A5A' },
@@ -35,6 +40,11 @@ export const KIND_META: Record<CardKind, { de: string; en: string; emoji: string
   begleiter: { de: 'Begleiter', en: 'Companion', emoji: '🌟', defaultColor: '#6BB5A8' },
   notfall: { de: 'Notfallkarte', en: 'Emergency card', emoji: '🛟', defaultColor: '#C96B6B' },
   reflexion: { de: 'Tageskarte', en: 'Day card', emoji: '🌙', defaultColor: '#D4A94F' },
+  koerper: { de: 'Körperkarte', en: 'Body card', emoji: '🫀', defaultColor: '#7FA88B' },
+  gefuehl: { de: 'Gefühlskarte', en: 'Feeling card', emoji: '💗', defaultColor: '#C77D9B' },
+  wert: { de: 'Wertekarte', en: 'Value card', emoji: '🧭', defaultColor: '#6F8FB5' },
+  beduerfnis: { de: 'Bedürfniskarte', en: 'Need card', emoji: '🌿', defaultColor: '#8FAF7A' },
+  zugang: { de: 'Zugangskanalkarte', en: 'Access channel card', emoji: '🚪', defaultColor: '#8E7CB8' },
   eigen: { de: 'Eigene Karte', en: 'Own card', emoji: '🃏', defaultColor: '#9A948A' },
 };
 
@@ -149,6 +159,8 @@ export interface CardPrefs {
   sound: boolean;
   /** beim Drucken auch die Rückseiten (zum doppelseitigen Drucken) */
   printBacks?: boolean;
+  /** die vorgefertigten Wort-Karten (Körper, Gefühle, Werte, Bedürfnisse, Zugangskanäle) im Album ausblenden */
+  hideWordCards?: boolean;
 }
 
 export const DEFAULT_PREFS: CardPrefs = { colors: {}, rarity: {}, favorites: [], hidden: [], sound: true };

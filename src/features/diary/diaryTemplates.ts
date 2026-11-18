@@ -356,6 +356,32 @@ export const BUILTIN_DIARY_TEMPLATES: DiaryTemplate[] = [
     ],
     isBuiltin: true,
   },
+  {
+    // Protokoll: Uhrzeiten festhalten – für Tage, an denen man später nicht mehr weiß, was wann war (Essen, Trinken, Hilfe).
+    id: 'builtin-protokoll',
+    phase: 'rueckblickend',
+    name: 'Protokoll (Uhrzeiten)',
+    nameEn: 'Log (times)',
+    intro: 'Nur festhalten, was war – ohne Bewertung. Es reicht eine ungefähre Uhrzeit, und leere Zeilen sind in Ordnung.',
+    introEn: 'Just note what happened – no judgement. An approximate time is enough, and empty lines are fine.',
+    questions: [
+      'Wann habe ich gegessen? (Uhrzeit, was)',
+      'Wann habe ich getrunken? (Uhrzeit, was, wie viel)',
+      'Wann habe ich meine Medikamente genommen?',
+      'Wann waren Helfer:innen da oder haben sich gemeldet? (Uhrzeit, wer, wie lange)',
+      'Wann habe ich geschlafen oder geruht?',
+      'Was war sonst wichtig? (Uhrzeit, was)',
+    ],
+    questionsEn: [
+      'When did I eat? (time, what)',
+      'When did I drink? (time, what, how much)',
+      'When did I take my medication?',
+      'When were helpers here or in touch? (time, who, how long)',
+      'When did I sleep or rest?',
+      'What else was important? (time, what)',
+    ],
+    isBuiltin: true,
+  },
 ];
 
 export const customDiaryTemplatesRepo = createRepository<DiaryTemplate>('diary-templates');

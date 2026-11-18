@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { X, Compass, ShieldCheck, Users, ChevronLeft, Phone, Mail, Share2 } from 'lucide-react';
+import { X, Compass, ShieldCheck, Users, ChevronLeft, Phone, Mail, Share2, MessageSquareOff } from 'lucide-react';
 import { useSettings } from '../../state/SettingsContext';
 import { useT } from '../../i18n';
 import { GroundingOverlay } from '../../components/companion/GroundingOverlay';import { useState } from 'react';
@@ -10,6 +10,9 @@ import { PlanShareSheet } from '../safetyPlan/PlanShareSheet';
 import { useL } from '../projects/useL';
 import { RucksackPlayer } from '../safetyPlan/RucksackPlayer';
 import { getRucksackList } from '../safetyPlan/rucksackStore';
+import { CrisisPlanView } from '../crisis/CrisisPlanView';
+import { CommCardsShortcut } from '../nonverbal/CommCardsShortcut';
+import { StatusPanel } from '../nonverbal/StatusPanel';
 
 /**
  * Deliberately the opposite of every other page in this app visually:
@@ -36,15 +39,16 @@ export function CrisisModePage() {
   const { settings } = useSettings();
   const navigate = useNavigate();
   const [groundingOpen, setGroundingOpen] = useState(false);
-  const [view, setView] = useState<'main' | 'plan' | 'network'>('main');
+  const [view, setView] = useState<'main' | 'plan' | 'network' | 'words'>('main');
   const [shareOpen, setShareOpen] = useState(false);
   const [rucksackOpen, setRucksackOpen] = useState(false);
   const { L } = useL();
 
-  const rawPlan = safetyPlansRepo.getAll()[0];
+  const [activePlanId, setActivePlanId] = useState<string | undefined>();
+  const allPlans = safetyPlansRepo.getAll();
+  const rawPlan = allPlans.find((p) => p.id === activePlanId) ?? allPlans[0];
   // marked examples are suggestions, not the person's own plan
   const rucksack = getRucksackList();
-  const plan = rawPlan ? { ...rawPlan, warningSignals: rawPlan.warningSignals.filter((w) => !w.example), helpItems: rawPlan.helpItems.filter((h) => !h.example) } : rawPlan;
   const contacts = networkRepo.getAll().filter((c) => c.category === 'person' && !c.isExample);
 
   if (view === 'plan') {
@@ -64,32 +68,13 @@ export function CrisisModePage() {
             </span>
           </button>
         )}
-        {!plan || (plan.warningSignals.length === 0 && plan.helpItems.length === 0) ? (
-          <p className="text-[15px] text-black/70 leading-relaxed mt-4">{t.crisisMode.noPlanYet}</p>
-        ) : (
-          <div className="mt-2 flex-1 overflow-y-auto">
-            {plan.warningSignals.length > 0 && (
-              <>
-                <p className="text-[13px] uppercase tracking-wide text-black/60 mb-2">{t.safetyPlan.warningSignals}</p>
-                <ul className="mb-6">
-                  {plan.warningSignals.map((w) => (
-                    <li key={w.id} className="text-[16px] text-black leading-relaxed mb-1.5">• {w.text}</li>
-                  ))}
-                </ul>
-              </>
-            )}
-            {plan.helpItems.length > 0 && (
-              <>
-                <p className="text-[13px] uppercase tracking-wide text-black/60 mb-2">{t.safetyPlan.helpItems}</p>
-                <ul>
-                  {plan.helpItems.map((h) => (
-                    <li key={h.id} className="text-[16px] text-black leading-relaxed mb-1.5">• {h.text}</li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-        )}
+        <div className="mt-3"><CommCardsShortcut crisis /></div>
+        <button onClick={() => setView('words')} className="w-full flex items-center gap-3 px-5 py-4 rounded-[12px] border-2 border-black text-black text-[17px] font-medium text-left hover:bg-black/5 mt-3" data-testid="crisis-status-from-plan">
+          <span className="text-[24px]" aria-hidden="true">📨</span>{L('Status senden', 'Send a status')}
+        </button>
+        <div className="flex-1 overflow-y-auto">
+          <CrisisPlanView planId={rawPlan?.id} onPick={setActivePlanId} />
+        </div>
         {rawPlan && (
           <button
             onClick={() => setShareOpen(true)}
@@ -106,6 +91,17 @@ export function CrisisModePage() {
         </Link>
         {rawPlan && <PlanShareSheet plan={rawPlan} open={shareOpen} onClose={() => setShareOpen(false)} />}
         {rucksackOpen && <RucksackPlayer onClose={() => setRucksackOpen(false)} />}
+      </div>
+    );
+  }
+
+  if (view === 'words') {
+    return (
+      <div className="min-h-screen flex flex-col px-6 py-8 bg-white" data-testid="crisis-words">
+        <BackHeader onBack={() => setView('main')} label={L('Ohne Sprechen', 'Without speaking')} />
+        <div className="mt-2"><CommCardsShortcut crisis /></div>
+        <p className="text-[13px] uppercase tracking-wide text-black/60 mt-6 mb-2">{L('Status an Vertraute senden', 'Send a status to trusted people')}</p>
+        <div className="flex-1 overflow-y-auto pb-6"><StatusPanel crisis /></div>
       </div>
     );
   }
@@ -174,6 +170,14 @@ export function CrisisModePage() {
           >
             <ShieldCheck size={24} className="flex-shrink-0" />
             {t.crisisMode.safetyPlanCta}
+          </button>
+          <button
+            onClick={() => setView('words')}
+            className="flex items-center gap-3 px-5 py-4 rounded-[12px] bg-black text-white text-[17px] font-medium hover:bg-black/85"
+            data-testid="crisis-words-btn"
+          >
+            <MessageSquareOff size={24} className="flex-shrink-0" />
+            {L('Ohne Sprechen: Karten & Status', 'Without speaking: cards & status')}
           </button>
           <button
             onClick={() => setView('network')}

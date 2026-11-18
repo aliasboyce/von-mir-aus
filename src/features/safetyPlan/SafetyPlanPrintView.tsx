@@ -1,6 +1,8 @@
 import { resourcesRepo } from '../resources/resourcesRepo';
 import { bridgesRepo } from '../bridges/bridgesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
+import { routinesRepo } from '../routines/routinesRepo';
+import { commCardsRepo } from '../nonverbal/commCardsRepo';
 import type { SafetyPlan, WarningTier } from '../../data/types';
 import type { TierColorSet } from './tierColorsStore';
 import type { PersonalInfo, ClinicWishes } from './personalInfoStore';
@@ -80,6 +82,8 @@ export function SafetyPlanPrintView({ plan, tierLabels, tierColors, warningSigna
   const showRucksack = !!rucksack && parts.rucksack !== false && (rucksack.items.length > 0 || !!rucksack.lastPacked);
   const heading = showPlan ? plan.name : showPersonal ? T.personalTitle.replace(/ \(.*\)$/, '') : showClinic ? T.clinicTitle : T.rucksackTitle;
 
+  const ownCards = commCardsRepo.getAll().filter((c) => !c.isExample);
+
   function resolveLabel(kind: 'resource' | 'bridge' | 'contact', id: string): string | null {
     if (kind === 'resource') return resourcesRepo.getById(id)?.title ?? null;
     if (kind === 'bridge') return bridgesRepo.getById(id)?.title ?? null;
@@ -127,7 +131,8 @@ export function SafetyPlanPrintView({ plan, tierLabels, tierColors, warningSigna
         const resourceNames = linked.resourceIds.map((id) => resolveLabel('resource', id)).filter(Boolean) as string[];
         const bridgeNames = linked.bridgeIds.map((id) => resolveLabel('bridge', id)).filter(Boolean) as string[];
         const contactNames = linked.contactIds.map((id) => resolveLabel('contact', id)).filter(Boolean) as string[];
-        const allItems = [...tierHelp.map((h) => h.text), ...resourceNames, ...bridgeNames, ...contactNames];
+        const routineNames = (linked.routineIds ?? []).map((id) => routinesRepo.getById(id)?.title).filter(Boolean) as string[];
+        const allItems = [...tierHelp.map((h) => h.text), ...resourceNames, ...bridgeNames, ...routineNames, ...contactNames];
         if (allItems.length === 0 && tierWarnings.length === 0) return null;
 
         return (
@@ -201,6 +206,15 @@ export function SafetyPlanPrintView({ plan, tierLabels, tierColors, warningSigna
               </ul>
             </section>
           ))}
+
+      {showPlan && ownCards.length > 0 && (
+        <section data-testid="print-commcards" style={box}>
+          <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 10, color: '#333' }}>🪧 {T.commCardsInPlan}</h2>
+          <ul style={{ margin: 0, paddingLeft: 0, listStyle: 'none' }}>
+            {ownCards.map((c) => <li key={c.id} style={{ fontSize: 13, lineHeight: 1.8, color: '#2a2a2a', marginBottom: 3 }}>{c.emoji} {c.text}</li>)}
+          </ul>
+        </section>
+      )}
 
       {showRucksack && rucksack && (
         <section data-testid="print-rucksack" style={{ ...box, borderLeft: '6px solid #D9893D' }}>

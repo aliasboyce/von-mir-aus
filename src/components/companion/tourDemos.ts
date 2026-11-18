@@ -17,7 +17,7 @@ const S = (find: string, de: string, en: string): DemoStep => ({ find, act: 'sli
 export const TOUR_DEMOS: Record<string, DemoStep[]> = {
   start: [
     T('Kurz einchecken', 'Hier starte ich mit einem kurzen Check-in: Wie geht es mir gerade? Ein Punkt reicht.', 'I start here with a short check-in: how am I right now? One point is enough.'),
-    P('css:[data-testid="nurjetzt-entry"]', 'Wenn alles zu viel ist: „Nur jetzt“ – nichts müssen, nur im Moment bleiben.', 'When it is all too much: "Just now" – nothing to do, just stay in the moment.'),
+    P('css:[data-testid="home-nurjetzt"]', 'Wenn alles zu viel ist: „Nur jetzt“ – nichts müssen, nur im Moment bleiben.', 'When it is all too much: "Just now" – nothing to do, just stay in the moment.'),
     P('Krisenmodus', 'Und hier ist der Krisenmodus – immer erreichbar, mit einem Tipp.', 'And here is crisis mode – always reachable, one tap away.'),
   ],
   wetter: [
@@ -86,7 +86,7 @@ export const TOUR_DEMOS: Record<string, DemoStep[]> = {
     P('css:[data-testid^="routine-start-"]', 'Und starte sie, wann immer ich mag.', 'And start them whenever I like.'),
   ],
   nurjetzt: [
-    P('css:[data-testid="nurjetzt-entry"]', 'Ganz im Moment bleiben – ohne etwas auszufüllen.', 'Staying fully in the moment – without filling in anything.'),
+    P('css:[data-testid="home-nurjetzt"]', 'Ganz im Moment bleiben – ohne etwas auszufüllen.', 'Staying fully in the moment – without filling in anything.'),
   ],
 };
 

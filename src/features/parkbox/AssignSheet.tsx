@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Modal } from '../../components/ui/Modal';
 import { Button } from '../../components/ui/Button';
 import { createId } from '../../services/storage/repository';
@@ -16,7 +17,10 @@ import { tomorrowDateKey } from './slipDelivery';
 
 export const SLIP_CALENDAR_CATEGORY_ID = 'cal_zettel';
 
-type Step = 'choose' | 'project' | 'place' | 'calendar' | 'diary' | 'pin' | 'pin-appointment' | 'pin-person' | 'pin-mindmap';
+type Step = 'choose' | 'project' | 'place' | 'calendar' | 'diary' | 'pin' | 'pin-appointment' | 'pin-person' | 'pin-mindmap' | 'support';
+type Dest = 'support' | 'project' | 'calendar' | 'diary' | 'pin';
+const DEST_ORDER: Dest[] = ['project', 'calendar', 'diary', 'support', 'pin'];
+const STEP_OF: Record<Dest, Step> = { support: 'support', project: 'project', calendar: 'calendar', diary: 'diary', pin: 'pin' };
 
 /**
  * Einen Zettel oder ein Wartezimmer-Ding irgendwohin geben, wo es hingehört – dann ist es aus der Box / dem Wartezimmer heraus:
@@ -44,9 +48,38 @@ export function AssignSheet({ text, source, note, waitItem, lang, onClose, onAss
   const [from, setFrom] = useState('10:00');
   const [to, setTo] = useState('11:00');
   const [err, setErr] = useState(false);
+  // Mehrere Ziele gleichzeitig: Auswahl, dann nacheinander abarbeiten (nichts geht doppelt verloren, nichts muss man sich merken)
+  const [multi, setMulti] = useState(false);
+  const [picked, setPicked] = useState<Dest[]>([]);
+  const queue = useRef<Dest[]>([]);
+  const acc = useRef<{ msgs: string[]; kept: boolean }>({ msgs: [], kept: false });
+  const queued = useRef(false);
+  const complete = (msg: string | null, opts?: { kept?: boolean }) => {
+    if (msg) acc.current.msgs.push(msg);
+    if (opts?.kept) acc.current.kept = true;
+    const next = queue.current.shift();
+    if (next) { setErr(false); setStep(STEP_OF[next]); return; }
+    onAssigned(acc.current.msgs.join(' ') || L('Untergebracht.', 'Placed.'), acc.current.kept ? { kept: true } : undefined);
+  };
+  const togglePick = (d: Dest) => setPicked((cur) => {
+    if (cur.includes(d)) return cur.filter((x) => x !== d);
+    const without = d === 'support' ? cur.filter((x) => x !== 'pin') : d === 'pin' ? cur.filter((x) => x !== 'support') : cur;
+    return [...without, d];
+  });
+  const startQueue = () => {
+    const list = DEST_ORDER.filter((d) => picked.includes(d));
+    if (!list.length) return;
+    queued.current = true;
+    queue.current = list.slice(1);
+    setStep(STEP_OF[list[0]]);
+  };
+  const go = (d: Dest) => { if (multi) togglePick(d); else setStep(STEP_OF[d]); };
   const projects = projectsRepo.getAll().filter((p) => !p.archived && p.status !== 'done').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   const cats = [{ id: DIARY_DEFAULT_CATEGORY_ID, label: DIARY_DEFAULT_CATEGORY_LABEL }, ...diaryCategoriesStore.getAll()];
 
+  const BackOrSkip = ({ to }: { to: Step }) => queued.current
+    ? <Button variant="ghost" onClick={() => complete(null)} data-testid="assign-skip">{L('Diesen Schritt überspringen', 'Skip this step')}</Button>
+    : <Button variant="ghost" onClick={() => setStep(to)}>{L('Zurück', 'Back')}</Button>;
   const bigBtn = 'w-full text-left rounded-xl border border-[var(--color-border-strong)] px-4 py-3 flex items-start gap-3';
 
   const toProjectPlace = (p: Project, target: AssignTarget | 'box') => {
@@ -56,7 +89,7 @@ export function AssignSheet({ text, source, note, waitItem, lang, onClose, onAss
       parkNotesRepo.save(newSlip(text, source === 'wait' ? 'wait' : (note?.origin ?? 'park'), { projectId: p.id, waitSnapshot: waitItem ? { title: waitItem.title, kind: waitItem.kind, need: waitItem.need, note: waitItem.note } : undefined }));
       logBoxSlip(p, text, lang);
     } else assignToProject(p, text, target, lang);
-    onAssigned(L(`In „${p.title || 'Projekt'}“ untergebracht.`, `Placed in “${p.title || 'project'}”.`));
+    complete(L(`In „${p.title || 'Projekt'}“ untergebracht.`, `Placed in “${p.title || 'project'}”.`));
   };
   const newProjectFrom = () => {
     const p = newProject(text.length > 60 ? `${text.slice(0, 59)}…` : text, lang);
@@ -70,13 +103,13 @@ export function AssignSheet({ text, source, note, waitItem, lang, onClose, onAss
     const now = new Date().toISOString();
     const a: Appointment = { id: createId('appt'), title: text.length > 120 ? `${text.slice(0, 119)}…` : text, date, time: from, endTime: to, categoryId: SLIP_CALENDAR_CATEGORY_ID, note: text.length > 120 ? text : undefined, reminderMinutes: null, createdAt: now, updatedAt: now };
     appointmentsRepo.save(a);
-    onAssigned(L('Steht jetzt im Kalender.', 'Now in the calendar.'));
+    complete(L('Steht jetzt im Kalender.', 'Now in the calendar.'));
   };
-  const pin = (kind: SlipTarget, id: string, label: string) => {
-    if (waitItem) attachWaitItem(waitItem, kind, id);
-    else if (note) attachNote(note, kind, id);
+  const pin = (kind: SlipTarget, id: string, label: string, support = false) => {
+    if (waitItem) attachWaitItem(waitItem, kind, id, support);
+    else if (note) attachNote(note, kind, id, support);
     else return;
-    onAssigned(L(`Als Zettel an „${label}“ geheftet.`, `Pinned to “${label}” as a slip.`), { kept: true });
+    complete(support ? L(`Hängt jetzt bei „${label}“ – bis du ihn dort loslöst.`, `Now pinned to “${label}” – until you release it there.`) : L(`Als Zettel an „${label}“ geheftet.`, `Pinned to “${label}” as a slip.`), { kept: true });
   };
   const today = dayKey(new Date());
   const upcoming = appointmentsRepo.getAll().filter((a) => a.date >= today).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).slice(0, 30);
@@ -85,23 +118,42 @@ export function AssignSheet({ text, source, note, waitItem, lang, onClose, onAss
   const saveDiary = (categoryId: string) => {
     const now = new Date().toISOString();
     diaryRepo.save({ id: createId('diary'), createdAt: now, updatedAt: now, content: text, categoryId: categoryId === DIARY_DEFAULT_CATEGORY_ID ? undefined : categoryId });
-    onAssigned(L('Steht jetzt im Tagebuch.', 'Now in the diary.'));
+    complete(L('Steht jetzt im Tagebuch.', 'Now in the diary.'));
   };
 
   return (
     <Modal open onClose={onClose} title={L('Wohin damit?', 'Where does it go?')} subtitle={text.length > 90 ? `${text.slice(0, 89)}…` : text}>
       {step === 'choose' && (
         <div className="flex flex-col gap-2" data-testid="assign-choose">
-          <button type="button" className={bigBtn} onClick={() => setStep('project')} data-testid="assign-project"><span aria-hidden="true">🗂️</span><span><span className="block text-[15px]">{L('Einem Projekt zuordnen', 'Give it to a project')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Als Schritt, Aufgabe, Erkenntnis, Notiz …', 'As a step, task, insight, note …')}</span></span></button>
+          <label className="flex items-center gap-2 text-[13.5px] text-[var(--color-text-muted)] min-h-[44px]">
+            <input type="checkbox" checked={multi} onChange={(e) => { setMulti(e.target.checked); setPicked([]); }} data-testid="assign-multi" />
+            {L('Mehrere Ziele gleichzeitig wählen', 'Choose several places at once')}
+          </label>
+          {(note || waitItem) && <button type="button" className={`${bigBtn} ${picked.includes('support') ? '!border-[var(--color-primary)] !bg-[var(--color-primary-soft)]' : ''}`} onClick={() => go('support')} data-testid="assign-support"><span aria-hidden="true">🤝</span><span><span className="block text-[15px]">{L('Dabei brauche ich Unterstützung', 'I need support with this')}{picked.includes('support') ? ' ✓' : ''}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Der Zettel hängt bei einer Person, bis du ihn dort loslöst', 'The slip stays with a person until you release it there')}</span></span></button>}
+          <button type="button" className={`${bigBtn} ${picked.includes('project') ? '!border-[var(--color-primary)] !bg-[var(--color-primary-soft)]' : ''}`} onClick={() => go('project')} data-testid="assign-project"><span aria-hidden="true">🗂️</span><span><span className="block text-[15px]">{L('Einem Projekt zuordnen', 'Give it to a project')}{picked.includes('project') ? ' ✓' : ''}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Als Schritt, Aufgabe, Erkenntnis, Notiz …', 'As a step, task, insight, note …')}</span></span></button>
           {source === 'note' ? (
-            <button type="button" className={bigBtn} onClick={() => setStep('calendar')} data-testid="assign-calendar"><span aria-hidden="true">📅</span><span><span className="block text-[15px]">{L('In den Kalender (Zeitraum)', 'Into the calendar (period)')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Tag und Uhrzeit von – bis', 'Day and time from – to')}</span></span></button>
-          ) : (
+            <button type="button" className={`${bigBtn} ${picked.includes('calendar') ? '!border-[var(--color-primary)] !bg-[var(--color-primary-soft)]' : ''}`} onClick={() => go('calendar')} data-testid="assign-calendar"><span aria-hidden="true">📅</span><span><span className="block text-[15px]">{L('In den Kalender (Zeitraum)', 'Into the calendar (period)')}{picked.includes('calendar') ? ' ✓' : ''}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Tag und Uhrzeit von – bis', 'Day and time from – to')}</span></span></button>
+          ) : !multi && (
             <button type="button" className={bigBtn} onClick={() => onCalendarWait?.()} data-testid="assign-calendar"><span aria-hidden="true">📅</span><span><span className="block text-[15px]">{L('Einen Zeitraum im Kalender zuordnen', 'Assign a period in the calendar')}</span></span></button>
           )}
-          {(note || waitItem) && <button type="button" className={bigBtn} onClick={() => setStep('pin')} data-testid="assign-pin"><span aria-hidden="true">📌</span><span><span className="block text-[15px]">{L('Als Zettel anheften …', 'Pin it as a slip …')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('An einen Termin, eine Person aus deinem Netz oder eine Mindmap – dort liegt er dann ganz oben', 'To an appointment, a person from your network or a mind map – it then lies at the very top there')}</span></span></button>}
-          <button type="button" className={bigBtn} onClick={() => setStep('diary')} data-testid="assign-diary"><span aria-hidden="true">📔</span><span><span className="block text-[15px]">{L('Ins Tagebuch schreiben', 'Write it into the diary')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('In ein Buch (Kategorie) deiner Wahl', 'Into a book (category) of your choice')}</span></span></button>
-          {onToWait && <button type="button" className={bigBtn} onClick={onToWait} data-testid="assign-wait"><span aria-hidden="true">🪑</span><span className="text-[15px]">{L('Ins Wartezimmer', 'To the waiting room')}</span></button>}
-          {onPostfach && <button type="button" className={bigBtn} onClick={onPostfach} data-testid="assign-postfach"><span aria-hidden="true">✉️</span><span><span className="block text-[15px]">{L('Für morgen in mein Postfach fliegen lassen', 'Let it fly into my Postfach for tomorrow')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Du bestimmst Tag und Uhrzeit – dann liegt er auf der Startseite', 'You choose day and time – then it lies on your start page')}</span></span></button>}
+          {(note || waitItem) && <button type="button" className={`${bigBtn} ${picked.includes('pin') ? '!border-[var(--color-primary)] !bg-[var(--color-primary-soft)]' : ''}`} onClick={() => go('pin')} data-testid="assign-pin"><span aria-hidden="true">📌</span><span><span className="block text-[15px]">{L('Als Zettel anheften …', 'Pin it as a slip …')}{picked.includes('pin') ? ' ✓' : ''}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('An einen Termin, eine Person aus deinem Netz oder eine Mindmap – dort liegt er dann ganz oben', 'To an appointment, a person from your network or a mind map – it then lies at the very top there')}</span></span></button>}
+          <button type="button" className={`${bigBtn} ${picked.includes('diary') ? '!border-[var(--color-primary)] !bg-[var(--color-primary-soft)]' : ''}`} onClick={() => go('diary')} data-testid="assign-diary"><span aria-hidden="true">📔</span><span><span className="block text-[15px]">{L('Ins Tagebuch schreiben', 'Write it into the diary')}{picked.includes('diary') ? ' ✓' : ''}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('In ein Buch (Kategorie) deiner Wahl', 'Into a book (category) of your choice')}</span></span></button>
+          {!multi && onToWait && <button type="button" className={bigBtn} onClick={onToWait} data-testid="assign-wait"><span aria-hidden="true">🪑</span><span className="text-[15px]">{L('Ins Wartezimmer', 'To the waiting room')}</span></button>}
+          {!multi && onPostfach && <button type="button" className={bigBtn} onClick={onPostfach} data-testid="assign-postfach"><span aria-hidden="true">✉️</span><span><span className="block text-[15px]">{L('Für morgen in mein Postfach fliegen lassen', 'Let it fly into my Postfach for tomorrow')}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{L('Du bestimmst Tag und Uhrzeit – dann liegt er auf der Startseite', 'You choose day and time – then it lies on your start page')}</span></span></button>}
+          {multi && (
+            <Button fullWidth disabled={picked.length === 0} onClick={startQueue} data-testid="assign-multi-go">
+              {picked.length === 0 ? L('Wähle mindestens ein Ziel', 'Choose at least one place') : L(`Weiter (${picked.length} ${picked.length === 1 ? 'Ziel' : 'Ziele'})`, `Next (${picked.length} ${picked.length === 1 ? 'place' : 'places'})`)}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {step === 'support' && (
+        <div className="flex flex-col gap-2" data-testid="assign-support-list">
+          <p className="text-[13px] text-[var(--color-text-muted)]">{L('Bei wem soll der Zettel hängen? Er bleibt dort, bis du ihn „loslöst“.', 'Who should the slip hang with? It stays there until you “release” it.')}</p>
+          {people.length === 0 && <p className="text-[13.5px] text-[var(--color-text-muted)]">{L('Dein Netz ist noch leer. ', 'Your network is still empty. ')}<Link to="/sicherheit/netzwerk" className="underline">{L('Person anlegen', 'Add a person')}</Link></p>}
+          {people.map((q) => <button key={q.id} type="button" className={bigBtn} onClick={() => pin('person', q.id, q.name, true)} data-testid="assign-support-pick"><span aria-hidden="true">🤝</span><span><span className="block text-[15px]">{q.name}</span>{q.role && <span className="block text-[12.5px] text-[var(--color-text-muted)]">{q.role}</span>}</span></button>)}
+          <BackOrSkip to="choose" />
         </div>
       )}
 
@@ -112,7 +164,7 @@ export function AssignSheet({ text, source, note, waitItem, lang, onClose, onAss
             <button key={p.id} type="button" className={bigBtn} onClick={() => { setProject(p); setStep('place'); }} data-testid="assign-project-pick"><span aria-hidden="true">{emojiOf(p)}</span><span className="text-[15px]">{p.title || L('Ohne Namen', 'Untitled')}</span></button>
           ))}
           <button type="button" className={`${bigBtn} border-dashed`} onClick={newProjectFrom} data-testid="assign-project-new"><span aria-hidden="true">＋</span><span className="text-[15px]">{L('Neues Projekt daraus machen', 'Make a new project from it')}</span></button>
-          <Button variant="ghost" onClick={() => setStep('choose')}>{L('Zurück', 'Back')}</Button>
+          <BackOrSkip to="choose" />
         </div>
       )}
 
@@ -125,7 +177,7 @@ export function AssignSheet({ text, source, note, waitItem, lang, onClose, onAss
             ))}
             <button type="button" className="col-span-2 rounded-xl border border-[var(--color-border-strong)] px-3 py-3 text-[14px] text-left" onClick={() => toProjectPlace(project, 'box')} data-testid="assign-place-box">🗒️ {L('In die Zettel-Box des Projekts', 'Into the project’s slip box')}</button>
           </div>
-          <Button variant="ghost" onClick={() => setStep('project')}>{L('Zurück', 'Back')}</Button>
+          <BackOrSkip to="project" />
         </div>
       )}
 
@@ -138,7 +190,7 @@ export function AssignSheet({ text, source, note, waitItem, lang, onClose, onAss
           </div>
           {err && <p className="text-[12px] text-[var(--color-danger)]">{L('„bis“ ist früher als „von“ – bitte prüfen.', '“to” is earlier than “from” – please check.')}</p>}
           <Button fullWidth onClick={saveCalendar} data-testid="assign-calendar-save">{L('Im Kalender speichern', 'Save in the calendar')}</Button>
-          <Button variant="ghost" onClick={() => setStep('choose')}>{L('Zurück', 'Back')}</Button>
+          <BackOrSkip to="choose" />
         </div>
       )}
 
@@ -147,35 +199,35 @@ export function AssignSheet({ text, source, note, waitItem, lang, onClose, onAss
           <button type="button" className={bigBtn} onClick={() => setStep('pin-appointment')} data-testid="assign-pin-appointment"><span aria-hidden="true">📅</span><span className="text-[15px]">{L('An einen Termin', 'To an appointment')}</span></button>
           <button type="button" className={bigBtn} onClick={() => setStep('pin-person')} data-testid="assign-pin-person"><span aria-hidden="true">🤝</span><span className="text-[15px]">{L('An eine Person aus meinem Netz', 'To a person in my network')}</span></button>
           <button type="button" className={bigBtn} onClick={() => setStep('pin-mindmap')} data-testid="assign-pin-mindmap"><span aria-hidden="true">🗺️</span><span className="text-[15px]">{L('An eine Mindmap', 'To a mind map')}</span></button>
-          <Button variant="ghost" onClick={() => setStep('choose')}>{L('Zurück', 'Back')}</Button>
+          <BackOrSkip to="choose" />
         </div>
       )}
       {step === 'pin-appointment' && (
         <div className="flex flex-col gap-2" data-testid="assign-pin-list">
           {upcoming.length === 0 && <p className="text-[13.5px] text-[var(--color-text-muted)]">{L('Keine kommenden Termine. Lege zuerst im Kalender einen an.', 'No upcoming appointments. Create one in the calendar first.')}</p>}
           {upcoming.map((a) => <button key={a.id} type="button" className={bigBtn} onClick={() => pin('appointment', a.id, a.title)} data-testid="assign-pin-pick"><span aria-hidden="true">📅</span><span><span className="block text-[15px]">{a.title}</span><span className="block text-[12.5px] text-[var(--color-text-muted)]">{a.date.split('-').reverse().join('.')} · {a.time}</span></span></button>)}
-          <Button variant="ghost" onClick={() => setStep('pin')}>{L('Zurück', 'Back')}</Button>
+          <BackOrSkip to="pin" />
         </div>
       )}
       {step === 'pin-person' && (
         <div className="flex flex-col gap-2" data-testid="assign-pin-list">
           {people.length === 0 && <p className="text-[13.5px] text-[var(--color-text-muted)]">{L('Dein Netz ist noch leer.', 'Your network is still empty.')}</p>}
           {people.map((q) => <button key={q.id} type="button" className={bigBtn} onClick={() => pin('person', q.id, q.name)} data-testid="assign-pin-pick"><span aria-hidden="true">🤝</span><span><span className="block text-[15px]">{q.name}</span>{q.role && <span className="block text-[12.5px] text-[var(--color-text-muted)]">{q.role}</span>}</span></button>)}
-          <Button variant="ghost" onClick={() => setStep('pin')}>{L('Zurück', 'Back')}</Button>
+          <BackOrSkip to="pin" />
         </div>
       )}
       {step === 'pin-mindmap' && (
         <div className="flex flex-col gap-2" data-testid="assign-pin-list">
           {maps.length === 0 && <p className="text-[13.5px] text-[var(--color-text-muted)]">{L('Noch keine Mindmap.', 'No mind map yet.')}</p>}
           {maps.map((m) => <button key={m.id} type="button" className={bigBtn} onClick={() => pin('mindmap', m.id, m.title || L('Ohne Namen', 'Untitled'))} data-testid="assign-pin-pick"><span aria-hidden="true">🗺️</span><span className="text-[15px]">{m.title || L('Ohne Namen', 'Untitled')}</span></button>)}
-          <Button variant="ghost" onClick={() => setStep('pin')}>{L('Zurück', 'Back')}</Button>
+          <BackOrSkip to="pin" />
         </div>
       )}
 
       {step === 'diary' && (
         <div className="flex flex-col gap-2" data-testid="assign-diary-list">
           {cats.map((c) => <button key={c.id} type="button" className={bigBtn} onClick={() => saveDiary(c.id)} data-testid="assign-diary-pick"><span aria-hidden="true">📔</span><span className="text-[15px]">{c.label}</span></button>)}
-          <Button variant="ghost" onClick={() => setStep('choose')}>{L('Zurück', 'Back')}</Button>
+          <BackOrSkip to="choose" />
         </div>
       )}
     </Modal>

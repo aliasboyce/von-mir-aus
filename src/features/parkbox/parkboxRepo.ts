@@ -18,6 +18,10 @@ export interface ParkNote {
   origin?: SlipOrigin;
   /** pinned to something else: an appointment, a person from the network or a mind map */
   attach?: { kind: SlipTarget; id: string };
+  /** Foto am Zettel (id im Gerätespeicher) */
+  mediaId?: string;
+  /** „Dabei brauche ich Unterstützung“: der Zettel hängt bei einer Person, bis man ihn dort loslöst */
+  support?: boolean;
   /** ticked off where it lies */
   done?: boolean;
   doneAt?: string;

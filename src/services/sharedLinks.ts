@@ -15,6 +15,7 @@ const IMPORT_PATHS = [
   '/brief/importieren',
   '/entdecken/mindmap/importieren',
   '/sammelalbum/importieren',
+  '/entdecken/routinen/importieren',
 ];
 
 /** The in-app route (path + query) found in a pasted text, or null. */
@@ -55,7 +56,7 @@ export function isIosBrowserTab(): boolean {
   return isIosDevice() && !isStandaloneApp();
 }
 
-export type ShareKind = 'skill' | 'hilfsmittel' | 'ort' | 'aktivitaet' | 'ressource' | 'bruecke' | 'quelle' | 'kontakt' | 'mindmap';
+export type ShareKind = 'skill' | 'hilfsmittel' | 'ort' | 'aktivitaet' | 'ressource' | 'bruecke' | 'quelle' | 'kontakt' | 'mindmap' | 'routine';
 
 const KIND_PHRASE: Record<ShareKind, { de: string; en: string }> = {
   skill: { de: 'einen Skill', en: 'a skill' },
@@ -67,6 +68,7 @@ const KIND_PHRASE: Record<ShareKind, { de: string; en: string }> = {
   quelle: { de: 'eine Quelle', en: 'a source' },
   kontakt: { de: 'einen Kontakt', en: 'a contact' },
   mindmap: { de: 'eine Mindmap', en: 'a mind map' },
+  routine: { de: 'eine Routine', en: 'a routine' },
 };
 
 export function isShareKind(x: unknown): x is ShareKind {

@@ -4,6 +4,7 @@ import { useL } from '../projects/useL';
 import { SLIP_CALENDAR_HINT } from './slipTexts';
 import { SLIPS_CHANGED } from './slipDelivery';
 import { slipColor, type ParkNote, type SlipTarget } from './parkboxRepo';
+import { SlipPhoto } from './SlipPhoto';
 import { removeSlip, slipToPark, slipToWait, slipsAt, toggleSlipDone } from './slipAttach';
 
 /**
@@ -35,10 +36,14 @@ export function SlipsHere({ kind, id, compact }: { kind: SlipTarget; id: string;
                   {n.done && <Check size={14} strokeWidth={3} />}
                 </button>
                 <span aria-hidden="true" className="text-[15px] leading-6">🗒️</span>
-                <p className={`flex-1 min-w-0 text-[14.5px] leading-snug whitespace-pre-line break-words ${n.done ? 'line-through' : ''}`}>{n.text}</p>
+                <div className="flex-1 min-w-0">
+                  {n.support && <p className="text-[11.5px] font-medium mb-0.5" data-testid="slip-here-support">🤝 {L('Dabei brauche ich Unterstützung', 'I need support with this')}</p>}
+                  <p className={`text-[14.5px] leading-snug whitespace-pre-line break-words ${n.done ? 'line-through' : ''}`}>{n.text}</p>
+                  {n.mediaId && <SlipPhoto mediaId={n.mediaId} className="mt-1.5" />}
+                </div>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-2 pl-8">
-                <button type="button" className={btn} onClick={() => slipToPark(n.id)} data-testid="slip-here-park"><RotateCcw size={11} /> {L('Zurück in die Parkbox', 'Back to the Park box')}</button>
+                <button type="button" className={btn} onClick={() => slipToPark(n.id)} data-testid="slip-here-park"><RotateCcw size={11} /> {n.support ? L('Loslösen', 'Release') : L('Zurück in die Parkbox', 'Back to the Park box')}</button>
                 <button type="button" className={btn} onClick={() => slipToWait(n.id)} data-testid="slip-here-wait">🪑 {L('Ins Wartezimmer', 'To the waiting room')}</button>
                 {sure === n.id ? (
                   <button type="button" className={`${btn} !text-[var(--color-danger)]`} onClick={() => { removeSlip(n.id); setSure(null); }} data-testid="slip-here-del-sure"><Trash2 size={11} /> {L('Wirklich löschen?', 'Really delete?')}</button>

@@ -25,7 +25,7 @@ export function MoreMenu({ items, label, testId = 'more-menu', align = 'right', 
   const { settings } = useSettings();
   const aria = label ?? (settings.language === 'en' ? 'More' : 'Mehr');
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left?: number; right?: number }>({ top: 0 });
+  const [pos, setPos] = useState<{ top?: number; bottom?: number; left?: number; right?: number; maxH: number }>({ top: 0, maxH: 400 });
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
@@ -34,7 +34,12 @@ export function MoreMenu({ items, label, testId = 'more-menu', align = 'right', 
   }, [open]);
   const toggle = (el: HTMLElement) => {
     const r = el.getBoundingClientRect();
-    setPos(align === 'right' ? { top: r.bottom + 6, right: Math.max(8, window.innerWidth - r.right) } : { top: r.bottom + 6, left: Math.max(8, r.left) });
+    // Das Menü muss immer ganz auf den Bildschirm passen: genug Platz unten → darunter, sonst darüber; zu hoch → scrollbar.
+    const below = window.innerHeight - r.bottom - 14;
+    const above = r.top - 14;
+    const up = below < 330 && above > below;
+    const side = align === 'right' ? { right: Math.max(8, window.innerWidth - r.right) } : { left: Math.max(8, r.left) };
+    setPos(up ? { bottom: window.innerHeight - r.top + 6, maxH: above, ...side } : { top: r.bottom + 6, maxH: Math.max(160, below), ...side });
     setOpen((v) => !v);
   };
   return (
@@ -44,7 +49,7 @@ export function MoreMenu({ items, label, testId = 'more-menu', align = 'right', 
       </button>
       {open && createPortal(
         <div className="fixed inset-0 z-[240]" onClick={() => setOpen(false)} data-testid={`${testId}-backdrop`}>
-          <div role="menu" className="absolute min-w-[220px] max-w-[min(320px,calc(100vw-16px))] rounded-2xl py-1.5 shadow-xl border border-[var(--color-border)]" style={{ top: pos.top, left: pos.left, right: pos.right, background: 'var(--color-surface)' }} onClick={(e) => e.stopPropagation()} data-testid={`${testId}-list`}>
+          <div role="menu" className="absolute min-w-[220px] max-w-[min(320px,calc(100vw-16px))] rounded-2xl py-1.5 shadow-xl border border-[var(--color-border)]" style={{ top: pos.top, bottom: pos.bottom, left: pos.left, right: pos.right, maxHeight: pos.maxH, overflowY: 'auto', overscrollBehavior: 'contain', background: 'var(--color-surface)' }} onClick={(e) => e.stopPropagation()} data-testid={`${testId}-list`}>
             {items.map((it) => (
               <div key={it.id}>
                 {it.divider && <div className="my-1 border-t border-[var(--color-border)]" />}

@@ -3,7 +3,7 @@ import { DuplicateHint } from '../../components/shared/DuplicateHint';
 import { findSimilar } from '../../services/duplicates';
 import { isFavorite, toggleFavorite, useFavoriteEntries } from '../../services/favorites';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Archive, ArrowDown, ArrowUp, CalendarPlus, Check, Pencil, RotateCcw, Star, Trash2, X } from 'lucide-react';
+import { Archive, ArrowDown, ArrowUp, CalendarPlus, Camera, Check, Pencil, RotateCcw, Star, Trash2, X } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { MoreMenu } from '../../components/ui/MoreMenu';
 import { Button } from '../../components/ui/Button';
@@ -15,11 +15,13 @@ import { SlipScheduler, formatDeliver } from './SlipScheduler';
 import { setSlipDelivery } from './slipDelivery';
 import { slipPlace, slipToPark } from './slipAttach';
 import { BoxArt } from './BoxArt';
+import { PhotoButton, SlipPhoto, usePhotoPicker } from './SlipPhoto';
+import { deleteOwnMedia } from '../../services/mediaStore';
 import { SLIP_COLORS, SLIP_LEVELS, WAIT_CALENDAR_CATEGORY_ID, levelInfo, levelRank, parkNotesRepo, slipLevel, waitItemsRepo, type ParkNote, type SlipLevel, type WaitItem, type WaitKind } from './parkboxRepo';
 
 const TXT = {
   de: {
-    title: 'Parkbox & Wartezimmer',
+    title: 'Notizen: Parkbox, Wartezimmer & Tagebuch',
     intro: 'Zwei verschiedene Orte – für zwei verschiedene Arten von „später“. Such dir den, der gerade passt.',
     tabPark: 'Parkbox',
     tabParkSub: 'kurze Zettel · „Nicht vergessen!“',
@@ -29,7 +31,7 @@ const TXT = {
     parkExplain: 'Ein Einfall, eine Aufgabe, ein Gedanke – du willst ihn nicht verlieren, aber heute nicht mehr tragen. Aufschreiben, in die Box legen, fertig. Später ordnest du den Zettel zu: einem Projekt, einem Termin, einer Person, einer Mindmap oder dem Tagebuch. Nichts geht verloren.',
     waitExplainTitle: 'Was ist das Wartezimmer?',
     waitExplain: 'Hier sitzen größere Dinge, die passieren dürfen, wenn ihre Zeit kommt: Ideen, Vorhaben, Aktivitäten, Wünsche. Sie haben einen festen Platz und warten auf einen Zeitraum im Kalender – oder auf ein Projekt oder eine Mindmap.',
-    differ: 'Der Unterschied: Parkbox = kurzer Zettel, den du nicht vergessen willst. Wartezimmer = ein Vorhaben, das noch auf seine Zeit wartet.',
+    differ: 'Der Unterschied: Parkbox = kurzer Zettel, den du nicht vergessen willst. Wartezimmer = ein Vorhaben, das noch auf seine Zeit wartet. Tagebuch = etwas, das du ausführlicher festhalten möchtest.',
     pinned: 'Angeheftete Zettel',
     pinnedHint: 'Diese Zettel hängen an einem Termin, einer Person oder einer Mindmap – dort stehen sie ganz oben. Hier findest du sie wieder.',
     pinnedBack: 'Zurück in die Parkbox',
@@ -82,7 +84,7 @@ const TXT = {
     openCalendar: 'Zum Kalender',
   },
   en: {
-    title: 'Park box & waiting room',
+    title: 'Notes: park box, waiting room & diary',
     intro: 'Two different places – for two different kinds of “later”. Pick the one that fits right now.',
     tabPark: 'Park box',
     tabParkSub: 'short slips · “don’t forget!”',
@@ -92,7 +94,7 @@ const TXT = {
     parkExplain: 'An idea, a task, a thought – you don’t want to lose it, but you don’t want to carry it today. Write it down, put it in the box, done. Later you assign the slip: to a project, an appointment, a person, a mind map or the diary. Nothing gets lost.',
     waitExplainTitle: 'What is the waiting room?',
     waitExplain: 'Bigger things sit here that may happen when their time comes: ideas, plans, activities, wishes. They have a fixed seat and wait for a period in the calendar – or for a project or a mind map.',
-    differ: 'The difference: Park box = a short slip you don’t want to forget. Waiting room = a plan still waiting for its time.',
+    differ: 'The difference: Park box = a short slip you don’t want to forget. Waiting room = a plan still waiting for its time. Diary = something you want to write down in more detail.',
     pinned: 'Pinned slips',
     pinnedHint: 'These slips hang on an appointment, a person or a mind map – there they sit at the very top. Here you can find them again.',
     pinnedBack: 'Back to the Park box',
@@ -169,6 +171,16 @@ export function ParkboxPage() {
   const section: 'park' | 'wait' = params.get('ort') === 'wartezimmer' ? 'wait' : 'park';
   const setSection = (s: 'park' | 'wait') => setParams(s === 'wait' ? { ort: 'wartezimmer' } : {}, { replace: true });
   const [text, setText] = useState('');
+  const [newPhoto, setNewPhoto] = useState<string | undefined>();
+  const [photoFor, setPhotoFor] = useState<string | null>(null);
+  const picker = usePhotoPicker((id) => {
+    if (photoFor) {
+      const old = parkNotesRepo.getById(photoFor)?.mediaId;
+      if (old) void deleteOwnMedia(old);
+      updateNote(photoFor, { mediaId: id });
+      setPhotoFor(null);
+    } else setNewPhoto(id);
+  });
   const [level, setLevel] = useState<SlipLevel>('offen');
   const [tab, setTab] = useState<'open' | 'archive'>('open');
   const [flying, setFlying] = useState<{ text: string; dy: number; h: number } | null>(null);
@@ -215,10 +227,11 @@ export function ParkboxPage() {
 
   function finishPut(p: { text: string }) {
     const now = new Date().toISOString();
-    const note: ParkNote = { id: createId('park'), text: p.text, priority: levelInfo(level).priority, level, archived: false, paper: 0, origin: 'park', tilt: Math.round((Math.random() * 6 - 3) * 10) / 10, createdAt: now, updatedAt: now };
+    const note: ParkNote = { id: createId('park'), text: p.text, priority: levelInfo(level).priority, level, archived: false, paper: 0, origin: 'park', mediaId: newPhoto, tilt: Math.round((Math.random() * 6 - 3) * 10) / 10, createdAt: now, updatedAt: now };
     persistNotes([...parkNotesRepo.getAll(), note]);
     setFlying(null);
     setText('');
+    setNewPhoto(undefined);
     setBump(true);
     if (bumpTimer.current) clearTimeout(bumpTimer.current);
     bumpTimer.current = setTimeout(() => setBump(false), 900);
@@ -241,6 +254,8 @@ export function ParkboxPage() {
     persistNotes(parkNotesRepo.getAll().map((n) => (n.id === id ? { ...n, ...patch, updatedAt: new Date().toISOString() } : n)));
   }
   function removeNote(id: string) {
+    const mid = parkNotesRepo.getById(id)?.mediaId;
+    if (mid) void deleteOwnMedia(mid);
     persistNotes(parkNotesRepo.getAll().filter((n) => n.id !== id));
     setDelId(null);
   }
@@ -375,13 +390,16 @@ export function ParkboxPage() {
       <div className="px-5 pb-12">
         <h1 className="text-[24px] mb-3 leading-tight">{T.title}</h1>
 
-        <div className="grid grid-cols-2 gap-1 p-1 rounded-full mb-3" style={{ background: 'var(--color-surface-muted)' }} role="tablist" aria-label={T.title}>
+        <div className="grid grid-cols-3 gap-1 p-1 rounded-full mb-3" style={{ background: 'var(--color-surface-muted)' }} role="tablist" aria-label={T.title}>
           <button type="button" role="tab" aria-selected={section === 'park'} onClick={() => setSection('park')} className="rounded-full px-3 py-2.5 text-[15px] transition hit44" style={section === 'park' ? { background: '#f3e3a8', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: '#3d3a2e' } : { color: 'var(--color-text-muted)' }} data-testid="section-park">
             <span aria-hidden="true">📦 </span>{T.tabPark}
           </button>
           <button type="button" role="tab" aria-selected={section === 'wait'} onClick={() => setSection('wait')} className="rounded-full px-3 py-2.5 text-[15px] transition hit44" style={section === 'wait' ? { background: '#5f8fb0', boxShadow: '0 1px 4px rgba(0,0,0,0.12)', color: '#fff' } : { color: 'var(--color-text-muted)' }} data-testid="section-wait">
             <span aria-hidden="true">🪑 </span>{T.tabWait}
           </button>
+          <Link to="/sicherheit/tagebuch" className="rounded-full px-3 py-2.5 text-[15px] transition hit44 text-center" style={{ color: 'var(--color-text-muted)' }} data-testid="section-diary">
+            <span aria-hidden="true">📔 </span>{lang === 'en' ? 'Diary' : 'Tagebuch'}
+          </Link>
         </div>
         <p className="text-[12.5px] text-[var(--color-text-faint)] mb-4" data-testid="park-sub">{section === 'park' ? T.tabParkSub : T.tabWaitSub}</p>
         <details className="mb-4 text-[13px] text-[var(--color-text-muted)]" data-testid="park-differ">
@@ -428,7 +446,9 @@ export function ParkboxPage() {
             ))}
             <span className="text-[12.5px] text-[var(--color-text-muted)] ml-1">{lang === 'en' ? levelInfo(level).en : levelInfo(level).de}</span>
           </div>
-          <div className="flex justify-end mt-3 mb-2">
+          {newPhoto && <div className="mt-2 flex items-center gap-2"><SlipPhoto mediaId={newPhoto} className="!max-h-[90px]" /><button type="button" className="text-[12.5px] underline text-[var(--color-text-muted)] min-h-[44px]" onClick={() => { void deleteOwnMedia(newPhoto); setNewPhoto(undefined); }} data-testid="park-photo-remove">{lang === 'en' ? 'Remove photo' : 'Foto entfernen'}</button></div>}
+          <div className="flex items-center justify-between gap-2 mt-3 mb-2">
+            <PhotoButton label={newPhoto ? (lang === 'en' ? 'Change photo' : 'Foto ändern') : (lang === 'en' ? 'Add photo' : 'Foto anhängen')} onClick={() => { setPhotoFor(null); picker.open(); }} />
             <Button size="sm" onClick={putInBox} disabled={!text.trim() || !!flying} data-testid="park-put">{T.put}</Button>
           </div>
           <div ref={boxRef} className="mt-2">
@@ -464,6 +484,8 @@ export function ParkboxPage() {
                   <div className="flex items-start gap-1">
                     <p className="flex-1 text-[15px] leading-[28px] whitespace-pre-line">{n.text}</p>
                     <MoreMenu testId="park-note-menu" items={[
+                      { id: 'photo', label: n.mediaId ? (lang === 'en' ? 'Change photo' : 'Foto ändern') : (lang === 'en' ? 'Attach a photo' : 'Foto anhängen'), icon: <Camera size={16} />, onClick: () => { setPhotoFor(n.id); picker.open(); } },
+                      ...(n.mediaId ? [{ id: 'photo-del', label: lang === 'en' ? 'Remove photo' : 'Foto entfernen', icon: <X size={16} />, onClick: () => { void deleteOwnMedia(n.mediaId as string); updateNote(n.id, { mediaId: undefined }); } }] : []),
                       { id: 'edit', label: T.edit, icon: <Pencil size={16} />, onClick: () => { setEditId(n.id); setEditText(n.text); } },
                       { id: 'fav', label: isFavorite('park', n.id) ? (lang === 'en' ? 'Remove favourite' : 'Favorit entfernen') : (lang === 'en' ? 'Mark as favourite' : 'Als Favorit markieren'), icon: <Star size={16} />, onClick: () => toggleFavorite('park', n.id) },
                       ...(tab === 'open' ? SLIP_LEVELS.map((l, k) => ({ id: `lv-${l.id}`, label: lang === 'en' ? l.en : l.de, hint: k === 0 ? (lang === 'en' ? 'Colour = how urgent' : 'Farbe = wie eilig') : undefined, checked: lv.id === l.id, divider: k === 0, icon: <span className="block w-4 h-4 rounded-full border border-black/30" style={{ background: l.bg }} />, onClick: () => updateNote(n.id, { level: l.id, priority: l.priority }) })) : []),
@@ -474,6 +496,7 @@ export function ParkboxPage() {
                       { id: 'del', label: T.del, icon: <Trash2 size={16} />, danger: true, divider: true, onClick: () => setDelId(n.id) },
                     ]} />
                   </div>
+                  {n.mediaId && <SlipPhoto mediaId={n.mediaId} className="mb-1.5" />}
                   <div className="flex flex-wrap items-center gap-2 -mt-1">
                     <span className="inline-flex items-center gap-1.5 text-[11.5px] opacity-80"><span className="w-2.5 h-2.5 rounded-full border border-black/30" style={{ background: lv.bg }} aria-hidden="true" />{lang === 'en' ? lv.en : lv.de}</span>
                     {n.deliverAt && !n.archived && <span className="text-[12px] opacity-90" data-testid="park-flies">✉️ {T.flies} {formatDeliver(n.deliverAt, settings.language === 'en' ? 'en' : 'de')}</span>}
@@ -481,6 +504,7 @@ export function ParkboxPage() {
                   {tab === 'open' && (
                     <div className="mt-2">
                       <button type="button" className={`${smallBtn} !bg-[#3d3a2e] !text-white !border-transparent`} onClick={() => setAssignNote(n)} data-testid="park-assign">{T.assignTo} →</button>
+                      <button type="button" className={`${smallBtn} ml-2`} onClick={() => setDelId(n.id)} aria-label={T.del} data-testid="park-del"><Trash2 size={13} /> {T.del}</button>
                     </div>
                   )}
                   {delId === n.id && (
@@ -506,10 +530,12 @@ export function ParkboxPage() {
                 return (
                   <li key={n.id} className="rounded-md px-3 py-2.5 text-[14px]" style={{ background: SLIP_COLORS[n.origin ?? 'park'].bg, color: SLIP_COLORS[n.origin ?? 'park'].ink }} data-testid="park-pinned-item">
                     <p className={n.done ? 'line-through opacity-70' : ''}>🗒️ {n.text}</p>
+                    {n.mediaId && <SlipPhoto mediaId={n.mediaId} className="mt-1.5" />}
+                    {n.support && <p className="text-[12px] mt-1 font-medium" data-testid="park-pinned-support">🤝 {lang === 'en' ? 'I need support with this' : 'Dabei brauche ich Unterstützung'}</p>}
                     {pl && <p className="text-[12px] mt-1 opacity-80">{pl.icon} {pl.label}</p>}
                     <div className="flex gap-1.5 mt-2">
                       {pl && <Link to={pl.to} className={smallBtn}>{T.pinnedOpen} →</Link>}
-                      <button type="button" className={smallBtn} onClick={() => { slipToPark(n.id); setNotes(parkNotesRepo.getAll()); }} data-testid="park-pinned-back"><RotateCcw size={13} /> {T.pinnedBack}</button>
+                      <button type="button" className={smallBtn} onClick={() => { slipToPark(n.id); setNotes(parkNotesRepo.getAll()); }} data-testid="park-pinned-back"><RotateCcw size={13} /> {n.support ? (lang === 'en' ? 'Release' : 'Loslösen') : T.pinnedBack}</button>
                     </div>
                   </li>
                 );
@@ -561,6 +587,7 @@ export function ParkboxPage() {
         </section>
         )}
       </div>
+      {picker.input}
       {msg && <div className="fixed left-1/2 -translate-x-1/2 bottom-28 z-40 rounded-full px-4 py-2 text-[13.5px] shadow-lg pointer-events-none" style={{ background: 'var(--color-text)', color: 'var(--color-surface)' }} role="status" data-testid="park-toast">{msg}</div>}
       {assignNote && (
         <AssignSheet

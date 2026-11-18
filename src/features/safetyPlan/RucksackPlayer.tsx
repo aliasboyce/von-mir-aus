@@ -1,3 +1,4 @@
+import { CommCardsShortcut } from '../nonverbal/CommCardsShortcut';
 import { useEffect, useState } from 'react';
 import { Check, ChevronLeft, Minus, Play, RotateCcw, X } from 'lucide-react';
 import { useL } from '../projects/useL';
@@ -110,6 +111,7 @@ export function RucksackPlayer({ onClose, onFinished }: { onClose: () => void; o
             {L('Wem sage ich Bescheid?', 'Who do I let know?')}
           </button>
           {notifyOpen && <div className="flex justify-center mb-2 max-h-[42vh] overflow-y-auto"><RucksackNotify compact /></div>}
+          <div className="max-w-[360px] mx-auto mb-2 text-left"><CommCardsShortcut withEditLink={false} /></div>
           <button type="button" onClick={() => setDone(true)} className="text-[13px] text-[var(--color-text-faint)] underline underline-offset-2 py-2" data-testid="rucksack-to-end">{L('Zum Abschluss springen', 'Jump to the end')}</button>
         </div>
       )}

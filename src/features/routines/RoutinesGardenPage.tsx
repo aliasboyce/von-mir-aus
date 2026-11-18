@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { FavStar } from '../../components/ui/FavStar';
 import { Link, useNavigate } from 'react-router-dom';
-import { CalendarPlus, ChevronDown, ChevronUp, History, Info, Pencil, Play, Plus, Trash2 } from 'lucide-react';
+import { CalendarPlus, ChevronDown, ChevronUp, History, Info, Pencil, Play, Plus, Send, Trash2 } from 'lucide-react';
+import { PasteSharedButton } from '../../components/shared/PasteSharedModal';
 import { MoreMenu } from '../../components/ui/MoreMenu';
 import { Modal } from '../../components/ui/Modal';
 import { TopBar } from '../../components/navigation/TopBar';
@@ -14,6 +15,9 @@ import { RoutineCard3D } from './RoutineCard3D';
 import { ENERGY_COLORS, energyOptions, formatDuration, routinesRepo, runsFor, type Routine, releaseRoutineFiles } from './routinesRepo';
 import { ROUTINE_TEMPLATES, routineFromTemplate } from './routineTemplates';
 import { useRoutineTexts } from './routineTexts';
+import { routineShareUrl } from '../../services/routineShare';
+import { buildShareText } from '../../services/sharedLinks';
+import { shareOrCopy } from '../../services/shareOrCopy';
 
 /**
  * "Routinen & mein Garten": on top the routines (cards played one after another), below the garden
@@ -31,6 +35,11 @@ export function RoutinesGardenPage() {
   const [tplAdded, setTplAdded] = useState<string | null>(null);
   const refresh = () => setRoutines(routinesRepo.getAll().sort((a, b) => a.createdAt.localeCompare(b.createdAt)));
   const exampleCount = routines.filter((r) => r.isExample).length;
+
+  async function sendRoutine(r: Routine) {
+    const url = routineShareUrl(r, settings.userName || undefined);
+    await shareOrCopy({ title: r.title, text: buildShareText({ kind: 'routine', title: r.title, url, from: settings.userName, lang }) }, lang === 'en' ? 'Link copied – send it to the other person.' : 'Link kopiert – schick ihn der anderen Person.');
+  }
 
   function remove(r: Routine) {
     if (!window.confirm(rt.removeConfirm)) return;
@@ -69,6 +78,7 @@ export function RoutinesGardenPage() {
         <Button variant="secondary" fullWidth icon={<Plus size={17} />} onClick={() => navigate('/entdecken/routinen/neu')} className="mb-5" data-testid="routine-new">
           {rt.newRoutine}
         </Button>
+        <PasteSharedButton className="mb-5" />
 
         <div className="mb-6" data-testid="routine-templates">
           <button type="button" onClick={() => setTplOpen((o) => !o)} aria-expanded={tplOpen} className="w-full flex items-center justify-between text-left rounded-[var(--radius-lg)] px-4 py-3 bg-[var(--color-surface-muted)]" data-testid="routine-templates-toggle">
@@ -146,6 +156,7 @@ export function RoutinesGardenPage() {
                     <div className="flex-1" />
                     <FavStar kind="routine" id={r.id} size={17} className="!w-9 !h-9" testId={`routine-fav-${r.id}`} />
                     <button type="button" onClick={() => setHistoryId(historyId === r.id ? null : r.id)} aria-label={rt.history} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44"><History size={16} /></button>
+                    <button type="button" onClick={() => void sendRoutine(r)} aria-label={lang === 'en' ? 'Send routine' : 'Routine verschicken'} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44" data-testid={`routine-send-${r.id}`}><Send size={16} /></button>
                     <button type="button" onClick={() => navigate(`/entdecken/routinen/${r.id}/bearbeiten`)} aria-label={rt.edit} className="p-2 rounded-full text-[var(--color-text-muted)] hover:bg-[var(--color-surface-muted)] hit44" data-testid={`routine-edit-${r.id}`}><Pencil size={16} /></button>
                     <button type="button" onClick={() => remove(r)} aria-label={rt.remove} className="p-2 rounded-full text-[var(--color-danger)] hover:bg-[var(--color-danger-soft)] hit44"><Trash2 size={16} /></button>
                   </div>

@@ -600,6 +600,8 @@ export interface TierLinkedItems {
   resourceIds: string[];
   bridgeIds: string[];
   contactIds: string[];
+  /** Routinen, die in dieser Stufe vorgeschlagen werden (optional – ältere Pläne haben das Feld nicht) */
+  routineIds?: string[];
 }
 
 export interface SafetyPlan {

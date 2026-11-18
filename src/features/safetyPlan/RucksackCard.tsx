@@ -1,3 +1,4 @@
+import { CommCardsShortcut } from '../nonverbal/CommCardsShortcut';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
@@ -73,6 +74,8 @@ export function RucksackCard() {
                 <RucksackPlayButton onClick={() => setPlaying(true)} />
                 <Link to={`/listen/${list.id}`} className="h-12 px-5 rounded-full border border-[var(--color-border-strong)] inline-flex items-center text-[14.5px] text-[var(--color-text)]" data-testid="rucksack-open-list">{L('Als Liste öffnen', 'Open as list')}</Link>
               </div>
+              <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed">{L('Auch deine Kommunikationskarten gehören in den Rucksack – du kannst sie beim Durchgehen zeigen.', 'Your communication cards belong in the backpack too – you can show them while going through.')}</p>
+              <CommCardsShortcut />
               {st.lastPacked && (
                 <p className="text-[12.5px] text-[var(--color-text-muted)] leading-relaxed" data-testid="rucksack-lastpacked">
                   {L(`Zuletzt gepackt am ${packedAt}: ${st.lastPacked.packed.length} eingepackt${st.lastPacked.notPacked.length ? `, ${st.lastPacked.notPacked.length} nicht dabei` : ''}. Das steht im PDF, wenn „Notfallrucksack“ dort angehakt ist.`, `Last packed on ${packedAt}: ${st.lastPacked.packed.length} packed${st.lastPacked.notPacked.length ? `, ${st.lastPacked.notPacked.length} not with me` : ''}. It appears in the PDF when “Emergency backpack” is ticked there.`)}

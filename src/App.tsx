@@ -1,3 +1,6 @@
+import { RoutineImportPage } from './features/routines/RoutineImportPage';
+import { NonverbalHubPage, StatusPage } from './features/nonverbal/NonverbalPages';
+import { CommCardsPage } from './features/nonverbal/CommCardsPage';
 import { SearchPage } from './features/search/SearchPage';
 import { LockGate } from './features/lock/LockGate';
 import { ParkboxPage } from './features/parkbox/ParkboxPage';
@@ -182,6 +185,7 @@ function App() {
                 <Route path="/tag-beginnen" element={<DayFlowPage phase="start" />} />
                 <Route path="/tag-abschliessen" element={<DayFlowPage phase="end" />} />
                 <Route path="/entdecken/routinen" element={<Navigate to="/entdecken/garten" replace />} />
+                <Route path="/entdecken/routinen/importieren" element={<RoutineImportPage />} />
                 <Route path="/entdecken/routinen/neu" element={<RoutineEditorPage />} />
                 <Route path="/entdecken/routinen/:id/bearbeiten" element={<RoutineEditorPage />} />
                 <Route path="/entdecken/routinen/:id/start" element={<RoutinePlayerPage />} />
@@ -195,6 +199,9 @@ function App() {
                 <Route path="/sicherheit/netzwerk" element={<SafetyNetPage />} />
                 <Route path="/sicherheit/kontakte" element={<KontaktePage />} />
                 <Route path="/sicherheit/plan" element={<SafetyPlanPage />} />
+                <Route path="/sicherheit/nonverbal" element={<NonverbalHubPage />} />
+                <Route path="/sicherheit/nonverbal/status" element={<StatusPage />} />
+                <Route path="/sicherheit/nonverbal/karten" element={<CommCardsPage />} />
                 <Route path="/sicherheit/tagebuch" element={<DiaryPage />} />
 
                 <Route path="/einstellungen" element={<SettingsPage />} />

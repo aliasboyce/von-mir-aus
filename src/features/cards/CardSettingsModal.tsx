@@ -98,6 +98,10 @@ export function CardSettingsModal({ onClose }: { onClose: () => void }) {
           <input type="checkbox" checked={!!prefs.printBacks} onChange={(e) => setPrefs(patchPrefs({ printBacks: e.target.checked }))} />
           {L('Beim Drucken auch die Rückseiten (zum doppelseitigen Drucken)', 'Also print the backs (for double-sided printing)')}
         </label>
+        <label className="flex items-center gap-2 text-[14px] mt-3">
+          <input type="checkbox" checked={!prefs.hideWordCards} onChange={(e) => setPrefs(patchPrefs({ hideWordCards: !e.target.checked }))} data-testid="card-wordcards-toggle" />
+          {L('Fertige Wort-Karten zeigen (Körper, Gefühle, Werte, Bedürfnisse, Zugangskanäle)', 'Show ready-made word cards (body, feelings, values, needs, access channels)')}
+        </label>
         {prefs.hidden.length > 0 && (
           <button type="button" onClick={() => setPrefs(patchPrefs({ hidden: [] }))} className="text-[13px] text-[var(--color-primary)] text-left">
             {L(`${prefs.hidden.length} ausgeblendete Karten wieder zeigen`, `Show ${prefs.hidden.length} hidden cards again`)}
