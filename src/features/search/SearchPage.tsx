@@ -7,6 +7,8 @@ import { Modal } from '../../components/ui/Modal';
 import { MarkdownLite } from '../../components/shared/MarkdownLite';
 import { createKeyValueStore } from '../../services/storage/keyValueStore';
 import { useL } from '../projects/useL';
+import { useT } from '../../i18n';
+import { useSettings } from '../../state/SettingsContext';
 import { HELP_CONTENT } from '../../components/navigation/helpContent';
 import { buildSearchIndex, type IndexEntry, type HitKind } from './searchIndex';
 import { queryTokens, scoreDoc, snippetFor } from './searchEngine';
@@ -56,6 +58,8 @@ function Marked({ text, marks }: { text: string; marks: [number, number][] }) {
 
 export function SearchPage() {
   const { L, lang } = useL();
+  const tr = useT();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState('');
@@ -70,8 +74,8 @@ export function SearchPage() {
 
   // Index frisch aus dem Speicher bauen (nach dem ersten Zeichnen, damit die Seite sofort da ist)
   useEffect(() => {
-    const t = window.setTimeout(() => setIndex(buildSearchIndex()), 20);
-    return () => window.clearTimeout(t);
+    const timer = window.setTimeout(() => setIndex(buildSearchIndex({ t: tr, lang: settings.language === 'en' ? 'en' : 'de', settings })), 20);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -92,13 +96,14 @@ export function SearchPage() {
   const shown = full.length ? full : similar;
   const isSimilarOnly = !full.length && similar.length > 0;
 
-  const counts: Record<HitKind, number> = { func: 0, data: 0, help: 0 };
+  const counts: Record<HitKind, number> = { func: 0, data: 0, help: 0, word: 0 };
   shown.forEach((h) => counts[h.entry.kind]++);
 
   const sections: { kind: HitKind; title: string }[] = [
     { kind: 'func', title: L('Funktionen der App', 'App functions') },
     { kind: 'data', title: L('Von dir geschrieben', 'Written by you') },
     { kind: 'help', title: L('Anleitungen', 'Guides') },
+    { kind: 'word', title: L('Wörter erklärt', 'Words explained') },
   ];
 
   function remember(text: string) {

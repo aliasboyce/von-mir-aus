@@ -8,6 +8,8 @@ import { createId } from '../../services/storage/repository';
 import { routinesRepo } from '../routines/routinesRepo';
 import { projectsRepo, emojiOf } from '../projects/projectModel';
 import { PROJECT_CATEGORY_ID } from '../projects/projectCalendar';
+import { routineSchedulesRepo, type SchedulePattern } from '../routines/routineSchedule';
+import { SchedulePicker, TimeQuick } from '../routines/SchedulePicker';
 import { appointmentsRepo, calendarCategoriesRepo, dayKey, type Appointment } from './calendarRepo';
 
 export const ROUTINE_CATEGORY_ID = 'cal_routinen';
@@ -32,7 +34,7 @@ export function planInfo(a: Appointment): { emoji: string; label: string; color:
   return { emoji: p ? emojiOf(p) : '🧩', label: 'Projekt', color: p?.color ?? '#4a8f9e', open: `/entdecken/projekte/${a.plan.refId}`, openLabelDe: 'Öffnen', openLabelEn: 'Open', exists: !!p };
 }
 
-type Repeat = 'once' | 'daily' | 'weekly';
+type Repeat = 'once' | 'daily' | 'weekly' | 'rule';
 
 /**
  * Eine Routine oder ein Projekt im Kalender einplanen (neu oder ändern).
@@ -51,6 +53,8 @@ export function PlanSheet({ kind, day, existing, onClose, onSaved }: { kind: 'ro
   const [time, setTime] = useState(existing?.time ?? (kind === 'routine' ? '08:00' : '10:00'));
   const [reminder, setReminder] = useState<number | null>(existing ? existing.reminderMinutes ?? null : null);
   const [repeat, setRepeat] = useState<Repeat>('once');
+  const [pattern, setPattern] = useState<SchedulePattern>({ kind: 'daily' });
+  const [remindHome, setRemindHome] = useState(true);
   const chosen = options.find((o) => o.id === refId);
   const info = existing ? planInfo(existing) : null;
 
@@ -73,7 +77,11 @@ export function PlanSheet({ kind, day, existing, onClose, onSaved }: { kind: 'ro
       updatedAt: now,
     });
     let first: Appointment;
-    if (existing || repeat === 'once') {
+    if (!existing && kind === 'routine' && repeat === 'rule') {
+      // wiederkehrend: eine Regel statt vieler einzelner Termine
+      routineSchedulesRepo.save({ id: createId('sched'), routineId: chosen.id, time, pattern, startDate: date, remindHome, handled: [], createdAt: now });
+      first = make(date);
+    } else if (existing || repeat === 'once') {
       first = make(date);
       appointmentsRepo.save(first);
     } else {
@@ -120,6 +128,7 @@ export function PlanSheet({ kind, day, existing, onClose, onSaved }: { kind: 'ro
               <label className="block"><span className={lbl}>{L('Tag', 'Day')}</span><input type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} data-testid="plan-date" /></label>
               <label className="block"><span className={lbl}>{L('Uhrzeit', 'Time')}</span><input type="time" className="input" value={time} onChange={(e) => setTime(e.target.value)} data-testid="plan-time" /></label>
             </div>
+            {kind === 'routine' && <TimeQuick time={time} onChange={setTime} />}
             <label className="block">
               <span className={lbl}>{L('Erinnerung (ins Postfach)', 'Reminder (to the Postfach)')}</span>
               <select className="input" value={reminder === null ? 'none' : String(reminder)} onChange={(e) => setReminder(e.target.value === 'none' ? null : Number(e.target.value))} data-testid="plan-reminder">
@@ -134,10 +143,22 @@ export function PlanSheet({ kind, day, existing, onClose, onSaved }: { kind: 'ro
               <div>
                 <span className={lbl}>{L('Wie oft?', 'How often?')}</span>
                 <div className="flex gap-1.5 flex-wrap">
-                  {([['once', L('Einmal', 'Once')], ['daily', L('Jeden Tag (7 Tage)', 'Every day (7 days)')], ['weekly', L('Jede Woche (4 Wochen)', 'Every week (4 weeks)')]] as [Repeat, string][]).map(([k, t]) => (
+                  {(kind === 'routine'
+                    ? ([['once', L('Einmal', 'Once')], ['rule', L('Wiederkehrend', 'Repeating')]] as [Repeat, string][])
+                    : ([['once', L('Einmal', 'Once')], ['daily', L('Jeden Tag (7 Tage)', 'Every day (7 days)')], ['weekly', L('Jede Woche (4 Wochen)', 'Every week (4 weeks)')]] as [Repeat, string][])
+                  ).map(([k, t]) => (
                     <button key={k} type="button" onClick={() => setRepeat(k)} className={pill(repeat === k)} style={repeat === k ? { background: 'var(--color-primary)' } : undefined} data-testid={`plan-repeat-${k}`}>{t}</button>
                   ))}
                 </div>
+                {kind === 'routine' && repeat === 'rule' && (
+                  <div className="mt-3 flex flex-col gap-3">
+                    <SchedulePicker pattern={pattern} onChange={setPattern} />
+                    <label className="flex items-start gap-2 text-[13.5px] min-h-[44px]">
+                      <input type="checkbox" className="mt-1" checked={remindHome} onChange={(e) => setRemindHome(e.target.checked)} data-testid="plan-remind-home" />
+                      <span>{L('Auf der Startseite erinnern: „Jetzt ist es … Uhr – Zeit für deine Routine“', 'Remind me on the start page: “It is … – time for your routine”')}<span className="block text-[12px] text-[var(--color-text-faint)]">{L('Nur wenn die App offen ist. Ohne Druck: „Heute nicht“ ist immer möglich.', 'Only while the app is open. No pressure: “Not today” is always possible.')}</span></span>
+                    </label>
+                  </div>
+                )}
               </div>
             )}
           </>

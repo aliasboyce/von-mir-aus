@@ -8,6 +8,7 @@ import { valueCardFor } from '../wertekompass/wertekompassData';
 import { ACCESS_CHANNEL_META, ACCESS_CHANNEL_ORDER } from '../zugangskanaele/accessChannels';
 import { CHANNEL_EXAMPLES } from '../zugangskanaele/channelExamples';
 import type { AccessChannel } from '../../data/types';
+import { buildEchoIndex, echoLines } from './wordEcho';
 import { FEELING_WORD_DE, NEED_WORD_DE } from './wordDescriptions';
 import type { CardModel } from './cardTypes';
 import type { BuildCtx } from './autoCards';
@@ -62,6 +63,8 @@ export function buildWordDrafts(ctx: BuildCtx): Draft[] {
   const en = lang === 'en';
   const L = (de: string, e: string) => (en ? e : de);
   const out: Draft[] = [];
+  const echo = buildEchoIndex();
+  const echoDetail = (kind: 'koerper' | 'gefuehl' | 'beduerfnis', w: string) => { const x = echoLines(echo, kind, w, lang); return x ? [{ label: L('Das kennst du schon', 'You already know this'), text: x }] : []; };
   let i = 0;
   const at = () => `${LATE}-${String(i++).padStart(4, '0')}`;
 
@@ -77,6 +80,7 @@ export function buildWordDrafts(ctx: BuildCtx): Draft[] {
       text: desc,
       details: [
         ...(desc ? [{ label: L('Das kann bedeuten', 'This can mean'), text: desc }] : []),
+        ...echoDetail('koerper', term),
         ...(band ? [{ label: L('Erregungs-Zone', 'Arousal zone'), text: `${t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones].label}: ${t.polyvagal.arousalZones[band.labelKey as keyof typeof t.polyvagal.arousalZones].hint}` }] : []),
       ],
       emoji: '🫀',
@@ -124,6 +128,7 @@ export function buildWordDrafts(ctx: BuildCtx): Draft[] {
         text,
         details: [
           ...(text ? [{ label: L('Das kann bedeuten', 'This can mean'), text }] : []),
+          ...echoDetail('gefuehl', w),
           { label: L('Gefühlsfamilie', 'Feeling family'), text: en ? g.labelEn : g.label },
           ...(d ? [{ label: L('Im Körper oft', 'Often in the body'), text: (en ? d.bodySensationsEn : d.bodySensations).join(', ') }] : []),
         ],
@@ -172,6 +177,7 @@ export function buildWordDrafts(ctx: BuildCtx): Draft[] {
         text: en ? undefined : desc,
         details: [
           ...(!en && desc ? [{ label: L('Was das ist', 'What it is'), text: desc }] : []),
+          ...echoDetail('beduerfnis', w),
           { label: L('Bedürfnisfamilie', 'Need family'), text: `${g.emoji} ${en ? g.labelEn : g.label}` },
         ],
         emoji: g.emoji,

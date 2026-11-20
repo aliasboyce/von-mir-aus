@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { DuplicateHint } from '../../components/shared/DuplicateHint';
+import { findSimilar } from '../../services/duplicates';
+import { resourcesRepo } from './resourcesRepo';
 import { networkRepo } from '../safetyNet/networkRepo';
 import { NeedsMultiPicker } from '../../components/shared/NeedsMultiPicker';
 import type { NeedDirection } from '../../data/types';
@@ -135,6 +138,7 @@ export function HilfsmittelFormModal({ open, resource, onClose, onSave, kind = '
       <div className="flex flex-col gap-4 pb-2">
         <Field label={K.name}>
           <input autoFocus className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <DuplicateHint found={findSimilar(title, resourcesRepo.getAll().filter((r) => r.id !== resource?.id).map((r) => ({ text: r.title })))?.text} />
         </Field>
 
         <Field label={t.resources.hilfsmittelSubtitleLabel}>

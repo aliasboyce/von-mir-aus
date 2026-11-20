@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { DuplicateHint } from '../../components/shared/DuplicateHint';
+import { findSimilar } from '../../services/duplicates';
 import { VoiceNoteRecorder } from '../../components/shared/VoiceNoteRecorder';
 import { resizeImageFile } from '../../services/imageResize';
 import { Upload, Trash2 } from 'lucide-react';
@@ -153,6 +155,7 @@ export function SkillFormModal({ open, resource, onClose, onSave }: SkillFormMod
       <div className="flex flex-col gap-4 pb-2">
         <Field label={t.resources.skillNameLabel}>
           <input autoFocus className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <DuplicateHint found={findSimilar(title, resourcesRepo.getAll().filter((r) => r.id !== resource?.id).map((r) => ({ text: r.title })))?.text} />
         </Field>
 
         <Field label={t.resources.skillSubtitleLabel}>

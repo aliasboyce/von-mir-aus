@@ -81,6 +81,7 @@ export const ALL_STORAGE_KEYS: string[] = [
   'scrapbook-layouts',
   'scrapbook-last',
   'comm-cards',
+  'routine-schedules',
   'comm-cards-seeded',
   'status-cards',
   'status-cards-seeded',

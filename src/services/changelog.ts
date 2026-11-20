@@ -16,6 +16,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    id: '2026-11-kalender-routinen',
+    date: '2026',
+    items: [
+      'Kalender: Routinen lassen sich wiederkehrend einplanen – jeden Tag, jeden Abend, jeden 2. Tag, 1× bis 5× pro Woche oder an bestimmten Wochentagen. Pausieren und ändern geht jederzeit, im Kalender startest du die Routine direkt.',
+      'Neu: „Tag groß“ – der aktuelle Tag füllt den ganzen Bildschirm, mit Uhrzeiten, Terminen und Routinen zum Starten.',
+      'Startseite: Wenn du möchtest, erinnert dich ein ruhiger Hinweis „Jetzt ist es … Uhr – Zeit für deine Routine“. Mit „Heute nicht“ ist es erledigt, ohne Folgen.',
+      'Wörter erklärt: In der Suche findest du jetzt Begriffe aus dem Sammelalbum; die Karten zeigen „Das kennst du schon“, wenn du das Wort schon einmal benutzt hast. Doppelte Hilfsmittel, Fertigkeiten und Personen werden leise angemerkt.',
+    ],
+    itemsEn: [
+      'Calendar: routines can be scheduled to repeat – daily, every evening, every 2nd day, 1–5× a week or on chosen weekdays. Pause or change anytime; start the routine right from the calendar.',
+      'New: “Big day” – today fills the whole screen, with times, appointments and routines you can start.',
+      'Home: if you like, a calm note says “It is … – time for your routine”. “Not today” closes it without consequences.',
+      'Words explained: search now finds terms from the collection album; cards show “You know this already” if you have used the word before. Duplicate resources, skills and people are noted quietly.',
+    ],
+  },
+  {
     id: '2026-11-stillstand-nonverbal',
     date: '2026',
     items: [

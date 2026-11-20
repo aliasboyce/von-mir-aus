@@ -1,4 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
+import { DuplicateHint } from '../../components/shared/DuplicateHint';
+import { findSimilar } from '../../services/duplicates';
+import { networkRepo } from './networkRepo';
 import { RESOURCE_CATEGORY_TO_GROUP } from '../resources/resourceMeta';
 import { Plus, X, Upload } from 'lucide-react';
 import { Chip } from '../../components/ui/Chip';
@@ -126,6 +129,7 @@ export function NetworkEntryForm({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
           required
         />
+        <DuplicateHint found={findSimilar(draft.name, networkRepo.getAll().filter((x) => x.id !== draft.id).map((x) => ({ text: x.name })))?.text} />
       </Field>
 
       <Field label={t.network.roleLabel}>

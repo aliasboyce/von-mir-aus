@@ -4,6 +4,7 @@ import { Plus, Settings2, Printer, Moon, Star, Sparkles } from 'lucide-react';
 import { MemoryFamily } from '../../components/shared/MemoryFamily';
 import { TopBar } from '../../components/navigation/TopBar';
 import { useT } from '../../i18n';
+import { useSearchParams } from 'react-router-dom';
 import { useSettings } from '../../state/SettingsContext';
 import { useL } from '../projects/useL';
 import { buildAllCards } from './autoCards';
@@ -30,7 +31,8 @@ export function AlbumPage() {
   const { L, lang } = useL();
   const { settings } = useSettings();
   const [version, setVersion] = useState(0);
-  const [chapterId, setChapterId] = useState<string>('all');
+  const [qs] = useSearchParams();
+  const [chapterId, setChapterId] = useState<string>(qs.get('kapitel') ?? 'all');
   const [page, setPage] = useState(0);
   const [viewer, setViewer] = useState<number | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -75,7 +77,12 @@ export function AlbumPage() {
   }, []);
   const perPage = wide ? 6 : 4;
   const pageCount = 1 + Math.max(1, Math.ceil(shown.length / perPage));
-  useEffect(() => setPage(0), [chapterId, perPage]);
+  const wantWord = qs.get('wort');
+  useEffect(() => {
+    // aus der Lupe: direkt auf die Seite mit dem gesuchten Wort springen
+    const idx = wantWord ? shown.findIndex((c) => c.title === wantWord) : -1;
+    setPage(idx >= 0 ? 1 + Math.floor(idx / perPage) : 0);
+  }, [chapterId, perPage, wantWord]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function printCards(list: CardModel[]) {
     if (busy || list.length === 0) return;

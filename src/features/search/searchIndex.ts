@@ -10,8 +10,10 @@ import { richToPlain } from '../../services/richText';
 import { isBookLocked } from '../diary/bookLock';
 import { OVERVIEW_KEYWORDS, STATIC_FUNCS } from './searchKeywords';
 import { buildDoc, type SearchDoc } from './searchEngine';
+import { buildWordDrafts } from '../cards/wordCards';
+import type { BuildCtx } from '../cards/autoCards';
 
-export type HitKind = 'func' | 'help' | 'data';
+export type HitKind = 'func' | 'help' | 'data' | 'word';
 
 export interface IndexEntry {
   id: string;
@@ -243,6 +245,32 @@ export function collectHelp(): IndexEntry[] {
   return out;
 }
 
-export function buildSearchIndex(): IndexEntry[] {
-  return [...collectFunctions(), ...collectUserData(), ...collectHelp()];
+/** Wort-Karten (Gefühle, Körper, Bedürfnisse, Werte, Zugangskanäle): „Was bedeutet das Wort?“ direkt in der Lupe */
+export function collectWords(ctx: BuildCtx): IndexEntry[] {
+  const lang = ctx.lang;
+  try {
+    return buildWordDrafts(ctx)
+      .filter((d) => !d.key.includes(':group-'))
+      .map((d) => {
+        const eid = `word:${d.key}`;
+        const body = [d.text ?? '', d.subtitle ?? ''].filter(Boolean).join(' · ');
+        return {
+          id: eid,
+          kind: 'word' as const,
+          emoji: d.emoji ?? '🃏',
+          group: { de: 'Wort-Karte', en: 'Word card' },
+          title: { de: d.title, en: d.title },
+          body: { de: body, en: body },
+          to: `/sammelalbum?kapitel=${d.kind}&wort=${encodeURIComponent(d.title)}`,
+          doc: buildDoc(eid, d.title, body),
+        };
+      })
+      .filter(() => lang === 'de' || lang === 'en');
+  } catch {
+    return [];
+  }
+}
+
+export function buildSearchIndex(ctx?: BuildCtx): IndexEntry[] {
+  return [...collectFunctions(), ...collectUserData(), ...collectHelp(), ...(ctx ? collectWords(ctx) : [])];
 }

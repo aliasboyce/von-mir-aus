@@ -2,6 +2,8 @@ import { HintCard } from '../../components/hints/HintCard';
 import { HomeWays } from './HomeWays';
 import { nextTip } from '../../services/hintCards';
 import { StillnessMode } from '../nurJetzt/StillnessMode';
+import { dueSchedule, markHandled } from '../routines/routineSchedule';
+import { routinesRepo } from '../routines/routinesRepo';
 import { scopeOf } from '../../services/scope';
 import { ScopePicker } from '../scope/ScopePicker';
 import { Modal } from '../../components/ui/Modal';
@@ -108,6 +110,12 @@ export function HomePage() {
   const pendingToken = pendingLetterStore.get();
   const isEn = settings.language === 'en';
   const [backupDue, setBackupDue] = useState(() => backupReminderDue(Date.now(), settings.backupReminder !== false));
+  // Routine zur eingeplanten Uhrzeit: eine ruhige Karte, kein Druck („Heute nicht“ geht immer)
+  const [dueRoutine, setDueRoutine] = useState(() => dueSchedule());
+  useEffect(() => {
+    const id = window.setInterval(() => setDueRoutine(dueSchedule()), 30000);
+    return () => window.clearInterval(id);
+  }, []);
   const [dueCustomReminders, setDueCustomReminders] = useState<CustomReminder[]>(() => getDueCustomReminders());
 
   // Test phase: the companion thanks the testers once (after the intro/tour, never in the middle of it).
@@ -222,6 +230,27 @@ export function HomePage() {
       ),
     });
   }
+  if (dueRoutine) {
+    const r = routinesRepo.getById(dueRoutine.routineId);
+    if (r) {
+      const todayKey = (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`; })();
+      notices.push({
+        key: 'routine',
+        node: (
+          <Card padding="md" className="animate-in" style={{ borderColor: r.color, borderWidth: 1.5 }} data-testid="due-routine">
+            <p className="text-[14px] text-[var(--color-text)] leading-relaxed">
+              <span aria-hidden="true">{r.emoji} </span>
+              {isEn ? `It is ${dueRoutine.time} – time for your routine “${r.title}”.` : `Jetzt ist es ${dueRoutine.time} Uhr – Zeit für deine Routine „${r.title}“.`}
+            </p>
+            <div className="flex gap-2 mt-3">
+              <Button size="sm" onClick={() => { markHandled(dueRoutine.id, todayKey); setDueRoutine(null); homeNav(`/entdecken/routinen/${r.id}/start`); }} data-testid="due-routine-start">{isEn ? 'Start' : 'Starten'}</Button>
+              <Button size="sm" variant="ghost" onClick={() => { markHandled(dueRoutine.id, todayKey); setDueRoutine(null); }} data-testid="due-routine-not-today">{isEn ? 'Not today' : 'Heute nicht'}</Button>
+            </div>
+          </Card>
+        ),
+      });
+    }
+  }
   if (pendingToken) {
     notices.push({
       key: 'pending',
@@ -303,7 +332,7 @@ export function HomePage() {
     });
   }
   // letters first, then the rare backup reminder, then everything else
-  const rank = (k: string) => (k === 'slip' ? -1 : k === 'letter' ? 0 : k === 'pending' ? 1 : k === 'backup' ? 2 : 3);
+  const rank = (k: string) => (k === 'slip' ? -1 : k === 'letter' ? 0 : k === 'routine' ? 0.5 : k === 'pending' ? 1 : k === 'backup' ? 2 : 3);
   const shownNotices = settings.tourActive ? [] : [...notices].sort((x, y) => rank(x.key) - rank(y.key));
 
   const chip = 'flex items-center justify-center gap-2 px-3 py-2.5 min-h-[44px] rounded-[var(--radius-lg)] text-[13px] text-[var(--color-text-muted)] border border-[var(--color-border)]';

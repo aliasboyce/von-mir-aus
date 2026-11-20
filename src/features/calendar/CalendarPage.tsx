@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { buildAppointmentsIcs } from '../../services/icsExport';
 import { deliverTextFile } from '../../services/fileShare';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Tag, ListOrdered, Check, X, CalendarPlus, CalendarDays, Sprout, FolderKanban, Info, Play, ArrowRight } from 'lucide-react';
+import { Maximize2, Plus, Tag, ListOrdered, Check, X, CalendarPlus, CalendarDays, Sprout, FolderKanban, Info, Play, ArrowRight } from 'lucide-react';
 import { TopBar } from '../../components/navigation/TopBar';
 import { HelpButton } from '../../components/navigation/HelpButton';
 import { MoreMenu } from '../../components/ui/MoreMenu';
@@ -18,6 +18,10 @@ import { CategoriesModal } from './CategoriesModal';
 import { useL } from '../projects/useL';
 import { SlipsHere } from '../parkbox/SlipsHere';
 import { PushHintModal } from './PushHintModal';
+import { DayFullView } from './DayFullView';
+import { ScheduleEditSheet } from '../routines/ScheduleEditSheet';
+import { describePattern, markHandled, schedulesOnDay, type RoutineSchedule } from '../routines/routineSchedule';
+import { routinesRepo } from '../routines/routinesRepo';
 import {
   appointmentsOnDay,
   appointmentsRepo,
@@ -65,6 +69,8 @@ export function CalendarPage() {
   const planParam = searchParams.get('plan');
   const [plan, setPlan] = useState<{ kind: 'routine' | 'project'; existing?: Appointment } | null>(planParam === 'routine' || planParam === 'project' ? { kind: planParam } : null);
   const [info, setInfo] = useState<'ics' | 'intent' | null>(null);
+  const [dayFull, setDayFull] = useState(false);
+  const [schedEdit, setSchedEdit] = useState<RoutineSchedule | null>(null);
   const [wishText, setWishText] = useState('');
   const [wishIntent, setWishIntent] = useState<'will' | 'soll' | undefined>(undefined);
   const [wishHintOpen, setWishHintOpen] = useState(false);
@@ -76,6 +82,9 @@ export function CalendarPage() {
   const people = networkRepo.getAll().filter((e) => e.category === 'person');
   const colorOf = (a: Appointment) => categories.find((c) => c.id === a.categoryId)?.color ?? 'var(--color-text-faint)';
   const dayAppointments = appointmentsOnDay(selected);
+  const daySchedules = schedulesOnDay(selected);
+  type TItem = { time: string; a?: Appointment; s?: RoutineSchedule };
+  const timeline: TItem[] = [...dayAppointments.map((a) => ({ time: a.time, a })), ...daySchedules.map((s) => ({ time: s.time, s }))].sort((x, y) => x.time.localeCompare(y.time));
   const dayWishes = wishesOnDay(selected);
 
   async function exportIcs() {
@@ -163,6 +172,7 @@ export function CalendarPage() {
             const isSelected = key === selected;
             const list = appointmentsOnDay(key);
             const wishCount = wishesOnDay(key).length;
+            const schedList = schedulesOnDay(key);
             return (
               <button
                 key={key}
@@ -187,7 +197,14 @@ export function CalendarPage() {
                     {list.length > 1 && <span className="text-[9px] text-[var(--color-text-faint)] leading-none mt-0.5">+{list.length - 1}</span>}
                   </span>
                 )}
-                {wishCount > 0 && list.length === 0 && <span className="text-[9px] text-[var(--color-accent-clay)] mt-1 leading-none">♡ {wishCount}</span>}
+                {list.length === 0 && schedList[0] && (
+                  <span className="flex flex-col items-center w-full mt-1 leading-tight min-w-0" data-testid="day-preview-routine">
+                    <span className="text-[10px] tabular-nums font-medium" style={{ color: routinesRepo.getById(schedList[0].routineId)?.color }}>{schedList[0].time}</span>
+                    <span className="block w-full truncate text-[9.5px] text-[var(--color-text-muted)]">{routinesRepo.getById(schedList[0].routineId)?.emoji} {routinesRepo.getById(schedList[0].routineId)?.title}</span>
+                    {schedList.length > 1 && <span className="text-[9px] text-[var(--color-text-faint)] leading-none mt-0.5">+{schedList.length - 1}</span>}
+                  </span>
+                )}
+                {wishCount > 0 && list.length === 0 && schedList.length === 0 && <span className="text-[9px] text-[var(--color-accent-clay)] mt-1 leading-none">♡ {wishCount}</span>}
               </button>
             );
           })}
@@ -205,14 +222,35 @@ export function CalendarPage() {
         <div className="mb-6" />
 
         {/* the selected day */}
-        <h2 className="text-[17px] mb-3">
-          {selected === todayKey ? `${t.calendar.today} · ` : ''}
-          {parseDay(selected).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
-        </h2>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <h2 className="text-[17px]">
+            {selected === todayKey ? `${t.calendar.today} · ` : ''}
+            {parseDay(selected).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })}
+          </h2>
+          <button type="button" onClick={() => setDayFull(true)} className="flex items-center gap-1.5 px-3 min-h-[44px] rounded-full border border-[var(--color-border-strong)] text-[13px] text-[var(--color-text-muted)] shrink-0" data-testid="cal-day-big"><Maximize2 size={15} />{L('Tag groß', 'Day large')}</button>
+        </div>
 
         <div className="flex flex-col gap-2.5 mb-3">
-          {dayAppointments.length === 0 && <p className="text-[13px] text-[var(--color-text-faint)]">{t.calendar.nothingToday}</p>}
-          {dayAppointments.map((a) => {
+          {timeline.length === 0 && <p className="text-[13px] text-[var(--color-text-faint)]">{t.calendar.nothingToday}</p>}
+          {timeline.map((it) => {
+            if (it.s) {
+              const sc = it.s;
+              const r = routinesRepo.getById(sc.routineId);
+              const color = r?.color ?? '#6fbf73';
+              return (
+                <div key={`s-${sc.id}`} className="flex items-stretch rounded-[22px] overflow-hidden" style={{ background: `${color}1f`, border: `2px dashed ${color}` }} data-testid="sched-card">
+                  <button onClick={() => setSchedEdit(sc)} className="flex-1 min-w-0 text-left flex items-center gap-3 p-3.5" data-testid="sched-card-edit">
+                    <span className="w-11 h-11 rounded-full flex items-center justify-center text-[22px] shrink-0" style={{ background: `${color}40` }} aria-hidden>{r?.emoji ?? '🌱'}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[11.5px] tabular-nums text-[var(--color-text-muted)]">🔁 {L('Routine', 'Routine')} · {sc.time} · {describePattern(sc, lang)}</span>
+                      <span className="block text-[15.5px] text-[var(--color-text)] leading-snug">{r?.title}</span>
+                    </span>
+                  </button>
+                  <button onClick={() => { markHandled(sc.id, selected); navigate(`/entdecken/routinen/${sc.routineId}/start`); }} className="shrink-0 w-[76px] flex flex-col items-center justify-center gap-0.5 text-[12px]" style={{ background: `${color}33`, color: 'var(--color-text)' }} data-testid="sched-card-go"><Play size={18} />{L('Starten', 'Start')}</button>
+                </div>
+              );
+            }
+            const a = it.a as Appointment;
             const person = a.personId ? people.find((p) => p.id === a.personId) : undefined;
             const carry = carryNotesFor(a);
             const pi = planInfo(a);
@@ -381,6 +419,8 @@ export function CalendarPage() {
         </Modal>
       )}
       {categoriesOpen && <CategoriesModal open onClose={() => setCategoriesOpen(false)} onChanged={refresh} />}
+      {schedEdit && <ScheduleEditSheet schedule={schedEdit} day={selected} onClose={() => setSchedEdit(null)} onChanged={refresh} />}
+      {dayFull && <DayFullView day={selected} todayKey={todayKey} onClose={() => setDayFull(false)} onEditAppt={(a) => { setDayFull(false); openEdit(a); }} onEditSched={(sc) => { setDayFull(false); setSchedEdit(sc); }} />}
       <PushHintModal open={wishHintOpen} onConfirm={confirmWishHint} />
     </div>
   );
